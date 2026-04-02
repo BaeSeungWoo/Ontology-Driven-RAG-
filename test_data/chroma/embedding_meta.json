@@ -1,0 +1,5 @@
+{
+  "factory_id": "TEST",
+  "embedding_model": "test-embed",
+  "embedding_base_url": "http://localhost:11434"
+}

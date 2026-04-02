@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# 테스트
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# Claude
+.claude/
+
+# 환경 변수
+.env
+.env.*
+
+# 가상환경
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 데이터 / DB
+data/
+*.chroma

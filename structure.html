@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAFF RAG System — Architecture</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Pretendard:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg:       #0d0f14;
+    --bg2:      #13161e;
+    --bg3:      #1a1d28;
+    --border:   #2a2d3a;
+    --border2:  #363a4f;
+    --text:     #e2e4ef;
+    --muted:    #6b7094;
+    --teal:     #2dd4bf;
+    --teal-dim: #0f4a44;
+    --teal-bg:  #0a2e2b;
+    --purple:   #a78bfa;
+    --purple-dim:#3d2d6e;
+    --purple-bg: #1e1535;
+    --amber:    #fbbf24;
+    --amber-dim:#4a3500;
+    --amber-bg: #231a00;
+    --coral:    #fb7185;
+    --coral-bg: #2d0d14;
+    --gray:     #94a3b8;
+    --gray-bg:  #1a1e2a;
+    --shared:   #38bdf8;
+    --shared-bg:#0c2233;
+    --green:    #4ade80;
+    --radius:   10px;
+    --mono:     'JetBrains Mono', monospace;
+    --sans:     'Pretendard', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    min-height: 100vh;
+    padding: 40px 32px;
+    line-height: 1.5;
+  }
+
+  /* ── header ── */
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 40px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .project-name {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--teal);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .project-desc {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .legend {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+  .legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  /* ── layout grid ── */
+  .arch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto auto auto;
+    gap: 12px;
+  }
+
+  /* ── shared zone ── */
+  .shared-zone {
+    grid-column: 1 / -1;
+    background: var(--shared-bg);
+    border: 1px solid var(--shared);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    position: relative;
+  }
+  .zone-label {
+    position: absolute;
+    top: -10px;
+    left: 16px;
+    background: var(--shared);
+    color: #0c2233;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .shared-file {
+    background: rgba(56,189,248,0.06);
+    border: 1px solid rgba(56,189,248,0.25);
+    border-radius: 8px;
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+  }
+  .shared-file:hover {
+    border-color: var(--shared);
+    background: rgba(56,189,248,0.1);
+  }
+  .file-name {
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .file-desc {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+    margin-top: 2px;
+  }
+
+  /* ── containers ── */
+  .container {
+    border-radius: var(--radius);
+    padding: 14px;
+    position: relative;
+  }
+  .container-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .container-title {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .container-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-family: var(--mono);
+    margin-left: auto;
+  }
+
+  /* pipeline */
+  .pipeline {
+    background: var(--teal-bg);
+    border: 1px solid var(--teal-dim);
+  }
+  .pipeline .container-title { color: var(--teal); }
+  .pipeline .container-badge { background: var(--teal-dim); color: var(--teal); }
+
+  /* backend */
+  .backend {
+    background: var(--purple-bg);
+    border: 1px solid var(--purple-dim);
+  }
+  .backend .container-title { color: var(--purple); }
+  .backend .container-badge { background: var(--purple-dim); color: var(--purple); }
+
+  /* data */
+  .data-zone {
+    background: var(--amber-bg);
+    border: 1px solid var(--amber-dim);
+  }
+  .data-zone .container-title { color: var(--amber); }
+
+  /* frontend */
+  .frontend-zone {
+    background: var(--coral-bg);
+    border: 1px solid rgba(251,113,133,0.3);
+  }
+  .frontend-zone .container-title { color: var(--coral); }
+
+  /* ── subcontainers ── */
+  .sub-container {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .sub-title {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  /* ── file rows ── */
+  .file-row {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .file-row.cols-2 { grid-template-columns: 1fr 1fr; }
+  .file-row.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  .file-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .file-card::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 3px;
+    border-radius: 6px 0 0 6px;
+    opacity: 0;
+    transition: opacity .2s;
+  }
+  .file-card:hover { transform: translateY(-1px); }
+
+  .teal-card::before    { background: var(--teal);   }
+  .purple-card::before  { background: var(--purple); }
+  .amber-card::before   { background: var(--amber);  }
+  .gray-card::before    { background: var(--gray);   }
+  .coral-card::before   { background: var(--coral);  }
+
+  .teal-card:hover    { border-color: var(--teal);   background: rgba(45,212,191,.05); }
+  .purple-card:hover  { border-color: var(--purple); background: rgba(167,139,250,.05); }
+  .amber-card:hover   { border-color: var(--amber);  background: rgba(251,191,36,.05); }
+  .gray-card:hover    { border-color: var(--gray);   background: rgba(148,163,184,.05); }
+  .coral-card:hover   { border-color: var(--coral);  background: rgba(251,113,133,.05); }
+
+  .teal-card:hover::before    { opacity: 1; }
+  .purple-card:hover::before  { opacity: 1; }
+  .amber-card:hover::before   { opacity: 1; }
+  .gray-card:hover::before    { opacity: 1; }
+  .coral-card:hover::before   { opacity: 1; }
+
+  .card-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .card-desc {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.4;
+  }
+
+  /* ── flow arrows ── */
+  .flow-row {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .flow-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .arrow-line {
+    width: 1px;
+    flex: 1;
+    min-height: 20px;
+  }
+  .arrow-label {
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    writing-mode: vertical-rl;
+    white-space: nowrap;
+  }
+  .write-arrow { color: var(--teal); }
+  .write-arrow .arrow-line { background: var(--teal); }
+  .read-arrow  { color: var(--purple); }
+  .read-arrow  .arrow-line { background: var(--purple); }
+
+  /* ── data + frontend row ── */
+  .bottom-row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  /* ── docker-compose bar ── */
+  .compose-bar {
+    grid-column: 1 / -1;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .compose-name {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray);
+  }
+  .compose-desc {
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .compose-services {
+    margin-left: auto;
+    display: flex;
+    gap: 8px;
+  }
+  .service-pill {
+    font-family: var(--mono);
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 12px;
+    border: 1px solid;
+  }
+  .service-pill.be { border-color: var(--purple-dim); color: var(--purple); background: var(--purple-bg); }
+  .service-pill.fe { border-color: rgba(251,113,133,.3); color: var(--coral); background: var(--coral-bg); }
+
+  /* ── tooltip on hover ── */
+  .tooltip {
+    position: fixed;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: var(--text);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .15s;
+    z-index: 100;
+    max-width: 240px;
+    line-height: 1.5;
+  }
+
+  /* ── separator ── */
+  .sep {
+    width: 1px;
+    background: var(--border);
+    margin: 0 2px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="project-name">WAFF RAG System</span>
+  <span class="project-desc">Multi-site RAG Architecture</span>
+  <div class="legend">
+    <span class="legend-item"><span class="legend-dot" style="background:var(--shared)"></span>공용</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--teal)"></span>pipeline</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--purple)"></span>backend</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--amber)"></span>data</span>
+    <span class="legend-item"><span class="legend-dot" style="background:var(--coral)"></span>frontend</span>
+  </div>
+</header>
+
+<div class="arch">
+
+  <!-- ── 공용 참조 ── -->
+  <div class="shared-zone">
+    <span class="zone-label">공용 참조 — pipeline · backend 양쪽 import</span>
+    <div class="shared-file" data-tip="LLMConfig · EmbeddingConfig · VectorDBConfig · PromptConfig 4개 카테고리로 분리된 설정 dataclass. CONFIGS 딕셔너리로 사이트별 인스턴스 관리.">
+      <div class="file-name" style="color:var(--shared)">app/config.py</div>
+      <div class="file-desc">
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">LLMConfig</span>
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">EmbeddingConfig</span>
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">VectorDBConfig</span>
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">PromptConfig</span>
+      </div>
+    </div>
+    <div class="shared-file" data-tip="load_embeddings() / save_embedding_meta() / verify_embedding_match() — DB 생성과 검색 시 동일한 임베딩 함수를 보장해 불일치를 구조적으로 방지합니다.">
+      <div class="file-name" style="color:var(--shared)">app/embeddings.py</div>
+      <div class="file-desc">
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">load_embeddings</span>
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">verify_match</span>
+        <span class="tag" style="background:rgba(56,189,248,.1);color:var(--shared)">save_meta</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── pipeline/ ── -->
+  <div class="container pipeline">
+    <div class="container-header">
+      <span class="container-title">pipeline/</span>
+      <span class="container-badge">필요할 때만 실행</span>
+    </div>
+
+    <div class="file-row cols-2">
+      <div class="file-card teal-card" data-tip="CLI 진입점. SITE_SETTINGS에 사이트별 어댑터와 소스 경로를 등록. --id / --reset 옵션 지원.">
+        <div class="card-name" style="color:var(--teal)">build_db.py</div>
+        <div class="card-desc">CLI 진입점 · SITE_SETTINGS</div>
+      </div>
+      <div class="file-card teal-card" data-tip="VectorDBBuilder — doc_type(manual/scanned/drawing)에 따라 어댑터 메서드를 디스패치. 청킹 후 ChromaDB에 업서트.">
+        <div class="card-name" style="color:var(--teal)">data_loader.py</div>
+        <div class="card-desc">VectorDBBuilder · 청킹 · 업서트</div>
+      </div>
+    </div>
+
+    <div class="file-row cols-2">
+      <!-- adapters -->
+      <div class="sub-container">
+        <div class="sub-title">adapters/</div>
+        <div class="file-card teal-card" style="margin-bottom:6px" data-tip="parse_manual / parse_scanned / parse_drawing 3개 추상 메서드를 강제하는 ABC 인터페이스.">
+          <div class="card-name" style="color:var(--teal)">base.py</div>
+          <div class="card-desc">BaseParser ABC</div>
+        </div>
+        <div class="file-card teal-card" style="margin-bottom:6px" data-tip="A 사이트: 도면(PyMuPDF+도면번호추출) · 매뉴얼(Docling) · 스캔본(Upstage)">
+          <div class="card-name" style="color:var(--teal)">site_a.py</div>
+          <div class="card-desc">도면·매뉴얼·스캔</div>
+        </div>
+        <div class="file-card teal-card" data-tip="B 사이트: 도면(PyMuPDF) · Excel 사양서(openpyxl) · 스캔본(Upstage)">
+          <div class="card-name" style="color:var(--teal)">site_b.py</div>
+          <div class="card-desc">도면·Excel·스캔</div>
+        </div>
+      </div>
+
+      <!-- parsers -->
+      <div class="sub-container">
+        <div class="sub-title">parsers/</div>
+        <div class="file-card amber-card" style="margin-bottom:6px" data-tip="Docling 기반 일반 PDF 파서. 레이아웃 인식 후 Markdown 변환, ## 헤딩 기준 섹션 분할.">
+          <div class="card-name" style="color:var(--amber)">docling_parser.py</div>
+          <div class="card-desc">일반 PDF → Markdown 섹션</div>
+        </div>
+        <div class="file-card amber-card" style="margin-bottom:6px" data-tip="Upstage Document AI API 기반 스캔본 파서. OCR + 레이아웃 분석, element 단위 Document 변환.">
+          <div class="card-name" style="color:var(--amber)">upstage_parser.py</div>
+          <div class="card-desc">스캔본 → Upstage OCR</div>
+        </div>
+        <div class="file-card amber-card" data-tip="PyMuPDF(fitz) 기반 도면 파서. 텍스트·이미지 영역 분리, DWG-XXXX 도면번호 메타데이터 추출.">
+          <div class="card-name" style="color:var(--amber)">PyMuPDF (fitz)</div>
+          <div class="card-desc">도면 · 텍스트 이미지 추출</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── backend/app/ ── -->
+  <div class="container backend">
+    <div class="container-header">
+      <span class="container-title">backend / app/</span>
+      <span class="container-badge">항상 실행 중</span>
+    </div>
+
+    <div class="file-row cols-2">
+      <div class="file-card purple-card" data-tip="FastAPI 엔드포인트. /chat/{site_id} 라우팅. StreamingResponse로 METADATA + LLM 토큰 순차 전송.">
+        <div class="card-name" style="color:var(--purple)">main.py</div>
+        <div class="card-desc">FastAPI · 스트리밍 응답</div>
+      </div>
+      <div class="file-card purple-card" data-tip="RAGService — prepare_context(스트리밍용) / ask(비스트리밍용) 두 경로 제공. llm·retriever·prompt·memory 조율.">
+        <div class="card-name" style="color:var(--purple)">service.py</div>
+        <div class="card-desc">prepare_context · ask</div>
+      </div>
+    </div>
+
+    <div class="sub-container">
+      <div class="sub-title">core/</div>
+      <div class="file-row cols-2">
+        <div class="file-card purple-card" data-tip="LLMProvider.get_model(config) — config.llm.provider 에 따라 ChatOpenAI / ChatOllama / ChatAnthropic 반환. 미지원 시 ValueError.">
+          <div class="card-name" style="color:var(--purple)">llm_handler.py</div>
+          <div class="card-desc">OpenAI · Ollama · Anthropic 분기</div>
+        </div>
+        <div class="file-card purple-card" data-tip="KnowledgeRetriever — 초기화 시 verify_embedding_match 수행. similarity_search_with_score로 base/rag/graph 모드 처리.">
+          <div class="card-name" style="color:var(--purple)">retriever.py</div>
+          <div class="card-desc">base · rag · graph 모드 검색</div>
+        </div>
+        <div class="file-card purple-card" data-tip="PromptManager.build() — prompts/registry.json에서 prompt_id로 페르소나·가이드 로드. custom_persona로 config 페르소나 override 가능.">
+          <div class="card-name" style="color:var(--purple)">prompt_manager.py</div>
+          <div class="card-desc">registry.json · 프롬프트 조립</div>
+        </div>
+        <div class="file-card purple-card" data-tip="MemoryManager — ConversationBufferWindowMemory, 세션별 슬라이딩 윈도우(k=5). get_history / save / clear 3개 메서드.">
+          <div class="card-name" style="color:var(--purple)">memory_manager.py</div>
+          <div class="card-desc">세션별 대화 기록 (k=5)</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="file-card gray-card" data-tip="5개 페르소나 등록: tech_expert · maintenance_expert · process_analyst · beginner_guide · safety_officer. persona + guide 필드 구조.">
+      <div class="card-name" style="color:var(--gray)">prompts / registry.json</div>
+      <div class="card-desc">
+        <span class="tag" style="background:rgba(148,163,184,.1);color:var(--gray)">tech_expert</span>
+        <span class="tag" style="background:rgba(148,163,184,.1);color:var(--gray)">maintenance_expert</span>
+        <span class="tag" style="background:rgba(148,163,184,.1);color:var(--gray)">process_analyst</span>
+        <span class="tag" style="background:rgba(148,163,184,.1);color:var(--gray)">safety_officer</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── bottom row: data + frontend ── -->
+  <div class="bottom-row">
+    <!-- data -->
+    <div class="container data-zone">
+      <div class="container-header">
+        <span class="container-title">data/</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:auto">
+          <span style="color:var(--teal)">▲ write</span>&nbsp;pipeline &nbsp;|&nbsp; backend&nbsp;<span style="color:var(--purple)">▼ read</span>
+        </span>
+      </div>
+      <div class="file-row cols-3">
+        <div class="file-card amber-card" data-tip="A 사이트 전용 디렉토리. manuals/(원본 PDF) + chroma/(벡터 DB).">
+          <div class="card-name" style="color:var(--amber)">A /</div>
+          <div class="card-desc">manuals · chroma</div>
+        </div>
+        <div class="file-card amber-card" data-tip="B 사이트 전용 디렉토리. manuals/(PDF·Excel) + chroma/(벡터 DB).">
+          <div class="card-name" style="color:var(--amber)">B /</div>
+          <div class="card-desc">manuals · chroma</div>
+        </div>
+        <div class="file-card amber-card" data-tip="추가 사이트. config.py에 항목 추가 + 폴더 생성만으로 확장.">
+          <div class="card-name" style="color:var(--amber)">C / …</div>
+          <div class="card-desc">확장 시 추가</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- frontend -->
+    <div class="container frontend-zone">
+      <div class="container-header">
+        <span class="container-title">frontend/</span>
+        <span class="container-badge" style="background:rgba(251,113,133,.15);color:var(--coral);border-radius:10px;font-size:10px;padding:2px 8px;font-family:var(--mono)">Next.js</span>
+      </div>
+      <div class="file-row cols-2">
+        <div class="file-card coral-card" data-tip="useChat 훅 — SSE 스트리밍 파싱. METADATA 블록(출처·이미지)과 LLM 토큰을 순차적으로 처리.">
+          <div class="card-name" style="color:var(--coral)">hooks/useChat</div>
+          <div class="card-desc">SSE 스트리밍 처리</div>
+        </div>
+        <div class="file-card coral-card" data-tip="Zustand store — 현재 선택된 사이트 ID, 세션 ID, 대화 기록 상태 관리.">
+          <div class="card-name" style="color:var(--coral)">store/</div>
+          <div class="card-desc">사이트 · 세션 상태</div>
+        </div>
+        <div class="file-card coral-card" data-tip="ChatWindow · Message · SourceCard 컴포넌트. 사이트별 Tailwind 테마 적용.">
+          <div class="card-name" style="color:var(--coral)">components/</div>
+          <div class="card-desc">Chat · Message · SourceCard</div>
+        </div>
+        <div class="file-card coral-card" data-tip="api.ts — Axios/Fetch 설정. NEXT_PUBLIC_API_URL 기반 backend 연결.">
+          <div class="card-name" style="color:var(--coral)">services/api.ts</div>
+          <div class="card-desc">Axios · API 연결</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── docker-compose ── -->
+  <div class="compose-bar">
+    <span class="compose-name">docker-compose.yml</span>
+    <span class="compose-desc">backend + frontend 한방 배포 · data/ 볼륨 마운트</span>
+    <div class="compose-services">
+      <span class="service-pill be">backend :8000</span>
+      <span class="service-pill fe">frontend :3000</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- tooltip -->
+<div class="tooltip" id="tip"></div>
+
+<script>
+  const tip = document.getElementById('tip');
+  document.querySelectorAll('[data-tip]').forEach(el => {
+    el.addEventListener('mouseenter', e => {
+      tip.textContent = el.dataset.tip;
+      tip.style.opacity = '1';
+    });
+    el.addEventListener('mousemove', e => {
+      let x = e.clientX + 14, y = e.clientY + 14;
+      if (x + 250 > window.innerWidth) x = e.clientX - 260;
+      if (y + 100 > window.innerHeight) y = e.clientY - 80;
+      tip.style.left = x + 'px';
+      tip.style.top  = y + 'px';
+    });
+    el.addEventListener('mouseleave', () => {
+      tip.style.opacity = '0';
+    });
+  });
+</script>
+</body>
+</html>

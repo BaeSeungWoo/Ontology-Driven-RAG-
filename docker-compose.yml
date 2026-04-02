@@ -1,0 +1,18 @@
+# docker-compose.yml
+
+#pipeline/은 로컬에서만 돌리는 관리 도구라 docker-compose 대상이 아니고, 실제 컨테이너로 뜨는 건 backend와 frontend 두 개입니다.
+
+services:
+  backend:
+    build: ./backend
+    ports: ["8000:8000"]
+    volumes:
+      - ./data:/app/data     # Vector DB 마운트
+
+  frontend:
+    build: ./frontend
+    ports: ["3000:3000"]
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+
+
