@@ -1,0 +1,853 @@
+{
+  "schema_name": "DoclingDocument",       // 문서의 데이터 모델
+  "version": "1.10.0",                    // 문서 생성 시 사용된 라이브러리 버전
+  "name": "description",                  // 처리된 원본 파일 이름
+  "origin": {                             // 원본 파일에 대한 메타데이터
+    "mimetype": "application/pdf",        // 원본 파일 타입(pdf, word 등의 문서, png, jpg 등의 이미지, 마크다운 파일). 현재 여기선 pdf
+    "binary_hash": 3039820867903686414,   // 파일 내용(바이너리) 기반으로 생성된 64비트 정수형 해시값
+    "filename": "description.pdf"         // 원본 파일 이름
+  },
+  "furniture": {                          // 페이지 번호, 헤더, 푸터 등 '본문 외' 요소들의 계층 구조     
+    "self_ref": "#/furniture",            // 객체 자체 참조 주소
+    "children": [],                       // 자신에게 포함되는 참조 주소 목록
+    "content_layer": "furniture",         // 이 데이터가 '부수적 요소'임을 명시
+    "name": "_root_",                     // 레이어의 논리적 최상위 이름
+    "label": "unspecified"                // 레이어 유형
+  },
+  "body": {                               // 문서의 실제 본문 내용이 담긴 핵심 계층 구조
+    "self_ref": "#/body",                 // 객체 자체 참조 주소
+    "children": [                         // 자신에게 포함되는 참조 주소 목록
+      {
+        "$ref": "#/groups/0"
+      },
+      {
+        "$ref": "#/texts/5"
+      },
+      {
+        "$ref": "#/texts/6"
+      },
+      {
+        "$ref": "#/tables/0"
+      },
+      {
+        "$ref": "#/pictures/0"
+      }
+    ],
+    "content_layer": "body",              // 이 데이터가 '본문'임을 명시
+    "name": "_root_",                     // 레이어의 논리적 최상위 이름
+    "label": "unspecified"                // 레이어 유형
+  },
+  "groups": [                             // 연관된 본문 요소들을 논리적으로 묶어주는 그룹 배열
+    {
+      "self_ref": "#/groups/0",           // 객체 자체 참조 주소
+      "parent": {                         // 부모 참조 주소
+        "$ref": "#/body"
+      },
+      "children": [                       // 위 그룹 안의 실제 포함 요소 주소
+        {
+          "$ref": "#/texts/3"
+        },
+        {
+          "$ref": "#/texts/4"
+        }
+      ],
+      "content_layer": "body",				    // 데이터가 속한 그룹
+      "name": "list",							        // 그룹의 논리적 명칭
+      "label": "list"							        // 분류된 그룹 성격
+    }
+  ],
+  "texts": [                              // 문서에서 추출된 모든 텍스트 단락들의 실제 데이터 배열
+    {
+      "self_ref": "#/texts/3",            // 객체 자체 참조 주소
+      "parent": {                         // 부모 참조 주소
+        "$ref": "#/groups/0"            
+      },
+      "children": [],                     // 위 그룹 안의 실제 포함 요소 주소
+      "content_layer": "body",            // 데이터가 속한 그룹
+      "label": "list_item",               // 분류된 그룹 성격
+      "prov": [                           // 원본 문서 내 물리적 정보
+        {
+          "page_no": 2,                   // page 번호
+          "bbox": {                       // 레이아웃 좌표 값(l:왼쪽, t:위, r:오른쪽, b:아래, coord_origin: 기준점)
+            "l": 62.59,
+            "t": 388.2203,
+            "r": 365.24800000000016,
+            "b": 373.5323,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [                   // 좌표 내의 텍스트 길이(0~74번째 글자)
+            0,
+            55
+          ]
+        }
+      ],
+      "orig": "· No part of this manual may be reproduced in any form.",  // 보정 전 원시 텍스트
+      "text": "No part of this manual may be reproduced in any form.",    // 보정 후 텍스트
+      "enumerated": false,
+      "marker": "·"
+    },
+    {
+      "self_ref": "#/texts/4",
+      "parent": {
+        "$ref": "#/groups/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "list_item",
+      "prov": [
+        {
+          "page_no": 2,
+          "bbox": {
+            "l": 62.59,
+            "t": 370.2203,
+            "r": 426.1995999999999,
+            "b": 355.5323,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            70
+          ]
+        }
+      ],
+      "orig": "· All specifications and designs are subject to change without notice.",
+      "text": "All specifications and designs are subject to change without notice.",
+      "enumerated": false,
+      "marker": "·"
+    },
+    {
+      "self_ref": "#/texts/5",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 2,
+          "bbox": {
+            "l": 56.58999999999999,
+            "t": 329.81629999999996,
+            "r": 541.9024000000005,
+            "b": 265.19148674033147,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            312
+          ]
+        }
+      ],
+      "orig": "The  products  in  this  manual  are  controlled  based  on  Japan's  'Foreign  Exchange  and Foreign Trade Law'. The export of Series 30 i -B, Series 31 i -B5 from Japan is subject to an export  license  by  the  government  of  Japan.  Other  models  in  this  manual  may  also  be subject to export controls.",
+      "text": "The  products  in  this  manual  are  controlled  based  on  Japan's  'Foreign  Exchange  and Foreign Trade Law'. The export of Series 30 i -B, Series 31 i -B5 from Japan is subject to an export  license  by  the  government  of  Japan.  Other  models  in  this  manual  may  also  be subject to export controls."
+    },
+    {
+      "self_ref": "#/texts/6",
+      "parent": {
+        "$ref": "#/body"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 2,
+          "bbox": {
+            "l": 56.590000000000046,
+            "t": 257.81629999999996,
+            "r": 541.9612000000005,
+            "b": 211.19148674033147,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            245
+          ]
+        }
+      ],
+      "orig": "Further, re-export to another country may be subject to the license of the government of the country from where the product is re-exported. Furthermore, the product may also be controlled by re-export regulations of the United States government.",
+      "text": "Further, re-export to another country may be subject to the license of the government of the country from where the product is re-exported. Furthermore, the product may also be controlled by re-export regulations of the United States government."
+    },
+    {
+      "self_ref": "#/texts/630",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 273.43,
+            "t": 537.3023,
+            "r": 304.59700000000026,
+            "b": 529.3336900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            8
+          ]
+        }
+      ],
+      "orig": "Turret 1",
+      "text": "Turret 1"
+    },
+    {
+      "self_ref": "#/texts/631",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 296.713,
+            "t": 433.73929999999996,
+            "r": 327.8800000000003,
+            "b": 425.77069005524856,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            8
+          ]
+        }
+      ],
+      "orig": "Turret 2",
+      "text": "Turret 2"
+    },
+    {
+      "self_ref": "#/texts/632",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 327.673,
+            "t": 502.25629999999995,
+            "r": 377.54020000000014,
+            "b": 494.28769005524856,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            11
+          ]
+        }
+      ],
+      "orig": "Workpiece 2",
+      "text": "Workpiece 2"
+    },
+    {
+      "self_ref": "#/texts/633",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 226.75600000000003,
+            "t": 462.53929999999997,
+            "r": 276.6232000000001,
+            "b": 454.5706900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            11
+          ]
+        }
+      ],
+      "orig": "Workpiece 1",
+      "text": "Workpiece 1"
+    },
+    {
+      "self_ref": "#/texts/634",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 342.91900000000004,
+            "t": 440.3363,
+            "r": 356.33440000000013,
+            "b": 432.3676900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            2
+          ]
+        }
+      ],
+      "orig": "X2",
+      "text": "X2"
+    },
+    {
+      "self_ref": "#/texts/635",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 249.43600000000004,
+            "t": 534.2963,
+            "r": 260.3197,
+            "b": 526.3276900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            2
+          ]
+        }
+      ],
+      "orig": "X1",
+      "text": "X1"
+    },
+    {
+      "self_ref": "#/texts/636",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 200.35900000000004,
+            "t": 528.1763,
+            "r": 213.4216,
+            "b": 520.2076900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            2
+          ]
+        }
+      ],
+      "orig": "Z1",
+      "text": "Z1"
+    },
+    {
+      "self_ref": "#/texts/637",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 390.682,
+            "t": 440.33629999999994,
+            "r": 401.20750000000004,
+            "b": 432.36769005524854,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            2
+          ]
+        }
+      ],
+      "orig": "Z2",
+      "text": "Z2"
+    },
+    {
+      "self_ref": "#/texts/638",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 172.51,
+            "t": 433.3823,
+            "r": 267.6003999999999,
+            "b": 425.4136900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            22
+          ]
+        }
+      ],
+      "orig": "Machining according to",
+      "text": "Machining according to"
+    },
+    {
+      "self_ref": "#/texts/639",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 172.51,
+            "t": 421.5023,
+            "r": 256.48899999999986,
+            "b": 413.5336900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            20
+          ]
+        }
+      ],
+      "orig": "a program for path 1",
+      "text": "a program for path 1"
+    },
+    {
+      "self_ref": "#/texts/640",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 342.547,
+            "t": 544.5053,
+            "r": 437.63740000000024,
+            "b": 536.5366900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            22
+          ]
+        }
+      ],
+      "orig": "Machining according to",
+      "text": "Machining according to"
+    },
+    {
+      "self_ref": "#/texts/641",
+      "parent": {
+        "$ref": "#/pictures/0"
+      },
+      "children": [],
+      "content_layer": "body",
+      "label": "text",
+      "prov": [
+        {
+          "page_no": 78,
+          "bbox": {
+            "l": 342.547,
+            "t": 532.6253,
+            "r": 426.52600000000007,
+            "b": 524.6566900552486,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [
+            0,
+            20
+          ]
+        }
+      ],
+      "orig": "a program for path 2",
+      "text": "a program for path 2"
+    }
+  ],
+  "pictures": [                           // 문서에서 추출된 모든 이미지들의 실제 데이터 배열
+    {
+      "self_ref": "#/pictures/0",         // 객체 자체 참조 주소
+      "parent": {                         // 부모 참조 주소
+        "$ref": "#/body"
+      },
+      "children": [                       // 위 그룹 안의 실제 포함 요소 주소
+        {
+          "$ref": "#/texts/630"
+        },
+        {
+          "$ref": "#/texts/631"
+        },
+        {
+          "$ref": "#/texts/632"
+        },
+        {
+          "$ref": "#/texts/633"
+        },
+        {
+          "$ref": "#/texts/634"
+        },
+        {
+          "$ref": "#/texts/635"
+        },
+        {
+          "$ref": "#/texts/636"
+        },
+        {
+          "$ref": "#/texts/637"
+        },
+        {
+          "$ref": "#/texts/638"
+        },
+        {
+          "$ref": "#/texts/639"
+        },
+        {
+          "$ref": "#/texts/640"
+        },
+        {
+          "$ref": "#/texts/641"
+        }
+      ],
+      "content_layer": "body",            // 데이터가 속한 그룹
+      "label": "picture",                 // 분류된 그룹 성격
+      "prov": [                           // 원본 문서 내 물리적 정보
+        {
+          "page_no": 78,                  // page 번호
+          "bbox": {                       // 레이아웃 좌표 값(l:왼쪽, t:위, r:오른쪽, b:아래, coord_origin: 기준점)
+            "l": 149.56381225585938,
+            "t": 564.3201293945312,
+            "r": 459.4838562011719,
+            "b": 402.8577575683594,
+            "coord_origin": "BOTTOMLEFT"
+          },
+          "charspan": [                   // 좌표 내의 텍스트 길이(텍스트 아니므로 0,0으로 처리)
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [],                     // 그림 설명 문구 참조 주소
+      "references": [],                   // 본문 내에서 이 그림을 언급하는 위치들 (예: "그림 2 참조")
+      "footnotes": [],                    // 그림 하단에 붙은 보충 설명이나 출처 정보
+      "annotations": []                   // 그림 위에 추가된 텍스트나 기호 정보
+    }
+  ],
+  "tables": [                             // 문서에서 추출된 모든 표들의 실제 데이터 배열
+    {
+      "self_ref": "#/tables/0",           // 객체 자체 참조 주소
+      "parent": {                         // 부모 참조 주소
+        "$ref": "#/body"
+      },
+      "children": [],                     // 위 그룹 안의 실제 포함 요소 주소
+      "content_layer": "body",            // 데이터가 속한 그룹
+      "label": "document_index",          // 분류된 그룹 성격
+      "prov": [                           // 원본 문서 내 물리적 정보
+        { 
+          "page_no": 3,                   // page 번호
+          "bbox": {                       // 레이아웃 좌표 값(l:왼쪽, t:위, r:오른쪽, b:아래, coord_origin: 기준점)
+            "l": 69.37107849121094,       
+            "t": 579.3119506835938,
+            "r": 538.4732666015625,
+            "b": 518.5358581542969,
+            "coord_origin": "BOTTOMLEFT"  // 좌표 내의 텍스트 길이(텍스트 아니므로 0,0으로 처리)
+          },
+          "charspan": [
+            0,
+            0
+          ]
+        }
+      ],
+      "captions": [],                     // 표 설명 문구 참조 주소
+      "references": [],                   // 본문 내에서 이 표를 언급하는 위치들 (예: "표 1 참조")
+      "footnotes": [],                    // 표 하단에 붙은 보충 설명이나 출처 정보
+      "data": {                           // 테이블 정보
+        "table_cells": [                  // 테이블 셀 정보
+          {
+            "bbox": {                     // 레이아웃 좌표 값(l:왼쪽, t:위, r:오른쪽, b:아래, coord_origin: 기준점)
+              "l": 70.80525999999999,
+              "t": 264.42846,
+              "r": 538.5697300000003,
+              "b": 273.37749272727274,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,                // 행 차지하는 칸
+            "col_span": 1,                // 열 차지하는 칸
+            "start_row_offset_idx": 0,    // 시작 행
+            "end_row_offset_idx": 1,      // 종료 행
+            "start_col_offset_idx": 0,    // 시작 열
+            "end_col_offset_idx": 1,      // 종료 열
+            "text": "DEFINITION OF WARNING, CAUTION, AND NOTE.........................................................................s-1", // 셀 텍스트
+            "column_header": false,       // 열 헤더 여부
+            "row_header": false,          // 행 헤더 여부
+            "row_section": false,         // 섹션 구분 여부
+            "fillable": false             // 입력 가능 여부
+          },
+          {
+            "bbox": {
+              "l": 70.80525999999999,
+              "t": 277.15427999999997,
+              "r": 538.5796119999994,
+              "b": 286.10331272727274,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 1,
+            "end_row_offset_idx": 2,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "GENERAL WARNINGS AND CAUTIONS............................................................................................s-2",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 70.80525999999999,
+              "t": 289.88009999999997,
+              "r": 538.5543579999982,
+              "b": 298.82913272727274,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 2,
+            "end_row_offset_idx": 3,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "WARNINGS AND CAUTIONS RELATED TO PROGRAMMING.......................................................s-3",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 70.80525999999999,
+              "t": 302.60591999999997,
+              "r": 538.5532599999981,
+              "b": 311.55495272727273,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 3,
+            "end_row_offset_idx": 4,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "WARNINGS AND CAUTIONS RELATED TO HANDLING................................................................s-5",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          },
+          {
+            "bbox": {
+              "l": 70.80525999999999,
+              "t": 315.33173999999997,
+              "r": 538.6147480000003,
+              "b": 324.28077272727273,
+              "coord_origin": "TOPLEFT"
+            },
+            "row_span": 1,
+            "col_span": 1,
+            "start_row_offset_idx": 4,
+            "end_row_offset_idx": 5,
+            "start_col_offset_idx": 0,
+            "end_col_offset_idx": 1,
+            "text": "WARNINGS RELATED TO DAILY MAINTENANCE .........................................................................s-7",
+            "column_header": false,
+            "row_header": false,
+            "row_section": false,
+            "fillable": false
+          }
+        ],
+        "num_rows": 5,                    // 행 갯수
+        "num_cols": 1,                    // 열 갯수
+        "grid": [
+          [
+            {
+              "bbox": {                   // 레이아웃 좌표 값(l:왼쪽, t:위, r:오른쪽, b:아래, coord_origin: 기준점)
+                "l": 70.80525999999999, 
+                "t": 264.42846,
+                "r": 538.5697300000003,
+                "b": 273.37749272727274,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,              // 행 차지하는 칸
+              "col_span": 1,              // 열 차지하는 칸
+              "start_row_offset_idx": 0,  // 시작 행
+              "end_row_offset_idx": 1,    // 종료 행
+              "start_col_offset_idx": 0,  // 시작 열
+              "end_col_offset_idx": 1,    // 종료 열
+              "text": "DEFINITION OF WARNING, CAUTION, AND NOTE.........................................................................s-1", // 셀 텍스트
+              "column_header": false,     // 열 헤더 여부
+              "row_header": false,        // 행 헤더 여부
+              "row_section": false,       // 섹션 구분 여부
+              "fillable": false           // 입력 가능 여부
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 70.80525999999999,
+                "t": 277.15427999999997,
+                "r": 538.5796119999994,
+                "b": 286.10331272727274,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 1,
+              "end_row_offset_idx": 2,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "GENERAL WARNINGS AND CAUTIONS............................................................................................s-2",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 70.80525999999999,
+                "t": 289.88009999999997,
+                "r": 538.5543579999982,
+                "b": 298.82913272727274,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 2,
+              "end_row_offset_idx": 3,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "WARNINGS AND CAUTIONS RELATED TO PROGRAMMING.......................................................s-3",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 70.80525999999999,
+                "t": 302.60591999999997,
+                "r": 538.5532599999981,
+                "b": 311.55495272727273,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 3,
+              "end_row_offset_idx": 4,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "WARNINGS AND CAUTIONS RELATED TO HANDLING................................................................s-5",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ],
+          [
+            {
+              "bbox": {
+                "l": 70.80525999999999,
+                "t": 315.33173999999997,
+                "r": 538.6147480000003,
+                "b": 324.28077272727273,
+                "coord_origin": "TOPLEFT"
+              },
+              "row_span": 1,
+              "col_span": 1,
+              "start_row_offset_idx": 4,
+              "end_row_offset_idx": 5,
+              "start_col_offset_idx": 0,
+              "end_col_offset_idx": 1,
+              "text": "WARNINGS RELATED TO DAILY MAINTENANCE .........................................................................s-7",
+              "column_header": false,
+              "row_header": false,
+              "row_section": false,
+              "fillable": false
+            }
+          ]
+        ]
+      },
+      "annotations": []
+    }
+  ],
+  "key_value_items": [],                  // 표 형태는 아니지만, 논리적으로 이름과 값이 연결된 데이터(이름:값)
+  "form_items": [],                       // 해당 문서에 기록되어 있는 입력 양식 요소 예) 체크박스, 라디오 버튼, 입력 필드 등
+  "pages": {                              // 페이지 규격
+    "1": {
+      "size": {
+        "width": 595.0,
+        "height": 842.0
+      },
+      "page_no": 1
+    },
+    "2": {
+      "size": {
+        "width": 595.0,
+        "height": 842.0
+      },
+      "page_no": 2
+    },
+    "3": {
+      "size": {
+        "width": 595.0,
+        "height": 842.0
+      },
+      "page_no": 3
+    },
+    "4": {
+      "size": {
+        "width": 595.0,
+        "height": 842.0
+      },
+      "page_no": 4
+    },
+    "5": {
+      "size": {
+        "width": 595.0,
+        "height": 842.0
+      },
+      "page_no": 5
+    }
+  }
+}
