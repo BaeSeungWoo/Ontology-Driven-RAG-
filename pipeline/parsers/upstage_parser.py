@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import List
 
 import requests
+import fitz  # PyMuPDF
 from langchain_core.documents import Document
 
 
