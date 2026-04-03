@@ -1,0 +1,40 @@
+.themeSwitcher {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 999px;
+  background: var(--chat-pane-bg);
+  padding: 6px 10px;
+  box-shadow: 0 1px 2px var(--chat-shadow);
+}
+
+.label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.buttons {
+  display: inline-flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.button {
+  border: 1px solid var(--chat-pane-border);
+  background: transparent;
+  color: var(--chat-muted-text);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.buttonActive {
+  border-color: var(--chat-title-color);
+  color: var(--chat-title-color);
+  background: color-mix(in srgb, var(--chat-pane-bg) 80%, var(--chat-page-bg));
+  font-weight: 700;
+}
