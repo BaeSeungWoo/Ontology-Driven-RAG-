@@ -13,8 +13,8 @@ RAG 개발
             * `site_b.py` (도면(PyMuPDF) + 매뉴얼(Docling·Excel) + 스캔(Upstage))
         * `build_db.py`
     * **backend/** (FastAPI)
+        * `main.py` (FastAPI 엔드포인트 및 라우팅)
         * **app/**
-            * `main.py` (FastAPI 엔드포인트 및 라우팅)
             * **core/** (개발자 A)
                 * `llm_handler.py` (LLM Provider 전환 로직 - Ollama/OpenAI)
                 * `retriever.py` (Vector/Graph 검색 엔진)
