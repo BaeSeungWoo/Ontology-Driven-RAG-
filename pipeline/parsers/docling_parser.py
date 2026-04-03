@@ -65,6 +65,8 @@ class DoclingParser:
             input_path (str): 추출할 PDF 폴더 경로
             docling_output_path (str): Docling 추출물 결과들이 저장될 폴더 경롷
         
+        Returns:
+            예) docling_result.json 
         """
         # 입력 경로 설정
         input_dir = Path(input_path)
