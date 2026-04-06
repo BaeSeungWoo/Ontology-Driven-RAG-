@@ -1,8 +1,8 @@
 from pathlib import Path
 import fitz  # PyMuPDF
 
-def split_pdf_by_size_pymupdf(input_pdf_path: Path, output_dir: Path, max_size_mb: int = 45):
-    """PyMuPDF를 사용하여 PDF를 용량 단위로 분할.
+def split_pdf_by_size(input_pdf_path: Path, output_dir: Path, max_size_mb: int = 45):
+    """PDF를 용량 단위로 분할.
 
     스캔본의 경우는 기본 50MB가 넘는 애들이 많음.
 
@@ -77,20 +77,17 @@ def split_pdf_by_size_pymupdf(input_pdf_path: Path, output_dir: Path, max_size_m
 
 def split_all_pdfs_in_folder(
     input_dir: Path,
-    output_root_dir: Path,
-    max_size_mb: int = 45,
+    output_root_dir: Path
 ):
     """input_dir 안의 모든 PDF를 순회하면서
 
-    `split_pdf_by_size_pymupdf` 함수 실행하여
+    `split_pdf_by_size` 함수 실행하여
 
     output_root_dir/{pdf파일명}/ 아래에 분할 저장한다.
 
     Args:
-        input_pdf_path (Path): 입력 PDF 경로
-        output_dir (Path): 출력 PDF 경로
-        max_size_mb (int): PDF 분할 기준 용량
-            기본값 45, 최대 50을 넘어서는 안됨.
+        input_dir (Path): 입력 PDF 경로
+        output_root_dir (Path): 출력 PDF 경로
     """
     pdf_files = sorted(input_dir.glob("*.pdf"))
 
@@ -102,9 +99,8 @@ def split_all_pdfs_in_folder(
         pdf_output_dir = output_root_dir / pdf_path.stem
 
         print(f"\n처리 시작: {pdf_path}")
-        split_pdf_by_size_pymupdf(
+        split_pdf_by_size(
             input_pdf_path=pdf_path,
-            output_dir=pdf_output_dir,
-            max_size_mb=max_size_mb,
+            output_dir=pdf_output_dir
         )
         print(f"처리 완료: {pdf_path}")
