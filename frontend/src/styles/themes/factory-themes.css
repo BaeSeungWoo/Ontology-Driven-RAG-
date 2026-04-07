@@ -1,0 +1,39 @@
+.theme-factory-default {
+  --chat-page-bg: #f8fafc;
+  --chat-text-color: #0f172a;
+  --chat-pane-bg: #ffffff;
+  --chat-pane-border: #dbe3ec;
+  --chat-title-color: #334155;
+  --chat-muted-text: #64748b;
+  --chat-shadow: rgba(15, 23, 42, 0.06);
+}
+
+.theme-factory-ym {
+  --chat-page-bg: #f3f8ff;
+  --chat-text-color: #0a2342;
+  --chat-pane-bg: #ffffff;
+  --chat-pane-border: #b9d3ef;
+  --chat-title-color: #123f70;
+  --chat-muted-text: #426489;
+  --chat-shadow: rgba(16, 62, 112, 0.08);
+}
+
+.theme-factory-ps {
+  --chat-page-bg: #f7f7f4;
+  --chat-text-color: #1f2937;
+  --chat-pane-bg: #fffefb;
+  --chat-pane-border: #d8d2c4;
+  --chat-title-color: #4b5563;
+  --chat-muted-text: #6b7280;
+  --chat-shadow: rgba(55, 65, 81, 0.08);
+}
+
+.theme-factory-sd {
+  --chat-page-bg: #f4fbf8;
+  --chat-text-color: #113a2f;
+  --chat-pane-bg: #ffffff;
+  --chat-pane-border: #b8e1d2;
+  --chat-title-color: #1b5e4b;
+  --chat-muted-text: #3a7667;
+  --chat-shadow: rgba(27, 94, 75, 0.08);
+}
