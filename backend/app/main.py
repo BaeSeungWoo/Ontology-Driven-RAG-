@@ -13,58 +13,40 @@ from app.service import RAGService
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
 
-# 미리 생성하지 않고 요청 시 초기화
-services: dict[str, RAGService] = {}
+# 서비스 인스턴스를 미리 생성하여 캐싱
+services = {fid: RAGService(cfg) for fid, cfg in CONFIGS.items()}
 
-def get_service(factory_id: str) -> RAGService:
-    if factory_id not in services:
-        cfg = CONFIGS.get(factory_id)
-        if not cfg:
-            raise HTTPException(status_code=404, detail="해당 공장 설정을 찾을 수 없습니다.")
-        services[factory_id] = RAGService(cfg)
-    return services[factory_id]
 
 class ChatRequest(BaseModel):
     session_id: str
     question: str
-    mode: str = "base"          # base | rag | graph
+    mode: str = "rag"          # base | rag | graph
     prompt_id: str = "tech_expert"
+
 
 @app.post("/chat/{factory_id}")
 async def chat_endpoint(factory_id: str, request: ChatRequest):
-    service = get_service(factory_id)
+    # 1. 공장 설정 확인
+    service = services.get(factory_id)
+    if not service:
+        raise HTTPException(status_code=404, detail="해당 공장 설정을 찾을 수 없습니다.")
 
-    messages, imgs, chunk_map = await service.prepare_context(
-        request.question, request.mode, request.prompt_id
+    # 2. 검색 및 컨텍스트 준비 (비스트리밍)
+    full_prompt, imgs, chunk_map = await service.prepare_context(
+        request.question, request.mode
     )
 
-    print(f"[DEBUG] messages: {messages}")  # ← 추가
-
+    # 3. 스트리밍 응답 생성
     async def event_generator():
+        # 출처 · 이미지 메타데이터를 먼저 전송
         yield f"METADATA:{json.dumps({'images': imgs, 'sources': chunk_map})}\n\n"
-        async for token in service.llm.astream(messages):
-            print(f"[DEBUG] token: {repr(token)}", flush=True)  # ← 추가
-            yield token
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream; charset=utf-8",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        }
-    )
+        # LLM 토큰 스트리밍
+        async for token in service.llm.astream(full_prompt):
+            yield token.content
 
-@app.get("/configs")
-def list_configs():
-    return {
-        key: {
-            "id":         cfg.id,
-            "provider":   cfg.llm.provider,
-            "model_name": cfg.llm.model_name,
-        }
-        for key, cfg in CONFIGS.items()
-    }
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
