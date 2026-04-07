@@ -4,30 +4,7 @@ import json
 from pathlib import Path
 
 
-TEMPLATE = """\
-[페르소나]
-{persona}
-
-[이전 대화]
-{history}
-
-[참고 정보]
-{context}
-
-[질문]
-{question}
-
-[답변 지침]
-{guide}
-답변:"""
-
-
 class PromptManager:
-    """
-    prompts/registry.json 에서 페르소나·스타일을 로드하고
-    모드(base / rag / graph)에 따라 프롬프트를 조립합니다.
-    """
-
     def __init__(self, registry_path: str = "prompts/registry.json"):
         path = Path(registry_path)
         if not path.exists():
@@ -39,20 +16,30 @@ class PromptManager:
         self,
         prompt_id: str,
         question: str,
-        history: str = "",
+        history: list = [],           
         context: str = "",
-        custom_persona: str = None,     # config.prompt.system_prompt 에서 주입
-    ) -> str:
-        """
-        prompt_id 로 레지스트리에서 설정을 찾아 프롬프트를 조립합니다.
-        prompt_id 가 없으면 'tech_expert' 를 기본값으로 사용합니다.
-        """
+        custom_persona: str = None,
+    ) -> list:                        
         cfg = self.registry.get(prompt_id) or self.registry["tech_expert"]
 
-        return TEMPLATE.format(
-            persona=custom_persona or cfg["persona"],
-            history=history or "없음",
-            context=context or "없음",
-            question=question,
-            guide=cfg["guide"],
-        )
+        persona = custom_persona or cfg["persona"]
+        guide   = cfg["guide"]       
+
+        # system 메시지 조립
+        system_content = persona
+        if guide:
+            system_content += f"\n\n[답변 지침]\n{guide}"
+
+        # user 메시지 조립
+        user_parts = []
+        if context:
+            user_parts.append(f"[참고 정보]\n{context}")
+        user_parts.append(f"[질문]\n{question}")
+        user_content = "\n\n".join(user_parts)
+
+        # ✅ messages 리스트 반환 — llm_handler.astream()과 규격 통일
+        messages = [{"role": "system", "content": system_content}]
+        messages.extend(history)      # MemoryManager가 반환한 list 그대로 삽입
+        messages.append({"role": "user", "content": user_content})
+
+        return messages

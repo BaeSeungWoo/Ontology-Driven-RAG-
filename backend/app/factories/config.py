@@ -21,13 +21,6 @@ class LLMConfig:
     # Anthropic / OpenAI 전용
     max_tokens: int = 1024
 
-    # 분석기 전용 모델 — None이면 model_name 재사용 (추상화만, 미구현)
-    analyzer_model: Optional[str] = None
-
-    # api_key — None이면 환경변수 자동 참조
-    api_key: Optional[str] = None
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  임베딩 설정
 # ──────────────────────────────────────────────────────────────────────────────
@@ -82,13 +75,10 @@ class Config:
     def get_embedding_base_url(self) -> str:
         return self.embedding.resolve_base_url(self.llm.base_url)
 
-    def get_analyzer_model(self) -> str:
-        """분석기 모델명 반환 — 미지정 시 메인 모델 재사용. (추상화만, 미구현)"""
-        return self.llm.analyzer_model or self.llm.model_name
-
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  인스턴스 등록
+#  - key: 프론트엔드 드롭다운 표시 및 /chat/{key} 라우팅에 사용
+#  - 새 공장 추가 시 CONFIGS에만 항목 추가
 # ──────────────────────────────────────────────────────────────────────────────
 
 CONFIGS: Dict[str, Config] = {
@@ -126,7 +116,6 @@ CONFIGS: Dict[str, Config] = {
             model_name="gpt-4o",
             temperature=0,
             max_tokens=2048,
-            analyzer_model="gpt-4o-mini",
         ),
         embedding=EmbeddingConfig(
             model="qwen3-embedding:8b",
