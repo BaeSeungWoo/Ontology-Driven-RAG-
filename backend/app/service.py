@@ -15,70 +15,55 @@ class RAGService:
         self.prompt_manager = PromptManager()
         self.memory_manager = MemoryManager()
 
-    # ------------------------------------------------------------------ #
-    #  main.py의 chat_endpoint → prepare_context + llm.astream 흐름 지원  #
-    # ------------------------------------------------------------------ #
+    async def prepare_context(
+        self,
+        question: str,
+        mode: str,
+        prompt_id: str = "tech_expert",   # ✅ main.py에서 전달받도록 추가
+    ) -> tuple[list, list, dict]:         
 
-    async def prepare_context(self, question: str, mode: str) -> tuple[str, list, dict]:
-        """
-        스트리밍 응답 전, 컨텍스트를 미리 구성합니다.
-        Returns:
-            full_prompt : LLM에 전달할 최종 프롬프트
-            imgs        : 관련 이미지 경로 목록
-            chunk_map   : 출처 청크 매핑 딕셔너리
-        """
         context, imgs, chunk_map = self.retriever.get_context(question, mode)
 
-        full_prompt = self.prompt_manager.build(
-            prompt_id=self.config.prompt.prompt_id,
+        messages = self.prompt_manager.build(
+            prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
             question=question,
-            history="",       # 스트리밍 경로는 히스토리 없이 단발성 처리
+            history=[],                   # ✅ prepare_context에서는 대화 기록 없이 프롬프트만 조립
             context=context,
-            custom_persona=self.config.prompt.system_prompt,
+            custom_persona=self.config.prompt.fallback_system_prompt,
         )
-        return full_prompt, imgs, chunk_map
-
-    # ------------------------------------------------------------------ #
-    #  일반(비스트리밍) 호출 경로                                           #
-    # ------------------------------------------------------------------ #
+        return messages, imgs, chunk_map  
 
     async def ask(
         self,
         session_id: str,
         question: str,
-        mode: str = "rag",          # "base" | "rag" | "graph"
+        mode: str = "rag",
         prompt_id: str = "tech_expert",
     ) -> str:
-        """
-        대화 히스토리를 포함한 단일 응답을 반환합니다.
-
-        mode:
-            "base"  — 검색 없이 LLM 상식으로만 답변
-            "rag"   — 벡터 DB 검색 결과를 컨텍스트로 활용
-            "graph" — 벡터 + 그래프 DB 검색 결과를 컨텍스트로 활용
-        """
-        # 1. 이전 대화 기록 로드
+        # 1. 이전 대화 기록 로드 (list 반환)
         history = self.memory_manager.get_history(session_id)
 
-        # 2. 모드별 컨텍스트 확보
+        # 2. 모드별 컨텍스트
         context = ""
         if mode != "base":
             context, _, _ = self.retriever.get_context(question, mode)
 
-        # 3. 프롬프트 조립
-        full_prompt = self.prompt_manager.build(
+        # 3. 프롬프트 조립 → messages list
+        messages = self.prompt_manager.build(
             prompt_id=prompt_id,
             question=question,
-            history=history,
+            history=history,           
             context=context,
-            custom_persona=self.config.prompt.system_prompt,
+            custom_persona=self.config.prompt.fallback_system_prompt,
         )
-
-        # 4. LLM 호출
-        response = await self.llm.ainvoke(full_prompt)
-        answer = response.content if hasattr(response, "content") else str(response)
+        # 4. LLM에 메시지 전달 후 답변 수신
+        answer_parts = []
+        async for token in self.llm.astream(messages):
+            answer_parts.append(token)
+        answer = "".join(answer_parts)
 
         # 5. 대화 기록 저장
-        self.memory_manager.save(session_id, question, answer)
+        self.memory_manager.add_user_message(session_id, question)
+        self.memory_manager.add_ai_message(session_id, answer)
 
         return answer
