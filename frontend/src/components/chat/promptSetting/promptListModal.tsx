@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { usePrompt } from "@/hooks/usePrompt";
+import { useMemo, useState } from "react";
+// import { usePrompt } from "@/hooks/usePrompt";
 import type { LlmModel, PromptRow, PromptSelectableRow } from "@/types/prompt";
 import styles from "./promptSetting.module.css";
 
@@ -29,7 +29,7 @@ export default function PromptListModal({
   onSelectLlm,
   onApplyPrompt,
 }: PromptListModalProps) {
-  const { getPromptList } = usePrompt();
+  // const { getPromptList } = usePrompt();
 
   // 모달 내부 선택 상태(적용 버튼 누르기 전까지 임시 유지)
   const [selectedPromptNo, setSelectedPromptNo] = useState<number | null>(
@@ -39,14 +39,12 @@ export default function PromptListModal({
   // 레거시 엔드포인트에서 받은 전체 프롬프트 목록
   const [allRows, setAllRows] = useState<PromptSelectableRow[]>([]);
 
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 모달 최초 열림 시 상위 선택값을 내부 선택 상태로 동기화
-  useEffect(() => {
-    setSelectedPromptNo(selectedPrompt?.prompt_no ?? null);
-  }, [selectedPrompt]);
-
-  // 모달 열림(마운트) 시 목록 조회
+  /**
+   * 테스트 단계:
+   * - 프롬프트 조회 API 연결 전까지는 조회 로직을 잠시 비활성화한다.
+   * - 오류 방지를 위해 allRows는 빈 배열 상태를 유지한다.
+   */
+  /*
   useEffect(() => {
     let mounted = true;
 
@@ -73,6 +71,7 @@ export default function PromptListModal({
       mounted = false;
     };
   }, [getPromptList]);
+  */
 
   const activePrompt = useMemo(
     () => allRows.find((row) => row.prompt_no === selectedPromptNo) ?? null,
@@ -92,15 +91,16 @@ export default function PromptListModal({
   };
 
   const handleApplyPrompt = () => {
-    if (!activePrompt) return;
+    if (activePrompt) {
+      onApplyPrompt({
+        prompt_no: activePrompt.prompt_no,
+        prompt_name: activePrompt.prompt_name,
+        prompt_txt: activePrompt.prompt_txt,
+        create_user: activePrompt.create_user,
+      });
+    }
 
-    onApplyPrompt({
-      prompt_no: activePrompt.prompt_no,
-      prompt_name: activePrompt.prompt_name,
-      prompt_txt: activePrompt.prompt_txt,
-      create_user: activePrompt.create_user,
-    });
-
+    // 프롬프트 선택이 없어도, LLM 모델은 라디오 클릭 즉시 상위로 전달되므로 닫기 허용
     onClose();
   };
 
@@ -119,7 +119,6 @@ export default function PromptListModal({
               type="button"
               className={styles.actionButton}
               onClick={handleApplyPrompt}
-              disabled={!activePrompt}
             >
               사용 프롬프트 설정
             </button>
@@ -176,18 +175,10 @@ export default function PromptListModal({
                 );
               })}
 
-              {!isLoading && allRows.length === 0 && (
+              {allRows.length === 0 && (
                 <tr>
                   <td colSpan={3} className={styles.emptyCell}>
                     등록된 프롬프트가 없습니다.
-                  </td>
-                </tr>
-              )}
-
-              {isLoading && (
-                <tr>
-                  <td colSpan={3} className={styles.emptyCell}>
-                    프롬프트 목록을 불러오는 중입니다.
                   </td>
                 </tr>
               )}

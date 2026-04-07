@@ -254,6 +254,7 @@ export const useChat = () => {
       setIsLoading(true);
       setError(null);
       try {
+        // 테스트 백엔드 호출
         const response = await askQuestion({
           question,
           llmModel,

@@ -94,6 +94,7 @@ export default function Chat() {
    * - assistant 메시지 스트리밍 형식으로 return
    */
   const handleSendQuestion = async (payload: QuestionPayload) => {
+    console.log('질문전송', payload)
     await sendQuestion({
       question: payload.question,
       // questioner: payload.questioner,
