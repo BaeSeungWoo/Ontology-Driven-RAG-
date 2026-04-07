@@ -69,13 +69,19 @@ class OllamaLLM(BaseLLM):
                         "num_ctx":     self.num_ctx,
                         "num_predict": self.max_tokens,
                     },
+                    "think": False,
                 },
             ) as response:
                 async for line in response.aiter_lines():
-                    if line:
-                        data = json.loads(line)
-                        if "response" in data:
-                            yield data["response"]
+                    if not line:
+                        continue
+                    data = json.loads(line)
+
+                    # thinking 모델: 최종 답변은 response 키에 담김
+                    # 추론 중에는 thinking 키에 담기므로 무시
+                    token = data.get("response", "")
+                    if token:
+                        yield token             
 
     @staticmethod
     def _to_prompt(messages: list) -> str:
