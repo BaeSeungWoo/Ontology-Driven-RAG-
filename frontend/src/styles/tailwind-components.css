@@ -1,0 +1,52 @@
+@layer components {
+  /* ============================================================
+     Chat 페이지 공통 Tailwind 컴포넌트 클래스
+     - JSX에서 긴 유틸 문자열을 줄이고 "역할 이름"으로 읽히게 한다.
+     ============================================================ */
+
+  /* 페이지 루트 컨테이너 */
+  .tw-chat-page {
+    @apply h-dvh flex flex-col overflow-hidden bg-[var(--chat-page-bg)];
+    @apply max-[1024px]:h-auto max-[1024px]:min-h-dvh max-[1024px]:overflow-auto;
+  }
+
+  /* 상단 툴바 */
+  .tw-chat-toolbar {
+    @apply flex items-center justify-between gap-3 px-4 pt-[10px];
+    @apply max-[1024px]:justify-start max-[1024px]:flex-wrap max-[1024px]:px-3;
+  }
+
+  /* 페이지 타이틀 */
+  .tw-chat-title {
+    @apply m-0 text-[20px] font-bold tracking-[0.01em] text-[var(--chat-title-color)];
+    @apply max-[1024px]:w-full max-[1024px]:text-[18px];
+  }
+
+  /* 3열 메인 레이아웃 */
+  .tw-chat-layout {
+    display: grid;
+    grid-template-columns: calc(348px + 12px) minmax(0, 1fr) 436px;
+    @apply flex-1 min-h-0 gap-3 p-4 box-border bg-[var(--chat-page-bg)] text-[var(--chat-text-color)];
+    @apply max-[1024px]:h-auto max-[1024px]:[grid-template-columns:1fr] max-[1024px]:[grid-template-rows:auto_auto_auto];
+  }
+
+  /* 출처 패널 접힘 상태 */
+  .tw-chat-layout-collapsed {
+    grid-template-columns: 44px minmax(0, 1fr) 436px;
+  }
+
+  /* 좌측 컬럼 */
+  .tw-chat-left {
+    @apply flex min-h-0;
+  }
+
+  /* 가운데 컬럼: 답변 + 질문 */
+  .tw-chat-center {
+    @apply grid min-h-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
+  }
+
+  /* 우측 컬럼: 이력 + 설정 */
+  .tw-chat-right {
+    @apply grid min-h-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
+  }
+}
