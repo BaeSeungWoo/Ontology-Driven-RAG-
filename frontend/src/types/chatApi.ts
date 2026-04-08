@@ -1,6 +1,8 @@
-/**
- * 채팅 API 공통 타입 정의
- * - 서비스 계층과 훅/컴포넌트가 동일한 계약을 사용하도록 모아둔 파일
+﻿/**
+ * 기능: 채팅 API 공통 타입 정의
+ * 이유: 서비스 레이어와 UI 컴포넌트가 같은 계약을 공유하도록 통일하기 위해
+ * In: 백엔드 응답/요청 JSON
+ * Out: 프론트 타입 안정성(MessageItem, ChatItem, payload)
  */
 
 /** 메시지 작성 주체 */
@@ -21,9 +23,11 @@ export type MessageItem = {
   chat_id: number;
   role: ChatRole;
   content: string;
+  questioner?: string | null;
   prompt_no?: number | null;
   prompt_name?: string | null;
   model?: string | null;
+  llm_mode?: "base" | "rag" | "graph" | null;
   created_at: string;
 };
 

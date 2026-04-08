@@ -4,14 +4,17 @@ import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { MessageItem } from "@/types/chatApi";
 
 /**
- * 질문/답변 상태를 관리하는 훅.
- * - 질문 전송 시 user 메시지와 assistant placeholder를 먼저 추가한다.
- * - askApi 스트리밍 청크를 받아 assistant 메시지 content를 실시간으로 갱신한다.
+ * 기능: 채팅 상태/전송 훅
+ * 이유: 화면 컴포넌트에서 API 스트리밍 상태 관리를 분리해 재사용성과 가독성을 높이기 위해
+ * In: 질문, 모델, 모드, 질문자, 프롬프트명
+ * Out: messages, sendQuestion, isLoading, error
  */
 type SendQuestionParams = {
   question: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
+  questioner?: string | null;
+  promptName?: string | null;
 };
 
 export const useChat = () => {
@@ -19,7 +22,19 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const sendQuestion = async ({ question, llmModel, llmMode }: SendQuestionParams) => {
+  /**
+   * 기능: 질문 전송 + 스트리밍 응답 반영
+   * 이유: 사용자 입력 즉시 타임라인에 반영하고, 답변은 토큰 단위로 갱신하기 위해
+   * In: SendQuestionParams
+   * Out: messages 상태 업데이트(유저 메시지 추가 + 답변 placeholder/스트리밍 갱신)
+   */
+  const sendQuestion = async ({
+    question,
+    llmModel,
+    llmMode,
+    questioner,
+    promptName,
+  }: SendQuestionParams) => {
     const normalizedQuestion = question.trim();
     if (!normalizedQuestion) return;
 
@@ -35,6 +50,10 @@ export const useChat = () => {
       chat_id: 0,
       role: "user",
       content: normalizedQuestion,
+      questioner: questioner?.trim() || null,
+      prompt_name: promptName ?? null,
+      model: llmModel,
+      llm_mode: llmMode,
       created_at: now,
     };
 

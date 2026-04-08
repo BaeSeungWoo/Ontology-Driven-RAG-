@@ -1,4 +1,11 @@
-﻿.answerRoot {
+﻿/*
+  기능: 답변 타임라인(날짜/질문/답변) 스타일 정의
+  이유: 레이아웃과 톤을 테마 변수 기반으로 통일하기 위해
+  In: answer.tsx에서 적용하는 className
+  Out: 날짜 배지 + 양방향 말풍선 + 메타 컬럼 UI
+*/
+
+.answerRoot {
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -32,13 +39,16 @@
 
 .dateDivider {
   display: inline-block;
-  padding: 2px 10px;
-  border-radius: 999px;
-  font-size: 12px;
+  min-width: 220px;
+  text-align: center;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--chat-muted-text);
-  background: color-mix(in srgb, var(--chat-page-bg) 60%, var(--chat-pane-bg) 40%);
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 75%, transparent);
+  color: color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-title-color) 8%);
+  background: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-pane-bg) 18%);
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-border) 32%);
+  box-shadow: 0 1px 2px var(--chat-shadow);
 }
 
 .messageItem {
@@ -52,6 +62,7 @@
 .userMessage {
   /* 질문 메시지는 오른쪽 정렬 */
   justify-content: flex-end;
+  align-items: stretch;
 }
 
 .assistantMessage {
@@ -68,26 +79,31 @@
 
 .userMessage .messageBody {
   /* 질문 버블: 우측 정렬, 우상단 코너를 덜 둥글게 해서 말풍선 느낌 강조 */
-  --bubble-bg: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
-  --bubble-border: color-mix(in srgb, var(--chat-title-color) 30%, var(--chat-pane-border) 70%);
+  --bubble-bg: color-mix(in srgb, var(--chat-title-color) 78%, var(--chat-pane-bg) 22%);
+  --bubble-border: color-mix(in srgb, var(--chat-title-color) 54%, var(--chat-pane-border) 46%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   max-width: 78%;
   width: fit-content;
   min-width: 180px;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
   border-radius: 12px 4px 12px 12px;
+  box-shadow: 0 2px 8px var(--chat-shadow);
 }
 
 .assistantMessage .messageBody {
   /* 답변 버블: 좌측 정렬, 전체 폭 사용 */
-  --bubble-bg: color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-page-bg) 8%);
-  --bubble-border: var(--chat-pane-border);
+  --bubble-bg: color-mix(in srgb, var(--chat-pane-bg) 88%, var(--chat-page-bg) 12%);
+  --bubble-border: color-mix(in srgb, var(--chat-pane-border) 88%, var(--chat-title-color) 12%);
   width: 100%;
   max-width: 100%;
   min-width: 0;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
   border-radius: 4px 12px 12px 12px;
+  box-shadow: 0 1px 4px var(--chat-shadow);
 }
 
 .userMessage .messageBody::before {
@@ -157,7 +173,10 @@
   flex-direction: column;
   align-items: flex-end;
   gap: 3px;
-  min-width: 150px;
+  min-width: 170px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .userMetaLabel {
@@ -185,6 +204,17 @@
   line-height: 1.55;
   color: var(--chat-text-color);
   word-break: break-word;
+}
+
+.userMessage .messageText p,
+.userMessage .messageRole {
+  color: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-title-color) 6%);
+}
+
+.assistantMessage .messageText p,
+.assistantMessage .messageRole,
+.assistantMessage .markdownContent :where(p, li, blockquote, h1, h2, h3, h4, h5, h6) {
+  color: var(--chat-text-color);
 }
 
 .messageText p:last-child {
@@ -254,3 +284,4 @@
   font-size: 13px;
   text-align: left;
 }
+
