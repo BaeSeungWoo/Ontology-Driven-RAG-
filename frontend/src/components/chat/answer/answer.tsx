@@ -1,4 +1,5 @@
-﻿import styles from "./answer.module.css";
+﻿import { useEffect, useMemo, useRef } from "react";
+import styles from "./answer.module.css";
 import type { MessageItem } from "@/types/chatApi";
 import type { AnswerMessage } from "@/types/chat";
 import type { LlmModel } from "@/constants/llmOptions";
@@ -31,6 +32,9 @@ const toLlmModel = (value?: string | null): LlmModel | undefined => {
 };
 
 export default function Answer({ messages }: AnswerProps) {
+  const scrollRef = useRef<HTMLElement | null>(null);
+  const shouldAutoScrollRef = useRef(true);
+
   /**
    * 기능: 메시지 정규화
    * 이유: 렌더 계층에서 타입/필드명 차이를 신경 쓰지 않게 하기 위해
@@ -52,11 +56,46 @@ export default function Answer({ messages }: AnswerProps) {
     };
   });
 
+  const scrollAnchor = useMemo(
+    () =>
+      normalizedMessages
+        .map((message) => `${message.id}:${message.text.length}:${message.createdAt}`)
+        .join("|"),
+    [normalizedMessages]
+  );
+
+  /**
+   * 기능: 스트리밍 응답 자동 하단 스크롤
+   * 이유: 새 토큰이 추가될 때 최신 답변을 바로 보이게 하기 위해
+   * In: scrollAnchor(메시지 길이/생성시각 변화)
+   * Out: answerScroll의 scrollTop 갱신
+   */
+  useEffect(() => {
+    const container = scrollRef.current;
+    if (!container || !shouldAutoScrollRef.current) return;
+    container.scrollTop = container.scrollHeight;
+  }, [scrollAnchor]);
+
+  const handleAnswerScroll = () => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    // 사용자가 아래쪽에 있을 때만 자동 스크롤 유지
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldAutoScrollRef.current = distanceFromBottom <= 48;
+  };
+
   return (
     <div className={styles.answerRoot}>
       <h2 className="pane-title">답변</h2>
 
-      <section className={styles.answerScroll} aria-label="답변 내용">
+      <section
+        ref={scrollRef}
+        className={styles.answerScroll}
+        aria-label="답변 내용"
+        onScroll={handleAnswerScroll}
+      >
         {normalizedMessages.length === 0 && (
           <p className="pane-placeholder">질문을 보내면 답변이 여기에 표시됩니다.</p>
         )}
