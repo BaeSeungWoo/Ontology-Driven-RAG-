@@ -49,6 +49,34 @@
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
+/* 현재 선택(모델/모드/프롬프트명) 표시 박스 */
+.currentSelection {
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, var(--chat-title-color) 16%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-page-bg) 8%);
+  padding: 8px 10px;
+}
+
+.currentSelectionTitle {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.currentSelectionItem {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--chat-muted-text);
+  word-break: break-word;
+}
+
+.currentSelectionLabel {
+  font-weight: 700;
+  color: color-mix(in srgb, var(--chat-title-color) 85%, var(--chat-text-color) 15%);
+}
+
 /* ============================================================
    PromptListModal 공통 레이아웃
    ============================================================ */

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import PromptListModal from "./promptListModal";
 import type { PromptRow } from "@/types/prompt";
+import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions"
 import styles from "./promptSetting.module.css";
 
@@ -43,6 +44,10 @@ export default function PromptSetting({
   // In: selectedPrompt 값
   // Out: 프롬프트 미선택 여부
   const isPromptMissing = selectedPrompt === null;
+  const selectedModelLabel =
+    LLM_MODEL_OPTIONS.find((option) => option.value === selectedLlmModel)?.label ?? selectedLlmModel;
+  const selectedModeLabel =
+    LLM_MODE_OPTIONS.find((option) => option.value === selectedLlmMode)?.label ?? selectedLlmMode;
 
   // In: 질문자/프롬프트 검증 결과
   // Out: 필수값 미완료 여부(경고 배지/힌트 표시 조건)
@@ -151,10 +156,19 @@ export default function PromptSetting({
         {"프롬프트 목록"}
       </button>
 
-      <p className="m-0 text-[12px] text-(--chat-muted-text)">
-        {"현재 선택: "}
-        {selectedPrompt ? selectedPrompt.prompt_name : "-"}
-      </p>
+      <div className={styles.currentSelection}>
+        <p className={styles.currentSelectionTitle}>현재 선택</p>
+        <p className={styles.currentSelectionItem}>
+          <span className={styles.currentSelectionLabel}>모델:</span> {selectedModelLabel}
+        </p>
+        <p className={styles.currentSelectionItem}>
+          <span className={styles.currentSelectionLabel}>모드:</span> {selectedModeLabel}
+        </p>
+        <p className={styles.currentSelectionItem}>
+          <span className={styles.currentSelectionLabel}>프롬프트명:</span>{" "}
+          {selectedPrompt ? selectedPrompt.prompt_name : "-"}
+        </p>
+      </div>
 
       {isOpen && (
         <PromptListModal
