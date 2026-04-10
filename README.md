@@ -5,6 +5,15 @@ RAG 개발
 * **waff-rag-system/**
     * **pipeline/** (DB 구축 필요할 때)
         * **parsers/** (파서 전략 (도구))
+            * **docling/** (파서 도구 (Docling))
+                * `assets.py ` (테이블, 이미지 관련 라이브러리)
+                * `toc.py ` (PDF 목차 추출 관련 라이브러리)
+                * `refs.py ` (Docling 참조 주소 관련 라이브러리)
+                * `build_chunks.py ` (Docling 추출물 -> 청크 조립)
+            * **upstage/** (파서 도구 (Upstage))
+                * `divise_pdf.py ` (50MB 이상 PDF 분할)
+                * `upstage_scan.py ` (Upstage 요청 및 결과 다운로드)
+                * `merge_scan_json.py ` (다운로드 결과 -> PDF 별 merge)
             * `docling_parser.py ` (일반 PDF → Markdown 섹션 단위 분할)
             * `upstage_parser.py` (스캔본 → OCR API → element 단위 변환)
         * **adapters/**

@@ -8,6 +8,7 @@ from pathlib import Path
 import json
 from typing import List
 import torch
+from docling.build_chunks import build_chunks
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.accelerator_options import AcceleratorDevice, AcceleratorOptions
@@ -52,7 +53,7 @@ class DoclingParser:
             }
         )
 
-    def extract(self, input_path: str, docling_output_path: str):
+    def extract(self, input_dir: str, docling_output_dir: str) -> Path:
         """특정 폴더에 존재하는 PDF 목록들을 Docling을 통하여 JSON 형태의 파일로 내보낸다.
 
         파일 명의 경우 반드시 영어, 숫자, _으로만 구성될 수 있으며,
@@ -62,23 +63,23 @@ class DoclingParser:
         출력 JSON은 output_result_xxx.json 형태로 출력된다.
 
         Args:
-            input_path (str): 추출할 PDF 폴더 경로
-            docling_output_path (str): Docling 추출물 결과들이 저장될 폴더 경롷
+            input_dir (str): 추출할 PDF 폴더 경로
+            docling_output_dir (str): Docling 추출물 결과들이 저장될 폴더 경로
         
         Returns:
             예) docling_result.json 
         """
         # 입력 경로 설정
-        input_dir = Path(input_path)
+        input_pdf_dir = Path(input_dir)
 
         # JSON 저장 폴더
-        output_dir = Path(docling_output_path)
+        output_dir = Path(docling_output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        pdf_files = sorted(list(input_dir.glob("*.pdf")) + list(input_dir.glob("*.PDF")))
+        pdf_files = sorted(list(input_pdf_dir.glob("*.pdf")) + list(input_pdf_dir.glob("*.PDF")))
 
         if not pdf_files:
-            print(f"{input_dir} 폴더에 PDF 파일이 없습니다")
+            print(f"{input_pdf_dir} 폴더에 PDF 파일이 없습니다")
             return
 
         start_time = time.time()
