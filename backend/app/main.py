@@ -3,7 +3,7 @@
 import json
 import uvicorn
 
-from fastapi import FastAPI, HTTPException, APIRouter
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -12,6 +12,7 @@ import dotenv
 
 from app.factories.config import CONFIGS
 from app.service import RAGService
+from app.routers.promptRouter import promptRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -84,32 +85,6 @@ def list_configs():
         }
         for key, cfg in CONFIGS.items()
     }
-
-promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
-@promptRouter.post('/getPromptList')
-def getPromptList():
-    try:
-        prompt_list = database.getPromptList()
-        json_data = []
-        for row in prompt_list:
-            json_data.append(
-                {
-                    'PROMPT_NO': row[0],
-                    'PROMPT_NAME': row[1],
-                    'PROMPT_TXT': row[2],
-                    'CREATE_USER': row[3],
-                    'SEL_YN': 'N',
-                }
-            )
-        return json_data
-    except Exception as e:
-        print(f"get_prompt_list error: {e}")
-
-        # FastAPI 방식의 에러 응답
-        raise HTTPException(
-            status_code=500,
-            detail="프롬프트 목록 조회 중 오류가 발생했습니다."
-        )
 
 
 app.include_router(promptRouter)
