@@ -1,7 +1,7 @@
 ﻿"use client";
 
-import { useMemo, useState } from "react";
-// import { usePrompt } from "@/hooks/usePrompt";
+import { useMemo, useState, useEffect } from "react";
+import { usePrompt } from "@/hooks/usePrompt";
 import type { PromptRow, PromptSelectableRow } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
@@ -26,7 +26,7 @@ export default function PromptListModal({
   onSelectLlmMode,
   onApplyPrompt,
 }: PromptListModalProps) {
-  // const { getPromptList } = usePrompt();
+  const { getPromptList } = usePrompt();
 
   // 모달 내부 선택 상태(적용 버튼 누르기 전까지 임시 유지)
   const [selectedPromptNo, setSelectedPromptNo] = useState<number | null>(
@@ -36,17 +36,10 @@ export default function PromptListModal({
   // 레거시 엔드포인트에서 받은 전체 프롬프트 목록
   const [allRows, setAllRows] = useState<PromptSelectableRow[]>([]);
 
-  /**
-   * 테스트 단계:
-   * - 프롬프트 조회 API 연결 전까지는 조회 로직을 잠시 비활성화한다.
-   * - 오류 방지를 위해 allRows는 빈 배열 상태를 유지한다.
-   */
-  /*
   useEffect(() => {
     let mounted = true;
 
     const fetchPromptList = async () => {
-      setIsLoading(true);
       try {
         const rows = await getPromptList();
         if (!mounted) return;
@@ -57,7 +50,6 @@ export default function PromptListModal({
         setAllRows([]);
       } finally {
         if (mounted) {
-          setIsLoading(false);
         }
       }
     };
@@ -68,7 +60,7 @@ export default function PromptListModal({
       mounted = false;
     };
   }, [getPromptList]);
-  */
+  
 
   const activePrompt = useMemo(
     () => allRows.find((row) => row.prompt_no === selectedPromptNo) ?? null,

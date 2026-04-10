@@ -1,5 +1,5 @@
 ﻿import { useState } from "react";
-import { askApi } from "@/services/AskApi";
+import { askApi } from "@/services/askApi";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { MessageItem } from "@/types/chatApi";
 
@@ -13,7 +13,7 @@ type SendQuestionParams = {
   question: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
-  questioner?: string | null;
+  questioner: string;
   promptName?: string | null;
 };
 
@@ -50,7 +50,7 @@ export const useChat = () => {
       chat_id: 0,
       role: "user",
       content: normalizedQuestion,
-      questioner: questioner?.trim() || null,
+      questioner: questioner,
       prompt_name: promptName ?? null,
       model: llmModel,
       llm_mode: llmMode,

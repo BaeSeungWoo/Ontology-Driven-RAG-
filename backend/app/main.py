@@ -1,4 +1,4 @@
-# backend/app/main.py
+﻿# backend/app/main.py
 
 import json
 import uvicorn
@@ -8,9 +8,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+import dotenv
+
 from app.factories.config import CONFIGS
 from app.service import RAGService
+from app.routers.promptRouter import promptRouter
 
+dotenv.load_dotenv("app/.env.back")
+
+from .database import database
+from .database.thread_pool_manager import initialize_thread_pools, get_db_thread_pool, get_api_thread_pool
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
 
@@ -51,12 +58,12 @@ async def chat_endpoint(factory_id: str, request: ChatRequest):
         request.question, request.mode, request.prompt_id
     )
 
-    print(f"[DEBUG] messages: {messages}")  # ← 추가
+    print(f"[DEBUG] messages: {messages}")  # 추가
 
     async def event_generator():
         yield f"METADATA:{json.dumps({'images': imgs, 'sources': chunk_map})}\n\n"
         async for token in service.llm.astream(messages):
-            print(f"[DEBUG] token: {repr(token)}", flush=True)  # ← 추가
+            print(f"[DEBUG] token: {repr(token)}", flush=True)  # 추가
             yield token
 
     return StreamingResponse(
@@ -79,5 +86,17 @@ def list_configs():
         for key, cfg in CONFIGS.items()
     }
 
+
+app.include_router(promptRouter)
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 스레드 풀 초기화
+    initialize_thread_pools()
+
+    try:
+        database.get_db_connection()
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    finally:
+        # 애플리케이션 종료 시 스레드 풀 정리
+        get_db_thread_pool().shutdown()
+        get_api_thread_pool().shutdown()

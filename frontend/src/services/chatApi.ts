@@ -1,28 +1,24 @@
 ﻿import api from "@/services/api";
-import type { LlmModel } from "@/constants/llmOptions";
+import type { ChatItem } from '@/types/chatApi'
 
-/**
- * 채팅 API 서비스 레이어
- * - 채팅 이력 관련 HTTP 호출을 한 곳에서 관리
- * - React 상태 없이 요청/응답 처리만 담당
- */
+type HistoryResponse = {
+  chat_id : number;
+  questioner: string;
+  title: string;
+  first_asked_at: string;
+  last_message_at: string | null;
+}
 
-export type AskQuestionPayload = {
-  question: string;
-  llmModel: LlmModel;
-};
+export async function getHistory(): Promise<HistoryResponse[]> {
+  const response = await api.post<ChatItem[]>("/api/history/getHistory", {});
 
-export type AskQuestionResponse = {
-  answer?: string;
-  [key: string]: unknown;
-};
-
-/**
- * 테스트용 질문 호출
- * - POST /api/askQuestion
- * - question, llmModel만 전송
- */
-export async function askQuestion(payload: AskQuestionPayload): Promise<AskQuestionResponse> {
-  const response = await api.post<AskQuestionResponse>("/api/askQuestion", payload);
-  return response.data;
+  const payload = response.data;
+  
+  return payload.map((item) => ({
+    chat_id: item.chat_id,
+    questioner: item.asker,
+    title: item.title,
+    first_asked_at: item.first_asked_at,
+    last_message_at: item.last_message_at
+  }));
 }
