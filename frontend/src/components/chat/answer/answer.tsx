@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./answer.module.css";
 import type { MessageItem } from "@/types/chatApi";
 import type { AnswerMessage } from "@/types/chat";
@@ -26,6 +26,10 @@ export default function Answer({ messages }: AnswerProps) {
   // =========================
   const scrollRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
+  const [selectedAssistantMessage, setSelectedAssistantMessage] = useState<{
+    id: string;
+    assistantCountAtSelection: number;
+  } | null>(null);
 
   // =========================
   // 함수
@@ -74,6 +78,47 @@ export default function Answer({ messages }: AnswerProps) {
     };
   });
 
+  /**
+   * 기능: 답변 메시지 목록을 계산한다.
+   * 목적: 활성 답변 기본값(마지막 답변) 계산에 사용한다.
+   * In: normalizedMessages
+   * Out: assistantMessages(AnswerMessage[])
+   */
+  const assistantMessages = useMemo(
+    () => normalizedMessages.filter((message) => message.role === "assistant"),
+    [normalizedMessages]
+  );
+
+  /**
+   * 기능: 화면에 적용할 활성 답변 id를 계산한다.
+   * 목적: effect에서 setState 없이 클릭 선택값 또는 마지막 답변을 안정적으로 결정한다.
+   * In: selectedAssistantMessageId, assistantMessages
+   * Out: activeAssistantMessageId(string | null)
+   */
+  const activeAssistantMessageId = useMemo(() => {
+    if (assistantMessages.length === 0) return null;
+
+    const latestAssistantId = assistantMessages[assistantMessages.length - 1].id;
+    if (!selectedAssistantMessage) {
+      return latestAssistantId;
+    }
+
+    // 선택 이후 답변이 1개라도 추가되면 최신 답변을 자동 활성화한다.
+    if (assistantMessages.length > selectedAssistantMessage.assistantCountAtSelection) {
+      return latestAssistantId;
+    }
+
+    const hasSelectedAssistant = assistantMessages.some(
+      (message) => message.id === selectedAssistantMessage.id
+    );
+
+    if (hasSelectedAssistant) {
+      return selectedAssistantMessage.id;
+    }
+
+    return latestAssistantId;
+  }, [assistantMessages, selectedAssistantMessage]);
+
   // 자동 스크롤
   /**
    * 기능: 메시지 변경 감지용 키를 생성한다.
@@ -120,6 +165,19 @@ export default function Answer({ messages }: AnswerProps) {
     return getDateKey(currentMessage.createdAt) !== getDateKey(previousMessage.createdAt);
   };
 
+  /**
+   * 기능: 특정 답변 메시지를 활성 상태로 변경한다.
+   * 목적: 근거/이미지 패널 연동의 기준 답변을 명시적으로 선택한다.
+   * In: assistantMessageId(string)
+   * Out: activeAssistantMessageId 갱신
+   */
+  const handleActivateAssistantMessage = (assistantMessageId: string) => {
+    setSelectedAssistantMessage({
+      id: assistantMessageId,
+      assistantCountAtSelection: assistantMessages.length,
+    });
+  };
+
   // =========================
   // useEffect
   // =========================
@@ -158,7 +216,11 @@ export default function Answer({ messages }: AnswerProps) {
                   {message.role === "user" ? (
                     <UserMessageBubble message={message} />
                   ) : (
-                    <AssistantMessageBubble message={message} />
+                    <AssistantMessageBubble
+                      message={message}
+                      isActive={message.id === activeAssistantMessageId}
+                      onActivate={handleActivateAssistantMessage}
+                    />
                   )}
                 </div>
               );

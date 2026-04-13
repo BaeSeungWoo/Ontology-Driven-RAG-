@@ -4,13 +4,32 @@ import { useEffect, useRef, useState } from "react";
 import Answer from "./answer/answer";
 import Citation from "./citation/citation";
 import History from "./history/history";
+import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
 import type { PromptRow } from "@/types/prompt";
-import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import {
+  LLM_MODEL_OPTIONS,
+  LLM_MODE_OPTIONS,
+  type LlmModel,
+  type LlmMode,
+} from "@/constants/llmOptions";
 import Question, { type QuestionPayload } from "./question/question";
 import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
 import styles from "./chat.module.css";
+
+const ENABLE_DEV_ASSET_PANEL = true;
+
+/**
+ * 기능: 히스토리 카드 선택 시 함께 전달되는 세션 설정 메타 타입.
+ * 목적: 질문자/모델/모드/프롬프트를 채팅 화면 상태와 동기화하기 위한 계약을 명확히 한다.
+ * In: HistoryItem 일부 필드
+ * Out: HistorySessionMeta 타입 정보
+ */
+type HistorySessionMeta = Pick<
+  HistoryItem,
+  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName"
+>;
 
 export default function Chat() {
   // =========================
@@ -27,7 +46,10 @@ export default function Chat() {
 
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  // 설정 변경 후 "다음 전송 시 새 세션 생성" 여부를 관리한다.
   const isSessionResetPendingRef = useRef(false);
+  // 히스토리 선택으로 인한 설정 반영 중에는 변경 감지 effect를 1회 무시한다.
+  const isHistorySessionSyncingRef = useRef(false);
 
   const { messages, sendQuestion, loadSessionMessages, resetChatState } = useChat({
     selectedSessionId,
@@ -84,15 +106,43 @@ export default function Chat() {
 
   /**
    * 기능: 히스토리에서 선택한 세션을 로드한다.
-   * 목적: 선택 세션의 메시지를 복원하고 질문자 입력값을 이력 질문자와 동기화한다.
-   * In: sessionId(number), sessionQuestioner(string | undefined)
-   * Out: selectedSessionId/questioner/messages 상태 갱신
+   * 목적: 선택 세션의 메시지를 복원하고 질문자/모델/모드/프롬프트를 이력과 동기화한다.
+   * In: sessionId(number), sessionMeta(질문자/모델/모드/프롬프트 메타)
+   * Out: selectedSessionId/questioner/selectedLlmModel/selectedLlmMode/selectedPrompt/messages 상태 갱신
    */
-  const handleSelectSession = async (sessionId: number, sessionQuestioner?: string) => {
+  const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
+    isHistorySessionSyncingRef.current = true;
     isSessionResetPendingRef.current = false;
     setSelectedSessionId(sessionId);
-    if (sessionQuestioner && sessionQuestioner.trim().length > 0) {
-      setQuestioner(sessionQuestioner);
+    if (sessionMeta?.questioner && sessionMeta.questioner.trim().length > 0) {
+      setQuestioner(sessionMeta.questioner);
+    }
+
+    if (sessionMeta?.llmModel) {
+      const matchedModel = LLM_MODEL_OPTIONS.find((option) => option.value === sessionMeta.llmModel);
+      if (matchedModel) {
+        setSelectedLlmModel(matchedModel.value);
+      }
+    }
+
+    if (sessionMeta?.llmMode) {
+      const matchedMode = LLM_MODE_OPTIONS.find((option) => option.value === sessionMeta.llmMode);
+      if (matchedMode) {
+        setSelectedLlmMode(matchedMode.value);
+      }
+    }
+
+    const promptNo = sessionMeta?.promptNo;
+    if (promptNo !== null && promptNo !== undefined) {
+      setSelectedPrompt((prev) => {
+        if (prev?.prompt_no === promptNo) return prev;
+        return {
+          prompt_no: promptNo,
+          prompt_name: sessionMeta?.promptName ?? prev?.prompt_name ?? "선택된 프롬프트",
+          prompt_txt: prev?.prompt_txt ?? "",
+          create_user: prev?.create_user ?? "",
+        };
+      });
     }
     await loadSessionMessages(sessionId);
   };
@@ -100,6 +150,12 @@ export default function Chat() {
   // =========================
   // useEffect
   // =========================
+  /**
+   * 기능: 질문자/모델/모드/프롬프트 변경을 감지해 세션 분기 필요 여부를 계산한다.
+   * 목적: 기존 세션 선택 상태에서 설정이 바뀌면 다음 질문 전송 시 새 세션으로 시작하게 한다.
+   * In: questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedSessionId
+   * Out: isSessionResetPendingRef / previousSettingsRef 갱신
+   */
   useEffect(() => {
     const nextSettings = {
       questioner: questioner.trim(),
@@ -109,6 +165,12 @@ export default function Chat() {
     };
 
     const previousSettings = previousSettingsRef.current;
+    if (isHistorySessionSyncingRef.current) {
+      previousSettingsRef.current = nextSettings;
+      isHistorySessionSyncingRef.current = false;
+      return;
+    }
+
     const isSettingsChanged =
       previousSettings.questioner !== nextSettings.questioner ||
       previousSettings.promptNo !== nextSettings.promptNo ||
@@ -154,7 +216,21 @@ export default function Chat() {
 
         <main className="tw-chat-center">
           <section className={styles.chatAnswerPane}>
-            <Answer messages={messages} />
+            {ENABLE_DEV_ASSET_PANEL ? (
+              <div className={styles.chatAnswerSplit}>
+                <div className={styles.chatAnswerMain}>
+                  <Answer messages={messages} />
+                </div>
+                <aside className={styles.chatAssetPanel} aria-label="개발용 이미지/표 영역">
+                  <p className={styles.chatAssetPanelTitle}>이미지/표 영역 (개발용)</p>
+                  <p className={styles.chatAssetPanelHint}>
+                    청크에 포함된 이미지/표 경로를 이 영역에 렌더링할 예정입니다.
+                  </p>
+                </aside>
+              </div>
+            ) : (
+              <Answer messages={messages} />
+            )}
           </section>
           <section className={styles.chatQuestionPane}>
             <Question

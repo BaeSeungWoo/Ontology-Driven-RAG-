@@ -1,5 +1,6 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import HistoryCard from "./historyCard";
+import type { HistoryItem } from "./historyCard";
 import styles from "./history.module.css";
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
 
@@ -11,11 +12,22 @@ import { useHistoryPanel } from "@/hooks/useHistoryPanel";
  */
 type HistoryProps = {
   selectedSessionId: number | null;
-  // 세션 선택 시 해당 이력의 질문자명을 함께 전달해 우측 입력값과 동기화한다.
-  onSelectSession: (sessionId: number, questioner?: string) => void;
+  // 세션 선택 시 해당 이력의 설정값을 함께 전달해 우측 설정과 동기화한다.
+  onSelectSession: (sessionId: number, sessionMeta?: HistorySessionMeta) => void;
   onStartNewChat?: () => void;
   refreshKey?: number;
 };
+
+/**
+ * 기능: 히스토리 선택 시 상위로 전달할 세션 메타 타입.
+ * 목적: 질문자뿐 아니라 모델/모드/프롬프트까지 함께 동기화할 수 있게 한다.
+ * In: HistoryItem 일부 필드
+ * Out: HistorySessionMeta 타입 정보
+ */
+type HistorySessionMeta = Pick<
+  HistoryItem,
+  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName"
+>;
 
 /**
  * 기능: 질문 이력 패널(필터 + 페이지네이션 + 카드 목록)을 렌더링한다.
@@ -98,13 +110,24 @@ export default function History({
 
   /**
    * 기능: 카드 클릭 시 해당 세션을 선택한다.
-   * 목적: 상위에서 선택 세션 메시지를 로드하고 질문자 입력값을 동기화한다.
+   * 목적: 상위에서 선택 세션 메시지를 로드하고 질문자/모델/모드/프롬프트를 동기화한다.
    * In: sessionId
-   * Out: onSelectSession(sessionId, questioner)
+   * Out: onSelectSession(sessionId, sessionMeta)
    */
   const handleSelectChat = (sessionId: number) => {
     const matchedItem = historyItems.find((item) => item.id === sessionId);
-    onSelectSession(sessionId, matchedItem?.questioner);
+    onSelectSession(
+      sessionId,
+      matchedItem
+        ? {
+            questioner: matchedItem.questioner,
+            llmModel: matchedItem.llmModel,
+            llmMode: matchedItem.llmMode,
+            promptNo: matchedItem.promptNo,
+            promptName: matchedItem.promptName,
+          }
+        : undefined
+    );
   };
 
   /**

@@ -45,7 +45,7 @@ function formatDateTime(value: string | undefined): string {
 
 /**
  * 기능: 히스토리 API row를 UI 카드 타입으로 정규화
- * 목적: 컴포넌트가 API 원본 구조에 직접 의존하지 않도록 분리
+ * 목적: 카드 표시에 필요한 라벨과 세션 동기화에 필요한 원본 메타를 함께 구성한다.
  * In: row(HistoryResponse), selectedSessionId
  * Out: HistoryItem
  */
@@ -60,6 +60,9 @@ function toHistoryItem(row: HistoryResponse, selectedSessionId: number | null): 
     id,
     title: row.title ?? "제목 없음",
     questioner: row.questioner ?? "-",
+    llmModel: row.llmModel ?? "",
+    llmMode: row.llmMode ?? "",
+    promptNo: Number.isFinite(Number(row.promptNo)) ? Number(row.promptNo) : null,
     llmModelLabel,
     llmModeLabel,
     promptName: row.promptName ?? "-",

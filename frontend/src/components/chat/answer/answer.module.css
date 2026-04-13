@@ -77,6 +77,53 @@
   padding: 10px 12px;
 }
 
+.messageSelectBadge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, transparent);
+  background: color-mix(in srgb, var(--chat-page-bg) 84%, var(--chat-pane-bg) 16%);
+  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.messageSelectBadgeActive {
+  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%);
+  background: rgb(255 245 184 / 35%);
+  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
+}
+
+.messageBodyInteractive {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.messageBodyInteractive:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 35%, var(--chat-pane-border) 65%);
+}
+
+.messageBodyActive {
+  border-color: color-mix(in srgb, var(--chat-title-color) 75%, #111 25%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 26%, transparent);
+}
+
+.assistantMessage .messageBodyActive {
+  background: color-mix(in srgb, var(--chat-title-color) 14%, var(--chat-pane-bg) 86%);
+}
+
+.userMessage .messageBodyActive {
+  background: color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-bg) 32%);
+}
+
 .userMessage .messageBody {
   --bubble-bg: color-mix(in srgb, var(--chat-title-color) 78%, var(--chat-pane-bg) 22%);
   --bubble-border: color-mix(in srgb, var(--chat-title-color) 54%, var(--chat-pane-border) 46%);
@@ -337,4 +384,19 @@
     transform: translateY(0);
     opacity: 0.7;
   }
+}
+
+/* 위치: 활성 버블 최종 오버라이드
+   기능: 기본 버블 배경보다 우선 적용되어 활성 상태를 명확히 표시 */
+.assistantMessage .messageBody.messageBodyActive {
+  background: rgb(255 245 184 / 15%) !important;
+  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
+}
+
+.assistantMessage .messageBody.messageBodyActive::after {
+  border-right-color: rgb(255 245 184 / 15%) !important;
+}
+
+.assistantMessage .messageBody.messageBodyActive::before {
+  border-right-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
 }

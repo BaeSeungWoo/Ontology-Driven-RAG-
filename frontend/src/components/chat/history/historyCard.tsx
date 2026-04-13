@@ -2,7 +2,7 @@
 
 /**
  * 기능: 히스토리 목록에서 카드 렌더링에 사용하는 데이터 타입을 정의한다.
- * 목적: 상위 목록/카드 컴포넌트가 동일한 필드 계약으로 동작하게 한다.
+ * 목적: 상위 목록/카드 컴포넌트가 표시용 라벨과 동기화용 원본값을 함께 다루도록 한다.
  * In: 히스토리 API를 화면용으로 매핑한 데이터
  * Out: HistoryItem 타입 정보
  */
@@ -10,6 +10,9 @@ export type HistoryItem = {
   id: number;
   title: string;
   questioner: string;
+  llmModel: string;
+  llmMode: string;
+  promptNo: number | null;
   llmModelLabel: string;
   llmModeLabel: string;
   promptName: string;

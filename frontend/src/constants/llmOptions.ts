@@ -1,7 +1,8 @@
-/**
- * LLM 관련 선택 옵션 모음.
- * - LLM_MODEL_OPTIONS: 백엔드 factory_id와 1:1로 매핑되는 모델 선택 목록
- * - 추후 llm_mode 선택이 필요하면 같은 파일에 MODE 옵션을 추가해 함께 관리한다.
+﻿/**
+ * 기능: 채팅 설정에서 사용하는 LLM 모델/모드 옵션과 타입을 정의한다.
+ * 목적: 화면 선택값과 API 전송값의 계약을 한 곳에서 일관되게 관리한다.
+ * In: 모델/모드 value-label 쌍 목록
+ * Out: LlmModel, LlmMode, LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS
  */
 
 export type LlmModel = "ollama_config" | "openai_config" | "anthropic_config" | "google_config";
@@ -29,4 +30,3 @@ export const LLM_MODE_OPTIONS: LlmModeOption[] = [
   { value: "rag", label: "RAG" },
   { value: "graph", label: "Graph" },
 ];
-

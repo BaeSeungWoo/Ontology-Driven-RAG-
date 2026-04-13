@@ -6,9 +6,15 @@ import type { AnswerMessage } from "@/types/chat";
 
 type AssistantMessageBubbleProps = {
   message: AnswerMessage;
+  isActive?: boolean;
+  onActivate?: (assistantMessageId: string) => void;
 };
 
-export default function AssistantMessageBubble({ message }: AssistantMessageBubbleProps) {
+export default function AssistantMessageBubble({
+  message,
+  isActive = false,
+  onActivate,
+}: AssistantMessageBubbleProps) {
   // =========================
   // state
   // =========================
@@ -45,6 +51,28 @@ export default function AssistantMessageBubble({ message }: AssistantMessageBubb
     });
   };
 
+  /**
+   * 기능: 답변 버블 클릭/키보드 활성 이벤트를 처리한다.
+   * 목적: 활성 답변 상태를 사용자가 명시적으로 선택할 수 있게 한다.
+   * In: click event 또는 keydown(Enter/Space)
+   * Out: onActivate(message.id) 호출
+   */
+  const handleActivate = () => {
+    onActivate?.(message.id);
+  };
+
+  /**
+   * 기능: 키보드로 답변 버블 활성화를 지원한다.
+   * 목적: 마우스 외 입력에서도 활성 답변 선택이 가능하도록 접근성을 보장한다.
+   * In: keyboard event
+   * Out: Enter/Space 입력 시 onActivate(message.id) 호출
+   */
+  const handleActivateByKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    handleActivate();
+  };
+
   // =========================
   // useEffect
   // =========================
@@ -54,7 +82,25 @@ export default function AssistantMessageBubble({ message }: AssistantMessageBubb
   // =========================
   return (
     <article className={`${styles.messageItem} ${styles.assistantMessage}`}>
-      <div className={styles.messageBody}>
+      <div
+        className={`${styles.messageBody} ${styles.messageBodyInteractive} ${
+          isActive ? styles.messageBodyActive : ""
+        }`}
+        onClick={handleActivate}
+        onKeyDown={handleActivateByKeyboard}
+        tabIndex={0}
+        role="button"
+        aria-pressed={isActive}
+        aria-label="답변 선택"
+      >
+        <span
+          className={`${styles.messageSelectBadge} ${
+            isActive ? styles.messageSelectBadgeActive : ""
+          }`}
+          aria-hidden="true"
+        >
+          {isActive ? "선택됨" : "근거 보기"}
+        </span>
         <p className={styles.messageRole}>답변</p>
         {isLoading ? (
           <div className={styles.assistantLoading} aria-live="polite">
