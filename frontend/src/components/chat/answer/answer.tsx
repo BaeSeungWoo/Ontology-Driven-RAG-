@@ -2,44 +2,62 @@
 import styles from "./answer.module.css";
 import type { MessageItem } from "@/types/chatApi";
 import type { AnswerMessage } from "@/types/chat";
-import type { LlmModel } from "@/constants/llmOptions";
+import {
+  LLM_MODEL_OPTIONS,
+  LLM_MODE_OPTIONS,
+  type LlmModel,
+  type LlmMode,
+} from "@/constants/llmOptions";
 import { getDateKey } from "./chatDate";
 import ChatDateDivider from "./chatDateDivider";
 import UserMessageBubble from "./userMessageBubble";
 import AssistantMessageBubble from "./assistantMessageBubble";
 
-/**
- * 기능: 답변 영역 타임라인 렌더링(날짜 구분 + 질문/답변 말풍선)
- * 이유: 메시지 메타를 UI 친화적으로 정규화하고, 날짜 변경 시 시각적으로 구분하기 위해
- * In: API MessageItem[]
- * Out: 화면 렌더용 AnswerMessage[] + 날짜 구분선/버블 컴포넌트 트리
- */
 type AnswerProps = {
   messages: MessageItem[];
 };
 
-// 기능: 백엔드 model(string)을 프론트 LlmModel 유니온으로 안전하게 축소
-const LLM_MODELS: LlmModel[] = [
-  "ollama_config",
-  "openai_config",
-  "anthropic_config",
-  "google_config",
-];
-
-const toLlmModel = (value?: string | null): LlmModel | undefined => {
-  if (!value) return undefined;
-  return LLM_MODELS.includes(value as LlmModel) ? (value as LlmModel) : undefined;
-};
+const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option.value));
+const LLM_MODE_SET = new Set<LlmMode>(LLM_MODE_OPTIONS.map((option) => option.value));
 
 export default function Answer({ messages }: AnswerProps) {
+  // =========================
+  // state
+  // =========================
   const scrollRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
 
+  // =========================
+  // 함수
+  // =========================
+  // 메시지 정규화
   /**
-   * 기능: 메시지 정규화
-   * 이유: 렌더 계층에서 타입/필드명 차이를 신경 쓰지 않게 하기 위해
-   * In: MessageItem
-   * Out: AnswerMessage
+   * 기능: 모델 문자열을 LlmModel 유니온으로 안전 변환한다.
+   * 목적: 허용되지 않은 모델 문자열이 UI 타입으로 전파되지 않게 한다.
+   * In: value(string | null | undefined)
+   * Out: LlmModel | undefined
+   */
+  const toLlmModel = (value?: string | null): LlmModel | undefined => {
+    if (!value) return undefined;
+    return LLM_MODEL_SET.has(value as LlmModel) ? (value as LlmModel) : undefined;
+  };
+
+  /**
+   * 기능: 모드 문자열을 LlmMode 유니온으로 안전 변환한다.
+   * 목적: 허용되지 않은 모드 문자열이 UI 타입으로 전파되지 않게 한다.
+   * In: value(string | null | undefined)
+   * Out: LlmMode | undefined
+   */
+  const toLlmMode = (value?: string | null): LlmMode | undefined => {
+    if (!value) return undefined;
+    return LLM_MODE_SET.has(value as LlmMode) ? (value as LlmMode) : undefined;
+  };
+
+  /**
+   * 기능: API 메시지 목록을 화면 렌더용 메시지 구조로 정규화한다.
+   * 목적: 하위 버블 컴포넌트가 동일한 필드 계약으로 동작하도록 맞춘다.
+   * In: messages(MessageItem[])
+   * Out: normalizedMessages(AnswerMessage[])
    */
   const normalizedMessages: AnswerMessage[] = messages.map((message) => {
     const createdAt = Date.parse(message.created_at);
@@ -51,11 +69,18 @@ export default function Answer({ messages }: AnswerProps) {
       createdAt: Number.isNaN(createdAt) ? message.message_id : createdAt,
       questioner: message.questioner ?? null,
       llmModel: toLlmModel(message.model),
-      llmMode: message.llm_mode ?? undefined,
+      llmMode: toLlmMode(message.llm_mode),
       promptName: message.prompt_name ?? null,
     };
   });
 
+  // 자동 스크롤
+  /**
+   * 기능: 메시지 변경 감지용 키를 생성한다.
+   * 목적: 메시지 추가/스트리밍 갱신 시 자동 스크롤 이펙트를 안정적으로 트리거한다.
+   * In: normalizedMessages
+   * Out: scrollAnchor(string)
+   */
   const scrollAnchor = useMemo(
     () =>
       normalizedMessages
@@ -65,27 +90,48 @@ export default function Answer({ messages }: AnswerProps) {
   );
 
   /**
-   * 기능: 스트리밍 응답 자동 하단 스크롤
-   * 이유: 새 토큰이 추가될 때 최신 답변을 바로 보이게 하기 위해
-   * In: scrollAnchor(메시지 길이/생성시각 변화)
-   * Out: answerScroll의 scrollTop 갱신
+   * 기능: 스크롤 위치를 기준으로 자동 스크롤 유지 여부를 갱신한다.
+   * 목적: 사용자가 위로 읽는 중에는 자동 하단 이동을 중단한다.
+   * In: answerScroll onScroll 이벤트
+   * Out: shouldAutoScrollRef.current(boolean)
    */
+  const handleAnswerScroll = () => {
+    const container = scrollRef.current;
+    if (!container) return;
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldAutoScrollRef.current = distanceFromBottom <= 48;
+  };
+
+  /**
+   * 기능: 메시지 행에서 날짜 변경 여부를 판별한다.
+   * 목적: 날짜가 바뀌는 지점에만 구분선을 표시한다.
+   * In: currentMessage, previousMessage, messageIndex
+   * Out: boolean
+   */
+  const isDateDividerNeeded = (
+    currentMessage: AnswerMessage,
+    previousMessage: AnswerMessage | undefined,
+    messageIndex: number
+  ) => {
+    if (messageIndex === 0) return true;
+    if (!previousMessage) return true;
+    return getDateKey(currentMessage.createdAt) !== getDateKey(previousMessage.createdAt);
+  };
+
+  // =========================
+  // useEffect
+  // =========================
   useEffect(() => {
     const container = scrollRef.current;
     if (!container || !shouldAutoScrollRef.current) return;
     container.scrollTop = container.scrollHeight;
   }, [scrollAnchor]);
 
-  const handleAnswerScroll = () => {
-    const container = scrollRef.current;
-    if (!container) return;
-
-    // 사용자가 아래쪽에 있을 때만 자동 스크롤 유지
-    const distanceFromBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight;
-    shouldAutoScrollRef.current = distanceFromBottom <= 48;
-  };
-
+  // =========================
+  // render(return)
+  // =========================
   return (
     <div className={styles.answerRoot}>
       <h2 className="pane-title">답변</h2>
@@ -104,20 +150,11 @@ export default function Answer({ messages }: AnswerProps) {
           <div className={styles.messageList}>
             {normalizedMessages.map((message, messageIndex) => {
               const previousMessage = normalizedMessages[messageIndex - 1];
-
-              /**
-               * 기능: 날짜 경계 계산
-               * 이유: 날짜가 바뀌는 지점에만 헤더를 표시하기 위해
-               * In: 현재/이전 메시지 createdAt
-               * Out: isDateChanged(boolean)
-               */
-              const isDateChanged =
-                messageIndex === 0 ||
-                getDateKey(message.createdAt) !== getDateKey(previousMessage.createdAt);
+              const showDateDivider = isDateDividerNeeded(message, previousMessage, messageIndex);
 
               return (
                 <div key={message.id}>
-                  {isDateChanged && <ChatDateDivider createdAt={message.createdAt} />}
+                  {showDateDivider && <ChatDateDivider createdAt={message.createdAt} />}
                   {message.role === "user" ? (
                     <UserMessageBubble message={message} />
                   ) : (

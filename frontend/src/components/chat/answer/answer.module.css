@@ -1,10 +1,7 @@
-﻿/*
-  기능: 답변 타임라인(날짜/질문/답변) 스타일 정의
-  이유: 레이아웃과 톤을 테마 변수 기반으로 통일하기 위해
-  In: answer.tsx에서 적용하는 className
-  Out: 날짜 배지 + 양방향 말풍선 + 메타 컬럼 UI
-*/
-
+﻿/* ============================================================
+   위치: Answer 패널 루트
+   기능: 답변 패널 기본 레이아웃/스크롤/메시지 목록 간격
+   ============================================================ */
 .answerRoot {
   display: flex;
   flex-direction: column;
@@ -14,7 +11,6 @@
 }
 
 .answerScroll {
-  /* 답변 패널 내부에서만 스크롤되도록 설정 (페이지 전체 스크롤 방지) */
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -30,8 +26,11 @@
   gap: 10px;
 }
 
+/* ============================================================
+   위치: 날짜 구분선
+   기능: 날짜 변경 지점 배지 스타일
+   ============================================================ */
 .dateDividerWrap {
-  /* 날짜가 바뀌는 지점(또는 첫 메시지)에 날짜 구분 배지를 중앙 배치 */
   display: flex;
   justify-content: center;
   margin: 2px 0 8px;
@@ -51,8 +50,11 @@
   box-shadow: 0 1px 2px var(--chat-shadow);
 }
 
+/* ============================================================
+   위치: 메시지 행/버블 공통
+   기능: 질문/답변 정렬, 버블 본체 스타일
+   ============================================================ */
 .messageItem {
-  /* user/assistant 공통 행: 가로 전체를 차지하고 내부 버블만 정렬 */
   display: flex;
   align-items: flex-end;
   gap: 8px;
@@ -60,13 +62,11 @@
 }
 
 .userMessage {
-  /* 질문 메시지는 오른쪽 정렬 */
   justify-content: flex-end;
-  align-items: stretch;
+  align-items: flex-end;
 }
 
 .assistantMessage {
-  /* 답변 메시지는 왼쪽 정렬 */
   justify-content: flex-start;
 }
 
@@ -78,7 +78,6 @@
 }
 
 .userMessage .messageBody {
-  /* 질문 버블: 우측 정렬, 우상단 코너를 덜 둥글게 해서 말풍선 느낌 강조 */
   --bubble-bg: color-mix(in srgb, var(--chat-title-color) 78%, var(--chat-pane-bg) 22%);
   --bubble-border: color-mix(in srgb, var(--chat-title-color) 54%, var(--chat-pane-border) 46%);
   display: flex;
@@ -94,7 +93,6 @@
 }
 
 .assistantMessage .messageBody {
-  /* 답변 버블: 좌측 정렬, 전체 폭 사용 */
   --bubble-bg: color-mix(in srgb, var(--chat-pane-bg) 88%, var(--chat-page-bg) 12%);
   --bubble-border: color-mix(in srgb, var(--chat-pane-border) 88%, var(--chat-title-color) 12%);
   width: 100%;
@@ -106,8 +104,9 @@
   box-shadow: 0 1px 4px var(--chat-shadow);
 }
 
+/* 위치: 버블 꼬리
+   기능: 질문/답변 말풍선 꼬리(외곽선/내부) 표현 */
 .userMessage .messageBody::before {
-  /* 질문 꼬리 외곽선(버블 border와 동일 색) */
   content: "";
   position: absolute;
   right: -9px;
@@ -120,7 +119,6 @@
 }
 
 .userMessage .messageBody::after {
-  /* 질문 꼬리 내부(버블 배경색과 동일) */
   content: "";
   position: absolute;
   right: -7px;
@@ -133,7 +131,6 @@
 }
 
 .assistantMessage .messageBody::before {
-  /* 답변 꼬리 외곽선(버블 border와 동일 색) */
   content: "";
   position: absolute;
   left: -9px;
@@ -146,7 +143,6 @@
 }
 
 .assistantMessage .messageBody::after {
-  /* 답변 꼬리 내부(버블 배경색과 동일) */
   content: "";
   position: absolute;
   left: -7px;
@@ -158,8 +154,11 @@
   border-right: 8px solid var(--bubble-bg);
 }
 
+/* ============================================================
+   위치: 사용자 메타/본문 텍스트
+   기능: 시각/메타 라벨/본문 타이포
+   ============================================================ */
 .userTimeLabel {
-  /* 질문 시각(hh:mm): 질문 버블 왼쪽에 표시 */
   font-size: 11px;
   font-weight: 600;
   color: var(--chat-muted-text);
@@ -168,12 +167,11 @@
 }
 
 .userMetaColumn {
-  /* 질문 버블 왼쪽 메타 컬럼: 모델/프롬프트/시각을 세로 정렬 */
   display: inline-flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 3px;
-  min-width: 170px;
+  gap: 0;
+  min-width: 0;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -221,13 +219,15 @@
   margin-bottom: 0;
 }
 
+/* ============================================================
+   위치: 어시스턴트 Markdown 본문
+   기능: 문단/리스트/코드/테이블 렌더 스타일
+   ============================================================ */
 .markdownContent {
-  /* assistant 답변 Markdown 렌더 영역 */
   margin-top: 6px;
 }
 
 .markdownContent :where(p, ul, ol, blockquote, pre, table, h1, h2, h3, h4, h5, h6) {
-  /* Markdown 블록 간 기본 간격 통일 */
   margin: 0 0 10px;
 }
 
@@ -246,7 +246,6 @@
 }
 
 .markdownContent code {
-  /* 인라인 코드 스타일 */
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   font-size: 13px;
   background: color-mix(in srgb, var(--chat-page-bg) 70%, var(--chat-pane-bg) 30%);
@@ -256,7 +255,6 @@
 }
 
 .markdownContent pre {
-  /* 코드 블록 스타일 */
   background: color-mix(in srgb, var(--chat-page-bg) 80%, var(--chat-pane-bg) 20%);
   border: 1px solid color-mix(in srgb, var(--chat-pane-border) 80%, transparent);
   border-radius: 8px;
@@ -272,7 +270,6 @@
 }
 
 .markdownContent table {
-  /* GFM 표 스타일 */
   width: 100%;
   border-collapse: collapse;
 }
@@ -285,6 +282,10 @@
   text-align: left;
 }
 
+/* ============================================================
+   위치: 답변 생성 중 상태
+   기능: 로딩 텍스트/점 애니메이션
+   ============================================================ */
 .assistantLoading {
   margin-top: 6px;
   display: inline-flex;
@@ -337,4 +338,3 @@
     opacity: 0.7;
   }
 }
-

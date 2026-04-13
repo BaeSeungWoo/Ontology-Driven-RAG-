@@ -1,47 +1,60 @@
-﻿/**
- * 기능: 채팅 API 공통 타입 정의
- * 이유: 서비스 레이어와 UI 컴포넌트가 같은 계약을 공유하도록 통일하기 위해
- * In: 백엔드 응답/요청 JSON
- * Out: 프론트 타입 안정성(MessageItem, ChatItem, payload)
- */
+﻿import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 
-/** 메시지 작성 주체 */
 export type ChatRole = "user" | "assistant";
 
-/** 채팅 목록/상세에서 사용하는 채팅 메타 정보 */
-export type ChatItem = {
-  chat_id: number;
-  asker: string;
-  title: string;
-  first_asked_at: string;
-  last_message_at: string | null;
+export type AskRequest = {
+  sessionId: number;
+  question: string;
+  llmModel: LlmModel;
+  llmMode: LlmMode;
+  onChunk?: (chunk: string) => void;
 };
 
-/** 채팅 타임라인의 단일 메시지 */
+export type AskResponse = {
+  answer: string;
+  metadataRaw?: string;
+};
+
+export type CreateSessionPayload = {
+  questioner: string;
+  title: string;
+  llm_model: string;
+  llm_mode: string;
+  prompt_no: number;
+};
+
+export type CreateSessionResponse = {
+  result: string;
+  session_id: number;
+};
+
+export type CreateMessagePayload = {
+  session_id: number;
+  role: ChatRole;
+  content: string;
+};
+
+export type CreateMessageResponse = {
+  result: string;
+  message_id: number;
+};
+
+export type UpdateMessagePayload = {
+  content: string;
+};
+
+export type UpdateMessageResponse = {
+  result: string;
+};
+
 export type MessageItem = {
   message_id: number;
-  chat_id: number;
+  session_id: number;
   role: ChatRole;
   content: string;
-  questioner?: string | null;
-  prompt_no?: number | null;
-  prompt_name?: string | null;
-  model?: string | null;
-  llm_mode?: "base" | "rag" | "graph" | null;
   created_at: string;
-};
-
-/** 채팅 생성 요청 바디 */
-export type CreateChatPayload = {
-  asker: string;
-  title: string;
-};
-
-/** 메시지 생성 요청 바디 */
-export type CreateMessagePayload = {
-  role: ChatRole;
-  content: string;
-  prompt_no?: number | null;
-  prompt_name?: string | null;
+  questioner?: string | null;
   model?: string | null;
+  llm_mode?: string | null;
+  prompt_name?: string | null;
 };

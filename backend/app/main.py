@@ -13,6 +13,7 @@ import dotenv
 from app.factories.config import CONFIGS
 from app.service import RAGService
 from app.routers.promptRouter import promptRouter
+from app.routers.historyRouter import historyRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -88,6 +89,7 @@ def list_configs():
 
 
 app.include_router(promptRouter)
+app.include_router(historyRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화

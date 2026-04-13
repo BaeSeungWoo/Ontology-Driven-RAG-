@@ -179,25 +179,25 @@ class DatabaseConnectionPool:
         """연결 반환"""
         if conn and conn in self.active_connections:
             try:
-                # 연결 상태 확인
-                if self._is_connection_alive(conn):
-                    # autocommit 상태 정리
-                    try:
-                        conn.autocommit = True
-                        # 진행 중인 트랜잭션이 있다면 롤백
-                        if not conn.autocommit:
-                            conn.rollback()
-                            conn.autocommit = True
-                    except:
-                        pass
-                    conn.close()
+                # 반환 시점 health check는 수행하지 않는다.
+                # (프로시저 result set 상태/드라이버 내부 상태로 false negative 가능)
+                # 실제 생존 검사는 get_connection() 대여 시점에 수행한다.
+                try:
+                    conn.autocommit = True
+                except:
+                    pass
+
+                try:
                     self.connection_pool.put(conn, timeout=1)
-                    self.stats['connections_active'] -= 1
-                else:
-                    # 죽은 연결 제거
+                except Exception:
+                    # 풀에 못 넣으면 안전하게 닫고 정리
+                    try:
+                        conn.close()
+                    except Exception:
+                        pass
                     self.active_connections.discard(conn)
+                finally:
                     self.stats['connections_active'] -= 1
-                    print("반환된 pyodbc 연결이 죽어있어 제거했습니다")
             except Exception as e:
                 print(f"pyodbc 연결 반환 중 오류: {e}")
                 self.active_connections.discard(conn)
