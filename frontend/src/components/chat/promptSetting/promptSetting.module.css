@@ -1,10 +1,32 @@
 ﻿/* ============================================================
-   PromptSetting 입력 영역 (Tailwind와 혼용)
-   - 레이아웃/간격은 promptSetting.tsx의 Tailwind 클래스에서 처리
-   - 상태 강조(필수/오류)처럼 의미가 강한 스타일은 CSS Module로 유지
+   위치: PromptSetting 본문(헤더/입력)
+   기능: 필수 안내, 질문자 입력 상태(기본/에러), 선택 정보 표시
    ============================================================ */
 
-/* 필수 입력 미완료 배지 */
+/* 위치: 헤더 우측 안내 영역
+   기능: 배지 + 힌트 정렬, 표시/숨김 상태 제어 */
+.headerRightGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.headerRightGroupHidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.headerInlineHint {
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--chat-text-color) 68%, var(--chat-muted-text) 32%);
+  white-space: nowrap;
+}
+
+/* 위치: 헤더 우측 필수 배지
+   기능: 필수 상태 강조 */
 .requiredBadge {
   border: 1px solid color-mix(in srgb, var(--chat-title-color) 40%, var(--chat-pane-border) 60%);
   background: color-mix(in srgb, var(--chat-pane-bg) 70%, var(--chat-page-bg) 30%);
@@ -15,18 +37,8 @@
   font-weight: 700;
 }
 
-/* 필수값 안내 문구 박스 */
-.promptHint {
-  border: 1px dashed color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
-  border-radius: 8px;
-  padding: 8px 10px;
-  font-size: 13px;
-  color: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-text-color) 18%);
-  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-page-bg) 6%);
-  font-weight: 600;
-}
-
-/* 질문자 입력 필드 기본 상태 */
+/* 위치: 질문자 입력 필드
+   기능: 기본/포커스/미입력(강조) 상태 표시 */
 .questionerInput {
   width: 100%;
   min-width: 0;
@@ -38,18 +50,17 @@
   background: var(--chat-pane-bg);
 }
 
-/* 질문자 입력 포커스 상태 */
 .questionerInput:focus {
   outline: 1px solid color-mix(in srgb, var(--chat-title-color) 45%, transparent);
 }
 
-/* 질문자 미입력 상태 강조 */
 .questionerInputMissing {
   border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
-/* 현재 선택(모델/모드/프롬프트명) 표시 박스 */
+/* 위치: 현재 선택 정보 박스(모델/모드/프롬프트)
+   기능: 선택된 설정 정보 요약 표시 */
 .currentSelection {
   border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, var(--chat-title-color) 16%);
   border-radius: 8px;
@@ -78,7 +89,8 @@
 }
 
 /* ============================================================
-   PromptListModal 공통 레이아웃
+   위치: PromptListModal 공통 컨테이너
+   기능: 백드롭, 모달 카드, 헤더/액션 버튼 기본 레이아웃
    ============================================================ */
 
 .modalBackdrop {
@@ -126,7 +138,8 @@
   gap: 8px;
 }
 
-/* 모달 상단 공통 버튼(적용/닫기) */
+/* 위치: 모달 상단 공통 버튼(적용/닫기)
+   기능: 버튼 기본/hover/disabled 상태 제어 */
 .actionButton,
 .closeButton {
   border: 0;
@@ -155,7 +168,8 @@
 }
 
 /* ============================================================
-   LLM 선택 가이드 박스
+   위치: PromptListModal LLM 가이드 영역
+   기능: LLM 모델/모드 안내 텍스트 + 라디오 그룹 스타일
    ============================================================ */
 
 .llmGuideBox {
@@ -212,7 +226,8 @@
 }
 
 /* ============================================================
-   프롬프트 테이블
+   위치: PromptListModal 프롬프트 테이블
+   기능: 컬럼 폭, 행 강조, 빈 데이터 상태 스타일
    ============================================================ */
 
 .tableWrap {
@@ -253,7 +268,8 @@
   font-weight: 700;
 }
 
-/* 1열: 프롬프트 명 */
+/* 위치: 테이블 1열(프롬프트 명)
+   기능: 열 폭 고정 + 말줄임 */
 .promptTable th:nth-child(1),
 .promptTable td:nth-child(1) {
   width: 20%;
@@ -262,7 +278,8 @@
   text-overflow: ellipsis;
 }
 
-/* 2열: 프롬프트 내용 */
+/* 위치: 테이블 2열(프롬프트 내용)
+   기능: 열 폭 고정 + 말줄임 */
 .promptTable th:nth-child(2),
 .promptTable td:nth-child(2) {
   width: 63%;
@@ -271,7 +288,8 @@
   text-overflow: ellipsis;
 }
 
-/* 3열: 작성자 */
+/* 위치: 테이블 3열(작성자)
+   기능: 중앙 정렬 */
 .promptTable th:nth-child(3),
 .promptTable td:nth-child(3) {
   width: 17%;
@@ -283,12 +301,14 @@
   cursor: pointer;
 }
 
-/* 선택된 프롬프트 행 강조 */
+/* 위치: 선택된 행
+   기능: 선택 프롬프트 강조 */
 .activePromptRow td {
   background: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
 }
 
-/* 데이터 없음 상태 */
+/* 위치: 빈 목록 셀
+   기능: 데이터 없음 메시지 표시 */
 .emptyCell {
   text-align: center;
   color: var(--chat-muted-text);
@@ -296,7 +316,8 @@
 }
 
 /* ============================================================
-   반응형(태블릿 이하)
+   위치: 반응형(태블릿 이하)
+   기능: 모달/버튼/가이드/테이블 타이포 및 간격 축소
    ============================================================ */
 
 @media (max-width: 1024px) {

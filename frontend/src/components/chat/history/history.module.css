@@ -1,4 +1,6 @@
-﻿.historyRoot {
+﻿/* 위치: History 패널 루트/헤더
+   기능: 제목, 새 질문 버튼, 전체 레이아웃 정렬을 담당 */
+.historyRoot {
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -34,6 +36,127 @@
   cursor: not-allowed;
 }
 
+/* 위치: 질문자 필터 섹션
+   기능: 칩 목록/좌우 화살표/활성 상태/비활성 상태 표현 */
+.questionerFilterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.questionerFilterTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
+}
+
+.questionerFilterRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 6px;
+}
+
+.questionerFilterArrow {
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
+  border-radius: 6px;
+  height: 24px;
+  width: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--chat-text-color);
+  background: var(--chat-pane-bg);
+  cursor: pointer;
+}
+
+.questionerFilterArrowIcon {
+  display: block;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.questionerFilterArrow:hover:enabled {
+  background: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
+}
+
+.questionerFilterArrow:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #eceff3;
+  border-color: #d5dbe3;
+  color: #8f98a6;
+}
+
+.questionerFilterScroll {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.questionerFilterScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.questionerFilterChip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 82%, transparent);
+  border-radius: 999px;
+  height: 24px;
+  padding: 0 9px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 90%, var(--chat-page-bg) 10%);
+  color: var(--chat-text-color);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.questionerFilterChip:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 36%, var(--chat-pane-border) 64%);
+  background: color-mix(in srgb, var(--chat-title-color) 8%, var(--chat-pane-bg) 92%);
+}
+
+.questionerFilterChipActive {
+  border-color: color-mix(in srgb, var(--chat-title-color) 66%, #111 34%);
+  background: color-mix(in srgb, var(--chat-title-color) 15%, var(--chat-pane-bg) 85%);
+  color: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-text-color) 18%);
+}
+
+.questionerFilterCount {
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 86%, transparent);
+  background: color-mix(in srgb, var(--chat-page-bg) 80%, var(--chat-pane-bg) 20%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.questionerFilterChipActive .questionerFilterCount {
+  border-color: color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  background: color-mix(in srgb, var(--chat-title-color) 20%, var(--chat-pane-bg) 80%);
+}
+
+/* 위치: 히스토리 카드 리스트 영역
+   기능: 리스트 컨테이너/카드/호버/활성 카드/카드 텍스트 스타일 정의 */
 .historyListWrap {
   flex: 1;
   min-height: 0;
@@ -45,21 +168,31 @@
 
 .historyList {
   height: 100%;
-  overflow: auto;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding-right: 4px;
+  gap: 6px;
+  padding-right: 0;
 }
 
 .historyCard {
   border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
-  border-radius: 10px;
+  border-radius: 9px;
   background: var(--chat-pane-bg);
-  padding: 10px;
+  padding: 8px 9px;
+  min-height: 95px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   width: 100%;
   text-align: left;
   cursor: pointer;
+}
+
+.historyCard:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 38%, var(--chat-pane-border) 62%);
+  background: color-mix(in srgb, var(--chat-title-color) 6%, var(--chat-pane-bg) 94%);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--chat-shadow) 65%, transparent);
 }
 
 .historyCardActive {
@@ -70,8 +203,8 @@
 
 .cardTitle {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 14px;
+  line-height: 1.2;
   font-weight: 700;
   color: var(--chat-title-color);
   white-space: nowrap;
@@ -79,15 +212,53 @@
   text-overflow: ellipsis;
 }
 
+.cardModelMode {
+  margin: 5px 0 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardBottomRow {
+  margin-top: 4px;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+}
+
 .cardMeta {
-  margin: 6px 0 0;
-  font-size: 12px;
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
   color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+.cardQuestioner {
+  margin: 0;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+  white-space: nowrap;
+}
+
+.emptyHistoryText {
+  margin: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--chat-muted-text);
+  text-align: center;
+}
+
+/* 위치: 하단 페이지네이션
+   기능: 이전/다음/페이지 번호 버튼, 활성/비활성 상태 표현 */
 .paginationRow {
   display: flex;
   align-items: center;
@@ -102,6 +273,19 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+}
+
+/* 위치: 하단 페이지네이션 말줄임 토큰
+   기능: 페이지 축약 구간(...)을 버튼과 동일 높이로 정렬 */
+.pageEllipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 28px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-muted-text);
 }
 
 .pageButton {
@@ -120,6 +304,14 @@
   border-color: color-mix(in srgb, var(--chat-title-color) 35%, var(--chat-pane-border) 65%);
 }
 
+.pageButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: #eceff3;
+  border-color: #d5dbe3;
+  color: #8f98a6;
+}
+
 .pageButtonActive {
   border-color: color-mix(in srgb, var(--chat-title-color) 70%, #111 30%);
   background: color-mix(in srgb, var(--chat-title-color) 80%, #111 20%);
@@ -131,6 +323,8 @@
   background: color-mix(in srgb, var(--chat-title-color) 66%, var(--chat-pane-bg) 34%);
 }
 
+/* 위치: 새 질문 확인 모달
+   기능: 배경 오버레이/모달 카드/버튼 스타일 정의 */
 .modalBackdrop {
   position: fixed;
   inset: 0;

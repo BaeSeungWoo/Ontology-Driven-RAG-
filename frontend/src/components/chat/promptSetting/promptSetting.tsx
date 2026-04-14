@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react";
 import PromptListModal from "./promptListModal";
 import type { PromptRow } from "@/types/prompt";
-import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
-import type { LlmModel, LlmMode } from "@/constants/llmOptions"
+import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import styles from "./promptSetting.module.css";
 
 type PromptSettingProps = {
@@ -28,39 +27,23 @@ export default function PromptSetting({
   onSelectLlmMode,
   onSelectPrompt,
 }: PromptSettingProps) {
-  // ============================================================
-  // 상태(State)
-  // - 프롬프트 모달 표시 여부와 필수값 검증 상태를 관리한다.
-  // ============================================================
-
-  // In: "프롬프트 목록" 버튼 클릭 / 모달 닫기 이벤트
-  // Out: 프롬프트 모달 열림/닫힘 상태
+  // =========================
+  // state
+  // =========================
   const [isOpen, setIsOpen] = useState(false);
 
-  // In: questioner 입력값
-  // Out: 질문자 미입력 여부
   const isQuestionerMissing = questioner.trim().length === 0;
-
-  // In: selectedPrompt 값
-  // Out: 프롬프트 미선택 여부
   const isPromptMissing = selectedPrompt === null;
-  const selectedModelLabel =
-    LLM_MODEL_OPTIONS.find((option) => option.value === selectedLlmModel)?.label ?? selectedLlmModel;
-  const selectedModeLabel =
-    LLM_MODE_OPTIONS.find((option) => option.value === selectedLlmMode)?.label ?? selectedLlmMode;
-
-  // In: 질문자/프롬프트 검증 결과
-  // Out: 필수값 미완료 여부(경고 배지/힌트 표시 조건)
   const isRequiredMissing = isQuestionerMissing || isPromptMissing;
 
-  // ============================================================
-  // 함수(Functions)
-  // - 입력 이벤트와 모달 제어 이벤트를 상위 콜백에 연결한다.
-  // ============================================================
-
+  // =========================
+  // 함수
+  // =========================
+  // 모달 제어
   /**
-   * 모달 열기
-   * In: "프롬프트 목록" 버튼 클릭
+   * 기능: 프롬프트 목록 모달을 연다.
+   * 목적: 사용자가 프롬프트를 조회/선택할 수 있는 모달을 표시한다.
+   * In: 프롬프트 목록 버튼 클릭
    * Out: isOpen=true
    */
   const handleOpenModal = () => {
@@ -68,38 +51,40 @@ export default function PromptSetting({
   };
 
   /**
-   * 모달 닫기
-   * In: 모달 닫기 버튼/백드롭 클릭/ESC
+   * 기능: 프롬프트 목록 모달을 닫는다.
+   * 목적: 모달 닫기 액션(버튼/백드롭/외부 이벤트)에 공통으로 대응한다.
+   * In: 모달 닫기 이벤트
    * Out: isOpen=false
    */
   const handleCloseModal = () => {
     setIsOpen(false);
   };
 
+  // 입력/선택 처리
   /**
-   * 질문자 입력 변경
-   * In: input change event
-   * Out: 상위 상태(questioner) 갱신
+   * 기능: 질문자 입력값을 상위 상태로 전달한다.
+   * 목적: 질문자 입력 상태를 부모 컴포넌트 단일 소스로 유지한다.
+   * In: input value(string)
+   * Out: onQuestionerChange(value) 호출
    */
   const handleChangeQuestioner = (value: string) => {
     onQuestionerChange(value);
   };
 
   /**
-   * 프롬프트 적용
-   * In: 모달에서 선택한 PromptRow
-   * Out: 상위 selectedPrompt 갱신 + 모달 닫기
+   * 기능: 모달에서 선택한 프롬프트를 적용한다.
+   * 목적: 프롬프트 선택 결과를 상위 상태에 반영하고 모달을 닫는다.
+   * In: prompt(PromptRow)
+   * Out: onSelectPrompt(prompt) 호출 + isOpen=false
    */
   const handleApplyPrompt = (prompt: PromptRow) => {
     onSelectPrompt(prompt);
     setIsOpen(false);
   };
 
-  /**
-   * ESC 키로 모달 닫기
-   * In: isOpen=true 상태에서 키보드 이벤트 발생
-   * Out: Escape 입력 시 isOpen=false
-   */
+  // =========================
+  // useEffect
+  // =========================
   useEffect(() => {
     if (!isOpen) return;
 
@@ -113,21 +98,23 @@ export default function PromptSetting({
     return () => window.removeEventListener("keydown", onEsc);
   }, [isOpen]);
 
-  // ============================================================
-  // 최종 렌더(Render)
-  // - 질문자 입력, 프롬프트 선택 버튼, 현재 선택 정보, 모달을 렌더한다.
-  // ============================================================
-
+  // =========================
+  // render(return)
+  // =========================
   return (
     <div className="flex flex-col gap-2.5">
       <div className="flex items-center justify-between gap-2">
         <h2 className="pane-title">{"프롬프트 설정"}</h2>
-        {isRequiredMissing && <span className={styles.requiredBadge}>{"필수"}</span>}
+        <div
+          className={`${styles.headerRightGroup} ${
+            !isRequiredMissing ? styles.headerRightGroupHidden : ""
+          }`}
+          aria-hidden={!isRequiredMissing}
+        >
+          <span className={styles.requiredBadge}>{"필수"}</span>
+          <span className={styles.headerInlineHint}>{"질문자 입력과 프롬프트 선택을 완료해주세요."}</span>
+        </div>
       </div>
-
-      {isRequiredMissing && (
-        <div className={styles.promptHint}>{"질문자 입력과 프롬프트 선택을 완료해주세요."}</div>
-      )}
 
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
         <label
@@ -155,20 +142,6 @@ export default function PromptSetting({
       >
         {"프롬프트 목록"}
       </button>
-
-      <div className={styles.currentSelection}>
-        <p className={styles.currentSelectionTitle}>현재 선택</p>
-        <p className={styles.currentSelectionItem}>
-          <span className={styles.currentSelectionLabel}>모델:</span> {selectedModelLabel}
-        </p>
-        <p className={styles.currentSelectionItem}>
-          <span className={styles.currentSelectionLabel}>모드:</span> {selectedModeLabel}
-        </p>
-        <p className={styles.currentSelectionItem}>
-          <span className={styles.currentSelectionLabel}>프롬프트명:</span>{" "}
-          {selectedPrompt ? selectedPrompt.prompt_name : "-"}
-        </p>
-      </div>
 
       {isOpen && (
         <PromptListModal

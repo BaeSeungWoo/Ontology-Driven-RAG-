@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+﻿import { useCallback } from "react";
 import {
   createPrompt,
   getPromptList as getPromptListApi,
@@ -11,16 +11,17 @@ import type {
   UpdatePromptPayload,
 } from "@/types/prompt";
 
-/**
- * usePrompt
- *
- * 목적:
- * - 프롬프트 도메인에서 필요한 "조회/추가/수정" 호출을 한 곳에서 제공
- * - 모달 UI에서 바로 사용할 수 있도록 selectYN(선택 여부) 가공 로직 포함
- */
 export const usePrompt = () => {
+  // =========================
+  // state
+  // =========================
+
+  // =========================
+  // 함수
+  // =========================
   /**
-   * 프롬프트 목록 조회
+   * 기능: 프롬프트 목록을 조회한다.
+   * 목적: 프롬프트 선택 UI에서 최신 목록을 표시한다.
    * In: 없음
    * Out: PromptSelectableRow[]
    */
@@ -29,23 +30,32 @@ export const usePrompt = () => {
   }, []);
 
   /**
-   * 프롬프트 추가
-   * In: prompt_name, prompt_txt, create_user
-   * Out: 생성된 PromptRow
+   * 기능: 새 프롬프트를 생성한다.
+   * 목적: 사용자가 입력한 프롬프트를 서버에 저장한다.
+   * In: CreatePromptPayload
+   * Out: PromptRow
    */
   const addPrompt = useCallback(async (payload: CreatePromptPayload): Promise<PromptRow> => {
     return createPrompt(payload);
   }, []);
 
   /**
-   * 프롬프트 수정
-   * In: prompt_no + 수정할 필드
-   * Out: 수정된 PromptRow
+   * 기능: 기존 프롬프트를 수정한다.
+   * 목적: 선택된 프롬프트의 변경 내용을 서버에 반영한다.
+   * In: UpdatePromptPayload
+   * Out: PromptRow
    */
   const updatePrompt = useCallback(async (payload: UpdatePromptPayload): Promise<PromptRow> => {
     return updatePromptApi(payload);
   }, []);
 
+  // =========================
+  // useEffect
+  // =========================
+
+  // =========================
+  // render(return)
+  // =========================
   return {
     getPromptList,
     addPrompt,

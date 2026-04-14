@@ -1,104 +1,92 @@
 ﻿"use client";
 
 import { useState } from "react";
-/**
- * 질문 입력 UI 파일.
- * - 사용자가 입력한 question과 선택된 llmModel을 payload로 만들어 상위(onSend)로 전달한다.
- * - 실제 API 호출은 하지 않고, 입력/submit 이벤트 처리만 담당한다.
- */
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PromptRow } from "@/types/prompt";
 import styles from "./question.module.css";
 
 export type QuestionPayload = {
   question: string;
+  questioner: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
-  // questioner: string;
-  // promptNo: number;
-  // promptName: string | null;
-  // promptTxt: string | null;
+  prompt: PromptRow;
 };
 
 type QuestionProps = {
+  questioner: string;
   selectedLlmModel: LlmModel;
   selectedLlmMode: LlmMode;
+  selectedPrompt: PromptRow | null;
   onSend: (payload: QuestionPayload) => void;
 };
 
 export default function Question({
+  questioner,
   selectedLlmModel,
   selectedLlmMode,
+  selectedPrompt,
   onSend,
 }: QuestionProps) {
-  // ============================================================
-  // 상태(State)
-  // - 질문 입력값과 전송 가능 여부를 관리한다.
-  // ============================================================
-
-  // In: 사용자 텍스트 입력
-  // Out: 질문 입력창 값
+  // =========================
+  // state
+  // =========================
   const [question, setQuestion] = useState("");
 
-  // In: selectedPrompt prop
-  // Out: 프롬프트 선택 여부
-  // const hasPrompt = selectedPrompt !== null;
+  const hasQuestion = question.trim().length > 0;
+  const hasQuestioner = questioner.trim().length > 0;
+  const hasPrompt = selectedPrompt !== null;
+  const canSend = hasQuestion && hasQuestioner && hasPrompt;
 
-  // In: 질문/질문자/프롬프트 상태
-  // Out: 전송 버튼 활성화 여부
-  // const canSend = hasQuestion && hasQuestioner && hasPrompt;
-
-  // ============================================================
-  // 함수(Functions)
-  // - 전송 이벤트를 payload로 정리해 상위 컴포넌트로 전달한다.
-  // ============================================================
-
+  // =========================
+  // 함수
+  // =========================
   /**
-   * 질문 전송 처리
-   * In: 현재 입력값(question) + 외부 상태(questioner, selectedPrompt, selectedLlm)
-   * Out:
-   * - onSend(payload) 호출
-   * - 전송 후 입력창 초기화
+   * 기능: 현재 입력값을 질문 payload로 구성해 상위로 전달한다.
+   * 목적: 질문 전송에 필요한 필수값을 검증하고, 정상 전송 후 입력창을 초기화한다.
+   * In: question, questioner, selectedLlmModel, selectedLlmMode, selectedPrompt
+   * Out: onSend(payload) 호출, question 초기화
    */
   const handleSend = () => {
     const normalizedQuestion = question.trim();
     if (!normalizedQuestion) return;
 
-    // 필수값이 없으면 전송하지 않는다.
-    // if (!normalizedQuestion || !selectedPrompt) {
-    //   return;
-    // }
+    if (!normalizedQuestion || !selectedPrompt) {
+      return;
+    }
 
     onSend({
       question: normalizedQuestion,
       llmModel: selectedLlmModel,
       llmMode: selectedLlmMode,
-      // questioner: questioner.trim(),
-      // promptNo: selectedPrompt.prompt_no,
-      // promptName: selectedPrompt.prompt_name ?? null,
-      // promptTxt: selectedPrompt.prompt_txt ?? null,
+      questioner: questioner.trim(),
+      prompt: selectedPrompt,
     });
 
     setQuestion("");
   };
 
   /**
-   * 폼 제출 처리
-   * In: submit 이벤트(엔터/버튼)
-   * Out: 기본 submit 동작 방지 + handleSend 실행
+   * 기능: 폼 submit 이벤트를 처리한다.
+   * 목적: 브라우저 기본 submit 동작을 막고 내부 전송 로직(handleSend)만 실행한다.
+   * In: submit event
+   * Out: preventDefault + handleSend()
    */
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     handleSend();
   };
 
-  // ============================================================
-  // 최종 렌더(Render)
-  // - 질문 입력창과 전송 버튼을 렌더한다.
-  // ============================================================
+  // =========================
+  // useEffect
+  // =========================
 
+  // =========================
+  // render(return)
+  // =========================
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <div className="flex w-full items-center gap-[10px] rounded-full border border-[var(--chat-pane-border)] bg-[var(--chat-pane-bg)] px-[10px] py-2 pl-[22px] shadow-[0_1px_2px_var(--chat-shadow)]">
+      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[22px] shadow-[0_1px_2px_var(--chat-shadow)]">
         <input
           id="question-input"
           type="text"
@@ -111,7 +99,7 @@ export default function Question({
           type="submit"
           className={styles.submitButton}
           aria-label={"질문 전송"}
-          // disabled={!canSend}
+          disabled={!canSend}
         >
           {"↵"}
         </button>
