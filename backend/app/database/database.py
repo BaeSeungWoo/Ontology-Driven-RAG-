@@ -404,3 +404,28 @@ def getChatMessagesBySession(session_id):
                 cursor.close()
             except Exception:
                 pass
+
+@with_thread_pool("db")
+def getDailyReport():
+    result_sets = {}
+    try:
+        with get_db_connection(pool_name="secondary") as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            proc_name = "dbo.SP_DAILY_REPORT_EXECUTE"
+            exec_stored_proc(cursor, proc_name, ('2026-03-06','OBI','ko_KR'))
+            set_index = 0            
+            while True:
+                columns = [column[0] for column in cursor.description]
+                # 각 row(tuple)를 dict로 변환
+                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                result_sets[f"tb_{set_index}"] = rows
+                set_index += 1
+                if not cursor.nextset():
+                    break
+            cursor.close()
+    except Exception as e:
+        print(e, 'database getDailyReport() error')
+        return {}
+    finally :
+        return result_sets
