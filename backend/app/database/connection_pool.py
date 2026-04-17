@@ -15,7 +15,7 @@ from datetime import datetime
 class DatabaseConnectionPool:
     """스레드 안전한 pyodbc 데이터베이스 연결 풀"""
     
-    def __init__(self, pool_name="default", min_connections=5, max_connections=10):
+    def __init__(self, pool_name="default",host=None ,port=None, username=None, password=None, database=None, min_connections=5, max_connections=10):
         self.pool_name = pool_name
         self.min_connections = min_connections
         self.max_connections = max_connections
@@ -28,11 +28,11 @@ class DatabaseConnectionPool:
         self.pool_lock = threading.Lock()
         
         # 연결 정보
-        self.host = os.getenv('MSSQL_HOST', '127.0.0.1')
-        self.port = os.getenv('MSSQL_PORT', '1433')
-        self.username = os.getenv('MSSQL_USERNAME')
-        self.password = os.getenv('MSSQL_PASSWORD')
-        self.database = os.getenv('MSSQL_DATABASE')
+        self.host = host
+        self.port = port
+        self.username = username
+        self.password = password
+        self.database = database
         
         # 최적의 ODBC 드라이버 선택
         self.driver = self._get_best_driver()
@@ -297,34 +297,46 @@ class DatabaseConnectionPool:
         print("✅ 모든 연결이 닫혔습니다")
 
 # 전역 연결 풀 인스턴스
-db_pool = None
+db_pools = {}
 
-def initialize_connection_pool(min_connections=10, max_connections=30):
+def initialize_connection_pool(pool_name="default"):
     """연결 풀 초기화"""
-    global db_pool
+    global db_pools
+    host = os.getenv("MSSQL_HOST", "127.0.0.1")
+    port = os.getenv("MSSQL_PORT", "1433")
+    username = os.getenv("MSSQL_USERNAME")
+    password = os.getenv("MSSQL_PASSWORD")
+    database = os.getenv("MSSQL_DATABASE")
+    if pool_name == "secondary":
+        database = os.getenv("MSSQL_SECONDARY_DATABASE")
     try:
-        db_pool = DatabaseConnectionPool(
-            pool_name="flask_app_pyodbc",
-            min_connections=min_connections,
-            max_connections=max_connections
+        db_pools[pool_name] = DatabaseConnectionPool(
+            pool_name=pool_name,
+            host=host,
+            port=port,
+            username=username,
+            password=password,
+            database=database,
+            min_connections=10,
+            max_connections=30
         )
         return True
     except Exception as e:
         print(f"연결 풀 초기화 실패: {e}")
         return False
 
-def get_pool():
+def get_pool(pool_name="default"):
     """연결 풀 인스턴스 반환"""
-    global db_pool
-    if db_pool is None:
-        initialize_connection_pool()
-    return db_pool
+    global db_pools
+    if pool_name not in db_pools:
+        initialize_connection_pool(pool_name)
+    return db_pools[pool_name]
 
 # 편의 함수들 (database.py 호환성)
 @contextmanager
-def get_db_connection(charset=None):
+def get_db_connection(pool_name="default", charset=None):
     """데이터베이스 연결 컨텍스트 매니저 (기본)"""
-    pool = get_pool()
+    pool = get_pool(pool_name)
     if pool:
         with pool.get_db_connection() as conn:
             if charset:

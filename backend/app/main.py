@@ -87,6 +87,10 @@ def list_configs():
         for key, cfg in CONFIGS.items()
     }
 
+@app.get("/getDailyReport")
+def getDailyReport():
+    return database.getDailyReport()
+
 
 app.include_router(promptRouter)
 app.include_router(historyRouter)
