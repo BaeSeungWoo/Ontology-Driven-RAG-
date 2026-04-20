@@ -40,7 +40,8 @@ class EmbeddingConfig:
 
 @dataclass
 class VectorDBConfig:
-    db_path: str = "./data/chroma"
+    db_path: str = "./data/chroma",
+    search_path: str = "../pipeline/data/chroma",
     retrieval_k: int = 5
     score_threshold: float = 0.7
     chunk_size: int = 800
@@ -99,6 +100,7 @@ CONFIGS: Dict[str, Config] = {
         ),
         vector_db=VectorDBConfig(
             db_path="./data/A/chroma",
+            search_path="../pipeline/data/A/chroma",
             retrieval_k=3,
             score_threshold=0.8,
         ),
@@ -123,6 +125,7 @@ CONFIGS: Dict[str, Config] = {
         ),
         vector_db=VectorDBConfig(
             db_path="./data/B/chroma",
+            search_path="../pipeline/data/B/chroma",
             retrieval_k=7,
             score_threshold=0.6,
         ),
@@ -147,6 +150,7 @@ CONFIGS: Dict[str, Config] = {
         ),
         vector_db=VectorDBConfig(
             db_path="./data/C/chroma",
+            search_path="../pipeline/data/C/chroma",
             retrieval_k=5,
             score_threshold=0.75,
         ),
@@ -171,6 +175,7 @@ CONFIGS: Dict[str, Config] = {
         ),
         vector_db=VectorDBConfig(
             db_path="./data/D/chroma",
+            search_path="../pipeline/data/D/chroma",
             retrieval_k=5,
             score_threshold=0.7,
         ),

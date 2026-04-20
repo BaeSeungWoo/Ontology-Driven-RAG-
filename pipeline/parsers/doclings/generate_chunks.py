@@ -29,22 +29,6 @@ SMALL_PICTURE_MAX_HEIGHT = 90
 
 INPUT_DIR = Path("input_json_dir")
 OUTPUT_DIR = Path("output_json_dir")
-PDF_DIR = Path(r"C:\Users\seung\WAFF\2026_업체\AI가치사슬\RAG\참고파일\from 성민씨\화낙 30,31,32 모델B")
-ASSET_ROOT = Path("chunk_assets")
-
-PDF_MAP = {
-    "parameter": "파라미터설명서_B-64490EN_05_FS30i31i32i-B Parameter",
-    "maintenance": "보수설명서_B-64485EN_02_FS30i31i32i-B Maintenance",
-    "machining_center_op": "취급설명서(MCT)_B-64484EN-2_05_FS30i31i32i-B Machining Center_OP",
-    "lathe_op": "취급설명서(선반)_B-64484EN-1_05_FS30i31i32i-B Lathe_OP",
-    "description": "사양설명서_B-64482EN_05_FS30i31i32i-B Descriptions",
-    "connection_hardware": "결합설명서(HARDWARE)_B-64483EN_02_FS30i31i32i-B Connection(Hardware)",
-    "connection_function": "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)",
-    "common_op": "취급설명서(공통)_B-64484EN_05_FS30i31i32i-B Common_OP",
-    "B-65285EN_04_alpha_i_Mainternance": "B-65285EN_04_alpha_i_Mainternance",
-    "B-65325EN_02": "B-65325EN_02",
-    "B-65395EN_01_IO Link Option beta_i-AMP": "B-65395EN_01_IO Link Option beta_i-AMP"
-}
 
 def get_pages_from_prov(prov: list[dict[str, Any]] | None) -> list[int]:
     """prov 배열에서 중복 없는 페이지 번호 목록을 추출한다.
@@ -191,7 +175,7 @@ def chunk_units_by_section_and_container(units: list[dict[str, Any]]) -> list[di
     flush()
     return final_chunks
 
-def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
+def process_document(pdf_path: str, asset_root: str, data: dict[str, Any]) -> list[dict[str, Any]]:
     """Docling 문서 1건을 처리하여 최종 chunk 목록을 생성한다.
 
     문서 본문의 ref를 평탄화한 뒤, 각 노드에 대해 페이지 정보와 섹션 정보를 계산하고
@@ -199,7 +183,9 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
     마지막으로 생성된 unit들을 섹션과 컨테이너 기준으로 병합하여 최종 chunk 목록을 반환한다.
 
     Args:
-        data (dict[str, Any]): Docling JSON 문서 데이터.
+        pdf_path (str): 원본 pdf 경로
+        asset_root (str): asset 추출물 저장 경로
+        data (dict[str, Any]): docling 데이터
 
     Returns:
         list[dict[str, Any]]: 문서에서 생성된 최종 chunk 목록.
@@ -214,10 +200,9 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
             collect_refs(child_ref, idx_data, ref_datas)
 
     # 원본 문서 이름 매핑 및 목차 판별
-    pdf_name = PDF_MAP.get(data['name'])+".pdf"
-    toc_map = get_toc_map(pdf_path=PDF_DIR / pdf_name)
+    toc_map = get_toc_map(pdf_path=pdf_path)
     toc_pages = detect_toc_pages(
-        pdf_path=PDF_DIR / pdf_name, 
+        pdf_path=pdf_path, 
         scan_pages=TOC_SCAN_PAGES, 
         min_score=TOC_MIN_SCORE
     )
@@ -251,7 +236,7 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
             kind=kind, 
             ref=idx.get("self_ref"), 
             data=data, 
-            asset_root=ASSET_ROOT,
+            asset_root=asset_root,
             ref_id_fn=ref_id
         )
 
@@ -275,7 +260,7 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
             # 이미지 추출 정책 
             picture_policy = analyze_picture_policy(
                 picture_node=idx, 
-                pdf_path=PDF_DIR / pdf_name,
+                pdf_path=pdf_path,
                 picture_render_scale=PICTURE_RENDER_SCALE,
                 small_picture_max_width=SMALL_PICTURE_MAX_WIDTH,
                 small_picture_max_height=SMALL_PICTURE_MAX_HEIGHT)
@@ -286,7 +271,7 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
             # 이미지 저장
             picture_exported = export_picture_assets(
                 picture_node=idx,
-                pdf_path=PDF_DIR / pdf_name,
+                pdf_path=pdf_path,
                 asset_path=asset_path,
                 picture_render_scale=PICTURE_RENDER_SCALE,
             )
@@ -304,7 +289,7 @@ def process_document(data: dict[str, Any]) -> list[dict[str, Any]]:
         section = get_section_from_toc(pages=pages, toc_map=toc_map)
 
         metadata = {
-            "source": {"doc_name": PDF_MAP.get(data["name"])},
+            "source": {"doc_name": data['name']},
             "section": section,
             "pages": page_metadata,
             "container": {"type": kind, "asset_path": asset_path},
@@ -337,7 +322,7 @@ def save_jsonl(chunks: list[dict[str, Any]], output_path: str | Path) -> None:
         for chunk in chunks:
             f.write(json.dumps(chunk, ensure_ascii=False) + "\n")
 
-def build_chunks(
+def generate_chunks(
     json_dir: str | Path = INPUT_DIR, 
     output_dir: str | Path = OUTPUT_DIR
 ) -> None:

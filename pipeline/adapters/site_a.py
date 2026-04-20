@@ -6,10 +6,11 @@
 #   - 스캔본: 스캔 PDF (Upstage)
 
 import re
-from typing import List
+from typing import List, Any
+from pathlib import Path
+import json
 
 import fitz  # PyMuPDF
-from langchain_core.documents import Document
 
 from pipeline.adapters.base import BaseParser
 from pipeline.parsers.docling_parser import DoclingParser
@@ -24,25 +25,27 @@ class SiteAParser(BaseParser):
 
     # ── 일반 매뉴얼 (Docling) ──────────────────────────────────────────
 
-    def parse_manual(self, file_path: str) -> List[Document]:
+    def parse_manual(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """일반 텍스트 PDF 매뉴얼 — Docling으로 섹션 구조 보존."""
-        docs = self._docling.parse(file_path)
+        docs = self._docling.parse(pdf_path=file_path,output_dir=source_dir)
         for doc in docs:
-            doc.metadata["site"] = "A"
+            doc["metadata"]["site"] = "A"
         return docs
 
     # ── 스캔본 (Upstage) ──────────────────────────────────────────────
 
-    def parse_scanned(self, file_path: str) -> List[Document]:
+    def parse_scanned(self, file_path: str) -> list[dict[str, Any]]:
         """스캔 이미지 PDF — Upstage OCR로 텍스트 추출."""
-        docs = self._upstage.parse(file_path)
+        with Path(file_path).open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            docs = self._upstage.parse(data)
         for doc in docs:
-            doc.metadata["site"] = "A"
+            doc["metadata"]["site"] = "A"
         return docs
 
     # ── 도면 (PyMuPDF) ────────────────────────────────────────────────
 
-    def parse_drawing(self, file_path: str) -> List[Document]:
+    def parse_drawing(self, file_path: str) -> list[dict[str, Any]]:
         """설비 도면 PDF — 도면 번호(DWG-XXXX)를 메타데이터로 추출."""
         docs = []
         pdf = fitz.open(file_path)

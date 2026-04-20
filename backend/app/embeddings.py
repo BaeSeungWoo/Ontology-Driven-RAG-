@@ -5,16 +5,22 @@
 import json
 from pathlib import Path
 
-from langchain_community.embeddings import OllamaEmbeddings
-
+# from langchain_community.embeddings import OllamaEmbeddings
+from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
 from app.factories.config import Config
 
 
-def load_embeddings(config: Config) -> OllamaEmbeddings:
-    """설정에서 OllamaEmbeddings 인스턴스를 생성합니다."""
-    return OllamaEmbeddings(
-        model=config.embedding.model,
-        base_url=config.get_embedding_base_url(),
+def load_embeddings(config: Config) -> OllamaEmbeddingFunction:
+    # """설정에서 OllamaEmbedding 인스턴스를 생성합니다."""
+
+    # return OllamaEmbeddings(
+    #     model=config.embedding.model,
+    #     base_url=config.get_embedding_base_url(),
+    # )
+    """설정에서 OllamaEmbeddingFunction 인스턴스를 생성합니다."""
+    return OllamaEmbeddingFunction(
+        model_name=config.embedding.model,
+        url=config.get_embedding_base_url()
     )
 
 
