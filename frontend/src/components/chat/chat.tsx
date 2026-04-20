@@ -16,6 +16,7 @@ import {
 import Question, { type QuestionPayload } from "./question/question";
 import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
+import PageTabs from "@/components/navigation/pageTabs";
 import styles from "./chat.module.css";
 
 const ENABLE_DEV_ASSET_PANEL = true;
@@ -190,9 +191,10 @@ export default function Chat() {
   return (
     <div className="tw-chat-page">
       <div className="tw-chat-toolbar">
-        <h1 className="tw-chat-title">
-          Ontology-Driven-RAG
-        </h1>
+        <div className={styles.chatToolbarLeft}>
+          <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
+          <PageTabs />
+        </div>
         <ThemeSwitcher initialTheme={themeKey} />
       </div>
 

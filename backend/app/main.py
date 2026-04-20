@@ -14,6 +14,7 @@ from app.factories.config import CONFIGS
 from app.service import RAGService
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
+from app.routers.dailyReportRouter import dailyReportRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -87,13 +88,9 @@ def list_configs():
         for key, cfg in CONFIGS.items()
     }
 
-@app.get("/getDailyReport")
-def getDailyReport():
-    return database.getDailyReport()
-
-
 app.include_router(promptRouter)
 app.include_router(historyRouter)
+app.include_router(dailyReportRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화

@@ -19,6 +19,13 @@
   gap: 12px;
 }
 
+.chatToolbarLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 /* 페이지 타이틀 텍스트 */
 .chatHeaderTitle {
   margin: 0;
@@ -233,6 +240,11 @@
     justify-content: flex-start;
     flex-wrap: wrap;
     padding: 10px 12px 0;
+  }
+
+  .chatToolbarLeft {
+    width: 100%;
+    flex-wrap: wrap;
   }
 
   .chatHeaderTitle {
