@@ -9,6 +9,7 @@ import json
 import pandas as pd
 from .connection_pool import get_db_connection #, get_pool
 from .thread_pool_manager import with_thread_pool
+from datetime import date
 
 # pyodbc용 stored procedure 실행 헬퍼 함수
 def exec_stored_proc(cursor, proc_name, params=None):
@@ -226,8 +227,6 @@ def getHistoryQuestionerCounts():
                 cursor.close()
             except Exception:
                 pass
-    
-# 여기에 페이지네이션 기능 작성할거야
 
 # 신규 대화 세션 생성
 @with_thread_pool("db")
@@ -405,15 +404,22 @@ def getChatMessagesBySession(session_id):
             except Exception:
                 pass
 
+
+#   ===============
+#   데일리 리포트
+#   ===============
+
+# 통합 프로시저 실행
 @with_thread_pool("db")
-def getDailyReport():
+def getDailyReport(report_date: date, report_id: str, locale: str):
     result_sets = {}
     try:
         with get_db_connection(pool_name="secondary") as conn:
             conn.autocommit = True
             cursor = conn.cursor()
             proc_name = "dbo.SP_DAILY_REPORT_EXECUTE"
-            exec_stored_proc(cursor, proc_name, ('2026-03-06','OBI','ko_KR'))
+            exec_stored_proc(cursor, proc_name, (report_date, report_id, locale))
+            # exec_stored_proc(cursor, proc_name, ('2026-03-06','OBI','ko_KR'))
             set_index = 0            
             while True:
                 columns = [column[0] for column in cursor.description]
@@ -426,6 +432,5 @@ def getDailyReport():
             cursor.close()
     except Exception as e:
         print(e, 'database getDailyReport() error')
-        return {}
-    finally :
-        return result_sets
+        raise
+    return result_sets
