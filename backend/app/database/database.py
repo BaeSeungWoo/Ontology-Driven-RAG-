@@ -409,6 +409,81 @@ def getChatMessagesBySession(session_id):
 #   데일리 리포트
 #   ===============
 
+# 데일리 리포트 결과 조회
+@with_thread_pool("db")
+def getDailyReportResult(report_date: date, report_id: str, locale: str):
+    result_sets = {}
+    try:
+        with get_db_connection(pool_name="secondary") as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            proc_name = "dbo.SP_DAILY_REPORT_RESULT_SELECT"
+            exec_stored_proc(cursor, proc_name, (report_date, report_id, locale))
+            set_index = 0
+            while True:
+                if cursor.description is None:
+                    result_sets[f"tb_{set_index}"] = []
+                else:
+                    columns = [column[0] for column in cursor.description]
+                    # 각 row(tuple)를 dict로 변환
+                    rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+                    result_sets[f"tb_{set_index}"] = rows
+                set_index += 1
+                if not cursor.nextset():
+                    break
+            cursor.close()
+    except Exception as e:
+        print(e, "database getDailyReportResult() error")
+        raise
+    return result_sets
+
+# 데일리 리포트 결과 저장(없을 때만 생성)
+@with_thread_pool("db")
+def saveDailyReportResult(report_date: date, report_id: str, locale: str, context_json: str):
+    conn = None
+    cursor = None
+    try:
+        with get_db_connection(pool_name="secondary") as conn:
+            conn.autocommit = False
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                INSERT INTO dbo.DAILY_REPORT_RESULT (
+                    REPORT_DATE, REPORT_ID, LOCALE, CONTEXT_JSON, CREATED_AT, UPDATED_AT
+                )
+                SELECT ?, ?, ?, ?, SYSDATETIME(), SYSDATETIME()
+                WHERE NOT EXISTS (
+                    SELECT 1
+                    FROM dbo.DAILY_REPORT_RESULT
+                    WHERE REPORT_DATE = ?
+                      AND REPORT_ID = ?
+                      AND LOCALE = ?
+                )
+                """,
+                (
+                    report_date,
+                    report_id,
+                    locale,
+                    context_json,
+                    report_date,
+                    report_id,
+                    locale,
+                ),
+            )
+            conn.commit()
+            return 1
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(e, "database saveDailyReportResult() error")
+        raise
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+
 # 통합 프로시저 실행
 @with_thread_pool("db")
 def getDailyReport(report_date: date, report_id: str, locale: str):

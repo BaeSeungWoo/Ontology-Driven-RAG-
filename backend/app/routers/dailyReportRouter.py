@@ -2,6 +2,7 @@
 from typing import Iterable
 from datetime import date
 from pydantic import BaseModel, Field
+import json
 
 from app.database import database
 
@@ -40,6 +41,49 @@ def get_daily_report(report_date: date, report_id: str, locale: str) -> dict:
     if not isinstance(report, dict):
         raise ValueError("daily report response is not dict")
     return report
+
+def build_report_context(*, metrics: dict, summary=None, anomaly_action=None, analysis=None) -> dict:
+    """
+    섹션 결과를 단일 context(JSON 저장 대상)로 묶는다.
+    """
+    return {
+        "summary": summary,
+        "anomalyAction": anomaly_action,
+        "metrics": metrics,
+        "analysis": analysis,
+    }
+
+def parse_report_context(context_raw) -> dict | None:
+    """
+    DAILY_REPORT_RESULT.CONTEXT_JSON을 API 응답 스키마로 복원한다.
+    - str이면 JSON 파싱
+    - dict면 그대로 사용
+    - 스키마 누락 필드는 기본값으로 보강
+    """
+    try:
+        if context_raw is None:
+            return None
+
+        # getDailyReportResult()가 result set 형식({"tb_0": [...]})으로 반환되는 경우
+        if isinstance(context_raw, dict) and "tb_0" in context_raw:
+            rows = context_raw.get("tb_0") or []
+            first_row = rows[0] if isinstance(rows, list) and len(rows) > 0 else None
+            if not isinstance(first_row, dict):
+                return None
+            context_raw = first_row.get("CONTEXT_JSON", first_row.get("CONTEXT"))
+
+        context = json.loads(context_raw) if isinstance(context_raw, str) else context_raw
+        if not isinstance(context, dict):
+            return None
+
+        return {
+            "summary": context.get("summary"),
+            "anomalyAction": context.get("anomalyAction"),
+            "metrics": context.get("metrics") if isinstance(context.get("metrics"), dict) else _build_metrics({}),
+            "analysis": context.get("analysis"),
+        }
+    except (TypeError, ValueError, json.JSONDecodeError):
+        return None
 
 def find_row(report: dict, domain_cd: str, step_no: int = 1):
     """
@@ -120,17 +164,38 @@ def getReportSections(req: ReportSectionsRequest):
     - DB의 getDailyReport()는 이 요청 안에서 1회만 호출한다.
     """
     try:
-        report = get_daily_report(req.date, req.reportId, req.locale)
-        # summary = _build_summary_section(report)
-        # anomaly_action = _build_anomaly_action_section(report)
-        metrics = _build_metrics(report)
-        # analysis = _build_analysis_section(report)
+        # 1. getDailyReportResult 호출.
+        # 2. 결과가 존재한다면 이 데이터의 context_json을 분해하여 데이터를 return
+        # 3. 결과가 없다면 기존 섹션을 호출하여 llm의 답변을 얻어내고, 이 결과를 하나로 묶어 context_json을 만들어 
+        #   DAILY_REPORT_RESULT 에 저장
+        stored_context_raw = database.getDailyReportResult(req.date, req.reportId, req.locale)
+        sections = parse_report_context(stored_context_raw)
+        
+        if sections is None:
+            report = get_daily_report(req.date, req.reportId, req.locale)
+            # summary = _build_summary_section(report)
+            # anomaly_action = _build_anomaly_action_section(report)
+            metrics = _build_metrics(report)
+            # analysis = _build_analysis_section(report)
+            sections = build_report_context(
+                # summary=summary,
+                # anomaly_action=anomaly_action,
+                metrics=metrics,
+                # analysis=analysis,
+            )
+            database.saveDailyReportResult(
+                req.date,
+                req.reportId,
+                req.locale,
+                json.dumps(sections, ensure_ascii=False),
+            )
 
         return {
-            # "summary": summary,
-            # "anomalyAction": anomaly_action,
-            "metrics": metrics,
-            # "analysis": analysis,
+            # "summary": sections.get("summary"),
+            # "anomalyAction": sections.get("anomalyAction"),
+            "metrics": sections.get("metrics"),
+            # "analysis": sections.get("analysis"),
+            # "meta": sections.get("meta"),
         }
     
     except Exception as e:
