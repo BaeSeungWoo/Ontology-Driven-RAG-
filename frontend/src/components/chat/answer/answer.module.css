@@ -1,0 +1,402 @@
+﻿/* ============================================================
+   위치: Answer 패널 루트
+   기능: 답변 패널 기본 레이아웃/스크롤/메시지 목록 간격
+   ============================================================ */
+.answerRoot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 10px;
+}
+
+.answerScroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, transparent);
+  border-radius: 10px;
+  background: var(--chat-pane-bg);
+  padding: 12px;
+}
+
+.messageList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ============================================================
+   위치: 날짜 구분선
+   기능: 날짜 변경 지점 배지 스타일
+   ============================================================ */
+.dateDividerWrap {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 8px;
+}
+
+.dateDivider {
+  display: inline-block;
+  min-width: 220px;
+  text-align: center;
+  padding: 3px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-title-color) 8%);
+  background: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-pane-bg) 18%);
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-border) 32%);
+  box-shadow: 0 1px 2px var(--chat-shadow);
+}
+
+/* ============================================================
+   위치: 메시지 행/버블 공통
+   기능: 질문/답변 정렬, 버블 본체 스타일
+   ============================================================ */
+.messageItem {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  width: 100%;
+}
+
+.userMessage {
+  justify-content: flex-end;
+  align-items: flex-end;
+}
+
+.assistantMessage {
+  justify-content: flex-start;
+}
+
+.messageBody {
+  position: relative;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.messageSelectBadge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, transparent);
+  background: color-mix(in srgb, var(--chat-page-bg) 84%, var(--chat-pane-bg) 16%);
+  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.messageSelectBadgeActive {
+  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%);
+  background: rgb(255 245 184 / 35%);
+  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
+}
+
+.messageBodyInteractive {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.messageBodyInteractive:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 35%, var(--chat-pane-border) 65%);
+}
+
+.messageBodyActive {
+  border-color: color-mix(in srgb, var(--chat-title-color) 75%, #111 25%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 26%, transparent);
+}
+
+.assistantMessage .messageBodyActive {
+  background: color-mix(in srgb, var(--chat-title-color) 14%, var(--chat-pane-bg) 86%);
+}
+
+.userMessage .messageBodyActive {
+  background: color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-bg) 32%);
+}
+
+.userMessage .messageBody {
+  --bubble-bg: color-mix(in srgb, var(--chat-title-color) 78%, var(--chat-pane-bg) 22%);
+  --bubble-border: color-mix(in srgb, var(--chat-title-color) 54%, var(--chat-pane-border) 46%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 78%;
+  width: fit-content;
+  min-width: 180px;
+  background: var(--bubble-bg);
+  border-color: var(--bubble-border);
+  border-radius: 12px 4px 12px 12px;
+  box-shadow: 0 2px 8px var(--chat-shadow);
+}
+
+.assistantMessage .messageBody {
+  --bubble-bg: color-mix(in srgb, var(--chat-pane-bg) 88%, var(--chat-page-bg) 12%);
+  --bubble-border: color-mix(in srgb, var(--chat-pane-border) 88%, var(--chat-title-color) 12%);
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  background: var(--bubble-bg);
+  border-color: var(--bubble-border);
+  border-radius: 4px 12px 12px 12px;
+  box-shadow: 0 1px 4px var(--chat-shadow);
+}
+
+/* 위치: 버블 꼬리
+   기능: 질문/답변 말풍선 꼬리(외곽선/내부) 표현 */
+.userMessage .messageBody::before {
+  content: "";
+  position: absolute;
+  right: -9px;
+  top: 7px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 9px solid var(--bubble-border);
+}
+
+.userMessage .messageBody::after {
+  content: "";
+  position: absolute;
+  right: -7px;
+  top: 8px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 8px solid var(--bubble-bg);
+}
+
+.assistantMessage .messageBody::before {
+  content: "";
+  position: absolute;
+  left: -9px;
+  top: 7px;
+  width: 0;
+  height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-right: 9px solid var(--bubble-border);
+}
+
+.assistantMessage .messageBody::after {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 8px;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-right: 8px solid var(--bubble-bg);
+}
+
+/* ============================================================
+   위치: 사용자 메타/본문 텍스트
+   기능: 시각/메타 라벨/본문 타이포
+   ============================================================ */
+.userTimeLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chat-muted-text);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.userMetaColumn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.userMetaLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chat-muted-text);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.messageRole {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.messageText {
+  margin-top: 6px;
+}
+
+.messageText p {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--chat-text-color);
+  word-break: break-word;
+}
+
+.userMessage .messageText p,
+.userMessage .messageRole {
+  color: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-title-color) 6%);
+}
+
+.assistantMessage .messageText p,
+.assistantMessage .messageRole,
+.assistantMessage .markdownContent :where(p, li, blockquote, h1, h2, h3, h4, h5, h6) {
+  color: var(--chat-text-color);
+}
+
+.messageText p:last-child {
+  margin-bottom: 0;
+}
+
+/* ============================================================
+   위치: 어시스턴트 Markdown 본문
+   기능: 문단/리스트/코드/테이블 렌더 스타일
+   ============================================================ */
+.markdownContent {
+  margin-top: 6px;
+}
+
+.markdownContent :where(p, ul, ol, blockquote, pre, table, h1, h2, h3, h4, h5, h6) {
+  margin: 0 0 10px;
+}
+
+.markdownContent p,
+.markdownContent li,
+.markdownContent blockquote {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--chat-text-color);
+  word-break: break-word;
+}
+
+.markdownContent ul,
+.markdownContent ol {
+  padding-left: 20px;
+}
+
+.markdownContent code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  background: color-mix(in srgb, var(--chat-page-bg) 70%, var(--chat-pane-bg) 30%);
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 80%, transparent);
+  border-radius: 6px;
+  padding: 1px 5px;
+}
+
+.markdownContent pre {
+  background: color-mix(in srgb, var(--chat-page-bg) 80%, var(--chat-pane-bg) 20%);
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 80%, transparent);
+  border-radius: 8px;
+  padding: 10px;
+  overflow: auto;
+}
+
+.markdownContent pre code {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+}
+
+.markdownContent table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.markdownContent th,
+.markdownContent td {
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, transparent);
+  padding: 6px 8px;
+  font-size: 13px;
+  text-align: left;
+}
+
+/* ============================================================
+   위치: 답변 생성 중 상태
+   기능: 로딩 텍스트/점 애니메이션
+   ============================================================ */
+.assistantLoading {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  animation: assistantLoadingPulse 1.2s ease-in-out infinite;
+}
+
+.loadingText {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--chat-text-color) 82%, var(--chat-muted-text) 18%);
+}
+
+.loadingDots {
+  display: inline-block;
+  min-width: 18px;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: color-mix(in srgb, var(--chat-title-color) 72%, var(--chat-text-color) 28%);
+  animation: assistantLoadingDots 1.1s steps(4, end) infinite;
+}
+
+@keyframes assistantLoadingPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes assistantLoadingDots {
+  0% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(-1px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+}
+
+/* 위치: 활성 버블 최종 오버라이드
+   기능: 기본 버블 배경보다 우선 적용되어 활성 상태를 명확히 표시 */
+.assistantMessage .messageBody.messageBodyActive {
+  background: rgb(255 245 184 / 15%) !important;
+  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
+}
+
+.assistantMessage .messageBody.messageBodyActive::after {
+  border-right-color: rgb(255 245 184 / 15%) !important;
+}
+
+.assistantMessage .messageBody.messageBodyActive::before {
+  border-right-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
+}

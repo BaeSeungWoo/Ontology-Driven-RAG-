@@ -1,19 +1,57 @@
+﻿/* ============================================================
+   Chat 페이지 루트
+   - 전체 화면 높이를 기준으로 3패널 레이아웃을 담는 컨테이너
+   ============================================================ */
 .chatPage {
-  min-height: 100dvh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: var(--chat-page-bg);
 }
 
+/* 상단 툴바(타이틀 + 테마 스위처) */
 .chatToolbar {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   padding: 10px 16px 0;
+  gap: 12px;
 }
 
+.chatToolbarLeft {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+/* 페이지 타이틀 텍스트 */
+.chatHeaderTitle {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+  letter-spacing: 0.01em;
+}
+
+/* ============================================================
+   메인 3열 레이아웃
+   - 좌: Citation
+   - 중: Answer + Question
+   - 우: History + PromptSetting
+   ============================================================ */
 .chatLayout {
+  /* 공통 간격/폭 변수: 패널 크기 조절 시 여기만 수정 */
+  --chat-gap: 12px;
+  --chat-right-width: 436px;
+  --chat-citation-width: calc(348px + var(--chat-gap));
+  --chat-citation-collapsed-width: 44px;
+
   display: grid;
-  grid-template-columns: minmax(240px, 2.2fr) minmax(0, 5fr) minmax(260px, 2.4fr);
-  gap: 12px;
-  height: calc(100dvh - 32px);
+  grid-template-columns: var(--chat-citation-width) minmax(0, 1fr) var(--chat-right-width);
+  gap: var(--chat-gap);
+  flex: 1;
   min-height: 0;
   padding: 16px;
   box-sizing: border-box;
@@ -21,29 +59,45 @@
   color: var(--chat-text-color);
 }
 
+/* Citation 접힘 상태일 때 좌측 폭만 축소 */
+.chatLayoutCollapsed {
+  grid-template-columns: var(--chat-citation-collapsed-width) minmax(0, 1fr) var(--chat-right-width);
+}
+
+/* 각 컬럼 기본 높이 제한 해제(내부 스크롤 허용을 위한 필수 설정) */
 .chatLeft,
 .chatCenter,
 .chatRight {
   min-height: 0;
 }
 
+.chatLeft {
+  display: flex;
+}
+
+/* 가운데/오른쪽 컬럼은 2단 그리드로 사용 */
 .chatCenter,
 .chatRight {
   display: grid;
   gap: 12px;
 }
 
+/* 가운데: 답변 영역(가변) + 질문 입력(고정) */
 .chatCenter {
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
+/* 오른쪽: 이력 영역(가변) + 프롬프트 설정(고정) */
 .chatRight {
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
+/* ============================================================
+   공통 패널 스타일
+   - 카드 형태(테두리/배경/그림자/패딩)
+   ============================================================ */
 .chatCitationPane,
 .chatAnswerPane,
-.chatQuestionPane,
 .chatHistoryPane,
 .chatPromptSettingPane {
   border: 1px solid var(--chat-pane-border);
@@ -53,6 +107,7 @@
   box-shadow: 0 1px 2px var(--chat-shadow);
 }
 
+/* 스크롤이 필요한 패널들 */
 .chatCitationPane,
 .chatAnswerPane,
 .chatHistoryPane {
@@ -60,11 +115,87 @@
   overflow: auto;
 }
 
-.chatQuestionPane,
-.chatPromptSettingPane {
-  min-height: 110px;
+/* Answer는 내부 컴포넌트가 자체 스크롤을 관리하므로 바깥은 hidden */
+.chatAnswerPane {
+  overflow: hidden;
 }
 
+/* 위치: 가운데 답변 패널 내부 분할 레이아웃(개발용)
+   기능: 답변 본문 + 우측 이미지/표 영역을 2단으로 표시 */
+.chatAnswerSplit {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 10px;
+}
+
+.chatAnswerMain {
+  min-width: 0;
+  min-height: 0;
+}
+
+.chatAssetPanel {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chat-page-bg) 72%, var(--chat-pane-bg) 28%);
+  padding: 10px;
+  overflow: auto;
+}
+
+.chatAssetPanelTitle {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.chatAssetPanelHint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--chat-muted-text);
+}
+
+/* Citation 패널 기본 크기 */
+.chatCitationPane {
+  height: 100%;
+  width: 100%;
+  flex: 1;
+}
+
+/* Citation 접힘 상태 패딩 조정 */
+.chatCitationPaneCollapsed {
+  padding: 10px 6px;
+}
+
+/* 질문 입력 영역은 별도 카드 없이 투명 배경 사용 */
+.chatQuestionPane {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 프롬프트 설정 패널 최소 높이 */
+.chatPromptSettingPane {
+  min-height: 120px;
+}
+
+/* 질문자/프롬프트 미입력 시 강조 상태 */
+.chatPromptSettingPaneRequired {
+  background: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
+  border-color: color-mix(in srgb, var(--chat-title-color) 52%, var(--chat-pane-border) 48%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 30%, transparent);
+}
+
+/* ============================================================
+   공통 텍스트 유틸(.pane-title, .pane-placeholder)
+   - 각 패널 컴포넌트에서 재사용되는 글로벌 클래스 스타일
+   ============================================================ */
 .chatLayout :global(.pane-title) {
   margin: 0;
   font-size: 14px;
@@ -79,15 +210,59 @@
   color: var(--chat-muted-text);
 }
 
+/* Tailwind 레이아웃 사용 시 pane 공통 타이포를 유지하기 위한 스코프 */
+.chatTypographyScope :global(.pane-title) {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.chatTypographyScope :global(.pane-placeholder) {
+  margin: 8px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--chat-muted-text);
+}
+
+/* ============================================================
+   반응형(태블릿 이하)
+   - 3열 레이아웃을 1열 스택으로 전환
+   ============================================================ */
 @media (max-width: 1024px) {
+  .chatPage {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
   .chatToolbar {
     justify-content: flex-start;
+    flex-wrap: wrap;
     padding: 10px 12px 0;
+  }
+
+  .chatToolbarLeft {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .chatHeaderTitle {
+    width: 100%;
+    font-size: 18px;
   }
 
   .chatLayout {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
     height: auto;
+  }
+
+  .chatLayoutCollapsed {
+    grid-template-columns: 1fr;
+  }
+
+  .chatAnswerSplit {
+    grid-template-columns: 1fr;
   }
 }

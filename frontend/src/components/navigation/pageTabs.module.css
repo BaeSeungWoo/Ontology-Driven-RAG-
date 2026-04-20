@@ -1,0 +1,45 @@
+.tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 14px;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
+  background: color-mix(in srgb, var(--chat-pane-bg) 90%, transparent);
+  color: var(--chat-muted-text);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.tab:hover {
+  color: var(--chat-title-color);
+  border-color: color-mix(in srgb, var(--chat-title-color) 44%, var(--chat-pane-border) 56%);
+}
+
+.tabActive {
+  color: var(--chat-title-color);
+  background: color-mix(in srgb, var(--chat-title-color) 16%, var(--chat-pane-bg) 84%);
+  border-color: color-mix(in srgb, var(--chat-title-color) 58%, var(--chat-pane-border) 42%);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 18%, transparent);
+}
+
+@media (max-width: 1024px) {
+  .tabs {
+    margin-left: 0;
+    width: 100%;
+  }
+}

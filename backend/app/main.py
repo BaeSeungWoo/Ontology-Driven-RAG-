@@ -4,14 +4,36 @@ import json
 import uvicorn
 
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+import dotenv
+
 from app.factories.config import CONFIGS
 from app.service import RAGService
+from app.routers.promptRouter import promptRouter
+from app.routers.historyRouter import historyRouter
+from app.routers.dailyReportRouter import dailyReportRouter
 
+dotenv.load_dotenv("app/.env.back")
+
+from .database import database
+from .database.thread_pool_manager import initialize_thread_pools, get_db_thread_pool, get_api_thread_pool
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
+
+# Frontend(Next.js)에서 오는 브라우저 요청 허용
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 미리 생성하지 않고 요청 시 초기화
 services: dict[str, RAGService] = {}
@@ -38,7 +60,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest):
         request.question, request.mode, request.prompt_id
     )
 
-    print(f"[DEBUG] messages: {messages}")  # ← 추가
+    print(f"[DEBUG] messages: {messages}")  # 추가
 
     # async def event_generator():
     #     yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables,'sources': chunk_map})}\n\n"
@@ -75,5 +97,18 @@ def list_configs():
         for key, cfg in CONFIGS.items()
     }
 
+app.include_router(promptRouter)
+app.include_router(historyRouter)
+app.include_router(dailyReportRouter)
+
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # 스레드 풀 초기화
+    initialize_thread_pools()
+
+    try:
+        database.get_db_connection()
+        uvicorn.run(app, host="0.0.0.0", port=8000)
+    finally:
+        # 애플리케이션 종료 시 스레드 풀 정리
+        get_db_thread_pool().shutdown()
+        get_api_thread_pool().shutdown()

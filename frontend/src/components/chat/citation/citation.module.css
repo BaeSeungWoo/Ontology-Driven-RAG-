@@ -1,0 +1,35 @@
+.citationRoot {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.citationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.citationHeaderCollapsed {
+  justify-content: flex-end;
+}
+
+.citationToggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-title-color);
+  font-size: 18px;
+  line-height: 1;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.citationToggle:hover {
+  background: color-mix(in srgb, var(--chat-pane-bg) 85%, #000 15%);
+}
