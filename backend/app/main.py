@@ -56,26 +56,35 @@ class ChatRequest(BaseModel):
 async def chat_endpoint(factory_id: str, request: ChatRequest):
     service = get_service(factory_id)
 
-    messages, imgs, chunk_map = await service.prepare_context(
+    messages, imgs, tables, chunk_map = await service.prepare_context(
         request.question, request.mode, request.prompt_id
     )
 
     print(f"[DEBUG] messages: {messages}")  # 추가
 
-    async def event_generator():
-        yield f"METADATA:{json.dumps({'images': imgs, 'sources': chunk_map})}\n\n"
-        async for token in service.llm.astream(messages):
-            print(f"[DEBUG] token: {repr(token)}", flush=True)  # 추가
-            yield token
+    # async def event_generator():
+    #     yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables,'sources': chunk_map})}\n\n"
+    #     async for token in service.llm.astream(messages):
+    #         print(f"[DEBUG] token: {repr(token)}", flush=True)  # 추가
+    #         yield token
 
-    return StreamingResponse(
-        event_generator(),
-        media_type="text/event-stream; charset=utf-8",
-        headers={
-            "Cache-Control": "no-cache",
-            "X-Accel-Buffering": "no",
-        }
-    )
+    # return StreamingResponse(
+    #     event_generator(),
+    #     media_type="text/event-stream; charset=utf-8",
+    #     headers={
+    #         "Cache-Control": "no-cache",
+    #         "X-Accel-Buffering": "no",
+    #     }
+    # )
+    chunks: list[str] = []
+    async for token in service.llm.astream(messages):
+        chunks.append(token)
+    return {
+        "answer": "".join(chunks),
+        "images": imgs,
+        "tables": tables,
+        "sources": chunk_map,
+    }
 
 @app.get("/configs")
 def list_configs():

@@ -39,8 +39,7 @@ def get_document_asset_root(data: dict[str, Any], asset_root: str | Path) -> Pat
     Returns:
         Path : 문서별 asset 저장 경로
     """
-    origin_filename = data.get("origin", {}).get("filename")
-    document_name = Path(origin_filename).stem if origin_filename else data.get("name")
+    document_name = data.get("name")
     return Path(asset_root) / sanitize_filename(document_name)
 
 

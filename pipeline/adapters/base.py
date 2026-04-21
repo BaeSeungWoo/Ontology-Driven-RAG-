@@ -2,10 +2,7 @@
 
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import List
-
-from langchain_core.documents import Document
-
+from typing import Any
 
 class BaseParser(ABC):
     """
@@ -18,20 +15,20 @@ class BaseParser(ABC):
     """
 
     @abstractmethod
-    def parse_manual(self, file_path: str) -> List[Document]:
+    def parse_manual(self, file_path: str) -> list[dict[str, Any]]:
         """일반 텍스트 기반 PDF 매뉴얼을 파싱합니다 (Docling)."""
 
     @abstractmethod
-    def parse_scanned(self, file_path: str) -> List[Document]:
+    def parse_scanned(self, file_path: str) -> list[dict[str, Any]]:
         """스캔 이미지 기반 PDF를 파싱합니다 (Upstage OCR)."""
 
     @abstractmethod
-    def parse_drawing(self, file_path: str) -> List[Document]:
+    def parse_drawing(self, file_path: str) -> list[dict[str, Any]]:
         """도면 파일을 파싱합니다."""
 
     @staticmethod
-    def _make_doc(content: str, source: str, doc_type: str, **extra) -> Document:
-        return Document(
-            page_content=content,
-            metadata={"source": Path(source).name, "doc_type": doc_type, **extra},
-        )
+    def _make_doc(content: str, source: str, doc_type: str, **extra) -> dict[str, Any]:
+        return {
+            "page_content": content,
+            "metadata": {"source": Path(source).name, "doc_type": doc_type, **extra},
+        }

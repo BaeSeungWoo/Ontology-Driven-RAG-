@@ -3,9 +3,8 @@
 import httpx
 import json
 import chromadb
-
 from app.factories.config import Config
-
+from app.embeddings import load_embeddings
 
 class KnowledgeRetriever:
     def __init__(self, config: Config):
@@ -13,32 +12,41 @@ class KnowledgeRetriever:
 
         # Chroma 클라이언트 직접 초기화
         self.chroma = chromadb.PersistentClient(
-            path=config.vector_db.db_path
+            path=self.config.vector_db.db_path
         )
+        # 임베딩 함수 세팅
+        self.embedding_fn = load_embeddings(config=Config)
+        # 컬렉션 세팅
         self.collection = self.chroma.get_or_create_collection(
-            name="documents"
+            # name=self.config.id
+            name="test_a",
+            embedding_function=self.embedding_fn
         )
 
-        # 임베딩 서버 URL
-        self.embed_url = (
-            f"{config.get_embedding_base_url()}/api/embeddings"
-        )
-        self.embed_model = config.embedding.model
 
     # ------------------------------------------------------------------ #
     #  공개 인터페이스                                                      #
     # ------------------------------------------------------------------ #
 
-    def get_context(self, query: str, mode: str) -> tuple[str, list, dict]:
+    def get_context(self, query: str, mode: str) -> tuple[str, list, list, dict]:
+        """LLM에게 전달할 컨텍스트를 생성
+
+        Args:
+            query (str): 사용자가 보낸 질문
+            mode (str): rag 사용 여부
+
+        Returns:
+            tuple[str, list, list, dict]: 검색 결과에 따른 컨텍스트 집합.
+        """
         if mode == "base":
-            return "", [], {}
+            return "", [], [], {}
 
         # 쿼리 임베딩
-        query_vector = self._embed(query)
+        # query_vector = self._embed(query)
 
         # 벡터 유사도 검색
         results = self.collection.query(
-            query_embeddings=[query_vector],
+            query_texts=[query],
             n_results=self.config.vector_db.retrieval_k,
             include=["documents", "metadatas", "distances"],
         )
@@ -46,6 +54,7 @@ class KnowledgeRetriever:
         context_parts = []
         chunk_map: dict[str, str] = {}
         imgs: list[str] = []
+        tables: list[str] = []
 
         documents = results["documents"][0]
         metadatas = results["metadatas"][0]
@@ -53,16 +62,23 @@ class KnowledgeRetriever:
 
         for doc, meta, dist in zip(documents, metadatas, distances):
             # Chroma distance → similarity (1 - distance)
-            similarity = 1 - dist
-            if similarity < self.config.vector_db.score_threshold:
-                continue
+            # 현재 유사도 validation 주석 처리
+            # similarity = 1 - dist
+            # if similarity < self.config.vector_db.score_threshold:
+            #     continue
 
-            source = meta.get("source", "unknown")
+            source = meta.get("source_doc_name", "unknown")
+            type = meta.get("container_type")
             context_parts.append(f"[문서: {source}]\n{doc}")
             chunk_map[source] = doc
 
-            if img := meta.get("image_path"):
-                imgs.append(img)
+            assets = meta.get("asset_path")
+
+            if assets and type == "pictures":
+                imgs.append(assets)
+            elif assets and type == "tables":
+                tables.append(assets)
+            
 
         context = "\n\n".join(context_parts)
 
@@ -71,23 +87,23 @@ class KnowledgeRetriever:
             graph_text = self._get_graph_context(query)
             context = f"{context}\n\n[관계 정보]\n{graph_text}"
 
-        return context, imgs, chunk_map
+        return context, imgs, tables, chunk_map
 
     # ------------------------------------------------------------------ #
     #  내부 메서드                                                          #
     # ------------------------------------------------------------------ #
 
-    def _embed(self, text: str) -> list[float]:
-        """Ollama 임베딩 API 호출."""
-        with httpx.Client(timeout=30) as client:
-            res = client.post(
-                self.embed_url,
-                json={
-                    "model":  self.embed_model,
-                    "prompt": text,
-                },
-            )
-            return res.json()["embedding"]
+    # def _embed(self, text: str) -> list[float]:
+    #     """Ollama 임베딩 API 호출."""
+    #     with httpx.Client(timeout=30) as client:
+    #         res = client.post(
+    #             self.embed_url,
+    #             json={
+    #                 "model":  self.embed_model,
+    #                 "prompt": text,
+    #             },
+    #         )
+    #         return res.json()["embedding"]
 
     def _get_graph_context(self, query: str) -> str:
         # TODO: Neo4j 연동 구현
