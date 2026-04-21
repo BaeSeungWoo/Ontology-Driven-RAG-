@@ -1,5 +1,4 @@
 ﻿from fastapi import APIRouter, HTTPException
-from typing import Iterable
 from datetime import date
 from pydantic import BaseModel, Field
 import json
@@ -42,6 +41,9 @@ def get_daily_report(report_date: date, report_id: str, locale: str) -> dict:
         raise ValueError("daily report response is not dict")
     return report
 
+# ==============================
+#   일자별 리포트 최초 실행 결과를 저장해 LLM 재호출을 방지
+# ==============================
 def build_report_context(*, metrics: dict, summary=None, anomaly_action=None, analysis=None) -> dict:
     """
     섹션 결과를 단일 context(JSON 저장 대상)로 묶는다.
@@ -85,74 +87,6 @@ def parse_report_context(context_raw) -> dict | None:
     except (TypeError, ValueError, json.JSONDecodeError):
         return None
 
-def find_row(report: dict, domain_cd: str, step_no: int = 1):
-    """
-    getDailyReport() 결과(tb_0 ~ tb_n)에서 DOMAIN_CD, STEP_NO 조건에 맞는 row 1개를 찾는다.
-    """
-    if not isinstance(report, dict):
-        return None
-
-    for tb_key, rows in report.items():
-        if not str(tb_key).startswith("tb_") or not isinstance(rows, list):
-            continue
-
-        for row in rows:
-            if not isinstance(row, dict):
-                continue
-
-            if (
-                str(row.get("DOMAIN_CD", "")).upper() == domain_cd
-                and str(row.get("STEP_NO", "")).strip() == str(step_no)
-            ):
-                return row
-
-    return None
-
-def _pick_row_value(row: dict, keys: str | Iterable[str], default):
-    """
-    row에서 값 1개를 안전하게 조회한다.
-
-    왜 필요한가:
-    - DB 컬럼명이 환경/인코딩 이슈로 다르게 들어올 수 있다.
-    - 단일 key가 아니라 key 후보 목록을 순서대로 검사하고,
-      처음 찾은 유효값을 반환한다.
-
-    동작:
-    - keys가 문자열이면 단일 key로 처리
-    - keys가 리스트/튜플이면 앞에서부터 순차 탐색
-    - 값이 없으면 default 반환
-    """
-    key_list = [keys] if isinstance(keys, str) else list(keys)
-
-    for key in key_list:
-        if key in row and row.get(key) is not None:
-            return row.get(key)
-
-    return default
-
-def project_row(row: dict | None, spec: dict):
-    """
-    원본 row를 프론트 응답 스키마로 변환한다.
-
-    기존 의도:
-    - report의 원본 컬럼(대부분 한글 컬럼명)을
-      프론트에서 쓰는 영문 키로 투영(project)한다.
-    - 각 필드마다 형변환(to_int/to_float/to_str)과 기본값을 함께 적용한다.
-
-    spec 형식:
-      {
-        "eng_key": ("kor_key" 또는 ["alias1", "alias2"], caster, default)
-      }
-    """
-    if row is None:
-        return {eng: default for eng, (_, _, default) in spec.items()}
-
-    out = {}
-    for eng, (kor_keys, caster, default) in spec.items():
-        raw = _pick_row_value(row, kor_keys, default)
-        out[eng] = caster(raw, default)
-
-    return out
 
 # ==============================
 #   00_ 통합 호출
@@ -252,81 +186,101 @@ def _build_anomaly_action_section(report: dict, pastReport: dict):
 # ==============================
 #   03_ 핵심 지표 6 DOMAINS (생산/출하/납기/품질/설비/근태)
 # ==============================
+METRICS_SUMMARY_SECTION_MAP = {
+    "product": ("prod", "summary"),
+    "shipment": ("ship", "summary"),
+    "delivery": ("delv", "summary"),
+    "quality": ("qual", "summary"),
+    "equipment": ("equip", "statusSummary"),
+    "attendance": ("att", "summary"),
+}
+
+METRICS_SUMMARY_PROJECT_SPEC = {
+    "product": {
+        "runningEquipQty": ("가동설비수", to_int, 0),
+        "planQty": ("계획수량", to_int, 0),
+        "achiveRate": ("달성률", to_float, 0.0),
+        "qty": ("실적수량", to_int, 0),
+        "totalEquipQty": ("총설비수", to_int, 0),
+    },
+    "shipment": {
+        "planQty": ("계획수량", to_int, 0),
+        "shipQty": ("출하수량", to_int, 0),
+        "shipAmt": ("출하금액", to_int, 0),
+        "delayQty": ("지연건수", to_int, 0),
+        "leadtimeAVG": ("평균리드타임", to_int, 0),
+    },
+    "delivery": {
+        "totalCnt": ("전체건수", to_int, 0),
+        "passCnt": ("정상건수", to_int, 0),
+        "dangerCnt": ("위험건수", to_int, 0),
+        "delayCnt": ("지연건수", to_int, 0),
+        "delvRate": ("납기율", to_float, 0.0),
+    },
+    "quality": {
+        "totalQty": ("총검사수량", to_int, 0),
+        "qty": ("양품수량", to_int, 0),
+        "defectQty": ("불량수량", to_int, 0),
+        "defectRate": ("불량률", to_float, 0.0),
+        "ppm": ("PPM", to_int, 0),
+    },
+    "equipment": {
+        "totalEquipQty": ("전체설비수", to_int, 0),
+        "runningEquipQty": ("가동설비수", to_int, 0),
+        "runningRate": ("가동률", to_float, 0),
+        "alarmEquipQty": ("알람설비수", to_int, 0),
+        "alarmCnt": ("알람건수", to_int, 0),
+        "status": ("설비상태", to_str, "정상"),
+    },
+    "attendance": {
+        "total": ("총인원", to_int, 0),
+        "work": ("출근", to_int, 0),
+        "absence": ("결근", to_int, 0),
+        "overtime": ("잔업", to_int, 0),
+    },
+}
+
+def project_row(row: dict | None, spec: dict):
+    """
+    원본 row를 프론트 응답 스키마로 변환한다.
+
+    기존 의도:
+    - report의 원본 컬럼(대부분 한글 컬럼명)을
+      프론트에서 쓰는 영문 키로 투영(project)한다.
+    - 각 필드마다 형변환(to_int/to_float/to_str)과 기본값을 함께 적용한다.
+
+    spec 형식:
+      {
+        "eng_key": ("kor_key", caster, default)
+      }
+    """
+    if row is None:
+        return {eng: default for eng, (_, _, default) in spec.items()}
+
+    out = {}
+    for eng, (kor_key, caster, default) in spec.items():
+        raw = row.get(kor_key, default)
+        out[eng] = caster(raw, default)
+
+    return out
+
 def _build_metrics(report: dict):
-    return {
-        "product": _build_product(report),
-        "shipment": _build_shipment(report),
-        "delivery": _build_delivery(report),
-        "quality": _build_quality(report),
-        "equipment": _build_equipment(report),
-        "attendance": _build_attendance(report),
-    }
+    """
+    각 도메인의 summary[0] 한 행만 읽어 metrics로 변환한다.
+    """
+    metrics = {}
+    report_data = report if isinstance(report, dict) else {}
 
-def _build_product(report: dict):
-    row = find_row(report, domain_cd="PROD", step_no=1)
-    spec = {
-        "runningEquipQty": (["가동설비수"], to_int, 0),
-        "planQty": (["계획수량"], to_int, 0),
-        "achiveRate": (["달성률"], to_float, 0.0),
-        "qty": (["실적수량"], to_int, 0),
-        "totalEquipQty": (["총설비수"], to_int, 0),
-    }
-    return project_row(row, spec)
+    for metric_key, (domain_key, section_key) in METRICS_SUMMARY_SECTION_MAP.items():
+        domain_data = report_data.get(domain_key, {})
+        rows = domain_data.get(section_key, []) if isinstance(domain_data, dict) else []
+        row = rows[0] if isinstance(rows, list) and len(rows) > 0 else None
+        metrics[metric_key] = project_row(
+            row if isinstance(row, dict) else None,
+            METRICS_SUMMARY_PROJECT_SPEC[metric_key],
+        )
 
-def _build_shipment(report: dict):
-    row = find_row(report, domain_cd="SHIP", step_no=1)
-    spec = {
-        "planQty": (["계획수량"], to_int, 0),
-        "shipQty": (["출하수량"], to_int, 0),
-        "shipAmt": (["출하금액"], to_int, 0),
-        "delayQty": (["지연건수"], to_int, 0),
-        "leadtimeAVG": (["평균리드타임"], to_int, 0),
-    }
-    return project_row(row, spec)
-
-def _build_delivery(report: dict):
-    row = find_row(report, domain_cd="DELV", step_no=1)
-    spec = {
-        "totalCnt": (["전체건수"], to_int, 0),
-        "passCnt": (["정상건수"], to_int, 0),
-        "dangerCnt": (["위험건수"], to_int, 0),
-        "delayCnt": (["지연건수"], to_int, 0),
-        "delvRate": (["납기율"], to_float, 0.0),
-    }
-    return project_row(row, spec)
-
-def _build_quality(report: dict):
-    row = find_row(report, domain_cd="QUAL", step_no=1)
-    spec = {
-        "totalQty": (["총검사수량"], to_int, 0),
-        "qty": (["양품수량"], to_int, 0),
-        "defectQty": (["불량수량"], to_int, 0),
-        "defectRate": (["불량률"], to_float, 0.0),
-        "ppm": (["PPM"], to_int, 0),
-    }
-    return project_row(row, spec)
-
-def _build_equipment(report: dict):
-    row = find_row(report, domain_cd="EQUIP", step_no=1)
-    spec = {
-        "totalEquipQty": (["전체설비수"], to_int, 0),
-        "runningEquipQty": (["가동설비수"], to_int, 0),
-        "runningRate": (["가동률"], to_float, 0),
-        "alarmEquipQty": (["알람설비수"], to_int, 0),
-        "alarmCnt": (["알람건수"], to_int, 0),
-        "status": (["설비상태"], to_str, "정상"),
-    }
-    return project_row(row, spec)
-
-def _build_attendance(report: dict):
-    row = find_row(report, domain_cd="ATT", step_no=1)
-    spec = {
-        "total": (["총인원"], to_int, 0),
-        "work": (["출근"], to_int, 0),
-        "absence": (["결근"], to_int, 0),
-        "overtime": (["잔업"], to_int, 0),
-    }
-    return project_row(row, spec)
+    return metrics
 
 # ==============================
 #   04_ 원인 분석 / 추천 조치

@@ -9,6 +9,10 @@ import json
 import pandas as pd
 from .connection_pool import get_db_connection #, get_pool
 from .thread_pool_manager import with_thread_pool
+from .daily_report_sections_spec import (
+    DAILY_REPORT_SECTION_TEMPLATE,
+    DAILY_REPORT_SECTION_KEY_MAP,
+)
 from datetime import date
 
 # pyodbc용 stored procedure 실행 헬퍼 함수
@@ -487,7 +491,16 @@ def saveDailyReportResult(report_date: date, report_id: str, locale: str, contex
 # 통합 프로시저 실행
 @with_thread_pool("db")
 def getDailyReport(report_date: date, report_id: str, locale: str):
-    result_sets = {}
+    """
+    데일리 리포트를 sections 형태로 만들어 반환한다.
+
+    흐름:
+    1) 프로시저 실행
+    2) result set을 하나씩 읽어서 rows(list[dict]) 생성
+    3) rows의 첫 행에서 DOMAIN_CD/STEP_NO를 읽어 섹션 위치를 찾음
+    4) 찾은 섹션에 rows를 넣음
+    5) 모든 result set 처리 후 sections 반환
+    """
     try:
         with get_db_connection(pool_name="secondary") as conn:
             conn.autocommit = True
@@ -495,17 +508,78 @@ def getDailyReport(report_date: date, report_id: str, locale: str):
             proc_name = "dbo.SP_DAILY_REPORT_EXECUTE"
             exec_stored_proc(cursor, proc_name, (report_date, report_id, locale))
             # exec_stored_proc(cursor, proc_name, ('2026-03-06','OBI','ko_KR'))
-            set_index = 0            
+            sections = _init_daily_report_sections()
             while True:
-                columns = [column[0] for column in cursor.description]
-                # 각 row(tuple)를 dict로 변환
-                rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
-                result_sets[f"tb_{set_index}"] = rows
-                set_index += 1
+                # 컬럼 정보가 없으면(데이터성 결과가 아니면) 빈 rows로 본다.
+                if cursor.description is None:
+                    rows = []
+                else:
+                    columns = [column[0] for column in cursor.description]
+                    # 튜플 행을 {컬럼명: 값} 형태로 변환한다.
+                    rows = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+                # rows 전체는 "하나의 result set 묶음"이다.
+                # first_row는 "분류(매핑)용"으로만 쓰고, 실제 저장은 rows 전체를 넣는다.
+                first_row = _find_first_row(rows)
+                if first_row is not None:
+                    # 예: DOMAIN_CD=PROD, STEP_NO=3
+                    # 비교/매핑 정확도를 위해 문자열 대문자/정수 형태로 정규화한다.
+                    domain_cd = str(first_row.get("DOMAIN_CD", "")).strip().upper()
+                    step_no = _to_int_or_none(first_row.get("STEP_NO"))
+
+                    # 명세 테이블에서 "(도메인, 스텝)"에 해당하는 섹션 위치를 찾는다.
+                    # 예: ("PROD", 3) -> ("prod", "processBottleneck")
+                    mapped = DAILY_REPORT_SECTION_KEY_MAP.get((domain_cd, step_no))
+                    if mapped is not None:
+                        domain_key, section_key = mapped
+
+                        # 현재 result set의 모든 행(rows)을 해당 섹션에 누적한다.
+                        # 동일 섹션으로 여러 result set이 올 수 있어 extend를 사용한다.
+                        sections[domain_key][section_key].extend(rows)
+                    else:
+                        # 명세(KEY_MAP)에 없는 조합은 현재 구조에 넣을 위치가 없어서 버린다.
+                        # 예: ("PROD", 8)
+                        pass
+
                 if not cursor.nextset():
                     break
             cursor.close()
     except Exception as e:
         print(e, 'database getDailyReport() error')
         raise
-    return result_sets
+
+    # 최종 결과는 sections만 반환한다.
+    return sections
+
+def _init_daily_report_sections():
+    """
+    빈 sections 뼈대를 새로 만든다.
+    (요청마다 새 객체를 만들어야 데이터가 섞이지 않는다.)
+    """
+    return {
+        domain: {section: [] for section in section_map.keys()}
+        for domain, section_map in DAILY_REPORT_SECTION_TEMPLATE.items()
+    }
+
+def _to_int_or_none(value):
+    """
+    값을 정수로 바꾼다.
+    실패하면 None을 반환한다.
+    """
+    try:
+        return int(str(value).strip())
+    except (TypeError, ValueError):
+        return None
+
+def _find_first_row(rows):
+    """
+    rows(list[dict])에서 첫 dict 행을 돌려준다.
+    (섹션 매핑에 DOMAIN_CD/STEP_NO를 쓰기 위해 사용)
+    """
+    if not isinstance(rows, list):
+        return None
+    for row in rows:
+        if isinstance(row, dict):
+            return row
+    return None
+
