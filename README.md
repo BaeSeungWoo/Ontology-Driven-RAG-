@@ -17,11 +17,32 @@ RAG 개발
                 * `merge_scan_json.py ` (다운로드 결과 -> PDF 별 merge)
             * `docling_parser.py ` (일반 PDF → Markdown 섹션 단위 분할)
             * `upstage_parser.py` (스캔본 → OCR API → element 단위 변환)
+        * **data/** (VectorDB 생성 결과물)
+            * **A/** (Site ID)
+                * **chroma/** (ChromaDB)
+                    * `chromaDB(해시값 폴더)` (chromaDB 세그먼트/벡터 저장소)
+                    * `chroma.sqlite3` (chromaDB 메타데이터 저장소)
+                    * `embedding_meta.json` (임베딩 정보)
+                * **manuals/** (Manual 결과물)
+                    * **assets/** (이미지, 테이블)
+                        * **원본 문서 이름/**
+                            * **pictures/**
+                                * `0.png`
+                            * **tables/**
+                                * `0.md`
+                    * **extract/** (Docling 추출물)
+                        * `output_result_xxx.pdf` 
+                    * **inputs/** (원본 문서)
+                        * `xxx.pdf` 
+                    * **struct/** (구조화된 청크)
+                        * `xxx.json` 
         * **adapters/**
             * `base.py` (parse_manual / parse_scanned / parse_drawing)
             * `site_a.py` (도면(PyMuPDF) + 매뉴얼(Docling) + 스캔(Upstage))
             * `site_b.py` (도면(PyMuPDF) + 매뉴얼(Docling·Excel) + 스캔(Upstage))
-        * `build_db.py`
+        * `build_db.py` (VectorDB 생성 실행 부)
+        * `chunk_builder.py` (구조화 청크 -> VectorDB 삽입용 청크 변환)
+        * `data_loader.py` (site 별 VectorDB 생성 전략 분류 및 실행)
   ------------------------------------------------------------------------------------------------------
     * **backend/** (FastAPI)
         * **app/**
