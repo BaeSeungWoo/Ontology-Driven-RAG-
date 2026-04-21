@@ -79,7 +79,12 @@ class OllamaLLM(BaseLLM):
 
                     # thinking 모델: 최종 답변은 response 키에 담김
                     # 추론 중에는 thinking 키에 담기므로 무시
-                    token = data.get("response", "")
+                    token = (
+                        # data.get("response", "")
+                        data.get("response")
+                        or data.get("content")
+                        or data.get("message", {}).get("content", "")
+                    )
                     if token:
                         yield token             
 
