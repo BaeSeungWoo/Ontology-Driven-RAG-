@@ -12,10 +12,11 @@ class KnowledgeRetriever:
 
         # Chroma 클라이언트 직접 초기화
         self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.db_path
+            path=self.config.vector_db.search_path
         )
         # 임베딩 함수 세팅
-        self.embedding_fn = load_embeddings(config=Config)
+        # self.embedding_fn = load_embeddings(config=Config)
+        self.embedding_fn = load_embeddings(config=self.config)
         # 컬렉션 세팅
         self.collection = self.chroma.get_or_create_collection(
             # name=self.config.id

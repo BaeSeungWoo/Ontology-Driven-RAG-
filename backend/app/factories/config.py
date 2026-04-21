@@ -19,6 +19,7 @@ class LLMConfig:
     num_ctx: int = 8192
 
     # Anthropic / OpenAI 전용
+    # max_tokens: int = 4096
     max_tokens: int = 1024
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -89,11 +90,14 @@ CONFIGS: Dict[str, Config] = {
         id="A",
         llm=LLMConfig(
             provider="ollama",
-            model_name="gpt-oss:20b",
+            # model_name="gpt-oss:20b",
+            model_name="gemma4:31b",
             base_url="http://192.168.1.179:11434",
             temperature=0,
             num_ctx=8192,
+            # num_ctx=16384,
             max_tokens=1024,
+            # max_tokens=2049,
         ),
         embedding=EmbeddingConfig(
             model="qwen3-embedding:8b",
