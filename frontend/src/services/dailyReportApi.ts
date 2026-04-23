@@ -14,3 +14,9 @@ export async function getReportSections(
 ): Promise<DailyReportSectionsApi> {
   return postDailyReport<DailyReportSectionsApi>("/api/dailyReport/getReportSections", payload);
 }
+
+export async function getCheckPointSections(
+  payload: DailyReportSectionsRequest,
+): Promise<DailyReportSectionsApi> {
+  return postDailyReport<DailyReportSectionsApi>("/api/dailyReport/getCheckPointSections", payload);
+}

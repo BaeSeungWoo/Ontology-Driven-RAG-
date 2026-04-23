@@ -4,6 +4,9 @@ from pydantic import BaseModel, Field
 import json
 
 from app.database import database
+from app.database.daily_report_sections_spec import (
+    project_section_first_row,
+)
 
 dailyReportRouter = APIRouter(prefix="/api/dailyReport", tags=["dailyReport"])
 
@@ -186,99 +189,24 @@ def _build_anomaly_action_section(report: dict, pastReport: dict):
 # ==============================
 #   03_ 핵심 지표 6 DOMAINS (생산/출하/납기/품질/설비/근태)
 # ==============================
-METRICS_SUMMARY_SECTION_MAP = {
-    "product": ("prod", "summary"),
-    "shipment": ("ship", "summary"),
-    "delivery": ("delv", "summary"),
-    "quality": ("qual", "summary"),
-    "equipment": ("equip", "statusSummary"),
-    "attendance": ("att", "summary"),
-}
-
-METRICS_SUMMARY_PROJECT_SPEC = {
-    "product": {
-        "runningEquipQty": ("가동설비수", to_int, 0),
-        "planQty": ("계획수량", to_int, 0),
-        "achiveRate": ("달성률", to_float, 0.0),
-        "qty": ("실적수량", to_int, 0),
-        "totalEquipQty": ("총설비수", to_int, 0),
-    },
-    "shipment": {
-        "planQty": ("계획수량", to_int, 0),
-        "shipQty": ("출하수량", to_int, 0),
-        "shipAmt": ("출하금액", to_int, 0),
-        "delayQty": ("지연건수", to_int, 0),
-        "leadtimeAVG": ("평균리드타임", to_int, 0),
-    },
-    "delivery": {
-        "totalCnt": ("전체건수", to_int, 0),
-        "passCnt": ("정상건수", to_int, 0),
-        "dangerCnt": ("위험건수", to_int, 0),
-        "delayCnt": ("지연건수", to_int, 0),
-        "delvRate": ("납기율", to_float, 0.0),
-    },
-    "quality": {
-        "totalQty": ("총검사수량", to_int, 0),
-        "qty": ("양품수량", to_int, 0),
-        "defectQty": ("불량수량", to_int, 0),
-        "defectRate": ("불량률", to_float, 0.0),
-        "ppm": ("PPM", to_int, 0),
-    },
-    "equipment": {
-        "totalEquipQty": ("전체설비수", to_int, 0),
-        "runningEquipQty": ("가동설비수", to_int, 0),
-        "runningRate": ("가동률", to_float, 0),
-        "alarmEquipQty": ("알람설비수", to_int, 0),
-        "alarmCnt": ("알람건수", to_int, 0),
-        "status": ("설비상태", to_str, "정상"),
-    },
-    "attendance": {
-        "total": ("총인원", to_int, 0),
-        "work": ("출근", to_int, 0),
-        "absence": ("결근", to_int, 0),
-        "overtime": ("잔업", to_int, 0),
-    },
-}
-
-def project_row(row: dict | None, spec: dict):
-    """
-    원본 row를 프론트 응답 스키마로 변환한다.
-
-    기존 의도:
-    - report의 원본 컬럼(대부분 한글 컬럼명)을
-      프론트에서 쓰는 영문 키로 투영(project)한다.
-    - 각 필드마다 형변환(to_int/to_float/to_str)과 기본값을 함께 적용한다.
-
-    spec 형식:
-      {
-        "eng_key": ("kor_key", caster, default)
-      }
-    """
-    if row is None:
-        return {eng: default for eng, (_, _, default) in spec.items()}
-
-    out = {}
-    for eng, (kor_key, caster, default) in spec.items():
-        raw = row.get(kor_key, default)
-        out[eng] = caster(raw, default)
-
-    return out
-
 def _build_metrics(report: dict):
     """
     각 도메인의 summary[0] 한 행만 읽어 metrics로 변환한다.
     """
-    metrics = {}
-    report_data = report if isinstance(report, dict) else {}
+    summary_sections = {
+        "product": ("prod", "summary"),
+        "shipment": ("ship", "summary"),
+        "delivery": ("delv", "summary"),
+        "quality": ("qual", "summary"),
+        "equipment": ("equip", "statusSummary"),
+        "attendance": ("att", "summary"),
+    }
 
-    for metric_key, (domain_key, section_key) in METRICS_SUMMARY_SECTION_MAP.items():
-        domain_data = report_data.get(domain_key, {})
-        rows = domain_data.get(section_key, []) if isinstance(domain_data, dict) else []
-        row = rows[0] if isinstance(rows, list) and len(rows) > 0 else None
-        metrics[metric_key] = project_row(
-            row if isinstance(row, dict) else None,
-            METRICS_SUMMARY_PROJECT_SPEC[metric_key],
-        )
+    report_data = report if isinstance(report, dict) else {}
+    metrics = {
+        metric_key: project_section_first_row(report_data, domain_key, section_key)
+        for metric_key, (domain_key, section_key) in summary_sections.items()
+    }
 
     return metrics
 
@@ -315,3 +243,107 @@ def _build_analysis_section(report: dict):
         },
         ...
     ]
+
+# ==============================
+#   CheckPoint Test
+# ==============================
+@dailyReportRouter.post("/getCheckPointSections")
+def getCheckPointSections(req: ReportSectionsRequest):
+    """
+    체크포인트 테스트.
+    전체 섹션을 한 번에 반환한다.
+    - DB의 getDailyReport()는 이 요청 안에서 1회만 호출한다.
+
+    report = {
+        "prod": {
+            "summary": [],                      # 생산요약
+            "underperform": [],                 # 실적미달
+            "processBottleneck": [],            # 공정병목
+            "equipmentBottleneck": [],          # 설비병목
+            "equipmentResult": [],              # 설비실적
+            "workerEfficiency": [],             # 작업자효율
+            "equipmentUtilization": [],         # 설비가동
+        },
+        # 출하
+        "ship": {
+            "summary": [],                      # 출하요약
+            "customerShipment": [],             # 고객별출하
+            "shipmentStatus": [],               # 출하상태
+            "delayCause": [],                   # 지연원인분석
+        },
+        # 납기
+        "delv": {
+            "summary": [],                      # 납기요약
+            "riskAnalysis": [],                 # 납기위험분석
+            "impactAnalysis": [],               # 납기영향분석
+            "riskCurrent": [],                  # 납기리스크분석
+            "actions": [],                      # 조치사항
+            "issues": [],                       # 납기이슈
+        },
+        # 품질
+        "qual": {
+            "summary": [],                      # 품질요약
+            "processQuality": [],               # 공정별품질
+            "defectComposition": [],            # 불량구성
+            "equipmentQuality": [],             # 설비별품질
+            "workerQuality": [],                # 작업자품질
+            "qualityIssues": [],                # 품질리스크
+            "customerImpact": [],               # 고객영향
+        },
+        # 설비
+        "equip": {
+            "statusSummary": [],                # 설비요약
+            "alarmAnalysis": [],                # 알람분석
+            "downtimeImpact": [],               # 설비영향
+        },
+        # 근태
+        "att": {
+            "summary": [],                      # 근태요약
+            "absenceImpact": [],                # 결근영향
+            "overtimeStatus": [],               # 잔업현황
+        },
+    }
+    """
+    try:
+        # 전체 데이터
+        report = get_daily_report(req.date, req.reportId, req.locale)
+        # 1. 경영층 요약
+        # 카드 데이터
+        summary = _build_metrics(report)
+        # 핵심 이슈
+        keyIssue = _build_keyIssue(report)
+        return {
+            "report": report,
+            
+            "Section_01": {
+                "summary": summary,
+                "keyIssue": keyIssue,
+            },
+            # "Section_02": {
+
+            # },
+            
+        }
+    
+    except Exception as e:
+        print(f"getReportSections error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="데일리리포트 - 통합 섹션 조회 중 오류가 발생했습니다.",
+        )
+
+def _build_keyIssue(report: dict):
+    """
+    전체 데이터(report)를 LLM에게 주고 핵심이슈 3개에 대한 출력포맷을 강제한다.
+    답변이 string | string[] 구조로 올것을 기대함
+    """
+
+    # TODO: 전체 데이터를 LLM에게 보내 핵심 이슈 최대 3개를 얻어오는 로직
+    # result = logic(report)
+    
+    testResult = [
+        "[설비] CNC-03 호기 스핀들 이상진동 알람 3회 발생 → 생산 차질 약 120분, 납기 리스크 확산",
+        "[품질] 도장공정 불량률 3.1% (목표의 2배) → LOT 2건 전수검사 진행 중",
+        "[납기] 거래처 A사 주문 4건 중 2건 납기 위험 단계 진입 → 생산순위 재조정 필요"
+    ]
+    return testResult

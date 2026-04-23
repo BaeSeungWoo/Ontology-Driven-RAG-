@@ -6,6 +6,7 @@ import styles from "./pageTabs.module.css";
 
 const PAGE_TABS = [
   { href: "/chat", label: "Chat" },
+  { href: "/checkpoint", label: "CheckPoint" },
   { href: "/dailyReport", label: "DailyReport" },
 ] as const;
 
