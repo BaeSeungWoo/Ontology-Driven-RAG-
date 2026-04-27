@@ -22,9 +22,20 @@ const REPORT_SECTIONS_REQUEST: CheckPointSectionsRequest = {
   config: "ollama_config"
 };
 
+function formatReportDate(dateText: string) {
+  const date = new Date(`${dateText}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return dateText;
+  return new Intl.DateTimeFormat("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(date);
+}
+
 export default function CheckPoint() {
   const themeKey =
     (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
+  const reportDateLabel = formatReportDate(REPORT_SECTIONS_REQUEST.date);
   const [data, setData] = useState<CheckPointSectionsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStartedAt, setLoadingStartedAt] = useState<number | null>(null);
@@ -104,7 +115,12 @@ export default function CheckPoint() {
           <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
           <PageTabs />
         </div>
-        <ThemeSwitcher initialTheme={themeKey} />
+        <div className={styles.reportToolbarRight}>
+          <span className={styles.reportDateBadge} aria-label={`리포트 기준일 ${reportDateLabel}`}>
+            기준일 {reportDateLabel}
+          </span>
+          <ThemeSwitcher initialTheme={themeKey} />
+        </div>
       </div>
 
       <main className={styles.reportBody}>

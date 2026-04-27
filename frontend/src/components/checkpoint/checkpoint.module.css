@@ -5,6 +5,29 @@
   min-width: 0;
 }
 
+.reportToolbarRight {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.reportDateBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 28%, var(--chat-pane-border) 72%);
+  border-radius: 999px;
+  padding: 6px 12px;
+  background: color-mix(in srgb, var(--chat-title-color) 8%, var(--chat-pane-bg) 92%);
+  color: var(--chat-title-color);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .reportBody {
   flex: 1;
   min-height: 0;
@@ -944,6 +967,12 @@
 @media (max-width: 1024px) {
   .reportToolbarLeft {
     width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .reportToolbarRight {
+    width: 100%;
+    justify-content: flex-end;
     flex-wrap: wrap;
   }
 
