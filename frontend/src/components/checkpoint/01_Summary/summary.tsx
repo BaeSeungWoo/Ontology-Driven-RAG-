@@ -20,7 +20,7 @@ export default function SummarySection({
   isLoading = false,
   errorMessage = "",
 }: Section_01_Props) {
-  const keyIssues = section01Data?.keyIssue ?? [];
+  const keyIssues = section01Data?.keyIssue ?? "-";
   const summaryComment = section01Data?.comment ?? "-";
 
   return (
@@ -39,13 +39,7 @@ export default function SummarySection({
 
       <br />
       <p className={styles.keyIssuesTitle}>핵심 이슈 TOP 3</p>
-      <ul className={styles.keyIssuesList}>
-        {keyIssues.map((item, idx) => (
-          <li key={`${idx}-${item}`}>
-            {item}
-          </li>
-        ))}
-      </ul>
+      <p className={`${styles.summaryComment} ${styles.keyIssuesText}`}>{isLoading ? "로딩 중..." : keyIssues}</p>
     </article>
   );
 }

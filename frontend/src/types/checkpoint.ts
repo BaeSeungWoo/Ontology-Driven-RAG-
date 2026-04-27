@@ -4,6 +4,7 @@ export type CheckPointSectionsRequest = {
   date: string;
   reportId: string;
   locale: string;
+  config: string;
 };
 
 export type CheckPointSectionsResponse = {
@@ -21,7 +22,7 @@ export type CheckPointSectionsResponse = {
 export type Section01 = {
   summary: MetricsAllApi;
   comment: string;
-  keyIssue: string[];
+  keyIssue: string;
 };
 
 /**
@@ -29,12 +30,14 @@ export type Section01 = {
  */
 export type Section02 = {
   summary: ProductMetricsApi[];
+  summaryPrev: ProductMetricsApi[];
   summaryComment: string;
   underperform: UnderperformRowApi[];
   underperformComment: string;
   equipmentBottleneck: EquipmentBottleneckRowApi[];
   equipmentUtilization: EquipmentUtilizationRowApi[];
-  equipComment: string;
+  bottleneckComment: string;
+  utilComment: string;
 };
 
 /**

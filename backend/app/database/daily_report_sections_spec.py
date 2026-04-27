@@ -455,21 +455,41 @@ def project_rows_by_spec(rows: list, spec: dict) -> list:
 
 def project_section_rows(report: dict, domain_key: str, section_key: str) -> list:
     """
+    in: dict -> out: list
     report에서 특정 섹션 row list를 읽어 변환 스펙 적용 후 반환한다.
+    == Use ==
+        rows = project_section_rows(report, "prod", "summary")
+    == In ==
+        report = {
+          "prod": {
+            "summary": [
+              {"계획수량": "313", "실적수량": "234", "달성률": "74.8", "총설비수": "20", "가동설비수": "14"},
+              ...
+            ]
+          },
+          ...
+        }
+    == Out ==
+        # prod > summary
+        [
+            # 1 행
+          {
+            # project_rows_by_spec 결과로 영어컬럼으로 변경
+            "planQty": 313,
+            "qty": 234,
+            "achiveRate": 74.8,
+            "totalEquipQty": 20,
+            "runningEquipQty": 14
+          },
+            # 2 행
+          {
+            ...
+          },
+          ...
+        ]
+
     """
     domain_data = report.get(domain_key, {}) if isinstance(report, dict) else {}
     rows = domain_data.get(section_key, []) if isinstance(domain_data, dict) else []
     spec = get_section_projection_spec(domain_key, section_key)
     return project_rows_by_spec(rows, spec)
-
-
-def project_section_first_row(report: dict, domain_key: str, section_key: str) -> dict:
-    """
-    report에서 특정 섹션의 첫 번째 row를 읽어 변환 스펙 적용 후 반환한다.
-    """
-    rows = project_section_rows(report, domain_key, section_key)
-    if not rows:
-        spec = get_section_projection_spec(domain_key, section_key)
-        return project_row_by_spec(None, spec)
-    row = rows[0]
-    return row if isinstance(row, dict) else {}

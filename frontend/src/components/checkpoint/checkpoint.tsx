@@ -15,10 +15,11 @@ import EquipSection from "./06_Equip/equip";
 import SectionTabs, { type SectionTabItem } from "./sectionTabs";
 
 const REPORT_SECTIONS_REQUEST: CheckPointSectionsRequest = {
-  // date: "2026-03-06",
-  date: "2025-08-20",
+  date: "2026-03-06",
+  // date: "2025-08-20",
   reportId: "OBI",
   locale: "ko_KR",
+  config: "ollama_config"
 };
 
 export default function CheckPoint() {
@@ -26,6 +27,8 @@ export default function CheckPoint() {
     (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
   const [data, setData] = useState<CheckPointSectionsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStartedAt, setLoadingStartedAt] = useState<number | null>(null);
+  const [elapsedMs, setElapsedMs] = useState(0);
   const [errorMessage, setErrorMessage] = useState("");
   const [activeTopTab, setActiveTopTab] = useState<
     "summary" | "production" | "shipping" | "delivery" | "quality" | "equip"
@@ -46,6 +49,8 @@ export default function CheckPoint() {
 
     const load = async () => {
       setIsLoading(true);
+      setLoadingStartedAt(Date.now());
+      setElapsedMs(0);
       setErrorMessage("");
 
       try {
@@ -61,7 +66,10 @@ export default function CheckPoint() {
             : "리포트 섹션 데이터를 불러오는 중 오류가 발생했습니다.";
         setErrorMessage(message);
       } finally {
-        if (isMounted) setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+          setLoadingStartedAt(null);
+        }
       }
     };
 
@@ -71,6 +79,23 @@ export default function CheckPoint() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoading || loadingStartedAt === null) return;
+    const timerId = window.setInterval(() => {
+      setElapsedMs(Date.now() - loadingStartedAt);
+    }, 200);
+    return () => {
+      window.clearInterval(timerId);
+    };
+  }, [isLoading, loadingStartedAt]);
+
+  function formatElapsed(ms: number) {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+  }
 
   return (
     <div className="tw-chat-page">
@@ -84,6 +109,18 @@ export default function CheckPoint() {
 
       <main className={styles.reportBody}>
         <section className={styles.reportStack}>
+          {isLoading ? (
+            <div className={styles.loadingNotice} role="status" aria-live="polite">
+              <span className={styles.loadingSpinner} aria-hidden="true" />
+              <div className={styles.loadingTextWrap}>
+                <strong className={styles.loadingTitle}>데이터 로딩 중</strong>
+                <span className={styles.loadingElapsed}>
+                  경과시간 {formatElapsed(elapsedMs)}
+                </span>
+              </div>
+            </div>
+          ) : null}
+
           <SectionTabs
             items={topTabItems}
             activeKey={activeTopTab}

@@ -4,9 +4,6 @@ from pydantic import BaseModel, Field
 import json
 
 from app.database import database
-from app.database.daily_report_sections_spec import (
-    project_section_first_row,
-)
 
 dailyReportRouter = APIRouter(prefix="/api/dailyReport", tags=["dailyReport"])
 
@@ -105,32 +102,32 @@ def getReportSections(req: ReportSectionsRequest):
         # 2. 결과가 존재한다면 이 데이터의 context_json을 분해하여 데이터를 return
         # 3. 결과가 없다면 기존 섹션을 호출하여 llm의 답변을 얻어내고, 이 결과를 하나로 묶어 context_json을 만들어 
         #   DAILY_REPORT_RESULT 에 저장
-        stored_context_raw = database.getDailyReportResult(req.date, req.reportId, req.locale)
-        sections = parse_report_context(stored_context_raw)
+        # stored_context_raw = database.getDailyReportResult(req.date, req.reportId, req.locale)
+        # sections = parse_report_context(stored_context_raw)
         
-        if sections is None:
-            report = get_daily_report(req.date, req.reportId, req.locale)
-            # summary = _build_summary_section(report)
-            # anomaly_action = _build_anomaly_action_section(report)
-            metrics = _build_metrics(report)
-            # analysis = _build_analysis_section(report)
-            sections = build_report_context(
-                # summary=summary,
-                # anomaly_action=anomaly_action,
-                metrics=metrics,
-                # analysis=analysis,
-            )
-            database.saveDailyReportResult(
-                req.date,
-                req.reportId,
-                req.locale,
-                json.dumps(sections, ensure_ascii=False),
-            )
+        # if sections is None:
+        #     report = get_daily_report(req.date, req.reportId, req.locale)
+        #     # summary = _build_summary_section(report)
+        #     # anomaly_action = _build_anomaly_action_section(report)
+        #     metrics = _build_metrics(report)
+        #     # analysis = _build_analysis_section(report)
+        #     sections = build_report_context(
+        #         # summary=summary,
+        #         # anomaly_action=anomaly_action,
+        #         metrics=metrics,
+        #         # analysis=analysis,
+        #     )
+        #     database.saveDailyReportResult(
+        #         req.date,
+        #         req.reportId,
+        #         req.locale,
+        #         json.dumps(sections, ensure_ascii=False),
+        #     )
 
         return {
             # "summary": sections.get("summary"),
             # "anomalyAction": sections.get("anomalyAction"),
-            "metrics": sections.get("metrics"),
+            # "metrics": sections.get("metrics"),
             # "analysis": sections.get("analysis"),
             # "meta": sections.get("meta"),
         }
@@ -193,22 +190,7 @@ def _build_metrics(report: dict):
     """
     각 도메인의 summary[0] 한 행만 읽어 metrics로 변환한다.
     """
-    summary_sections = {
-        "product": ("prod", "summary"),
-        "shipment": ("ship", "summary"),
-        "delivery": ("delv", "summary"),
-        "quality": ("qual", "summary"),
-        "equipment": ("equip", "statusSummary"),
-        "attendance": ("att", "summary"),
-    }
-
-    report_data = report if isinstance(report, dict) else {}
-    metrics = {
-        metric_key: project_section_first_row(report_data, domain_key, section_key)
-        for metric_key, (domain_key, section_key) in summary_sections.items()
-    }
-
-    return metrics
+    return ()
 
 # ==============================
 #   04_ 원인 분석 / 추천 조치

@@ -23,12 +23,40 @@ function formatRate(value?: number) {
   return value.toFixed(1);
 }
 
+function getAchievementRateClass(value?: number) {
+  if (typeof value !== "number" || Number.isNaN(value)) return styles.rateBadgeMuted;
+  if (value < 30) return styles.rateBadgeWarn;
+  if (value < 70) return styles.rateBadgeWatch;
+  return styles.rateBadgeGood;
+}
+
+function renderAchievementRate(value?: number) {
+  return (
+    <span className={`${styles.rateBadge} ${getAchievementRateClass(value)}`}>
+      {formatRate(value)}%
+    </span>
+  );
+}
+
 // 시간/손실 값은 정수면 콤마, 소수면 최대 1자리까지 노출한다.
 function formatAmount(value?: number) {
   if (typeof value !== "number" || Number.isNaN(value)) return "-";
   return Number.isInteger(value)
     ? formatNumber(value)
     : new Intl.NumberFormat("ko-KR", { maximumFractionDigits: 1 }).format(value);
+}
+
+function renderDelta(diff: number, isRate = false) {
+  if (!Number.isFinite(diff) || diff === 0) return null;
+  const up = diff > 0;
+  const abs = Math.abs(diff);
+  const value = isRate ? `${abs.toFixed(1)}%p` : formatNumber(abs);
+  return (
+    <span className={up ? styles.deltaUp : styles.deltaDown}>
+      ({up ? "▲" : "▼"}
+      {value})
+    </span>
+  );
 }
 
 export default function ProductionSection({
@@ -45,15 +73,64 @@ export default function ProductionSection({
 
   // 백엔드 Section_02 응답을 섹션별 테이블 데이터로 분리한다.
   const summaryRows = section02Data?.summary ?? [];
+  const summaryPrevRows = section02Data?.summaryPrev ?? [];
   const underperformRows = section02Data?.underperform ?? [];
   const equipmentBottleneckRows = section02Data?.equipmentBottleneck ?? [];
   const equipmentUtilizationRows = section02Data?.equipmentUtilization ?? [];
 
+  const currentSummary = summaryRows[0];
+  const previousSummary = summaryPrevRows[0];
+
   // 2.1 생산요약 테이블 컬럼 정의
   const summaryColumns: TableColumn<Section02["summary"][number]>[] = [
-    { header: "계획수량(EA)", render: (row) => formatNumber(row.planQty), align: "right" },
-    { header: "실적수량(EA)", render: (row) => formatNumber(row.qty), align: "right" },
-    { header: "달성률(%)", render: (row) => formatRate(row.achiveRate), align: "right" },
+    {
+      header: "계획수량(EA)",
+      render: (row) => {
+        if (!previousSummary) return formatNumber(row.planQty);
+        const diff = row.planQty - previousSummary.planQty;
+        return (
+          <span className={styles.compareCell}>
+            <span>{formatNumber(previousSummary.planQty)}</span>
+            <span className={styles.compareArrow}>{" ⟶ "}</span>
+            <span>{formatNumber(row.planQty)}</span>
+            {renderDelta(diff)}
+          </span>
+        );
+      },
+      align: "right",
+    },
+    {
+      header: "실적수량(EA)",
+      render: (row) => {
+        if (!previousSummary) return formatNumber(row.qty);
+        const diff = row.qty - previousSummary.qty;
+        return (
+          <span className={styles.compareCell}>
+            <span>{formatNumber(previousSummary.qty)}</span>
+            <span className={styles.compareArrow}>{" ⟶ "}</span>
+            <span>{formatNumber(row.qty)}</span>
+            {renderDelta(diff)}
+          </span>
+        );
+      },
+      align: "right",
+    },
+    {
+      header: "달성률(%)",
+      render: (row) => {
+        if (!previousSummary) return `${formatRate(row.achiveRate)}%`;
+        const diff = row.achiveRate - previousSummary.achiveRate;
+        return (
+          <span className={styles.compareCell}>
+            <span>{formatRate(previousSummary.achiveRate)}%</span>
+            <span className={styles.compareArrow}>{" ⟶ "}</span>
+            <span>{formatRate(row.achiveRate)}%</span>
+            {renderDelta(diff, true)}
+          </span>
+        );
+      },
+      align: "right",
+    },
     { header: "총설비수", render: (row) => formatNumber(row.totalEquipQty), align: "right" },
     { header: "가동설비수", render: (row) => formatNumber(row.runningEquipQty), align: "right" },
   ];
@@ -67,7 +144,7 @@ export default function ProductionSection({
     { header: "공정명", render: (row) => row.processName ?? "-", align: "left" },
     { header: "계획수량", render: (row) => formatNumber(row.planQty), align: "right" },
     { header: "실적수량", render: (row) => formatNumber(row.actualQty), align: "right" },
-    { header: "달성률", render: (row) => formatRate(row.achiveRate), align: "right" },
+    { header: "달성률", render: (row) => renderAchievementRate(row.achiveRate), align: "right" },
   ];
 
   // 2.3-1 설비 병목 테이블 컬럼 정의
@@ -116,7 +193,7 @@ export default function ProductionSection({
             </p>
             <SectionTable
               columns={summaryColumns}
-              rows={summaryRows}
+              rows={currentSummary ? [currentSummary] : []}
               rowKey={(_, index) => `summary-row-${index}`}
             />
           </div>
@@ -140,7 +217,7 @@ export default function ProductionSection({
           <div className={styles.sectionPanel}>
             <label className={styles.blockLabel}>2.3 설비 병목 및 가동률</label>
             <p className={styles.summaryComment}>
-              {isLoading ? "로딩 중..." : section02Data?.equipComment ?? "-"}
+              {isLoading ? "로딩 중..." : section02Data?.bottleneckComment ?? "-"}
             </p>
             <label className={styles.blockLabel}>설비 병목</label>
             <SectionTable
@@ -150,6 +227,9 @@ export default function ProductionSection({
             />
             <br/>
             <label className={styles.blockLabel}>가동률</label>
+            <p className={styles.summaryComment}>
+              {isLoading ? "로딩 중..." : section02Data?.utilComment ?? "-"}
+            </p>
             <SectionTable
               columns={equipmentUtilizationColumns}
               rows={equipmentUtilizationRows}
