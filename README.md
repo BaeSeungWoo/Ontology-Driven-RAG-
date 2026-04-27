@@ -31,7 +31,10 @@ RAG 개발
                             * **tables/**
                                 * `0.md`
                     * **extract/** (Docling 추출물)
-                        * `output_result_xxx.pdf` 
+                        * **batch_json/**
+                            * **원본 문서 이름/**
+                                * `원본 문서명_part_xxx.json` (각 페이지수에 따라 분할된 json)
+                                * `원본 문서명_merge.json` (합쳐진 json)
                     * **inputs/** (원본 문서)
                         * `xxx.pdf` 
                     * **struct/** (구조화된 청크)
