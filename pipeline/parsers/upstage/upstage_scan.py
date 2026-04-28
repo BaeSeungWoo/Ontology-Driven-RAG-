@@ -116,7 +116,7 @@ def download_result(async_json_path: Path, output_dir: Path) -> None:
 
         print(f"저장 완료: {filepath}")
 
-def process_one_pdf(pdf_path: Path, input_root_dir: Path, async_result_root_dir: Path, batch_json_root_dir: Path, api_key: str) -> None:
+def process_one_pdf(pdf_path: Path, async_result_root_dir: Path, batch_json_root_dir: Path, api_key: str):
     """PDF 문서 한개를 upstage 추출 및 결과 download까지 진행하는 함수
 
     `upstage_request`를 통해 추출 요청 실시
@@ -136,7 +136,7 @@ def process_one_pdf(pdf_path: Path, input_root_dir: Path, async_result_root_dir:
     if not api_key:
         raise RuntimeError("UPSTAGE_API_KEY가 설정되지 않았습니다.")
 
-    relative_parent = pdf_path.parent.relative_to(input_root_dir)
+    relative_parent = pdf_path.parent.name
     async_json_path = async_result_root_dir / relative_parent / f"{pdf_path.stem}.json"
     output_dir = batch_json_root_dir / relative_parent / pdf_path.stem
 
@@ -182,7 +182,6 @@ def process_all_pdf(input_root_dir: Path, async_result_root_dir: Path, batch_jso
     for pdf_path in pdf_files:
         process_one_pdf(
             pdf_path=pdf_path,
-            input_root_dir=input_root_dir,
             async_result_root_dir=async_result_root_dir,
             batch_json_root_dir=batch_json_root_dir,
             api_key=api_key,
