@@ -5,16 +5,15 @@
 
 import os
 from pathlib import Path
-from typing import List
+from typing import Any
 
 import requests
 import fitz  # PyMuPDF
-from langchain_core.documents import Document
 import upstage.divise_pdf as div_pdf
 import upstage.upstage_scan as scan
 import upstage.merge_scan_json as mge_json
 
-
+from upstage.generate_chunks import process_document, save_jsonl
 class UpstageParser:
     """
     Upstage Document Parse API 기반 스캔본 파서.
@@ -35,7 +34,7 @@ class UpstageParser:
                 "UPSTAGE_API_KEY 환경변수가 설정되지 않았습니다."
             )
 
-    def extract(self, input_dir: Path, output_dir: Path) -> None:
+    def _extract(self, pdf_path: str, output_dir: Path) -> None:
         """특정 폴더에 존재하는 PDF 목록들을 Upstage를 통하여 JSON 형태의 파일로 내보낸다.
 
         각 프로세스에 따른 결과 파일들이 저장되며 저장 형태는 Returns의 예시 형태로 저장된다.
@@ -72,61 +71,48 @@ class UpstageParser:
                     >>> output_dir/merged_jsons/삼성화재.json   
                     >>> output_dir/merged_jsons/현대해상.json   
         """
+        input_pdf_path = Path(pdf_path)
         split_pdf_root_dir = output_dir / "split_pdfs"
         async_result_root_dir = output_dir / "async_results"
         batch_json_root_dir = output_dir / "batch_jsons"
         merged_output_dir = output_dir / "merged_jsons"
 
-        div_pdf.split_all_pdfs_in_folder(
-            input_dir=input_dir,
+        divise_dir = div_pdf.split_all_pdfs_in_folder(
+            pdf_path=input_pdf_path,
             output_root_dir=split_pdf_root_dir
         )
 
         scan.process_all_pdf(
-            input_root_dir=split_pdf_root_dir,
+            input_root_dir=divise_dir,
             async_result_root_dir=async_result_root_dir,
             batch_json_root_dir=batch_json_root_dir,
             api_key=self.api_key,
         )
 
-        mge_json.merge_all_pdf_jsons(
-            batch_json_root_dir=batch_json_root_dir,
-            split_pdf_root_dir=split_pdf_root_dir,
+        upstage_data = mge_json.merge_all_pdf_jsons(
+            batch_json_root_dir=batch_json_root_dir / input_pdf_path.stem,
             merged_output_dir=merged_output_dir,
         )
+        return upstage_data
 
-    def parse(self, file_path: str) -> List[Document]:
+    def parse(self, pdf_path: str, output_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """
-        Upstage API로 스캔본을 파싱합니다.
-        API 응답의 elements 배열을 element 단위 Document로 변환합니다.
+        Docling 추출물을 실제 구조화 청크로 변환 후 폴더에 저장
+
+        Args:
+            pdf_path (str): docling 추출물 경로
+            output_dir (dict[str, Any]): 각 구조화된 파일들이 저장될 경로
+
+        Returns:
+            list[dict[str, Any]]: 구조화된 청크
         """
-        with open(file_path, "rb") as f:
-            response = requests.post(
-                self.API_URL,
-                headers={"Authorization": f"Bearer {self.api_key}"},
-                files={"document": f},
-                data={"output_formats": '["markdown"]'},
-            )
-        response.raise_for_status()
-        data = response.json()
-
-        source_name = Path(file_path).name
-        docs = []
-
-        for element in data.get("elements", []):
-            content = element.get("content", {}).get("markdown", "").strip()
-            if not content:
-                continue
-            docs.append(Document(
-                page_content=content,
-                metadata={
-                    "source": source_name,
-                    "doc_type": "scanned_manual",
-                    "parser": "upstage",
-                    "element_type": element.get("type", ""),
-                    "page": element.get("page", 0),
-                    "confidence": element.get("confidence", 1.0),
-                },
-            ))
-
-        return docs
+        extract_dir = output_dir.get("extract")
+        struct_dir = Path(output_dir.get("struct"))
+        asset_dir = output_dir.get("asset")
+        upstage_data = self._extract(pdf_path=pdf_path, output_dir=extract_dir)
+        if not upstage_data:
+            return None
+        chunks = process_document(pdf_path=pdf_path, asset_root=asset_dir, data=upstage_data)
+        output_path = Path(struct_dir) / f"{Path(pdf_path).stem}.jsonl"
+        save_jsonl(chunks, output_path)
+        return chunks
