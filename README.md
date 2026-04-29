@@ -86,6 +86,7 @@ RAG 개발
                * **chat/**
                   * `chat.tsx` ( 메인 컴포넌트 )
                   * `chat.module.css` ( chat 전용 css )
+                  * `assetPanel.tsx` ( 이미지/표 영역 )
                   * **answer/** ( 답변 영역 )
                      * `answer.tsx` ( LLM 에게 받은 답변을 Markdown 형식으로 렌더 변환 )
                      * `answer.module.css`
@@ -96,6 +97,7 @@ RAG 개발
                   * **citation/** ( 인용근거 영역 )
                      * `citation.tsx`
                      * `citation.module.css`
+                     * `chunkAsset.tsx` ( 인용근거 내 이미지/표 영역 ) 
                   * **history/** ( 질문/대화 이력 영역 )
                      * `history.tsx`
                      * `history.module.css`
