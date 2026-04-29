@@ -12,12 +12,11 @@ export type AskRequest = {
 
 export type ChatChunk = {
   index: number;
+  retrieval_rank?: number;
   document: string;
   metadata: Record<string, unknown>;
   distance: number | null;
-  asset_path?: string | null;
-  container_type?: string | null;
-  source_doc_name?: string;
+  similarity?: number | null;
 };
 
 export type ChatMetadata = Record<string, unknown> & {

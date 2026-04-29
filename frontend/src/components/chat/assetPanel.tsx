@@ -16,6 +16,23 @@ type AssetItem = {
   pageLabel?: string | null;
 };
 
+function getChunkMetaString(chunk: ChatChunk, key: string): string | null {
+  const value = chunk.metadata?.[key];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function getChunkAssetPath(chunk: ChatChunk): string | null {
+  return getChunkMetaString(chunk, "asset_path");
+}
+
+function getChunkContainerType(chunk: ChatChunk): string | null {
+  return getChunkMetaString(chunk, "container_type");
+}
+
+function getChunkSourceDocName(chunk: ChatChunk): string | null {
+  return getChunkMetaString(chunk, "source_doc_name");
+}
+
 type ImagePreview = {
   url: string;
   label: string;
@@ -130,7 +147,7 @@ function toPageLabel(range: unknown): string | null {
 }
 
 function getChunkPageLabel(chunk: ChatChunk): string | null {
-  const directLabel = toPageLabel(chunk.metadata?.page_range);
+  const directLabel = toPageLabel(getChunkMetaString(chunk, "page_range"));
   if (directLabel) return directLabel;
 
   const pages = chunk.metadata?.pages;
@@ -142,12 +159,14 @@ function getChunkPageLabel(chunk: ChatChunk): string | null {
 }
 
 function toAssetItem(chunk: ChatChunk): AssetItem {
+  const path = getChunkAssetPath(chunk);
+  const type = getChunkContainerType(chunk);
   return {
-    path: chunk.asset_path as string,
+    path: path as string,
     chunkIndex: chunk.index,
-    type: chunk.container_type as "pictures" | "tables",
+    type: type as "pictures" | "tables",
     document: chunk.document,
-    sourceDocName: chunk.source_doc_name,
+    sourceDocName: getChunkSourceDocName(chunk) ?? undefined,
     pageLabel: getChunkPageLabel(chunk),
   };
 }
@@ -163,9 +182,9 @@ function getChunkAssets(metadata?: ChatMetadata): AssetItem[] {
     metadata?.used_chunks
       ?.filter(
         (chunk) =>
-          typeof chunk.asset_path === "string" &&
-          chunk.asset_path.length > 0 &&
-          isSupportedAssetType(chunk.container_type)
+          typeof getChunkAssetPath(chunk) === "string" &&
+          (getChunkAssetPath(chunk)?.length ?? 0) > 0 &&
+          isSupportedAssetType(getChunkContainerType(chunk))
       )
       .map(toAssetItem) ?? [];
 
@@ -177,9 +196,9 @@ function getChunkAssets(metadata?: ChatMetadata): AssetItem[] {
     metadata?.chunks
       ?.filter(
         (chunk) =>
-          typeof chunk.asset_path === "string" &&
-          chunk.asset_path.length > 0 &&
-          isSupportedAssetType(chunk.container_type)
+          typeof getChunkAssetPath(chunk) === "string" &&
+          (getChunkAssetPath(chunk)?.length ?? 0) > 0 &&
+          isSupportedAssetType(getChunkContainerType(chunk))
       )
       .map(toAssetItem) ?? [];
 

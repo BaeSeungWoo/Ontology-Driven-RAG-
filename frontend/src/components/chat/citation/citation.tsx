@@ -106,7 +106,7 @@ function toPageLabel(range: unknown): string | null {
 }
 
 function getChunkPageLabel(chunk?: ChatChunk): string | null {
-  const pageRange = chunk?.metadata?.page_range;
+  const pageRange = typeof chunk?.metadata?.page_range === "string" ? chunk.metadata.page_range : null;
   const directLabel = toPageLabel(pageRange);
   if (directLabel) return directLabel;
 
@@ -159,9 +159,18 @@ export default function Citation({
         ? `참조${selectedCitation.chunkIndex}`
         : null;
   const selectedAssetPath =
-    typeof selectedChunk?.asset_path === "string" && selectedChunk.asset_path.length > 0
-      ? selectedChunk.asset_path
+    typeof selectedChunk?.metadata?.asset_path === "string" &&
+    selectedChunk.metadata.asset_path.length > 0
+      ? selectedChunk.metadata.asset_path
       : null;
+  const selectedContainerType =
+    typeof selectedChunk?.metadata?.container_type === "string"
+      ? selectedChunk.metadata.container_type
+      : undefined;
+  const selectedSourceDocName =
+    typeof selectedChunk?.metadata?.source_doc_name === "string"
+      ? selectedChunk.metadata.source_doc_name
+      : undefined;
   const selectedPageLabel = getChunkPageLabel(selectedChunk);
   const hasMetadata = activeMetadata !== undefined;
 
@@ -227,7 +236,7 @@ export default function Citation({
               <div className={styles.chunkMetaGrid}>
                 <p className={styles.chunkTitle}>
                   <span className={styles.chunkMetaLabel}>문서명</span>
-                  <span>{selectedChunk.source_doc_name ?? "unknown"}</span>
+                  <span>{selectedSourceDocName ?? "unknown"}</span>
                 </p>
                 <p className={styles.chunkPageRange}>
                   <span className={styles.chunkMetaLabel}>페이지</span>
@@ -243,7 +252,7 @@ export default function Citation({
                 <ChunkAsset
                   key={`${selectedChunk.index}-${selectedAssetPath}`}
                   assetPath={selectedAssetPath}
-                  assetType={selectedChunk.container_type}
+                  assetType={selectedContainerType}
                   referenceLabel={selectedReferenceLabel ?? "선택 참조"}
                 />
               ) : null}

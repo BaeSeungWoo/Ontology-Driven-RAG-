@@ -39,9 +39,7 @@ class KnowledgeRetriever:
 
         for index, (doc, meta, dist) in enumerate(zip(documents, metadatas, distances), start=1):
             source = meta.get("source_doc_name", "unknown")
-            source_doc_id = meta.get("source_doc_id")
             container_type = meta.get("container_type")
-            page_range = meta.get("page_range")
             similarity = (1 - float(dist)) if dist is not None else None
 
             context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{doc}")
@@ -54,11 +52,6 @@ class KnowledgeRetriever:
                 "metadata": meta,
                 "distance": float(dist) if dist is not None else None,
                 "similarity": similarity,
-                "asset_path": meta.get("asset_path"),
-                "container_type": container_type,
-                "source_doc_name": source,
-                "source_doc_id": source_doc_id,
-                "page_range": page_range,
             })
 
             asset_path = meta.get("asset_path")
