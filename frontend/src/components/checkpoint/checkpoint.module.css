@@ -949,8 +949,7 @@
 }
 
 @media (max-width: 1024px) {
-* 위치: 페이지 공통 레이아웃 */
-.reportToolbarLeft {
+  .reportToolbarLeft {
     width: 100%;
     flex-wrap: wrap;
   }
