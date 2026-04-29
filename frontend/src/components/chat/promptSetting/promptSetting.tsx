@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { TriangleAlert } from "lucide-react";
+import { Settings, TriangleAlert } from "lucide-react";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PromptRow } from "@/types/prompt";
@@ -77,7 +77,10 @@ export default function PromptSetting({
   return (
     <div className="flex flex-col gap-2.5">
       <div className={styles.promptHeader}>
-        <h2 className={`pane-title ${styles.promptTitle}`}>프롬프트 설정</h2>
+        <div className={styles.promptTitleGroup}>
+          <h2 className={`pane-title ${styles.promptTitle}`}>프롬프트 설정</h2>
+          <Settings className={styles.promptTitleIcon} aria-hidden="true" />
+        </div>
         <div
           className={`${styles.headerRightGroup} ${
             !isRequiredMissing ? styles.headerRightGroupHidden : ""
@@ -88,7 +91,7 @@ export default function PromptSetting({
             <span className={styles.requiredBadge}>필수</span>
             <TriangleAlert className={styles.requiredNoticeIcon} aria-hidden="true" />
             <span className={styles.requiredMessage}>
-              질문자 입력과 프롬프트 선택을 완료해주세요.
+              [질문자, 프롬프트] 입력을 완료해주세요.
             </span>
           </span>
         </div>

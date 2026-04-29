@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { MessageSquareMore } from "lucide-react";
 import Answer from "./answer/answer";
 import AssetPanel from "./assetPanel";
 import Citation from "./citation/citation";
@@ -269,7 +270,10 @@ export default function Chat() {
                 }`}
               >
                 <div className={styles.chatAnswerSplitHeader}>
-                  <h2 className="pane-title">답변</h2>
+                  <div className={styles.sectionTitleGroup}>
+                    <h2 className="pane-title">답변</h2>
+                    <MessageSquareMore className={styles.sectionTitleIcon} aria-hidden="true" />
+                  </div>
                 </div>
                 <div className={styles.chatAnswerMain}>
                   <Answer

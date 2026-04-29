@@ -30,6 +30,22 @@
   white-space: nowrap;
 }
 
+.promptTitleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.promptTitleIcon {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.1;
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+  flex: 0 0 auto;
+}
+
 .headerRightGroup {
   display: flex;
   align-items: center;
@@ -53,6 +69,7 @@
   border-radius: 10px;
   padding: 4px 8px;
   background: rgb(255 239 229 / 92%);
+  overflow: hidden;
 }
 
 
@@ -87,6 +104,12 @@
   font-size: 12px;
   font-weight: 700;
   color: #ea580c;
+}
+
+@media (max-width: 1320px) {
+  .requiredMessage {
+    display: none;
+  }
 }
 
 

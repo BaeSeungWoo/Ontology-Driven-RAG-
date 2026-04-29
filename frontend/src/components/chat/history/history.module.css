@@ -16,7 +16,8 @@
 
 /* 위치: 우측 컬럼 접힘 상태 */
 .historyRootCollapsed {
-  align-items: center;
+  width: 100%;
+  align-items: stretch;
   gap: 0;
 }
 
@@ -29,6 +30,7 @@
   margin: -14px -14px 10px;
   padding: 10px 12px;
   height: 44px;
+  box-sizing: border-box;
   border-bottom: 1px solid #96b0cc;
   border-radius: 14px 14px 0 0;
   background: linear-gradient(
@@ -41,6 +43,27 @@
 .historyRootCollapsed .headerRow {
   width: 100%;
   justify-content: center;
+  margin: 0;
+  padding: 0;
+  height: 44px;
+  min-height: 44px;
+  border-bottom: 1px solid #96b0cc;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgb(224 235 247),
+    rgb(187 206 228)
+  );
+}
+
+.historyRootCollapsed .headerTitleGroup {
+  width: auto;
+  justify-content: center;
+  gap: 0;
+}
+
+.historyRootCollapsed .panelToggleButton {
+  margin-inline: auto;
 }
 
 .headerTitleGroup {
@@ -58,24 +81,46 @@
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 82%, #fff 18%);
   color: var(--chat-title-color);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
+    0 1px 2px color-mix(in srgb, var(--chat-shadow) 40%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
 }
 
 .panelToggleButton:hover {
-  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+  border-color: color-mix(in srgb, var(--chat-title-color) 56%, var(--chat-pane-border) 44%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+}
+
+.panelToggleButton:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent);
 }
 
 .panelToggleIcon {
   width: 18px;
   height: 18px;
   stroke-width: 2.1;
+}
+
+.historyTitleIcon {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.1;
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
 }
 
 .newChatButton {
@@ -130,10 +175,29 @@
 
 .questionerFilterLabel {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, #8aa2bf 12%);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgb(224 235 247),
+    rgb(187 206 228)
+  );
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
-  color: color-mix(in srgb, var(--chat-title-color) 90%, var(--chat-text-color) 10%);
+  color: color-mix(in srgb, var(--chat-title-color) 74%, var(--chat-text-color) 26%);
+}
+
+.questionerFilterTitleIcon {
+  width: 13px;
+  height: 13px;
+  stroke-width: 2.1;
+  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
 }
 
 .questionerFilterField {
@@ -168,20 +232,12 @@
     inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
 }
 
-.questionerFilterIcon,
 .questionerFilterChevron {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   color: color-mix(in srgb, var(--chat-title-color) 84%, var(--chat-text-color) 16%);
   pointer-events: none;
-}
-
-.questionerFilterIcon {
-  left: 10px;
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
 }
 
 .questionerFilterChevron {
@@ -196,7 +252,7 @@
   height: 36px;
   border: 0;
   border-radius: 9px;
-  padding: 0 34px 0 34px;
+  padding: 0 34px 0 10px;
   background: transparent;
   color: var(--chat-text-color);
   font-size: 13px;

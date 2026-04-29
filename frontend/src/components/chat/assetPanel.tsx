@@ -1,5 +1,5 @@
 ﻿import Image from "next/image";
-import { PanelRightClose, PanelRightOpen, Search } from "lucide-react";
+import { Image as ImageIcon, PanelRightClose, PanelRightOpen, Search } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -444,9 +444,12 @@ export default function AssetPanel({
   return (
     <aside className={assetPanelClassName} aria-label={assetPanelLabel}>
       <div className={styles.chatAssetPanelHeader}>
-        <span className={styles.chatAssetPanelLabel}>{assetPanelLabel}</span>
-        <span className={styles.chatAssetCountBadge} aria-label={`자료 ${assetCount}개`}>
-          {assetCount}
+        <span className={styles.chatAssetPanelTitleGroup}>
+          <ImageIcon className={styles.chatAssetPanelTitleIcon} aria-hidden="true" />
+          <span className={styles.chatAssetPanelLabel}>{assetPanelLabel}</span>
+          <span className={styles.chatAssetPanelInlineCount} aria-label={`자료 ${assetCount}개`}>
+            {assetCount}
+          </span>
         </span>
         <button
           type="button"

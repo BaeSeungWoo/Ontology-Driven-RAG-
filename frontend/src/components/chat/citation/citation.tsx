@@ -1,4 +1,4 @@
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Lightbulb, MousePointerClick, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { useState } from "react";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
@@ -182,7 +182,12 @@ export default function Citation({
           isCollapsed ? styles.citationHeaderCollapsed : ""
         }`}
       >
-        {!isCollapsed && <h2 className="pane-title">인용 근거</h2>}
+        {!isCollapsed ? (
+          <div className={styles.citationTitleGroup}>
+            <h2 className="pane-title">인용 근거</h2>
+            <Lightbulb className={styles.citationTitleIcon} aria-hidden="true" />
+          </div>
+        ) : null}
         <button
           type="button"
           className={styles.citationToggle}
@@ -207,7 +212,10 @@ export default function Citation({
         <section className={styles.referenceArea} aria-label="인용 근거">
           <div className={styles.referenceHeader}>
             <div className={styles.referenceHeadingGroup}>
-              <h3>선택된 참조</h3>
+              <h3 className={styles.referenceTitleWithIcon}>
+                <MousePointerClick className={styles.referenceTitleIcon} aria-hidden="true" />
+                <span>선택된 참조</span>
+              </h3>
               <div className={styles.referenceBadges}>
                 {selectedReferenceLabel ? <span>{selectedReferenceLabel}</span> : null}
               </div>

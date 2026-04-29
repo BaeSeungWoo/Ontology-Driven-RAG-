@@ -1,5 +1,6 @@
 import { useState } from "react";
 import {
+  ClipboardClock,
   ChevronDown,
   ChevronFirst,
   ChevronLast,
@@ -33,6 +34,21 @@ type HistorySessionMeta = Pick<
 >;
 
 type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
+
+const OPTION_TEXT_MAX = 18;
+
+function formatQuestionerOptionLabel(label: string, count: number): string {
+  const countToken = `[${count}]`;
+  const reservedLength = countToken.length + 1; // 공백 1칸 포함
+  const availableLabelLength = Math.max(4, OPTION_TEXT_MAX - reservedLength);
+  const normalized = label.trim();
+  const shortLabel =
+    normalized.length > availableLabelLength
+      ? `${normalized.slice(0, Math.max(1, availableLabelLength - 1))}…`
+      : normalized;
+
+  return `${shortLabel} ${countToken}`;
+}
 
 export default function History({
   selectedSessionId,
@@ -161,6 +177,9 @@ export default function History({
             )}
           </button>
           {!isCollapsed ? <h2 className="pane-title">질문 이력</h2> : null}
+          {!isCollapsed ? (
+            <ClipboardClock className={styles.historyTitleIcon} aria-hidden="true" />
+          ) : null}
         </div>
         {!isCollapsed ? (
           <button
@@ -179,11 +198,13 @@ export default function History({
       {!isCollapsed ? (
         <>
           <div className={styles.questionerFilterSection}>
-            <span className={styles.questionerFilterLabel}>질문자 선택</span>
+            <span className={styles.questionerFilterLabel}>
+              <UsersRound className={styles.questionerFilterTitleIcon} aria-hidden="true" />
+              질문자 선택
+            </span>
             {/* 왼쪽: 질문자 셀렉트 / 오른쪽: 검색 입력(Enter 또는 검색 버튼으로 적용) */}
             <div className={styles.questionerFilterRow}>
               <div className={styles.questionerFilterField}>
-                <UsersRound className={styles.questionerFilterIcon} aria-hidden="true" />
                 <select
                   id="history-questioner-filter"
                   className={styles.questionerFilterSelect}
@@ -193,7 +214,7 @@ export default function History({
                 >
                   {visibleQuestionerOptions.map((option) => (
                     <option key={option.key} value={option.key}>
-                      {`${option.label} [${option.count}]`}
+                      {formatQuestionerOptionLabel(option.label, option.count)}
                     </option>
                   ))}
                 </select>
