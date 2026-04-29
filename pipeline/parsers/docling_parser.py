@@ -148,10 +148,3 @@ class DoclingParser:
         output_path = Path(struct_dir) / f"{Path(pdf_path).stem}.jsonl"
         save_jsonl(chunks, output_path)
         return chunks
-
-    @staticmethod
-    def _split_by_heading(markdown: str) -> list[str]:
-        """## 헤딩 기준으로 섹션을 분리합니다."""
-        import re
-        parts = re.split(r"(?=^## )", markdown, flags=re.MULTILINE)
-        return parts if len(parts) > 1 else [markdown]

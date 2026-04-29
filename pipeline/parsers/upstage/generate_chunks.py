@@ -9,8 +9,11 @@ from assets import make_asset_path, export_table_assets, serialize_table_text, a
 
 TEXT_LABELS_TO_SKIP = {"header", "footer"}
 
-def build_caption_map(elements: list[dict[str, Any]]) -> dict[str, Any]:
+def build_caption_map(elements: list[dict[str, Any]]) -> dict[tuple[str, int], str]:
     """caption을 (category, asset_id) 기준으로 연결한다.
+
+    Args:
+        elements (list[dict[str, Any]]): upstage 데이터 목록
 
     Returns:
         dict[tuple[str, int], str]:
@@ -197,6 +200,20 @@ def chunk_units_by_section_and_container(units: list[dict[str, Any]]) -> list[di
     return final_chunks
 
 def process_document(data: dict[str, Any], asset_dir: str | Path, pdf_path: str | Path) -> list[dict[str, Any]]:
+    """Upstage 문서 1건을 처리하여 최종 chunk 목록을 생성한다.
+    
+    문서 1건의 element들을 확인하여 페이지 정보를 계산하고
+    텍스트/테이블/이미지 타입에 따라 내용을 정규화 및 에셋을 저장한다.
+    마지막으로 생성된 unit들을 컨테이너 기준으로 병합하여 최종 chunk 목록을 반환한다.
+
+    Args:
+        pdf_path (str): 원본 PDF 경로
+        asset_root (str): asset 추출물 저장 경로
+        data (dict[str, Any]): Upstage 데이터
+
+    Returns:
+        list[dict[str, Any]]: 문서에서 생성된 최종 chunk 목록.
+    """
     doc_name = pdf_path.stem
 
     elements = data["elements"]
@@ -208,7 +225,6 @@ def process_document(data: dict[str, Any], asset_dir: str | Path, pdf_path: str 
         category = element["category"]
         kind = ""
         asset_path = make_asset_path(element=element, asset_root=asset_dir, doc_name=doc_name)
-        # category = "caption"일 경우 테이블 또는 이미지에 어떻게 포함을 시킬 지 생각
         if category in TEXT_LABELS_TO_SKIP or category == "caption":
             continue
         elif category == "table":

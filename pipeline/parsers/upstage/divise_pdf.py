@@ -76,23 +76,19 @@ def split_pdf_by_size(input_pdf_path: Path, output_dir: Path, max_size_mb: int =
             temp_path.unlink()  
 
 def split_all_pdfs_in_folder(pdf_path: Path, output_root_dir: Path) -> Path:
-    """input_dir 안의 모든 PDF를 순회하면서
+    """특정 경로에 존재하는 PDF를 대상으로 
 
     `split_pdf_by_size` 함수 실행하여
 
     output_root_dir/{pdf파일명}/ 아래에 분할 저장한다.
 
     Args:
-        input_dir (Path): 입력 PDF 경로
+        pdf_path (Path): 입력 PDF 경로
         output_root_dir (Path): 출력 PDF 경로
+
+    Returns:
+        Path : 결과가 저장된 PDF 경로
     """
-    # pdf_files = sorted(input_dir.glob("*.pdf"))
-
-    # if not pdf_files:
-    #     print(f"PDF 파일이 없습니다: {input_dir}")
-    #     return
-
-    # for pdf_path in pdf_files:
     pdf_output_dir = output_root_dir / pdf_path.stem
 
     print(f"\n처리 시작: {pdf_path}")
