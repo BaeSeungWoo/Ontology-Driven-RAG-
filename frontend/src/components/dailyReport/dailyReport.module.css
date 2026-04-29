@@ -1,4 +1,11 @@
-﻿.reportToolbarLeft {
+﻿/* ============================================================
+   위치: DailyReport 페이지 스타일
+   기능: 일일 보고 레이아웃, 요약 카드, 섹션 탭, 테이블/페이지네이션, 입력 필드 스타일
+   목적: 일별 데이터와 코멘트를 표 중심으로 빠르게 검토/편집 가능하게 구성
+   ============================================================ */
+
+/* 위치: 페이지 공통 레이아웃 */
+.reportToolbarLeft {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -479,7 +486,7 @@
 }
 
 @media (max-width: 1024px) {
-  .reportToolbarLeft {
+.reportToolbarLeft {
     width: 100%;
     flex-wrap: wrap;
   }
@@ -524,5 +531,6 @@
     grid-template-columns: 1fr;
   }
 }
+
 
 

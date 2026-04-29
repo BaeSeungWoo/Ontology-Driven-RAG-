@@ -1,11 +1,8 @@
-﻿import styles from "./history.module.css";
+import { useState, type KeyboardEvent, type MouseEvent } from "react";
+import { X } from "lucide-react";
 
-/**
- * 기능: 히스토리 목록에서 카드 렌더링에 사용하는 데이터 타입을 정의한다.
- * 목적: 상위 목록/카드 컴포넌트가 표시용 라벨과 동기화용 원본값을 함께 다루도록 한다.
- * In: 히스토리 API를 화면용으로 매핑한 데이터
- * Out: HistoryItem 타입 정보
- */
+import styles from "./history.module.css";
+
 export type HistoryItem = {
   id: number;
   title: string;
@@ -20,74 +17,110 @@ export type HistoryItem = {
   isActive?: boolean;
 };
 
-/**
- * 기능: HistoryCard 컴포넌트 입력 props 타입을 정의한다.
- * 목적: 카드 단위 렌더링에 필요한 데이터와 이벤트를 명확히 한다.
- * In: item, onSelect
- * Out: HistoryCardProps 타입 정보
- */
 type HistoryCardProps = {
   item: HistoryItem;
   onSelect: (chatId: number) => void;
 };
 
-/**
- * 기능: 단일 대화 이력 카드를 렌더링한다.
- * 목적: 제목/모델/모드/프롬프트/최근 시각/질문자를 한 번에 보여주고 선택 이벤트를 전달한다.
- * In: item(HistoryItem), onSelect(chatId)
- * Out: JSX Element
- */
 export default function HistoryCard({ item, onSelect }: HistoryCardProps) {
-  // =========================
-  // State
-  // =========================
-  // 이 컴포넌트는 로컬 상태를 사용하지 않는다.
+  // 내부 state
+  // 기능/목적: 대화 삭제 확인 모달의 열림 상태를 관리한다.
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
-  // =========================
-  // 함수: 표시 데이터 계산
-  // =========================
-  /**
-   * 기능: 활성 카드 여부에 따라 카드 클래스 문자열을 계산한다.
-   * 목적: 선택된 이력을 시각적으로 강조한다.
-   * In: item.isActive
-   * Out: cardClassName(string)
-   */
   const cardClassName = `${styles.historyCard} ${item.isActive ? styles.historyCardActive : ""}`;
-
-  /**
-   * 기능: 모델/모드/프롬프트 라인을 한 줄 텍스트로 구성한다.
-   * 목적: 메타 정보를 compact하게 표시한다.
-   * In: item.llmModelLabel, item.llmModeLabel, item.promptName
-   * Out: modelModePromptText(string)
-   */
   const modelModePromptText = `· ${item.llmModelLabel} | ${item.llmModeLabel} | ${item.promptName}`;
 
-  /**
-   * 기능: 카드 클릭 시 선택된 chat id를 상위로 전달한다.
-   * 목적: 상위 컴포넌트에서 해당 대화 이력을 로드하도록 연결한다.
-   * In: item.id
-   * Out: onSelect(item.id) 호출
-   */
+  // 함수
+  // 기능/목적: 카드 선택, 키보드 선택, 삭제 확인 모달 열기/닫기를 처리한다.
+  // In: click/keydown event / Out: onSelect 호출 또는 modal state 변경
   const handleSelect = () => {
     onSelect(item.id);
   };
 
-  // =========================
-  // Render
-  // =========================
+  const handleCardKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Enter" && event.key !== " ") return;
+    event.preventDefault();
+    handleSelect();
+  };
+
+  const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setIsDeleteConfirmOpen(true);
+  };
+
+  const handleCloseDeleteConfirm = () => {
+    setIsDeleteConfirmOpen(false);
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleteConfirmOpen(false);
+  };
+
+  // render
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       className={cardClassName}
       aria-label="질문 이력 카드"
       onClick={handleSelect}
+      onKeyDown={handleCardKeyDown}
     >
+      <button
+        type="button"
+        className={styles.cardDeleteButton}
+        aria-label="대화 삭제"
+        title="대화 삭제"
+        onClick={handleDeleteClick}
+      >
+        <X className={styles.cardDeleteIcon} />
+      </button>
       <p className={styles.cardTitle}>{item.title}</p>
       <p className={styles.cardModelMode}>{modelModePromptText}</p>
       <div className={styles.cardBottomRow}>
         <p className={styles.cardMeta}>· {item.recentAt}</p>
         <p className={styles.cardQuestioner}>{item.questioner}</p>
       </div>
-    </button>
+
+      {isDeleteConfirmOpen && (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onClick={handleCloseDeleteConfirm}
+        >
+          <section
+            className={styles.modalCard}
+            role="dialog"
+            aria-modal="true"
+            aria-label="대화 삭제 확인"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p className={styles.modalTitle}>이 대화를 삭제할까요?</p>
+            <p className={styles.modalText}>
+              삭제 확인 UX만 먼저 연결된 상태입니다.
+              <br />
+              지금은 확인을 눌러도 실제 삭제는 실행되지 않습니다.
+            </p>
+            <div className={styles.modalActions}>
+              <button
+                type="button"
+                className={styles.cancelButton}
+                onClick={handleCloseDeleteConfirm}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                onClick={handleConfirmDelete}
+              >
+                삭제
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </div>
   );
 }

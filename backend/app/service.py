@@ -21,9 +21,9 @@ class RAGService:
         question: str,
         mode: str,
         prompt_id: str = "tech_expert",   # ✅ main.py에서 전달받도록 추가
-    ) -> tuple[list, list, list, dict]:         
+    ) -> tuple[list, list, list, list]:
 
-        context, imgs, tables, chunk_map = self.retriever.get_context(question, mode)
+        context, imgs, tables, chunks = self.retriever.get_context(question, mode)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
@@ -32,7 +32,7 @@ class RAGService:
             context=context,
             custom_persona=self.config.prompt.fallback_system_prompt,
         )
-        return messages, imgs, tables, chunk_map  
+        return messages, imgs, tables, chunks
 
     async def ask(
         self,
@@ -47,7 +47,7 @@ class RAGService:
         # 2. 모드별 컨텍스트
         context = ""
         if mode != "base":
-            context, _, _ = self.retriever.get_context(question, mode)
+            context, _, _, _ = self.retriever.get_context(question, mode)
 
         # 3. 프롬프트 조립 → messages list
         messages = self.prompt_manager.build(
@@ -196,8 +196,8 @@ _SECTION_PROMPTS: dict[str, str] = {
         {data}
 
         [IMPORTANT RULE]
-        - 반드시 report의 수치를 기준으로 판단하라
-        - summaryData의 코멘트는 참고만 하되, 그대로 따르지 마라
+        - 반드시 base의 수치를 기준으로 판단하라
+        - summary의 Comment는 참고만 하되, 그대로 따르지 마라
 
         [INSTRUCTION]
         - 전체 데이터를 종합적으로 분석하라

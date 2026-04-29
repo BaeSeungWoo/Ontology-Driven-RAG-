@@ -35,6 +35,16 @@
     grid-template-columns: 44px minmax(0, 1fr) 436px;
   }
 
+  /* 우측 이력/설정 영역 접힘 상태 */
+  .tw-chat-layout-right-collapsed {
+    grid-template-columns: calc(348px + 12px) minmax(0, 1fr) 44px;
+  }
+
+  /* 좌우 패널이 모두 접힌 상태 */
+  .tw-chat-layout-both-collapsed {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
+  }
+
   /* 좌측 컬럼 */
   .tw-chat-left {
     @apply flex min-h-0;

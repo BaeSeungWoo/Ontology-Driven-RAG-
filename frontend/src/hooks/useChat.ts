@@ -3,7 +3,7 @@ import { askApi } from "@/services/chatApi";
 import { createMessage, createSession, getMessages, updateMessage } from "@/services/chatApi";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PromptRow } from "@/types/prompt";
-import type { MessageItem } from "@/types/chatApi";
+import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 
 type UseChatParams = {
   selectedSessionId: number | null;
@@ -19,6 +19,34 @@ export type SendQuestionParams = {
   prompt: PromptRow;
   forceNewSession?: boolean;
 };
+
+/**
+ * 기능: 최종 답변에 실제 표기된 chunk 인용만 metadata.used_chunks로 추려낸다.
+ * 목적: 이미지/표/인용근거 패널이 답변에 사용된 참조를 우선 표시하게 한다.
+ * In: metadata(ChatMetadata | undefined), answer(string)
+ * Out: used_chunks가 포함된 ChatMetadata | undefined
+ */
+function withUsedChunks(metadata: ChatMetadata | undefined, answer: string): ChatMetadata | undefined {
+  if (!metadata) return undefined;
+  const chunks = Array.isArray(metadata.chunks) ? metadata.chunks : [];
+  if (chunks.length === 0) return metadata;
+
+  const usedIndexes = new Set<number>();
+  const citationPattern = /\[(?:chunk:)?(\d+)\]/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = citationPattern.exec(answer)) !== null) {
+    const index = Number(match[1]);
+    if (Number.isInteger(index)) {
+      usedIndexes.add(index);
+    }
+  }
+
+  return {
+    ...metadata,
+    used_chunks: chunks.filter((chunk) => usedIndexes.has(chunk.index)),
+  };
+}
 
 export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: UseChatParams) => {
   // =========================
@@ -189,14 +217,20 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       });
 
       const finalAnswer = result.answer || streamedAnswer || "(응답 없음)";
+      const metadataWithUsedChunks = withUsedChunks(result.metadata, finalAnswer);
 
       setMessages((prev) =>
         prev.map((item) =>
-          item.message_id === assistantMessageId ? { ...item, content: finalAnswer } : item
+          item.message_id === assistantMessageId
+            ? { ...item, content: finalAnswer, metadata: metadataWithUsedChunks }
+            : item
         )
       );
 
-      await updateMessage(assistantMessageId, { content: finalAnswer });
+      await updateMessage(assistantMessageId, {
+        content: finalAnswer,
+        metadata: metadataWithUsedChunks,
+      });
       onHistoryRefresh?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "질문 요청 중 오류가 발생했습니다.";

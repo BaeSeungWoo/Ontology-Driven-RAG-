@@ -1,15 +1,33 @@
+/* ============================================================
+   위치: 좌측 인용근거(Citation) 패널
+   기능: 헤더/접힘 토글, 선택 참조 본문, metadata 팝오버, 참조 네비게이션, 청크/에셋 프리뷰
+   목적: 답변의 참조 선택 흐름을 시각적으로 분리하고 빠르게 탐색 가능하게 구성
+   ============================================================ */
+
+/* 위치: Citation 루트/헤더 */
 .citationRoot {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
+  gap: 0;
 }
 
 .citationHeader {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
+  margin: -14px -14px 10px;
+  padding: 10px 12px;
+  height: 44px;
+  border-bottom: 1px solid #96b0cc;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgb(224 235 247),
+    rgb(187 206 228)
+  );
 }
 
 .citationHeaderCollapsed {
@@ -17,19 +35,520 @@
 }
 
 .citationToggle {
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--chat-pane-border);
+  width: 30px;
+  height: 30px;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
   border-radius: 8px;
-  background: var(--chat-pane-bg);
+  background: color-mix(in srgb, var(--chat-pane-bg) 82%, #fff 18%);
   color: var(--chat-title-color);
-  font-size: 18px;
-  line-height: 1;
-  font-weight: 700;
   cursor: pointer;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
+    0 1px 2px color-mix(in srgb, var(--chat-shadow) 40%, transparent);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.citationHeader :global(.pane-title) {
+  line-height: 30px;
+}
+
+.citationTitleGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.citationTitleIcon {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.1;
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+}
+
+.citationToggleIcon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.1;
 }
 
 .citationToggle:hover {
-  background: color-mix(in srgb, var(--chat-pane-bg) 85%, #000 15%);
+  border-color: color-mix(in srgb, var(--chat-title-color) 56%, var(--chat-pane-border) 44%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
 }
+
+.citationToggle:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 16%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent);
+}
+
+/* 위치: 본문 표시/숨김 애니메이션 */
+.citationBody {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 2px;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+  transform-origin: top left;
+}
+
+.citationBodyVisible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.citationBodyHidden {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
+
+/* 위치: 선택 참조 상세 영역 + 참조 네비게이션 */
+.referenceArea {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding-bottom: 10px;
+}
+
+.referenceNav {
+  flex-shrink: 0;
+  border-top: 1px solid var(--chat-pane-border);
+  padding-top: 8px;
+}
+
+.referenceNavTitle {
+  margin: 0 0 6px;
+  color: var(--chat-title-color);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.referenceNavList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.referenceNavButton {
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 999px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-title-color);
+  padding: 5px 9px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.referenceNavButton:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
+}
+
+.referenceNavButtonActive {
+  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
+  background: color-mix(in srgb, var(--chat-title-color) 22%, #fff 78%);
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 26%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+}
+
+.referenceHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.referenceHeadingGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.referenceHeader h3 {
+  margin: 0;
+  color: var(--chat-title-color);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.referenceTitleWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, #8aa2bf 12%);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgb(224 235 247),
+    rgb(187 206 228)
+  );
+  color: color-mix(in srgb, var(--chat-title-color) 74%, var(--chat-text-color) 26%);
+}
+
+.referenceTitleIcon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2.1;
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+  flex: 0 0 auto;
+}
+
+.referenceBadges {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.referenceBadges > span {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 90%, var(--chat-title-color) 10%);
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #fff;
+  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  box-shadow: none;
+}
+
+.metadataBadgeWrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.metadataBadge {
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 999px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-muted-text);
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.metadataBadge:hover:not(:disabled),
+.metadataBadge[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
+  color: var(--chat-title-color);
+}
+
+.metadataBadge:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* 위치: metadata 팝오버 */
+.metadataPopover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 5;
+  width: min(320px, 78vw);
+  max-height: 340px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: var(--chat-pane-bg);
+  box-shadow: 0 12px 32px rgb(15 23 42 / 18%);
+  padding: 8px;
+}
+
+/* 위치: 선택 청크 카드(문서명/페이지/원문/JSON) */
+.chunkCard {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 95%, var(--chat-page-bg) 5%);
+  padding: 10px;
+}
+
+.chunkMetaGrid {
+  display: grid;
+  gap: 6px;
+}
+
+.chunkTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--chat-title-color);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chunkPageRange {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0;
+  color: var(--chat-muted-text);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.chunkMetaLabel {
+  flex: 0 0 auto;
+  min-width: 42px;
+  color: var(--chat-muted-text);
+}
+
+.chunkBodyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chunkBodyTitle {
+  margin: 0;
+  color: var(--chat-title-color);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.chunkDocument {
+  margin: 0;
+  max-height: 120px;
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 82%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 98%, #fff 2%);
+  padding: 10px;
+  color: var(--chat-text-color);
+  font-size: 11px;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.chunkPre {
+  max-height: 150px;
+  overflow: auto;
+  margin: 0;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 92%, #000 8%);
+  padding: 8px;
+  color: var(--chat-muted-text);
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* 위치: 선택 청크 스켈레톤 */
+.chunkCardSkeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 95%, var(--chat-page-bg) 5%);
+  padding: 10px;
+}
+
+.skeletonLine,
+.skeletonBlock,
+.skeletonBlockTall {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-page-bg) 70%, var(--chat-pane-bg) 30%);
+}
+
+.skeletonLine::after,
+.skeletonBlock::after,
+.skeletonBlockTall::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 48%), transparent);
+  animation: citationSkeletonShimmer 1.15s ease-in-out infinite;
+}
+
+.skeletonLine {
+  height: 20px;
+}
+
+.skeletonLineShort {
+  width: 56%;
+}
+
+.skeletonBlock {
+  height: 92px;
+}
+
+.skeletonBlockTall {
+  height: 120px;
+}
+
+@keyframes citationSkeletonShimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 위치: 청크 에셋(이미지/표) + 확대 모달 */
+.chunkAsset {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.chunkAssetTitle {
+  margin: 0;
+  color: var(--chat-title-color);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.chunkAssetImageButton {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.chunkAssetImage {
+  display: block;
+  width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: #fff;
+}
+
+.imagePreviewOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(15 23 42 / 62%);
+  padding: 24px;
+}
+
+.imagePreviewDialog {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: min(920px, 94vw);
+  max-height: 92vh;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: var(--chat-pane-bg);
+  padding: 12px;
+}
+
+.imagePreviewHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--chat-title-color);
+  font-size: 13px;
+}
+
+.imagePreviewHeader button {
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 6px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-title-color);
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.imagePreviewDialog img {
+  display: block;
+  max-width: 100%;
+  max-height: calc(92vh - 62px);
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.chunkAssetMarkdown {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: #fff;
+  padding: 8px;
+  color: #111827;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.chunkAssetMarkdown :where(p, ul, ol, blockquote, pre, table) {
+  margin: 0 0 8px;
+}
+
+.chunkAssetMarkdown table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.chunkAssetMarkdown th,
+.chunkAssetMarkdown td {
+  border: 1px solid #cbd5e1;
+  padding: 4px 6px;
+  font-size: 10px;
+  vertical-align: top;
+}
+
+.metadataPre {
+  max-height: 310px;
+  overflow: auto;
+  margin: 0;
+  border: 0;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 92%, #000 8%);
+  padding: 8px;
+  color: var(--chat-text-color);
+  font-size: 10px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+

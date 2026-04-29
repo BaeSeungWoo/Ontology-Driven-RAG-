@@ -1,10 +1,11 @@
-﻿/* ============================================================
-   Question 입력 영역 (Tailwind와 혼용)
-   - 레이아웃/간격/외곽 컨테이너는 question.tsx의 Tailwind 클래스에서 처리
-   - 입력 필드/전송 버튼의 상태 스타일은 CSS Module로 유지
+/* ============================================================
+   위치: Chat 하단 질문 입력 영역
+   기능: 입력 필드/전송 버튼 상태 스타일
+   목적: 질문 전송 UX를 일관된 시각 상태(기본/hover/disabled)로 유지
+   비고: 레이아웃/외곽 컨테이너는 question.tsx의 Tailwind 클래스 사용
    ============================================================ */
 
-/* 질문 입력 필드 */
+/* 위치: 질문 입력 필드 */
 .questionInput {
   flex: 1;
   border: 0;
@@ -15,12 +16,12 @@
   line-height: 1.4;
 }
 
-/* 질문 입력 placeholder */
+/* 위치: 질문 입력 placeholder */
 .questionInput::placeholder {
   color: var(--chat-muted-text);
 }
 
-/* 전송 버튼 기본 상태 */
+/* 위치: 전송 버튼 기본 상태 */
 .submitButton {
   width: 34px;
   height: 34px;
@@ -32,14 +33,25 @@
   line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 전송 버튼 hover 상태(활성화 시) */
+/* 위치: 전송 버튼 아이콘 */
+.submitButtonIcon {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2.5;
+  flex: 0 0 auto;
+}
+
+/* 위치: 전송 버튼 hover 상태(활성화 시) */
 .submitButton:hover:not(:disabled) {
   background: color-mix(in srgb, var(--chat-title-color) 88%, #111 12%);
 }
 
-/* 전송 버튼 비활성화 상태 */
+/* 위치: 전송 버튼 비활성화 상태 */
 .submitButton:disabled {
   background: #b8bec7;
   color: #eef1f5;
@@ -47,7 +59,7 @@
   cursor: not-allowed;
 }
 
-/* 접근성 전용 텍스트(필요 시 재사용) */
+/* 위치: 접근성 보조 텍스트(필요 시 재사용) */
 .srOnly {
   position: absolute;
   width: 1px;

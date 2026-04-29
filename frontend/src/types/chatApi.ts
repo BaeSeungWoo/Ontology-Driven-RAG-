@@ -10,9 +10,25 @@ export type AskRequest = {
   onChunk?: (chunk: string) => void;
 };
 
+export type ChatChunk = {
+  index: number;
+  retrieval_rank?: number;
+  document: string;
+  metadata: Record<string, unknown>;
+  distance: number | null;
+  similarity?: number | null;
+};
+
+export type ChatMetadata = Record<string, unknown> & {
+  images?: string[];
+  tables?: string[];
+  chunks?: ChatChunk[];
+  used_chunks?: ChatChunk[];
+};
+
 export type AskResponse = {
   answer: string;
-  metadataRaw?: string;
+  metadata?: ChatMetadata;
 };
 
 export type CreateSessionPayload = {
@@ -41,6 +57,7 @@ export type CreateMessageResponse = {
 
 export type UpdateMessagePayload = {
   content: string;
+  metadata?: ChatMetadata;
 };
 
 export type UpdateMessageResponse = {
@@ -57,4 +74,5 @@ export type MessageItem = {
   model?: string | null;
   llm_mode?: string | null;
   prompt_name?: string | null;
+  metadata?: ChatMetadata;
 };

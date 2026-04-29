@@ -1,3 +1,10 @@
+/* ============================================================
+   위치: Chat 상단 툴바 > ThemeSwitcher
+   기능: 테마 전환 컨트롤(라벨/버튼 그룹/활성 버튼) 스타일
+   목적: 현재 테마를 명확히 표시하고 클릭 가능한 전환 버튼을 제공
+   ============================================================ */
+
+/* 위치: ThemeSwitcher 컨테이너 */
 .themeSwitcher {
   display: inline-flex;
   align-items: center;
@@ -9,18 +16,21 @@
   box-shadow: 0 1px 2px var(--chat-shadow);
 }
 
+/* 위치: "테마" 라벨 텍스트 */
 .label {
   font-size: 12px;
   font-weight: 700;
   color: var(--chat-title-color);
 }
 
+/* 위치: 테마 버튼 그룹 래퍼 */
 .buttons {
   display: inline-flex;
   gap: 6px;
   flex-wrap: wrap;
 }
 
+/* 위치: 테마 버튼 공통 */
 .button {
   border: 1px solid var(--chat-pane-border);
   background: transparent;
@@ -32,6 +42,7 @@
   cursor: pointer;
 }
 
+/* 위치: 선택된 테마 버튼 */
 .buttonActive {
   border-color: var(--chat-title-color);
   color: var(--chat-title-color);

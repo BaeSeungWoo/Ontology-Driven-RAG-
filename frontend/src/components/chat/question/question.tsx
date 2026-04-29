@@ -1,8 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
+import { ArrowUp } from "lucide-react";
+
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PromptRow } from "@/types/prompt";
+
 import styles from "./question.module.css";
 
 export type QuestionPayload = {
@@ -28,9 +31,8 @@ export default function Question({
   selectedPrompt,
   onSend,
 }: QuestionProps) {
-  // =========================
-  // state
-  // =========================
+  // 내부 state
+  // 기능/목적: 사용자가 작성 중인 질문 입력값과 전송 가능 여부를 관리한다.
   const [question, setQuestion] = useState("");
 
   const hasQuestion = question.trim().length > 0;
@@ -38,22 +40,13 @@ export default function Question({
   const hasPrompt = selectedPrompt !== null;
   const canSend = hasQuestion && hasQuestioner && hasPrompt;
 
-  // =========================
   // 함수
-  // =========================
-  /**
-   * 기능: 현재 입력값을 질문 payload로 구성해 상위로 전달한다.
-   * 목적: 질문 전송에 필요한 필수값을 검증하고, 정상 전송 후 입력창을 초기화한다.
-   * In: question, questioner, selectedLlmModel, selectedLlmMode, selectedPrompt
-   * Out: onSend(payload) 호출, question 초기화
-   */
+  // 기능/목적: 필수값이 모두 있을 때 질문 payload를 만들고 상위 전송 로직을 호출한다.
+  // Out: onSend 호출, 질문 입력값 초기화
   const handleSend = () => {
     const normalizedQuestion = question.trim();
     if (!normalizedQuestion) return;
-
-    if (!normalizedQuestion || !selectedPrompt) {
-      return;
-    }
+    if (!selectedPrompt) return;
 
     onSend({
       question: normalizedQuestion,
@@ -66,42 +59,30 @@ export default function Question({
     setQuestion("");
   };
 
-  /**
-   * 기능: 폼 submit 이벤트를 처리한다.
-   * 목적: 브라우저 기본 submit 동작을 막고 내부 전송 로직(handleSend)만 실행한다.
-   * In: submit event
-   * Out: preventDefault + handleSend()
-   */
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     handleSend();
   };
 
-  // =========================
-  // useEffect
-  // =========================
-
-  // =========================
-  // render(return)
-  // =========================
+  // render
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[22px] shadow-[0_1px_2px_var(--chat-shadow)]">
+      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[22px] shadow-[0_1px_0_rgb(255_255_255_/_72%),0_6px_14px_rgb(37_68_104_/_24%)]">
         <input
           id="question-input"
           type="text"
           className={styles.questionInput}
-          placeholder={"무엇이든 물어보세요."}
+          placeholder="무엇이든 물어보세요."
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
         />
         <button
           type="submit"
           className={styles.submitButton}
-          aria-label={"질문 전송"}
+          aria-label="질문 전송"
           disabled={!canSend}
         >
-          {"↵"}
+          <ArrowUp className={styles.submitButtonIcon} aria-hidden="true" />
         </button>
       </div>
     </form>

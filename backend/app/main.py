@@ -2,10 +2,12 @@
 
 import json
 import uvicorn
+from pathlib import Path
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import dotenv
@@ -23,6 +25,10 @@ from .database import database
 from .database.thread_pool_manager import initialize_thread_pools, get_db_thread_pool, get_api_thread_pool
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
+
+ASSET_ROOT = Path(__file__).resolve().parents[2] / "pipeline" / "data"
+if ASSET_ROOT.exists():
+    app.mount("/assets", StaticFiles(directory=ASSET_ROOT), name="assets")
 
 # Frontend(Next.js)에서 오는 브라우저 요청 허용
 app.add_middleware(
@@ -57,14 +63,16 @@ class ChatRequest(BaseModel):
 async def chat_endpoint(factory_id: str, request: ChatRequest):
     service = get_service(factory_id)
 
-    messages, imgs, tables, chunk_map = await service.prepare_context(
+    messages, imgs, tables, chunks = await service.prepare_context(
         request.question, request.mode, request.prompt_id
     )
 
     print(f"[DEBUG] messages: {messages}")  # 추가
 
     async def event_generator():
-        yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables,'sources': chunk_map})}\n\n"
+        # 기능: 토큰 스트리밍 전에 metadata를 먼저 전달한다.
+        # 목적: 프론트가 답변 저장 시 chunk/이미지/표 정보를 함께 보존하고 인용근거 패널에 활용하게 한다.
+        yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables, 'chunks': chunks})}\n\n"
         async for token in service.llm.astream(messages):
             yield token
 
