@@ -161,7 +161,7 @@ def analyze_picture_policy(
         small_picture_max_height (int): 소형 이미지로 간주할 최대 세로 픽셀 값.
 
     Returns:
-        dict[str, dict[str, Any]]: 이미지 참조(self_ref)를 키로 하는 정책 정보 딕셔너리.
+        dict[str, Any] : 정책 정보 딕셔너리.
             포함 값: {should_export, is_small, width, height}
     """
     picture_policy: dict[str, Any] = {}

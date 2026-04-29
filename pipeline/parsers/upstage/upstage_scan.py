@@ -127,7 +127,6 @@ def process_one_pdf(pdf_path: Path, async_result_root_dir: Path, batch_json_root
 
     Args:
         pdf_path (Path): 처리할 PDF 파일 경로
-        input_root_dir (Path): 처리할 PDF 들이 모여있는 기준 루트 폴더
         async_result_root_dir (Path): 추출이 완료된 결과를 다운로드 받기 위한 download_url 가진 json 경로
         batch_json_root_dir (Path): download_url을 통해 다운받은 결과 저장 경로
         api_key (str): Upstage API 키

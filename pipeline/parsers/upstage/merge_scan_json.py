@@ -79,7 +79,6 @@ def merge_one_pdf_json(
 
     Args:
         pdf_name_dir (Path): 각 파트별 JSON 파일 저장 경로
-        split_pdf_root_dir: 원본 PDF 명으로 만들어진 폴더 이름 경로
         output_file: 병합 결과 저장 경로
     """
     combined_elements: list[dict[str, Any]] = []
@@ -97,12 +96,6 @@ def merge_one_pdf_json(
         return
 
     for part_dir in part_dirs:
-        # part_number = extract_part_number(part_dir)
-        # part_pdf_path = split_pdf_root_dir / pdf_name_dir.name / f"part_{part_number}.pdf"
-
-        # if not part_pdf_path.exists():
-        #     raise FileNotFoundError(f"분할 PDF 파일이 없습니다: {part_pdf_path}")
-
         json_files = sorted(part_dir.glob("*.json"), key=extract_page_number)
 
         for json_file in json_files:
@@ -159,29 +152,23 @@ def merge_one_pdf_json(
 
 def merge_all_pdf_jsons(
     batch_json_root_dir: Path,
-    # split_pdf_root_dir: Path,
     merged_output_dir: Path,
 ) -> dict[str, Any]:
     """분할된 PDF에서 추출된 JSON 파일들이 모여있는 폴더들을 순회하면서 
 
-    `merge_one_pdf_json`을 실행하여 병합 결과를 저장함
+    `merge_one_pdf_json`을 실행하여 병합 결과를 저장 및 결과를 출력
 
-    batch_json_root_dir (Path): 병합할 JSON을 찾는 기준 경로
-    split_pdf_root_dir (Path): 각 파트 별 PDF가 몇 페이지 인지 찾는 기준 루트
-    merged_output_dir (Path): 최종 병합 결과 저장 경로
+    Args:
+        batch_json_root_dir (Path): 병합할 JSON을 찾는 기준 경로
+        merged_output_dir (Path): 최종 병합 결과 저장 경로
+
+    Returns:
+        dict[str, Any] : 병합 결과물
     """
-    # pdf_name_dirs = sorted([path for path in batch_json_root_dir.iterdir() if path.is_dir()])
-
-    # if not pdf_name_dirs:
-    #     print(f"병합할 PDF 폴더가 없습니다: {batch_json_root_dir}")
-    #     return
-
-    # for pdf_name_dir in pdf_name_dirs:
     output_file = merged_output_dir / f"{batch_json_root_dir.name}.json"
 
     upstage_data = merge_one_pdf_json(
         pdf_name_dir=batch_json_root_dir,
-        # split_pdf_root_dir=split_pdf_root_dir,
         output_file=output_file,
     )
     return upstage_data
