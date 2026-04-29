@@ -1,15 +1,40 @@
-﻿/* ============================================================
-   위치: PromptSetting 본문(헤더/입력)
-   기능: 필수 안내, 질문자 입력 상태(기본/에러), 선택 정보 표시
+
+
+
+/* ============================================================
+   위치: 우측 하단 프롬프트 설정(PromptSetting) 패널 + 모달
+   기능: 패널 헤더/필수 경고, 질문자 입력, 프롬프트 목록 모달, LLM 옵션, 표 목록
+   목적: 질문 전송에 필요한 입력/프롬프트/모델 설정을 한곳에서 관리
    ============================================================ */
 
-/* 위치: 헤더 우측 안내 영역
-   기능: 배지 + 힌트 정렬, 표시/숨김 상태 제어 */
+/* 위치: 패널 헤더/필수 경고 */
+.promptHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: -14px -14px 2px;
+  padding: 10px 12px;
+  height: 44px;
+  border-bottom: 1px solid #96b0cc;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(
+    180deg,
+    rgb(224 235 247),
+    rgb(187 206 228)
+  );
+}
+
+.promptTitle {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .headerRightGroup {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
+  flex: 1;
   min-width: 0;
 }
 
@@ -18,27 +43,54 @@
   pointer-events: none;
 }
 
-.headerInlineHint {
-  font-size: 12px;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--chat-text-color) 68%, var(--chat-muted-text) 32%);
-  white-space: nowrap;
+.requiredNotice {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  border: 1px solid rgb(255 186 143 / 78%);
+  border-radius: 10px;
+  padding: 4px 8px;
+  background: rgb(255 239 229 / 92%);
 }
 
-/* 위치: 헤더 우측 필수 배지
-   기능: 필수 상태 강조 */
+
 .requiredBadge {
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 40%, var(--chat-pane-border) 60%);
-  background: color-mix(in srgb, var(--chat-pane-bg) 70%, var(--chat-page-bg) 30%);
-  color: var(--chat-title-color);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgb(255 172 121 / 92%);
+  background: rgb(255 247 241 / 98%);
+  color: #ea580c;
   border-radius: 999px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1;
+  flex: 0 0 auto;
 }
 
-/* 위치: 질문자 입력 필드
-   기능: 기본/포커스/미입력(강조) 상태 표시 */
+.requiredNoticeIcon {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.2;
+  color: #ea580c;
+  flex: 0 0 auto;
+}
+
+.requiredMessage {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ea580c;
+}
+
+
+/* 위치: 질문자 입력 */
 .questionerInput {
   width: 100%;
   min-width: 0;
@@ -55,12 +107,13 @@
 }
 
 .questionerInputMissing {
-  border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
+  border-color: rgb(255 177 128 / 95%);
+  background: rgb(255 250 247 / 96%);
+  box-shadow: inset 0 0 0 1px rgb(255 214 191 / 78%);
 }
 
-/* 위치: 현재 선택 정보 박스(모델/모드/프롬프트)
-   기능: 선택된 설정 정보 요약 표시 */
+
+/* 위치: 현재 선택 요약 */
 .currentSelection {
   border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, var(--chat-title-color) 16%);
   border-radius: 8px;
@@ -88,11 +141,9 @@
   color: color-mix(in srgb, var(--chat-title-color) 85%, var(--chat-text-color) 15%);
 }
 
-/* ============================================================
-   위치: PromptListModal 공통 컨테이너
-   기능: 백드롭, 모달 카드, 헤더/액션 버튼 기본 레이아웃
-   ============================================================ */
 
+
+/* 위치: 프롬프트 목록 모달 */
 .modalBackdrop {
   position: fixed;
   inset: 0;
@@ -138,8 +189,7 @@
   gap: 8px;
 }
 
-/* 위치: 모달 상단 공통 버튼(적용/닫기)
-   기능: 버튼 기본/hover/disabled 상태 제어 */
+
 .actionButton,
 .closeButton {
   border: 0;
@@ -167,11 +217,9 @@
   min-width: 76px;
 }
 
-/* ============================================================
-   위치: PromptListModal LLM 가이드 영역
-   기능: LLM 모델/모드 안내 텍스트 + 라디오 그룹 스타일
-   ============================================================ */
 
+
+/* 위치: LLM 선택 가이드 박스 */
 .llmGuideBox {
   border: 1px solid color-mix(in srgb, var(--chat-title-color) 25%, var(--chat-pane-border) 75%);
   background: var(--chat-pane-bg);
@@ -225,11 +273,9 @@
   margin-bottom: 0;
 }
 
-/* ============================================================
-   위치: PromptListModal 프롬프트 테이블
-   기능: 컬럼 폭, 행 강조, 빈 데이터 상태 스타일
-   ============================================================ */
 
+
+/* 위치: 프롬프트 목록 테이블 */
 .tableWrap {
   border: 1px solid var(--chat-pane-border);
   border-radius: 8px;
@@ -268,8 +314,7 @@
   font-weight: 700;
 }
 
-/* 위치: 테이블 1열(프롬프트 명)
-   기능: 열 폭 고정 + 말줄임 */
+
 .promptTable th:nth-child(1),
 .promptTable td:nth-child(1) {
   width: 20%;
@@ -278,8 +323,7 @@
   text-overflow: ellipsis;
 }
 
-/* 위치: 테이블 2열(프롬프트 내용)
-   기능: 열 폭 고정 + 말줄임 */
+
 .promptTable th:nth-child(2),
 .promptTable td:nth-child(2) {
   width: 63%;
@@ -288,8 +332,7 @@
   text-overflow: ellipsis;
 }
 
-/* 위치: 테이블 3열(작성자)
-   기능: 중앙 정렬 */
+
 .promptTable th:nth-child(3),
 .promptTable td:nth-child(3) {
   width: 17%;
@@ -301,25 +344,21 @@
   cursor: pointer;
 }
 
-/* 위치: 선택된 행
-   기능: 선택 프롬프트 강조 */
+
 .activePromptRow td {
   background: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
 }
 
-/* 위치: 빈 목록 셀
-   기능: 데이터 없음 메시지 표시 */
+
 .emptyCell {
   text-align: center;
   color: var(--chat-muted-text);
   padding: 16px 12px;
 }
 
-/* ============================================================
-   위치: 반응형(태블릿 이하)
-   기능: 모달/버튼/가이드/테이블 타이포 및 간격 축소
-   ============================================================ */
 
+
+/* 위치: 반응형(태블릿 이하) 모달 보정 */
 @media (max-width: 1024px) {
   .modalBackdrop {
     padding: 12px;
@@ -370,3 +409,5 @@
     padding: 8px 10px;
   }
 }
+
+

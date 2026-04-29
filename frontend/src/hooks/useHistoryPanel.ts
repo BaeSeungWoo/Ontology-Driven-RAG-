@@ -1,6 +1,7 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { HistoryItem } from "@/components/chat/history/historyCard";
 import {
+  getHistory,
   getHistoryPagination,
   getHistoryQuestioner,
   getHistoryQuestionerCounts,
@@ -9,7 +10,7 @@ import type { HistoryResponse } from "@/types/historyApi";
 import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
 
 /**
- * 기능: 질문자 필터 칩 렌더링 옵션 타입
+ * 기능: 질문자 필터 select 옵션 타입
  * 목적: 질문자 key/label/count를 한 구조로 관리
  * In: 질문자 집계 API 결과
  * Out: QuestionerOption 타입 정보
@@ -86,7 +87,7 @@ type UseHistoryPanelParams = {
  * 기능: 질문 이력 패널의 데이터 동기화/필터/페이지네이션 상태를 통합 관리
  * 목적: history.tsx는 렌더 중심으로 단순화하고, API/상태 로직은 훅으로 분리
  * In: selectedSessionId, refreshKey
- * Out: 카드 목록, 질문자 필터, 페이지네이션, 스크롤 제어 핸들러
+ * Out: 카드 목록, 질문자 필터, 페이지네이션 핸들러
  */
 export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPanelParams) {
   // =========================
@@ -94,6 +95,10 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   // =========================
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [selectedQuestioner, setSelectedQuestioner] = useState<string>(ALL_QUESTIONER_FILTER);
+  // 질문자 검색 입력값(draft): 타이핑 중 즉시 변경되지만 조회에는 바로 반영하지 않는다.
+  const [questionerSearchKeyword, setQuestionerSearchKeyword] = useState<string>("");
+  // 질문자 검색 적용값(applied): Enter/검색 버튼 시점에만 갱신되어 실제 조회 조건으로 사용된다.
+  const [appliedQuestionerSearchKeyword, setAppliedQuestionerSearchKeyword] = useState<string>("");
   const [questionerOptions, setQuestionerOptions] = useState<QuestionerOption[]>([
     { key: ALL_QUESTIONER_FILTER, label: "전체", count: 0 },
   ]);
@@ -102,53 +107,10 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   const [totalPages, setTotalPages] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
 
-  const [canScrollQuestionerLeft, setCanScrollQuestionerLeft] = useState(false);
-  const [canScrollQuestionerRight, setCanScrollQuestionerRight] = useState(false);
-  const questionerFilterScrollRef = useRef<HTMLDivElement | null>(null);
-
   // =========================
   // 함수
   // =========================
-  const hasSelectedQuestionerOption = questionerOptions.some(
-    (option) => option.key === selectedQuestioner
-  );
-
-  const effectiveSelectedQuestioner = hasSelectedQuestionerOption
-    ? selectedQuestioner
-    : ALL_QUESTIONER_FILTER;
-
-  /**
-   * 기능: 질문자 칩 스크롤 화살표 활성 상태를 계산한다.
-   * 목적: 이동 불가 방향의 화살표를 비활성화해 UX를 명확히 한다.
-   * In: 칩 컨테이너의 scrollLeft/scrollWidth/clientWidth
-   * Out: canScrollQuestionerLeft/canScrollQuestionerRight 갱신
-   */
-  function updateQuestionerScrollButtonState() {
-    const container = questionerFilterScrollRef.current;
-    if (!container) return;
-
-    const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    const currentScrollLeft = container.scrollLeft;
-
-    setCanScrollQuestionerLeft(currentScrollLeft > 0);
-    setCanScrollQuestionerRight(currentScrollLeft < maxScrollLeft - 1);
-  }
-
-  /**
-   * 기능: 질문자 칩 영역을 좌/우로 스크롤한다.
-   * 목적: 칩이 많은 경우 버튼으로 필터를 탐색할 수 있게 한다.
-   * In: direction("left" | "right")
-   * Out: questionerFilterScrollRef의 scrollLeft 변경
-   */
-  const handleQuestionerFilterScroll = (direction: "left" | "right") => {
-    const container = questionerFilterScrollRef.current;
-    if (!container) return;
-
-    container.scrollBy({
-      left: direction === "left" ? -180 : 180,
-      behavior: "smooth",
-    });
-  };
+  const effectiveSelectedQuestioner = selectedQuestioner;
 
   /**
    * 기능: 질문자 필터를 변경한다.
@@ -157,8 +119,46 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
    * Out: selectedQuestioner/currentPage 상태 갱신
    */
   const handleSelectQuestioner = (questionerKey: string) => {
-    if (selectedQuestioner === questionerKey) return;
+    if (selectedQuestioner === questionerKey) {
+      if (questionerKey === ALL_QUESTIONER_FILTER) {
+        setQuestionerSearchKeyword("");
+        setAppliedQuestionerSearchKeyword("");
+      }
+      return;
+    }
+
     setSelectedQuestioner(questionerKey);
+    if (questionerKey === ALL_QUESTIONER_FILTER) {
+      setQuestionerSearchKeyword("");
+      setAppliedQuestionerSearchKeyword("");
+    }
+    setCurrentPage(1);
+  };
+
+  const handleChangeQuestionerSearchKeyword = (keyword: string) => {
+    setQuestionerSearchKeyword(keyword);
+  };
+
+  /**
+   * 기능: 검색 입력값과 적용값을 함께 초기화한다.
+   * 목적: 검색 조건을 완전히 해제하고 기본 목록으로 복귀한다.
+   * Out: questionerSearchKeyword/appliedQuestionerSearchKeyword/currentPage 초기화
+   */
+  const clearQuestionerSearchKeyword = () => {
+    setQuestionerSearchKeyword("");
+    setAppliedQuestionerSearchKeyword("");
+    setCurrentPage(1);
+  };
+
+  /**
+   * 기능: 입력된 질문자 검색어를 실제 조회 조건에 반영한다.
+   * 목적: 타이핑 중 과도한 호출 없이 Enter(또는 명시적 실행) 시점에만 검색을 적용한다.
+   * Out: appliedQuestionerSearchKeyword/currentPage 갱신
+   */
+  const applyQuestionerSearchKeyword = () => {
+    const normalizedKeyword = questionerSearchKeyword.trim();
+    if (appliedQuestionerSearchKeyword === normalizedKeyword) return;
+    setAppliedQuestionerSearchKeyword(normalizedKeyword);
     setCurrentPage(1);
   };
 
@@ -166,11 +166,29 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   const isHistoryEmpty = historyItems.length === 0;
 
   const visibleQuestionerOptions = useMemo(() => {
-    if (questionerOptions.length === 0) {
-      return [{ key: ALL_QUESTIONER_FILTER, label: "전체", count: totalCount }];
-    }
-    return questionerOptions;
-  }, [questionerOptions, totalCount]);
+    const baseOptions =
+      questionerOptions.length === 0
+        ? [{ key: ALL_QUESTIONER_FILTER, label: "전체", count: totalCount }]
+        : questionerOptions;
+
+    const keyword = questionerSearchKeyword.trim().toLowerCase();
+    if (!keyword) return baseOptions;
+
+    const allOption = baseOptions.find((option) => option.key === ALL_QUESTIONER_FILTER);
+    const selectedOption = baseOptions.find((option) => option.key === selectedQuestioner);
+    const filtered = baseOptions.filter((option) => {
+      if (option.key === ALL_QUESTIONER_FILTER) return false;
+      return option.label.toLowerCase().includes(keyword);
+    });
+    const withSelected =
+      selectedOption &&
+      selectedOption.key !== ALL_QUESTIONER_FILTER &&
+      !filtered.some((option) => option.key === selectedOption.key)
+        ? [selectedOption, ...filtered]
+        : filtered;
+
+    return allOption ? [allOption, ...withSelected] : withSelected;
+  }, [questionerOptions, questionerSearchKeyword, selectedQuestioner, totalCount]);
 
   /**
    * 기능: 이전 페이지로 이동한다.
@@ -197,6 +215,22 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   const goPage = (page: number) => setCurrentPage(page);
 
   /**
+   * 기능: 첫 페이지로 이동한다.
+   * 목적: 페이지 수가 많을 때 시작 지점으로 한 번에 돌아가게 한다.
+   * In: 첫 페이지 버튼 클릭
+   * Out: currentPage=1
+   */
+  const goFirstPage = () => setCurrentPage(1);
+
+  /**
+   * 기능: 마지막 페이지로 이동한다.
+   * 목적: 페이지 수가 많을 때 마지막 지점으로 한 번에 이동하게 한다.
+   * In: 마지막 페이지 버튼 클릭
+   * Out: currentPage=totalPages
+   */
+  const goLastPage = () => setCurrentPage(totalPages);
+
+  /**
    * 기능: 질문자 필터를 전체로 초기화한다.
    * 목적: 새 질문 시작 시 필터 컨텍스트를 기본값으로 복원한다.
    * In: 새 질문/초기화 이벤트
@@ -204,7 +238,7 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
    */
   const resetQuestionerFilter = () => {
     setSelectedQuestioner(ALL_QUESTIONER_FILTER);
-    setCurrentPage(1);
+    clearQuestionerSearchKeyword();
   };
 
   // =========================
@@ -212,7 +246,7 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   // =========================
   /**
    * 기능: 질문자별 이력 건수를 조회한다.
-   * 목적: 상단 필터 칩(질문자 + count)을 최신 상태로 유지한다.
+   * 목적: 상단 질문자 select 옵션(질문자 + count)을 최신 상태로 유지한다.
    * In: refreshKey 변경
    * Out: questionerOptions 갱신
    */
@@ -252,6 +286,39 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
 
     const fetchHistoryPage = async () => {
       try {
+        const keyword = appliedQuestionerSearchKeyword.trim().toLowerCase();
+
+        // 검색어가 적용된 경우: 전체 이력을 받아 질문자 + 검색어 기준으로 클라이언트 필터링한다.
+        if (keyword.length > 0) {
+          const allRows = await getHistory();
+          if (!isMounted) return;
+
+          const filteredRows = (allRows ?? []).filter((row) => {
+            const rowQuestioner = (row.questioner ?? "-").trim() || "-";
+            const bySelect =
+              effectiveSelectedQuestioner === ALL_QUESTIONER_FILTER
+                ? true
+                : rowQuestioner === effectiveSelectedQuestioner;
+            const byKeyword = rowQuestioner.toLowerCase().includes(keyword);
+            return bySelect && byKeyword;
+          });
+
+          const nextTotalCount = filteredRows.length;
+          const nextTotalPages = Math.max(1, Math.ceil(nextTotalCount / HISTORY_PAGE_SIZE));
+          const safePage = Math.min(currentPage, nextTotalPages);
+          const start = (safePage - 1) * HISTORY_PAGE_SIZE;
+          const pageRows = filteredRows.slice(start, start + HISTORY_PAGE_SIZE);
+
+          setHistoryItems(pageRows.map((row) => toHistoryItem(row, selectedSessionId)));
+          setTotalCount(nextTotalCount);
+          setTotalPages(nextTotalPages);
+
+          if (safePage !== currentPage) {
+            setCurrentPage(safePage);
+          }
+          return;
+        }
+
         const response =
           effectiveSelectedQuestioner === ALL_QUESTIONER_FILTER
             ? await getHistoryPagination({ page: currentPage, page_size: HISTORY_PAGE_SIZE })
@@ -275,7 +342,7 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
           setCurrentPage(nextTotalPages);
         }
       } catch (error) {
-        console.error("getHistoryPagination/getHistoryQuestioner failed:", error);
+        console.error("history fetch failed:", error);
         if (isMounted) {
           setHistoryItems([]);
           setTotalCount(0);
@@ -289,40 +356,34 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
     return () => {
       isMounted = false;
     };
-  }, [effectiveSelectedQuestioner, currentPage, selectedSessionId, refreshKey]);
-
-  /**
-   * 기능: 질문자 칩 렌더 직후 스크롤 버튼 상태를 동기화한다.
-   * 목적: DOM 크기 확정 이후 좌/우 화살표 활성화를 정확히 맞춘다.
-   * In: questionerOptions 변경
-   * Out: updateQuestionerScrollButtonState 실행
-   */
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      updateQuestionerScrollButtonState();
-    }, 0);
-    return () => window.clearTimeout(timer);
-  }, [questionerOptions]);
+  }, [
+    effectiveSelectedQuestioner,
+    currentPage,
+    appliedQuestionerSearchKeyword,
+    selectedSessionId,
+    refreshKey,
+  ]);
 
   // =========================
   // Render(return)
   // =========================
   return {
-    canScrollQuestionerLeft,
-    canScrollQuestionerRight,
     currentPage: safeCurrentPage,
     effectiveSelectedQuestioner,
     historyItems,
     isHistoryEmpty,
-    questionerFilterScrollRef,
     totalPages,
-    updateQuestionerScrollButtonState,
     visibleQuestionerOptions,
-    handleQuestionerFilterScroll,
     handleSelectQuestioner,
+    questionerSearchKeyword,
+    handleChangeQuestionerSearchKeyword,
+    applyQuestionerSearchKeyword,
+    clearQuestionerSearchKeyword,
     resetQuestionerFilter,
+    goFirstPage,
     goPrevPage,
     goNextPage,
+    goLastPage,
     goPage,
   };
 }

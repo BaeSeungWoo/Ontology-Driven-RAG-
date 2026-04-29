@@ -46,10 +46,19 @@ body {
     grid-template-columns: calc(348px + 12px) minmax(0, 1fr) 436px;
     @apply flex-1 min-h-0 gap-3 p-4 box-border bg-[var(--chat-page-bg)] text-[var(--chat-text-color)];
     @apply max-[1024px]:h-auto max-[1024px]:[grid-template-columns:1fr] max-[1024px]:[grid-template-rows:auto_auto_auto];
+    transition: grid-template-columns 180ms ease;
   }
 
   .tw-chat-layout-collapsed {
     grid-template-columns: 44px minmax(0, 1fr) 436px;
+  }
+
+  .tw-chat-layout-right-collapsed {
+    grid-template-columns: calc(348px + 12px) minmax(0, 1fr) 44px;
+  }
+
+  .tw-chat-layout-both-collapsed {
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
   }
 
   .tw-chat-left {

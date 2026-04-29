@@ -2,12 +2,34 @@
    위치: Answer 패널 루트
    기능: 답변 패널 기본 레이아웃/스크롤/메시지 목록 간격
    ============================================================ */
+/* ============================================================
+   위치: 중앙 답변(Answer) 패널
+   기능: 답변 리스트, 사용자/어시스턴트 버블, Markdown 렌더링, 참조 링크, 로딩/활성 상태
+   목적: 답변 읽기 흐름과 참조 상호작용(선택/강조)을 명확하게 제공
+   ============================================================ */
+
+/* ============================================================
+   위치: Answer 패널 루트
+   기능: 답변 패널 기본 레이아웃/스크롤/메시지 목록 간격
+   ============================================================ */
 .answerRoot {
   display: flex;
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  gap: 10px;
+  gap: 0;
+}
+
+.answerHeader {
+  margin: -14px -14px 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--chat-title-color) 28%, var(--chat-pane-border) 72%);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--chat-title-color) 28%, #dff6fb 72%),
+    color-mix(in srgb, var(--chat-title-color) 22%, #eaf9fd 78%)
+  );
 }
 
 .answerScroll {
@@ -84,6 +106,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   height: 20px;
   padding: 0 8px;
   border-radius: 999px;
@@ -94,6 +117,13 @@
   font-weight: 700;
   line-height: 1;
   pointer-events: none;
+}
+
+.messageSelectBadgeIcon {
+  width: 12px;
+  height: 12px;
+  stroke-width: 2.15;
+  flex: 0 0 auto;
 }
 
 .messageSelectBadgeActive {
@@ -239,6 +269,38 @@
   color: var(--chat-title-color);
 }
 
+.messageRoleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--chat-title-color);
+}
+
+.messageRoleIcon {
+  width: 14px;
+  height: 14px;
+  stroke-width: 2;
+  color: currentColor;
+  flex: 0 0 auto;
+}
+
+.assistantRoleRow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--chat-title-color);
+}
+
+.assistantThinkingSpinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--chat-title-color) 18%, transparent);
+  border-top-color: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-text-color) 18%);
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 8%, transparent);
+  animation: assistantThinkingSpin 0.8s linear infinite;
+}
+
 .messageText {
   margin-top: 6px;
 }
@@ -252,12 +314,14 @@
 }
 
 .userMessage .messageText p,
-.userMessage .messageRole {
+.userMessage .messageRole,
+.userMessage .messageRoleRow {
   color: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-title-color) 6%);
 }
 
 .assistantMessage .messageText p,
 .assistantMessage .messageRole,
+.assistantMessage .assistantRoleRow,
 .assistantMessage .markdownContent :where(p, li, blockquote, h1, h2, h3, h4, h5, h6) {
   color: var(--chat-text-color);
 }
@@ -329,13 +393,45 @@
   text-align: left;
 }
 
+.citationLink {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 2px;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  border-radius: 999px;
+  padding: 1px 7px;
+  color: var(--chat-title-color);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.citationLink:hover {
+  background: color-mix(in srgb, #fff 82%, var(--chat-title-color) 18%);
+}
+
+.citationLinkActive {
+  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
+  background: color-mix(in srgb, var(--chat-title-color) 22%, #fff 78%);
+  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 26%, transparent),
+    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+}
+
+.citationLinkActive:hover {
+  background: color-mix(in srgb, var(--chat-title-color) 28%, #fff 72%);
+}
+
 /* ============================================================
    위치: 답변 생성 중 상태
    기능: 로딩 텍스트/점 애니메이션
    ============================================================ */
 .assistantLoading {
   margin-top: 6px;
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 6px;
   animation: assistantLoadingPulse 1.2s ease-in-out infinite;
@@ -383,6 +479,12 @@
   100% {
     transform: translateY(0);
     opacity: 0.7;
+  }
+}
+
+@keyframes assistantThinkingSpin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

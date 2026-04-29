@@ -1,5 +1,6 @@
 ﻿from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+import json
 import traceback
 from app.database import database
 
@@ -174,6 +175,7 @@ class CreateMessageResponse(BaseModel):
 
 class UpdateMessageRequest(BaseModel):
     content: str
+    metadata: dict | None = None
 
 
 class UpdateMessageResponse(BaseModel):
@@ -208,6 +210,14 @@ def getMessages(req: GetMessagesRequest):
         json_data = []
         for row in rows:
             created_at = row[4].isoformat() if hasattr(row[4], "isoformat") else str(row[4])
+            metadata_raw = row[8] if len(row) > 8 else None
+            metadata = None
+            if metadata_raw:
+                try:
+                    metadata = json.loads(metadata_raw) if isinstance(metadata_raw, str) else metadata_raw
+                except (TypeError, ValueError, json.JSONDecodeError):
+                    metadata = None
+
             json_data.append(
                 {
                     "message_id": row[0],
@@ -218,6 +228,7 @@ def getMessages(req: GetMessagesRequest):
                     "questioner": row[5],
                     "model": row[6],
                     "llm_mode": row[7],
+                    "metadata": metadata,
                 }
             )
         return json_data
@@ -246,7 +257,8 @@ def createMessage(req: CreateMessageRequest):
 @historyRouter.put("/messages/{message_id}", response_model=UpdateMessageResponse)
 def updateMessage(message_id: int, req: UpdateMessageRequest):
     try:
-        database.updateChatMessage(message_id, req.content)
+        metadata_json = json.dumps(req.metadata, ensure_ascii=False) if req.metadata is not None else None
+        database.updateChatMessage(message_id, req.content, metadata_json)
         return {"result": "success"}
     except Exception as e:
         print("[history/messages] update error:", e)

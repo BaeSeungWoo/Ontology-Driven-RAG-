@@ -297,7 +297,7 @@ def createChatMessage(session_id, role, content):
             # 메시지가 추가될 때 세션 최신시간 갱신
             cursor.execute(
                 """
-                UPDATE dbo.CHAT_SESSION
+                UPDATE dbo.CHAT_HISTORY
                 SET UPDATED_AT = SYSDATETIME()
                 WHERE SESSION_ID = ?
                 """,
@@ -323,7 +323,7 @@ def createChatMessage(session_id, role, content):
 
 # CHAT_MESSAGE 답변 완료내용 갱신
 @with_thread_pool("db")
-def updateChatMessage(message_id, content):
+def updateChatMessage(message_id, content, metadata_json=None):
     conn = None
     cursor = None
     try:
@@ -331,21 +331,32 @@ def updateChatMessage(message_id, content):
             conn.autocommit = False
             cursor = conn.cursor()
 
-            cursor.execute(
-                """
-                UPDATE dbo.CHAT_MESSAGE
-                SET CONTENT = ?
-                WHERE MESSAGE_ID = ?
-                """,
-                (content, message_id),
-            )
+            if metadata_json is None:
+                cursor.execute(
+                    """
+                    UPDATE dbo.CHAT_MESSAGE
+                    SET CONTENT = ?
+                    WHERE MESSAGE_ID = ?
+                    """,
+                    (content, message_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    UPDATE dbo.CHAT_MESSAGE
+                    SET CONTENT = ?,
+                        METADATA = ?
+                    WHERE MESSAGE_ID = ?
+                    """,
+                    (content, metadata_json, message_id),
+                )
 
             # 메시지 수정 시 해당 세션 최신시간 갱신
             cursor.execute(
                 """
                 UPDATE s
                 SET s.UPDATED_AT = SYSDATETIME()
-                FROM dbo.CHAT_SESSION s
+                FROM dbo.CHAT_HISTORY s
                 INNER JOIN dbo.CHAT_MESSAGE m ON m.SESSION_ID = s.SESSION_ID
                 WHERE m.MESSAGE_ID = ?
                 """,
@@ -389,9 +400,10 @@ def getChatMessagesBySession(session_id):
                     m.CREATED_AT,
                     s.QUESTIONER,
                     s.LLM_MODEL,
-                    s.LLM_MODE
+                    s.LLM_MODE,
+                    m.METADATA
                 FROM dbo.CHAT_MESSAGE m
-                INNER JOIN dbo.CHAT_SESSION s ON s.SESSION_ID = m.SESSION_ID
+                INNER JOIN dbo.CHAT_HISTORY s ON s.SESSION_ID = m.SESSION_ID
                 WHERE m.SESSION_ID = ?
                 ORDER BY m.CREATED_AT ASC, m.MESSAGE_ID ASC
                 """,

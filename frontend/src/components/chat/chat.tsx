@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Answer from "./answer/answer";
+import AssetPanel from "./assetPanel";
 import Citation from "./citation/citation";
 import History from "./history/history";
 import type { HistoryItem } from "./history/historyCard";
@@ -17,46 +18,72 @@ import Question, { type QuestionPayload } from "./question/question";
 import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
 import PageTabs from "@/components/navigation/pageTabs";
+import type { MessageItem } from "@/types/chatApi";
 import styles from "./chat.module.css";
 
 const ENABLE_DEV_ASSET_PANEL = true;
 
-/**
- * 기능: 히스토리 카드 선택 시 함께 전달되는 세션 설정 메타 타입.
- * 목적: 질문자/모델/모드/프롬프트를 채팅 화면 상태와 동기화하기 위한 계약을 명확히 한다.
- * In: HistoryItem 일부 필드
- * Out: HistorySessionMeta 타입 정보
- */
 type HistorySessionMeta = Pick<
   HistoryItem,
   "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName"
 >;
 
+type SelectedCitation = {
+  messageId: string;
+  chunkIndex: number;
+} | null;
+
+// 외부 함수
+// 기능/목적: 메시지 목록에서 가장 최근 metadata 보유 assistant 답변을 찾는다.
+// In: messages / Out: MessageItem | undefined
+function getLatestAssistantMessage(messages: MessageItem[]): MessageItem | undefined {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (message.role === "assistant" && message.metadata) return message;
+  }
+  return undefined;
+}
+
 export default function Chat() {
-  // =========================
-  // state
-  // =========================
   const themeKey =
     (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
 
+  // 내부 state: 화면 접힘/선택 상태
+  // 기능/목적: 좌/우 패널, 이미지/표 패널, 활성 답변과 선택 참조를 화면 전체에서 공유한다.
   const [isCitationCollapsed, setIsCitationCollapsed] = useState(false);
+  const [isAssetPanelCollapsed, setIsAssetPanelCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
+  const [activeAssistantMessageId, setActiveAssistantMessageId] = useState<string | null>(null);
+  const [selectedCitation, setSelectedCitation] = useState<SelectedCitation>(null);
+
+  // 내부 state: 세션/설정 상태
+  // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
   const [questioner, setQuestioner] = useState("");
   const [selectedPrompt, setSelectedPrompt] = useState<PromptRow | null>(null);
   const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("ollama_config");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("base");
-
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
-  // 설정 변경 후 "다음 전송 시 새 세션 생성" 여부를 관리한다.
   const isSessionResetPendingRef = useRef(false);
-  // 히스토리 선택으로 인한 설정 반영 중에는 변경 감지 effect를 1회 무시한다.
   const isHistorySessionSyncingRef = useRef(false);
 
-  const { messages, sendQuestion, loadSessionMessages, resetChatState } = useChat({
+  const { messages, sendQuestion, loadSessionMessages, resetChatState, isLoading } = useChat({
     selectedSessionId,
     onSessionId: (id) => setSelectedSessionId(id),
     onHistoryRefresh: () => setHistoryRefreshKey((prev) => prev + 1),
   });
+
+  const latestAssistantMessage = getLatestAssistantMessage(messages);
+  const activeAssistantMessage = useMemo(() => {
+    if (!activeAssistantMessageId) return latestAssistantMessage;
+    return (
+      messages.find(
+        (message) =>
+          message.role === "assistant" &&
+          String(message.message_id) === activeAssistantMessageId
+      ) ?? latestAssistantMessage
+    );
+  }, [activeAssistantMessageId, latestAssistantMessage, messages]);
 
   const previousSettingsRef = useRef<{
     questioner: string;
@@ -73,64 +100,51 @@ export default function Chat() {
   const isPromptRequiredMissing =
     questioner.trim().length === 0 || selectedPrompt === null;
 
-  // =========================
-  // 함수
-  // =========================
-  /**
-   * 기능: 새 질문 시작 상태로 채팅 컨텍스트를 초기화한다.
-   * 목적: 현재 세션 연결과 메시지를 비우고 다음 전송을 새 세션으로 시작하게 한다.
-   * In: 새 질문 확정 이벤트
-   * Out: selectedSessionId=null, isSessionResetPendingRef=false, chat state 초기화
-   */
+  // 함수: 세션 초기화/전송
+  // 기능/목적: 새 질문 시작과 질문 전송 시 세션 생성 정책을 한곳에서 처리한다.
+  // In: QuestionPayload / Out: 메시지 전송, 세션 상태 초기화 또는 갱신
   const resetToNewSession = () => {
     setSelectedSessionId(null);
+    setActiveAssistantMessageId(null);
+    setSelectedCitation(null);
     isSessionResetPendingRef.current = false;
     resetChatState();
   };
 
-  /**
-   * 기능: 질문 payload를 전송하고 필요 시 새 세션 강제 생성을 적용한다.
-   * 목적: 설정 변경 이후 전송 시점에 새 세션으로 분기하는 정책을 일관되게 처리한다.
-   * In: payload(QuestionPayload)
-   * Out: sendQuestion 호출, 성공 시 pending reset
-   */
   const handleSendQuestion = async (payload: QuestionPayload) => {
     const shouldForceNewSession = isSessionResetPendingRef.current;
     const isSuccess = await sendQuestion({
       ...payload,
       forceNewSession: shouldForceNewSession,
     });
+
     if (isSuccess && shouldForceNewSession) {
       isSessionResetPendingRef.current = false;
     }
   };
 
-  /**
-   * 기능: 히스토리에서 선택한 세션을 로드한다.
-   * 목적: 선택 세션의 메시지를 복원하고 질문자/모델/모드/프롬프트를 이력과 동기화한다.
-   * In: sessionId(number), sessionMeta(질문자/모델/모드/프롬프트 메타)
-   * Out: selectedSessionId/questioner/selectedLlmModel/selectedLlmMode/selectedPrompt/messages 상태 갱신
-   */
+  // 함수: 히스토리 세션 복원
+  // 기능/목적: 선택한 히스토리의 메시지와 질문 설정을 현재 화면에 동기화한다.
+  // In: sessionId, sessionMeta / Out: 세션 메시지 로드 및 설정 state 갱신
   const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
     isHistorySessionSyncingRef.current = true;
     isSessionResetPendingRef.current = false;
+    setActiveAssistantMessageId(null);
+    setSelectedCitation(null);
     setSelectedSessionId(sessionId);
+
     if (sessionMeta?.questioner && sessionMeta.questioner.trim().length > 0) {
       setQuestioner(sessionMeta.questioner);
     }
 
     if (sessionMeta?.llmModel) {
       const matchedModel = LLM_MODEL_OPTIONS.find((option) => option.value === sessionMeta.llmModel);
-      if (matchedModel) {
-        setSelectedLlmModel(matchedModel.value);
-      }
+      if (matchedModel) setSelectedLlmModel(matchedModel.value);
     }
 
     if (sessionMeta?.llmMode) {
       const matchedMode = LLM_MODE_OPTIONS.find((option) => option.value === sessionMeta.llmMode);
-      if (matchedMode) {
-        setSelectedLlmMode(matchedMode.value);
-      }
+      if (matchedMode) setSelectedLlmMode(matchedMode.value);
     }
 
     const promptNo = sessionMeta?.promptNo;
@@ -145,18 +159,43 @@ export default function Chat() {
         };
       });
     }
+
     await loadSessionMessages(sessionId);
   };
 
-  // =========================
-  // useEffect
-  // =========================
-  /**
-   * 기능: 질문자/모델/모드/프롬프트 변경을 감지해 세션 분기 필요 여부를 계산한다.
-   * 목적: 기존 세션 선택 상태에서 설정이 바뀌면 다음 질문 전송 시 새 세션으로 시작하게 한다.
-   * In: questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedSessionId
-   * Out: isSessionResetPendingRef / previousSettingsRef 갱신
-   */
+  // 함수: 답변/참조 연동
+  // 기능/목적: Answer, Citation, 이미지/표 패널이 같은 assistant 메시지와 chunk를 보도록 맞춘다.
+  // In: messageId, chunkIndex / Out: activeAssistantMessageId, selectedCitation 갱신
+  const clearReferencePanels = useCallback(() => {
+    setSelectedCitation(null);
+  }, []);
+
+  const handleAssistantSelect = useCallback(
+    (messageId: string) => {
+      setActiveAssistantMessageId(messageId);
+      clearReferencePanels();
+    },
+    [clearReferencePanels]
+  );
+
+  const handleActiveAssistantChange = useCallback(
+    (messageId: string | null) => {
+      if (activeAssistantMessageId !== messageId) {
+        clearReferencePanels();
+      }
+      setActiveAssistantMessageId(messageId);
+    },
+    [activeAssistantMessageId, clearReferencePanels]
+  );
+
+  const handleCitationSelect = useCallback((messageId: string, chunkIndex: number) => {
+    setActiveAssistantMessageId(messageId);
+    setSelectedCitation({ messageId, chunkIndex });
+  }, []);
+
+  // 함수: 설정 변경 감지
+  // 기능/목적: 기존 세션에서 질문 설정이 바뀌면 다음 전송을 새 세션으로 분기한다.
+  // In: 질문자/프롬프트/LLM 설정 / Out: isSessionResetPendingRef 갱신
   useEffect(() => {
     const nextSettings = {
       questioner: questioner.trim(),
@@ -185,9 +224,7 @@ export default function Chat() {
     previousSettingsRef.current = nextSettings;
   }, [questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedSessionId]);
 
-  // =========================
-  // render(return)
-  // =========================
+  // render
   return (
     <div className="tw-chat-page">
       <div className="tw-chat-toolbar">
@@ -201,6 +238,8 @@ export default function Chat() {
       <div
         className={`${styles.chatTypographyScope} tw-chat-layout ${
           isCitationCollapsed ? "tw-chat-layout-collapsed" : ""
+        } ${isRightPanelCollapsed ? "tw-chat-layout-right-collapsed" : ""} ${
+          isCitationCollapsed && isRightPanelCollapsed ? "tw-chat-layout-both-collapsed" : ""
         }`}
       >
         <aside className="tw-chat-left">
@@ -212,6 +251,11 @@ export default function Chat() {
             <Citation
               isCollapsed={isCitationCollapsed}
               onToggle={() => setIsCitationCollapsed((prev) => !prev)}
+              messages={messages}
+              isLoading={isLoading}
+              activeAssistantMessageId={activeAssistantMessageId}
+              selectedCitation={selectedCitation}
+              onCitationSelect={handleCitationSelect}
             />
           </section>
         </aside>
@@ -219,21 +263,47 @@ export default function Chat() {
         <main className="tw-chat-center">
           <section className={styles.chatAnswerPane}>
             {ENABLE_DEV_ASSET_PANEL ? (
-              <div className={styles.chatAnswerSplit}>
-                <div className={styles.chatAnswerMain}>
-                  <Answer messages={messages} />
+              <div
+                className={`${styles.chatAnswerSplit} ${
+                  isAssetPanelCollapsed ? styles.chatAnswerSplitAssetCollapsed : ""
+                }`}
+              >
+                <div className={styles.chatAnswerSplitHeader}>
+                  <h2 className="pane-title">답변</h2>
                 </div>
-                <aside className={styles.chatAssetPanel} aria-label="개발용 이미지/표 영역">
-                  <p className={styles.chatAssetPanelTitle}>이미지/표 영역 (개발용)</p>
-                  <p className={styles.chatAssetPanelHint}>
-                    청크에 포함된 이미지/표 경로를 이 영역에 렌더링할 예정입니다.
-                  </p>
-                </aside>
+                <div className={styles.chatAnswerMain}>
+                  <Answer
+                    messages={messages}
+                    selectedCitation={selectedCitation}
+                    onAssistantSelect={handleAssistantSelect}
+                    onActiveAssistantChange={handleActiveAssistantChange}
+                    onCitationSelect={handleCitationSelect}
+                    isGenerating={isLoading}
+                    showHeader={false}
+                  />
+                </div>
+                <AssetPanel
+                  key={activeAssistantMessage?.message_id ?? "empty"}
+                  activeAssistantMessage={activeAssistantMessage}
+                  selectedCitation={selectedCitation}
+                  isLoading={isLoading}
+                  onCitationSelect={handleCitationSelect}
+                  isCollapsed={isAssetPanelCollapsed}
+                  onToggle={() => setIsAssetPanelCollapsed((prev) => !prev)}
+                />
               </div>
             ) : (
-              <Answer messages={messages} />
+              <Answer
+                messages={messages}
+                selectedCitation={selectedCitation}
+                onAssistantSelect={handleAssistantSelect}
+                onActiveAssistantChange={handleActiveAssistantChange}
+                onCitationSelect={handleCitationSelect}
+                isGenerating={isLoading}
+              />
             )}
           </section>
+
           <section className={styles.chatQuestionPane}>
             <Question
               questioner={questioner}
@@ -246,30 +316,39 @@ export default function Chat() {
         </main>
 
         <aside className="tw-chat-right">
-          <section className={styles.chatHistoryPane}>
+          <section
+            className={`${styles.chatHistoryPane} ${
+              isRightPanelCollapsed ? styles.chatHistoryPaneCollapsed : ""
+            }`}
+          >
             <History
               selectedSessionId={selectedSessionId}
               onSelectSession={handleSelectSession}
               onStartNewChat={resetToNewSession}
               refreshKey={historyRefreshKey}
+              isCollapsed={isRightPanelCollapsed}
+              onToggleCollapse={() => setIsRightPanelCollapsed((prev) => !prev)}
             />
           </section>
-          <section
-            className={`${styles.chatPromptSettingPane} ${
-              isPromptRequiredMissing ? styles.chatPromptSettingPaneRequired : ""
-            }`}
-          >
-            <PromptSetting
-              questioner={questioner}
-              onQuestionerChange={setQuestioner}
-              selectedPrompt={selectedPrompt}
-              onSelectPrompt={setSelectedPrompt}
-              selectedLlmModel={selectedLlmModel}
-              onSelectLlmModel={setSelectedLlmModel}
-              selectedLlmMode={selectedLlmMode}
-              onSelectLlmMode={setSelectedLlmMode}
-            />
-          </section>
+
+          {!isRightPanelCollapsed ? (
+            <section
+              className={`${styles.chatPromptSettingPane} ${
+                isPromptRequiredMissing ? styles.chatPromptSettingPaneRequired : ""
+              }`}
+            >
+              <PromptSetting
+                questioner={questioner}
+                onQuestionerChange={setQuestioner}
+                selectedPrompt={selectedPrompt}
+                onSelectPrompt={setSelectedPrompt}
+                selectedLlmModel={selectedLlmModel}
+                onSelectLlmModel={setSelectedLlmModel}
+                selectedLlmMode={selectedLlmMode}
+                onSelectLlmMode={setSelectedLlmMode}
+              />
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>

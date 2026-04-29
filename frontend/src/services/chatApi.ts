@@ -10,6 +10,28 @@ import type {
   UpdateMessagePayload,
   UpdateMessageResponse,
 } from "@/types/chatApi";
+import type { ChatMetadata } from "@/types/chatApi";
+
+/**
+ * 기능: 스트리밍 응답 선두의 METADATA 프레임을 JSON으로 파싱한다.
+ * 목적: 답변 토큰과 별도로 전달된 chunk/이미지/표 정보를 화면 상태와 DB 저장에 활용한다.
+ * In: metadataRaw(string)
+ * Out: ChatMetadata | undefined
+ */
+function parseMetadata(metadataRaw: string): ChatMetadata | undefined {
+  const prefix = "METADATA:";
+  const normalized = metadataRaw.trim();
+  if (!normalized.startsWith(prefix)) return undefined;
+
+  try {
+    const parsed = JSON.parse(normalized.slice(prefix.length));
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed)
+      ? parsed
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
 
 export async function askApi({
   sessionId,
@@ -52,6 +74,8 @@ export async function askApi({
 
     const chunk = decoder.decode(value, { stream: true });
 
+    // 기능: 첫 번째 빈 줄 전까지는 metadata 프레임으로 처리하고 이후부터 답변 토큰으로 흘려보낸다.
+    // 목적: 사용자에게는 답변만 스트리밍하면서 내부적으로 metadata를 보존한다.
     if (metadataMode) {
       pending += chunk;
       const splitIndex = pending.indexOf("\n\n");
@@ -76,7 +100,7 @@ export async function askApi({
 
   return {
     answer: answerText.trim(),
-    metadataRaw,
+    metadata: parseMetadata(metadataRaw),
   };
 }
 

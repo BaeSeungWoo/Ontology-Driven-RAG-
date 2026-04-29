@@ -15,12 +15,29 @@ import AssistantMessageBubble from "./assistantMessageBubble";
 
 type AnswerProps = {
   messages: MessageItem[];
+  selectedCitation?: {
+    messageId: string;
+    chunkIndex: number;
+  } | null;
+  onAssistantSelect?: (messageId: string) => void;
+  onActiveAssistantChange?: (messageId: string | null) => void;
+  onCitationSelect?: (messageId: string, chunkIndex: number) => void;
+  isGenerating?: boolean;
+  showHeader?: boolean;
 };
 
 const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option.value));
 const LLM_MODE_SET = new Set<LlmMode>(LLM_MODE_OPTIONS.map((option) => option.value));
 
-export default function Answer({ messages }: AnswerProps) {
+export default function Answer({
+  messages,
+  selectedCitation,
+  onAssistantSelect,
+  onActiveAssistantChange,
+  onCitationSelect,
+  isGenerating = false,
+  showHeader = true,
+}: AnswerProps) {
   // =========================
   // state
   // =========================
@@ -176,6 +193,7 @@ export default function Answer({ messages }: AnswerProps) {
       id: assistantMessageId,
       assistantCountAtSelection: assistantMessages.length,
     });
+    onAssistantSelect?.(assistantMessageId);
   };
 
   // =========================
@@ -187,12 +205,20 @@ export default function Answer({ messages }: AnswerProps) {
     container.scrollTop = container.scrollHeight;
   }, [scrollAnchor]);
 
+  useEffect(() => {
+    onActiveAssistantChange?.(activeAssistantMessageId);
+  }, [activeAssistantMessageId, onActiveAssistantChange]);
+
   // =========================
   // render(return)
   // =========================
   return (
     <div className={styles.answerRoot}>
-      <h2 className="pane-title">답변</h2>
+      {showHeader ? (
+        <div className={styles.answerHeader}>
+          <h2 className="pane-title">답변</h2>
+        </div>
+      ) : null}
 
       <section
         ref={scrollRef}
@@ -209,6 +235,9 @@ export default function Answer({ messages }: AnswerProps) {
             {normalizedMessages.map((message, messageIndex) => {
               const previousMessage = normalizedMessages[messageIndex - 1];
               const showDateDivider = isDateDividerNeeded(message, previousMessage, messageIndex);
+              const latestAssistantId = assistantMessages[assistantMessages.length - 1]?.id;
+              // 생성/스트리밍 표시는 현재 진행 중인 최신 assistant 메시지에만 적용한다.
+              const shouldShowGenerating = isGenerating && message.id === latestAssistantId;
 
               return (
                 <div key={message.id}>
@@ -219,7 +248,14 @@ export default function Answer({ messages }: AnswerProps) {
                     <AssistantMessageBubble
                       message={message}
                       isActive={message.id === activeAssistantMessageId}
+                      isGenerating={shouldShowGenerating}
+                      selectedCitationChunkIndex={
+                        selectedCitation?.messageId === message.id
+                          ? selectedCitation.chunkIndex
+                          : null
+                      }
                       onActivate={handleActivateAssistantMessage}
+                      onCitationSelect={onCitationSelect}
                     />
                   )}
                 </div>
