@@ -12,11 +12,13 @@ class PromptManager:
         with path.open(encoding="utf-8") as f:
             self.registry: dict = json.load(f)
 
+    # DB 사용자 프롬프트는 system prompt가 아니라 user message의 하위 지시로 삽입한다.
+    # 역할/안전/인용 규칙은 registry.json의 system prompt가 우선한다.
     def build(
         self,
         prompt_id: str,                     # registry.json - ex) "tech_expert"
         question: str,                      # 사용자가 채팅창에 입력한 질문
-        history: list | None = None,                 # Memory_manager가 넘겨주는 이전 대화
+        history: list | None = None,        # Memory_manager가 넘겨주는 이전 대화
         context: str = "",                  # RAG/Graph 검색으로 가져온 참고 정보
         user_prompt: str | None = None,     # DB에서 가져온 사용자 정의 프롬프트
         mode: str = "base",                 # base | rag | graph

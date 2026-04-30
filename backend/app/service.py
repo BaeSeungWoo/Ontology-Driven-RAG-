@@ -16,6 +16,7 @@ class RAGService:
         self.prompt_manager = PromptManager()
         self.memory_manager = MemoryManager()
 
+    # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
         self,
         question: str,
@@ -36,6 +37,8 @@ class RAGService:
         )
         return messages, imgs, tables, chunks
 
+    # ask/ask_stream의 공통 준비함수
+    # session_id 기준으로 휘발성 memory history를 가져오고, RAG context/user_prompt와 함께 messages를 조립한다.
     async def prepare_ask_context(
         self,
         session_id: str,
@@ -64,7 +67,53 @@ class RAGService:
         )
 
         return messages, imgs, tables, chunks
+    
+    # Chat에서 실제 사용하는 정식 스트리밍 함수
+    # metadata를 먼저 보내고, 이후 LLM 토큰을 순차적으로 yield한다.
+    # 전체 답변이 끝난 뒤 현재 턴을 MemoryManager에 저장한다.
+    async def ask_stream(
+        self,
+        session_id: str,
+        question: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+    ):
+        # prepare_ask_context로 준비물 생성
+        # metadata 이벤트 먼저 yield
+        # LLM token을 하나씩 yield
+        # 마지막에 전체 답변을 memory에 저장
 
+        messages, imgs, tables, chunks = await self.prepare_ask_context(
+            session_id=session_id,
+            question=question,
+            mode=mode,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+        )
+
+        yield {
+            "type": "metadata",
+            "data": {
+                "images": imgs,
+                "tables": tables,
+                "chunks": chunks,
+            },
+        }
+
+        answer_parts = []
+
+        async for token in self.llm.astream(messages):
+            answer_parts.append(token)
+            yield {
+                "type": "token",
+                "data": token,
+            }
+
+        answer = "".join(answer_parts)
+        self.memory_manager.add_turn(session_id, question, answer)
+
+    # non-streaming/batch 용도로 남겨둔 후보 함수.
     async def ask(
         self,
         session_id: str,
@@ -73,35 +122,26 @@ class RAGService:
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
     ) -> str:
-        # 1. 이전 대화 기록 로드 (list 반환)
-        history = self.memory_manager.get_history(session_id)
-
-        # 2. 모드별 컨텍스트
-        context = ""
-        if mode != "base":
-            context, _, _, _ = self.retriever.get_context(question, mode)
-
-        # 3. 프롬프트 조립 → messages list
-        messages = self.prompt_manager.build(
-            prompt_id=prompt_id,
+        messages, imgs, tables, chunks = await self.prepare_ask_context(
+            session_id=session_id,
             question=question,
-            history=history,           
-            context=context,
             mode=mode,
+            prompt_id=prompt_id,
             user_prompt=user_prompt,
         )
-        # 4. LLM에 메시지 전달 후 답변 수신
-        answer_parts = []
-        async for token in self.llm.astream(messages):
-            answer_parts.append(token)
-        answer = "".join(answer_parts)
 
-        # 5. 대화 기록 저장
-        # self.memory_manager.add_user_message(session_id, question)
-        # self.memory_manager.add_ai_message(session_id, answer)
+        answer = await self.llm.ainvoke(messages)
+
         self.memory_manager.add_turn(session_id, question, answer)
-
-        return answer
+        
+        return {
+            "answer": answer,
+            "metadata": {
+                "images": imgs,
+                "tables": tables,
+                "chunks": chunks,
+            },
+        }
     
 class DailyReportService:
     """MES 데일리 리포트 Chain 생성 서비스"""
@@ -114,6 +154,7 @@ class DailyReportService:
 
     # ── 섹션 단위 LLM 호출 ────────────────────────────────────────────────────
 
+    # 리포트 섹션 생성은 채팅처럼 토큰 스트리밍이 필요 없으므로 ainvoke로 한 번에 생성한다.
     async def _generate_section(self, section: str, section_data: dict | list | str) -> str:
         data_str = (
             section_data
@@ -125,10 +166,8 @@ class DailyReportService:
             {"role": "system", "content": self._system_prompt},
             {"role": "user",   "content": prompt_text},
         ]
-        parts: list[str] = []
-        async for token in self.llm.astream(messages):
-            parts.append(token)
-        return "".join(parts)
+
+        return await self.llm.ainvoke(messages)
 
     # ── 출력 검증 ─────────────────────────────────────────────────────────────
 
