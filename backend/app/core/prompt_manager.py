@@ -14,45 +14,109 @@ class PromptManager:
 
     def build(
         self,
-        prompt_id: str,
-        question: str,
-        history: list = [],           
-        context: str = "",
-        custom_persona: str = None,
-    ) -> list:                        
+        prompt_id: str,                     # registry.json - ex) "tech_expert"
+        question: str,                      # 사용자가 채팅창에 입력한 질문
+        history: list | None = None,                 # Memory_manager가 넘겨주는 이전 대화
+        context: str = "",                  # RAG/Graph 검색으로 가져온 참고 정보
+        user_prompt: str | None = None,     # DB에서 가져온 사용자 정의 프롬프트
+        mode: str = "base",                 # base | rag | graph
+        system_override: str | None = None, # system prompt를 덮어써야할 때만 사용
+    ) -> list:  
+        # ======================================================                      
+        # system message:
+        #   registry.json 기반. 모델의 역할, 규칙, 출력 제약
+        #   ㄴ persona
+        #   ㄴ response_policy
+        #   ㄴ rag_policy
+        #   ㄴ citation_policy
+        #   ㄴ citation_examples
+        #   ㄴ output_format
+
+        # history:
+        #   MemoryManager에서 받은 이전 대화
+
+        # user message:
+        #   context
+        #   DB user_prompt 
+        #   question
+        # ======================================================
+
         cfg = self.registry.get(prompt_id) or self.registry["tech_expert"]
 
-        persona = custom_persona or cfg["persona"]
-        guide   = cfg["guide"]       
+        # 방어코드 예시
+        # if cfg.get("type") != "chat_rag":
+        #     cfg = self.registry["tech_expert"]
+
+        persona = system_override or cfg.get("persona", "")
+        response_policy = cfg.get("response_policy", [])
+        rag_policy = cfg.get("rag_policy", [])
+        citation_policy = cfg.get("citation_policy", [])
+        citation_examples = cfg.get("citation_examples", {})
+        output_format = cfg.get("output_format", {})
 
         # system 메시지 조립
-        system_content = persona
-        if guide:
-            system_content += f"\n\n[답변 지침]\n{guide}"
+        system_sections = []
+
+        if persona:
+            system_sections.append(persona)
+
+        if response_policy:
+            system_sections.append(
+                "[응답 규칙]\n" + "\n".join(f"- {rule}" for rule in response_policy)
+            )
+
+        if rag_policy and mode != "base":
+            system_sections.append(
+                "[RAG 규칙]\n" + "\n".join(f"- {rule}" for rule in rag_policy)
+            )
+
+        # base일 경우에는 chunk가 없으니 context가 있는 경우에만
+        if citation_policy and context:
+            system_sections.append(
+                "[인용 규칙]\n" + "\n".join(f"- {rule}" for rule in citation_policy)
+            )
+
+        bad_examples = citation_examples.get("bad", [])
+        good_examples = citation_examples.get("good", [])
+
+        if context and (bad_examples or good_examples):
+            example_text = []
+
+            if bad_examples:
+                example_text.append(
+                    "잘못된 예:\n" + "\n".join(f"- {item}" for item in bad_examples)
+                )
+
+            if good_examples:
+                example_text.append(
+                    "좋은 예:\n" + "\n".join(f"- {item}" for item in good_examples)
+                )
+
+            system_sections.append("[인용 예시]\n" + "\n\n".join(example_text))
+
+        default_format = output_format.get("default", [])
+
+        if default_format:
+            system_sections.append(
+                "[출력 형식]\n" + "\n".join(f"- {item}" for item in default_format)
+            )
+
+        system_content = "\n\n".join(system_sections)
+
+        # history 
+        history = history or []
 
         # user 메시지 조립
         user_parts = []
+
         if context:
-            user_parts.append(
-                "[참고 정보]\n"
-                "아래 참고 정보는 [chunk:N] 번호가 붙은 검색 청크입니다.\n"
-                "답변에서 참고 정보에 근거한 핵심 주장이나 항목 끝에는 반드시 [chunk:N] 형식으로 근거 번호를 붙이세요.\n"
-                "인용 표기는 반드시 문장 끝 또는 목록 항목 끝에만 붙이세요.\n"
-                "문장 중간의 단어, 용어, 괄호 설명, 쉼표 앞뒤에는 [chunk:N]을 넣지 마세요.\n"
-                "인용 표기는 마침표, 콜론, 세미콜론 등 문장부호 뒤에 붙이세요.\n"
-                "같은 문단이나 같은 목록 항목 안에서 동일한 [chunk:N]은 한 번만 표시하세요.\n"
-                "하나의 문단/항목이 여러 문장으로 구성되어 있고 근거가 같다면, 마지막 문장 끝에만 [chunk:N]을 붙이세요.\n"
-                "서로 다른 청크를 함께 사용한 경우에는 문단/항목 끝에 [chunk:1][chunk:2]처럼 중복 없이 모아 표시하세요.\n"
-                "사용하지 않은 청크 번호는 표시하지 마세요.\n\n"
-                "[인용 표기 예시]\n"
-                "좋은 예: 스핀들 포지션 코더 파손, 회전 신호 단절, 파라미터 설정 오류가 주요 원인입니다. [chunk:1][chunk:2]\n"
-                "나쁜 예: 스핀들 포지션 코더 파손 [chunk:1], 회전 신호 단절 [chunk:2]이 주요 원인입니다.\n"
-                "좋은 예: 관련 파라미터를 먼저 점검하고 필요한 경우 수정하십시오. [chunk:3]\n"
-                "나쁜 예: 관련 파라미터 [chunk:3]를 먼저 점검하고 수정하십시오.\n\n"
-                "답변을 마치기 전에 모든 [chunk:N] 표기가 문장 끝 또는 항목 끝에 있는지 확인하고, 문장 중간에 있는 인용은 해당 문장 끝으로 이동하세요.\n"
-                f"{context}"
-            )
+            user_parts.append(f"[참고 정보]\n{context}")
+
+        if user_prompt:
+            user_parts.append(f"[사용자 프롬프트]\n{user_prompt}")
+
         user_parts.append(f"[질문]\n{question}")
+
         user_content = "\n\n".join(user_parts)
 
         # ✅ messages 리스트 반환 — llm_handler.astream()과 규격 통일

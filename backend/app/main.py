@@ -58,13 +58,21 @@ class ChatRequest(BaseModel):
     question: str
     mode: str = "base"          # base | rag | graph
     prompt_id: str = "tech_expert"
+    prompt_no: int | None = None
 
 @app.post("/chat/{factory_id}")
 async def chat_endpoint(factory_id: str, request: ChatRequest):
     service = get_service(factory_id)
+    
+    user_prompt = None
+    if request.prompt_no is not None:
+        user_prompt = database.getUserPrompt(request.prompt_no)
 
     messages, imgs, tables, chunks = await service.prepare_context(
-        request.question, request.mode, request.prompt_id
+        question = request.question, 
+        mode = request.mode, 
+        prompt_id = request.prompt_id, 
+        user_prompt = user_prompt,
     )
 
     print(f"[DEBUG] messages: {messages}")  # 추가

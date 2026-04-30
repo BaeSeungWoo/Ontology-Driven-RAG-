@@ -7,6 +7,7 @@ export type AskRequest = {
   question: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
+  promptNo: number;
   onChunk?: (chunk: string) => void;
 };
 
