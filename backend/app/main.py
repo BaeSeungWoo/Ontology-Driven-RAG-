@@ -68,7 +68,14 @@ async def chat_endpoint(factory_id: str, request: ChatRequest):
     if request.prompt_no is not None:
         user_prompt = database.getUserPrompt(request.prompt_no)
 
-    messages, imgs, tables, chunks = await service.prepare_context(
+    # messages, imgs, tables, chunks = await service.prepare_context(
+    #     question = request.question, 
+    #     mode = request.mode, 
+    #     prompt_id = request.prompt_id, 
+    #     user_prompt = user_prompt,
+    # )
+    messages, imgs, tables, chunks = await service.prepare_ask_context(
+        session_id = request.session_id,
         question = request.question, 
         mode = request.mode, 
         prompt_id = request.prompt_id, 
@@ -80,9 +87,19 @@ async def chat_endpoint(factory_id: str, request: ChatRequest):
     async def event_generator():
         # 기능: 토큰 스트리밍 전에 metadata를 먼저 전달한다.
         # 목적: 프론트가 답변 저장 시 chunk/이미지/표 정보를 함께 보존하고 인용근거 패널에 활용하게 한다.
+        answer_parts = []
+
         yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables, 'chunks': chunks})}\n\n"
         async for token in service.llm.astream(messages):
+            answer_parts.append(token)
             yield token
+        
+        answer = "".join(answer_parts)
+        service.memory_manager.add_turn(
+            request.session_id,
+            request.question,
+            answer,
+        )
 
     return StreamingResponse(
         event_generator(),

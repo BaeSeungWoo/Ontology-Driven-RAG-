@@ -36,6 +36,35 @@ class RAGService:
         )
         return messages, imgs, tables, chunks
 
+    async def prepare_ask_context(
+        self,
+        session_id: str,
+        question: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+    ) -> tuple[list, list, list, list]:
+        history = self.memory_manager.get_history(session_id)
+
+        context = ""
+        imgs = []
+        tables = []
+        chunks = []
+
+        if mode != "base":
+            context, imgs, tables, chunks = self.retriever.get_context(question, mode)
+
+        messages = self.prompt_manager.build(
+            prompt_id=prompt_id,
+            question=question,
+            history=history,
+            context=context,
+            mode=mode,
+            user_prompt=user_prompt,
+        )
+
+        return messages, imgs, tables, chunks
+
     async def ask(
         self,
         session_id: str,
@@ -68,12 +97,12 @@ class RAGService:
         answer = "".join(answer_parts)
 
         # 5. 대화 기록 저장
-        self.memory_manager.add_user_message(session_id, question)
-        self.memory_manager.add_ai_message(session_id, answer)
+        # self.memory_manager.add_user_message(session_id, question)
+        # self.memory_manager.add_ai_message(session_id, answer)
+        self.memory_manager.add_turn(session_id, question, answer)
 
         return answer
     
-
 class DailyReportService:
     """MES 데일리 리포트 Chain 생성 서비스"""
 
