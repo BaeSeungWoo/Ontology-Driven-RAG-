@@ -38,6 +38,7 @@ export async function askApi({
   question,
   llmModel,
   llmMode,
+  promptNo,
   onChunk,
 }: AskRequest): Promise<AskResponse> {
   const response = await fetch(`${API_BASE_URL}/chat/${llmModel}`, {
@@ -49,6 +50,7 @@ export async function askApi({
       session_id: String(sessionId),
       question,
       mode: llmMode,
+      prompt_no: promptNo,
       prompt_id: "tech_expert",
     }),
   });

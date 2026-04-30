@@ -21,6 +21,7 @@ class RAGService:
         question: str,
         mode: str,
         prompt_id: str = "tech_expert",   # ✅ main.py에서 전달받도록 추가
+        user_prompt: str | None = None,
     ) -> tuple[list, list, list, list]:
 
         context, imgs, tables, chunks = self.retriever.get_context(question, mode)
@@ -30,7 +31,8 @@ class RAGService:
             question=question,
             history=[],                   # ✅ prepare_context에서는 대화 기록 없이 프롬프트만 조립
             context=context,
-            custom_persona=self.config.prompt.fallback_system_prompt,
+            mode=mode,
+            user_prompt=user_prompt,
         )
         return messages, imgs, tables, chunks
 
@@ -40,6 +42,7 @@ class RAGService:
         question: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
     ) -> str:
         # 1. 이전 대화 기록 로드 (list 반환)
         history = self.memory_manager.get_history(session_id)
@@ -55,7 +58,8 @@ class RAGService:
             question=question,
             history=history,           
             context=context,
-            custom_persona=self.config.prompt.fallback_system_prompt,
+            mode=mode,
+            user_prompt=user_prompt,
         )
         # 4. LLM에 메시지 전달 후 답변 수신
         answer_parts = []

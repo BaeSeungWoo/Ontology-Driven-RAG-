@@ -62,6 +62,31 @@ def getPromptList():
     finally :
         return results
 
+# 백엔드 > 사용자 프롬프트 내용 조회
+@with_thread_pool("db")
+def getUserPrompt(promptNo):
+    try:
+        with get_db_connection() as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                SELECT PROMPT_TXT
+                FROM [PROMPT].[dbo].[PROMPT_TB]
+                WHERE PROMPT_NO = ?
+                """,
+                (promptNo,),
+            )
+            row = cursor.fetchone()
+            cursor.close()
+
+            if row is None:
+                return None
+            return row[0]
+    except Exception as e:
+        print(e, 'database getUserPrompt() error')
+        return None
+
 # 프롬프트 정보 추가
 @with_thread_pool("db")
 def addPrompt(title, content, create_user) :

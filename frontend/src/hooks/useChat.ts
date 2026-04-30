@@ -204,6 +204,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         question: normalizedQuestion,
         llmModel,
         llmMode,
+        promptNo: prompt.prompt_no,
         onChunk: (chunk) => {
           streamedAnswer += chunk;
           setMessages((prev) =>
