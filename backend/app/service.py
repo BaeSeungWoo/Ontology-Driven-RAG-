@@ -5,7 +5,8 @@ from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
 from app.core.retriever import KnowledgeRetriever
 from app.core.prompt_manager import PromptManager
-from app.core.memory_manger import MemoryManager
+from app.core.memory_manager import MemoryManager
+from app.database import database
 
 
 class RAGService:
@@ -46,8 +47,14 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
+        restore_memory: bool = False,
     ) -> tuple[list, list, list, list]:
         history = self.memory_manager.get_history(session_id)
+
+        if restore_memory and not history:
+            restored_history = self._load_recent_history_from_db(session_id, question)
+            self.memory_manager.set_history(session_id, restored_history)
+            history = self.memory_manager.get_history(session_id)
 
         context = ""
         imgs = []
@@ -78,6 +85,7 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
+        restore_memory: bool = False
     ):
         # prepare_ask_context로 준비물 생성
         # metadata 이벤트 먼저 yield
@@ -90,6 +98,7 @@ class RAGService:
             mode=mode,
             prompt_id=prompt_id,
             user_prompt=user_prompt,
+            restore_memory=restore_memory,
         )
 
         yield {
@@ -143,6 +152,29 @@ class RAGService:
             },
         }
     
+    def _load_recent_history_from_db(self, session_id: str, current_question: str) -> list:
+        rows = database.getChatMessagesBySession(int(session_id))
+
+        messages = []
+        for row in rows:
+            role = row[2]
+            content = row[3]
+
+            if role not in ("user", "assistant"):
+                continue
+            if not content:
+                continue
+
+            messages.append({"role": role, "content": content})
+
+        # 프론트가 /chat 호출 전에 현재 user message를 DB에 먼저 저장하므로,
+        # 마지막 user가 현재 질문이면 메모리 복원 대상에서 제외한다.
+        if messages and messages[-1]["role"] == "user" and messages[-1]["content"] == current_question:
+            messages.pop()
+
+        max_messages = self.memory_manager.window_turns * 2
+        return messages[-max_messages:]
+
 class DailyReportService:
     """MES 데일리 리포트 Chain 생성 서비스"""
 

@@ -59,6 +59,7 @@ class ChatRequest(BaseModel):
     mode: str = "base"          # base | rag | graph
     prompt_id: str = "tech_expert"
     prompt_no: int | None = None
+    restore_memory: bool = False
 
 @app.post("/chat/{factory_id}")
 # /chat은 HTTP 스트리밍 포맷만 담당한다.
@@ -78,6 +79,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest):
             mode=request.mode,
             prompt_id=request.prompt_id,
             user_prompt=user_prompt,
+            restore_memory=request.restore_memory,
         ):
             if event["type"] == "metadata":
                 yield f"METADATA:{json.dumps(event['data'])}\n\n"

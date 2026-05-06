@@ -25,6 +25,13 @@ class MemoryManager:
 
     def get_history(self, session_id: str):
         return self.store.get(session_id, [])
+    
+    def has_history(self, session_id: str) -> bool:
+        return bool(self.store.get(session_id))
+
+    def set_history(self, session_id: str, history: list):
+        max_messages = self.window_turns * 2
+        self.store[session_id] = history[-max_messages:]
 
     def clear(self, session_id: str):
         self.store.pop(session_id, None)

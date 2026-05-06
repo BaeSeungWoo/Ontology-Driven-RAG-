@@ -39,6 +39,7 @@ export async function askApi({
   llmModel,
   llmMode,
   promptNo,
+  restoreMemory = false,
   onChunk,
 }: AskRequest): Promise<AskResponse> {
   const response = await fetch(`${API_BASE_URL}/chat/${llmModel}`, {
@@ -52,6 +53,7 @@ export async function askApi({
       mode: llmMode,
       prompt_no: promptNo,
       prompt_id: "tech_expert",
+      restore_memory: restoreMemory,
     }),
   });
 

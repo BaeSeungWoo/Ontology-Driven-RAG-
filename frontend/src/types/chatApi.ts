@@ -8,6 +8,7 @@ export type AskRequest = {
   llmModel: LlmModel;
   llmMode: LlmMode;
   promptNo: number;
+  restoreMemory?: boolean;
   onChunk?: (chunk: string) => void;
 };
 
