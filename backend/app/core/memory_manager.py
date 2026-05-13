@@ -6,7 +6,7 @@ from collections import OrderedDict, defaultdict
 class MemoryManager:
     # 휘발성 세션 메모리.
     # 서버 프로세스가 살아 있는 동안만 유지되며, window_turns는 user+assistant 한 쌍을 1턴으로 본다.
-    def __init__(self, window_turns: int = 3, max_sessions: int = 1000):
+    def __init__(self, window_turns: int = 3, max_sessions: int = 100):
         self.store = defaultdict(list)
         # LRU eviction을 위해 세션 사용 순서를 보관한다.
         # 왼쪽이 가장 오래 안 쓴 세션, 오른쪽이 가장 최근 사용한 세션이다.
