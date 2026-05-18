@@ -127,3 +127,40 @@ class PromptManager:
         messages.append({"role": "user", "content": user_content})
 
         return messages
+
+    # summary 타입 프롬프트를 사용해 대화 메모리 압축용 messages를 조립한다.
+    def build_summary(
+        self,
+        prompt_id: str = "memory_summary",
+        history_text: str = "",
+    ) -> list:
+        cfg = self.registry.get(prompt_id) or self.registry["memory_summary"]
+
+        persona = cfg.get("persona", "")
+        summary_policy = cfg.get("summary_policy", [])
+        output_format = cfg.get("output_format", {})
+
+        system_sections = []
+
+        if persona:
+            system_sections.append(persona)
+
+        if summary_policy:
+            system_sections.append(
+                "[요약 규칙]\n" + "\n".join(f"- {rule}" for rule in summary_policy)
+            )
+
+        default_format = output_format.get("default", [])
+
+        if default_format:
+            system_sections.append(
+                "[출력 형식]\n" + "\n".join(f"- {item}" for item in default_format)
+            )
+
+        system_content = "\n\n".join(system_sections)
+        user_content = f"[압축 대상 대화]\n{history_text}"
+
+        return [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]

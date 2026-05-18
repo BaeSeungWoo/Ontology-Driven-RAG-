@@ -197,27 +197,10 @@ class RAGService:
         if not history_text:
             return ""
 
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "너는 대화 메모리를 압축하는 요약기다. "
-                    "이전 대화에서 이후 질문에 필요할 사실, 결정사항, 사용자의 의도, 미해결 이슈만 보존한다."
-                ),
-            },
-            {
-                "role": "user",
-                "content": (
-                    "[압축 대상 대화]\n"
-                    f"{history_text}\n\n"
-                    "[요약 지침]\n"
-                    "- 원문을 길게 반복하지 말고 핵심 맥락만 압축한다.\n"
-                    "- 숫자, 명칭, 조건, 사용자가 정한 정책은 유지한다.\n"
-                    "- 이후 답변에 필요 없는 인사말이나 중복 표현은 제거한다.\n"
-                    "- 한국어로 작성한다."
-                ),
-            },
-        ]
+        messages = self.prompt_manager.build_summary(
+            prompt_id="memory_summary",
+            history_text=history_text,
+        )
 
         try:
             return (await self.llm.ainvoke(messages)).strip()
