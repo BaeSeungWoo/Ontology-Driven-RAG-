@@ -54,6 +54,10 @@ class RAGService:
         if restore_memory and not history:
             restored_history = self._load_recent_history_from_db(session_id, question)
             self.memory_manager.set_history(session_id, restored_history)
+            await self._compress_memory(session_id, force=True)
+            history = self.memory_manager.get_history(session_id)
+        else:
+            await self._compress_memory(session_id)
             history = self.memory_manager.get_history(session_id)
 
         context = ""
@@ -174,6 +178,69 @@ class RAGService:
 
         max_messages = self.memory_manager.window_turns * 2
         return messages[-max_messages:]
+
+    async def _compress_memory(self, session_id: str, force: bool = False):
+        history = self.memory_manager.get_history(session_id)
+        if not history:
+            return
+        if not force and not self.memory_manager.should_summarize(session_id):
+            return
+
+        summary = await self._summarize_history(session_id, history)
+        if not summary:
+            return
+
+        self.memory_manager.replace_with_summary(session_id, summary)
+
+    async def _summarize_history(self, session_id: str, history: list) -> str:
+        history_text = self._format_history_for_summary(history)
+        if not history_text:
+            return ""
+
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "너는 대화 메모리를 압축하는 요약기다. "
+                    "이전 대화에서 이후 질문에 필요할 사실, 결정사항, 사용자의 의도, 미해결 이슈만 보존한다."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    "[압축 대상 대화]\n"
+                    f"{history_text}\n\n"
+                    "[요약 지침]\n"
+                    "- 원문을 길게 반복하지 말고 핵심 맥락만 압축한다.\n"
+                    "- 숫자, 명칭, 조건, 사용자가 정한 정책은 유지한다.\n"
+                    "- 이후 답변에 필요 없는 인사말이나 중복 표현은 제거한다.\n"
+                    "- 한국어로 작성한다."
+                ),
+            },
+        ]
+
+        try:
+            return (await self.llm.ainvoke(messages)).strip()
+        except Exception as e:
+            # 요약 실패가 실제 답변 흐름을 막지 않도록 기존 메모리를 그대로 사용한다.
+            print(f"memory summary error: session_id={session_id}, error={e}")
+            return ""
+
+    def _format_history_for_summary(self, history: list) -> str:
+        lines = []
+        for message in history:
+            role = message.get("role")
+            content = message.get("content")
+
+            if role not in ("user", "assistant"):
+                continue
+            if not content:
+                continue
+
+            label = "사용자" if role == "user" else "답변"
+            lines.append(f"{label}: {content}")
+
+        return "\n\n".join(lines)
 
 class DailyReportService:
     """MES 데일리 리포트 Chain 생성 서비스"""
