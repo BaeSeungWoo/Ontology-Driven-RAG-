@@ -59,30 +59,32 @@ class ChatRequest(BaseModel):
     mode: str = "base"          # base | rag | graph
     prompt_id: str = "tech_expert"
     prompt_no: int | None = None
+    restore_memory: bool = False
 
 @app.post("/chat/{factory_id}")
+# /chat은 HTTP 스트리밍 포맷만 담당한다.
+# 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
 async def chat_endpoint(factory_id: str, request: ChatRequest):
     service = get_service(factory_id)
     
+    # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
     if request.prompt_no is not None:
         user_prompt = database.getUserPrompt(request.prompt_no)
 
-    messages, imgs, tables, chunks = await service.prepare_context(
-        question = request.question, 
-        mode = request.mode, 
-        prompt_id = request.prompt_id, 
-        user_prompt = user_prompt,
-    )
-
-    print(f"[DEBUG] messages: {messages}")  # 추가
-
     async def event_generator():
-        # 기능: 토큰 스트리밍 전에 metadata를 먼저 전달한다.
-        # 목적: 프론트가 답변 저장 시 chunk/이미지/표 정보를 함께 보존하고 인용근거 패널에 활용하게 한다.
-        yield f"METADATA:{json.dumps({'images': imgs, 'tables': tables, 'chunks': chunks})}\n\n"
-        async for token in service.llm.astream(messages):
-            yield token
+        async for event in service.ask_stream(
+            session_id=request.session_id,
+            question=request.question,
+            mode=request.mode,
+            prompt_id=request.prompt_id,
+            user_prompt=user_prompt,
+            restore_memory=request.restore_memory,
+        ):
+            if event["type"] == "metadata":
+                yield f"METADATA:{json.dumps(event['data'])}\n\n"
+            elif event["type"] == "token":
+                yield event["data"]
 
     return StreamingResponse(
         event_generator(),

@@ -5,7 +5,8 @@ from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
 from app.core.retriever import KnowledgeRetriever
 from app.core.prompt_manager import PromptManager
-from app.core.memory_manger import MemoryManager
+from app.core.memory_manager import MemoryManager
+from app.database import database
 
 
 class RAGService:
@@ -16,6 +17,7 @@ class RAGService:
         self.prompt_manager = PromptManager()
         self.memory_manager = MemoryManager()
 
+    # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
         self,
         question: str,
@@ -36,6 +38,95 @@ class RAGService:
         )
         return messages, imgs, tables, chunks
 
+    # ask/ask_stream의 공통 준비함수
+    # session_id 기준으로 휘발성 memory history를 가져오고, RAG context/user_prompt와 함께 messages를 조립한다.
+    async def prepare_ask_context(
+        self,
+        session_id: str,
+        question: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        restore_memory: bool = False,
+    ) -> tuple[list, list, list, list]:
+        history = self.memory_manager.get_history(session_id)
+
+        if restore_memory and not history:
+            restored_history = self._load_recent_history_from_db(session_id, question)
+            self.memory_manager.set_history(session_id, restored_history)
+            await self._compress_memory(session_id, force=True)
+            history = self.memory_manager.get_history(session_id)
+        else:
+            await self._compress_memory(session_id)
+            history = self.memory_manager.get_history(session_id)
+
+        context = ""
+        imgs = []
+        tables = []
+        chunks = []
+
+        if mode != "base":
+            context, imgs, tables, chunks = self.retriever.get_context(question, mode)
+
+        messages = self.prompt_manager.build(
+            prompt_id=prompt_id,
+            question=question,
+            history=history,
+            context=context,
+            mode=mode,
+            user_prompt=user_prompt,
+        )
+
+        return messages, imgs, tables, chunks
+    
+    # Chat에서 실제 사용하는 정식 스트리밍 함수
+    # metadata를 먼저 보내고, 이후 LLM 토큰을 순차적으로 yield한다.
+    # 전체 답변이 끝난 뒤 현재 턴을 MemoryManager에 저장한다.
+    async def ask_stream(
+        self,
+        session_id: str,
+        question: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        restore_memory: bool = False
+    ):
+        # prepare_ask_context로 준비물 생성
+        # metadata 이벤트 먼저 yield
+        # LLM token을 하나씩 yield
+        # 마지막에 전체 답변을 memory에 저장
+
+        messages, imgs, tables, chunks = await self.prepare_ask_context(
+            session_id=session_id,
+            question=question,
+            mode=mode,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            restore_memory=restore_memory,
+        )
+
+        yield {
+            "type": "metadata",
+            "data": {
+                "images": imgs,
+                "tables": tables,
+                "chunks": chunks,
+            },
+        }
+
+        answer_parts = []
+
+        async for token in self.llm.astream(messages):
+            answer_parts.append(token)
+            yield {
+                "type": "token",
+                "data": token,
+            }
+
+        answer = "".join(answer_parts)
+        self.memory_manager.add_turn(session_id, question, answer)
+
+    # non-streaming/batch 용도로 남겨둔 후보 함수.
     async def ask(
         self,
         session_id: str,
@@ -44,35 +135,95 @@ class RAGService:
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
     ) -> str:
-        # 1. 이전 대화 기록 로드 (list 반환)
-        history = self.memory_manager.get_history(session_id)
-
-        # 2. 모드별 컨텍스트
-        context = ""
-        if mode != "base":
-            context, _, _, _ = self.retriever.get_context(question, mode)
-
-        # 3. 프롬프트 조립 → messages list
-        messages = self.prompt_manager.build(
-            prompt_id=prompt_id,
+        messages, imgs, tables, chunks = await self.prepare_ask_context(
+            session_id=session_id,
             question=question,
-            history=history,           
-            context=context,
             mode=mode,
+            prompt_id=prompt_id,
             user_prompt=user_prompt,
         )
-        # 4. LLM에 메시지 전달 후 답변 수신
-        answer_parts = []
-        async for token in self.llm.astream(messages):
-            answer_parts.append(token)
-        answer = "".join(answer_parts)
 
-        # 5. 대화 기록 저장
-        self.memory_manager.add_user_message(session_id, question)
-        self.memory_manager.add_ai_message(session_id, answer)
+        answer = await self.llm.ainvoke(messages)
 
-        return answer
+        self.memory_manager.add_turn(session_id, question, answer)
+        
+        return {
+            "answer": answer,
+            "metadata": {
+                "images": imgs,
+                "tables": tables,
+                "chunks": chunks,
+            },
+        }
     
+    def _load_recent_history_from_db(self, session_id: str, current_question: str) -> list:
+        rows = database.getChatMessagesBySession(int(session_id))
+
+        messages = []
+        for row in rows:
+            role = row[2]
+            content = row[3]
+
+            if role not in ("user", "assistant"):
+                continue
+            if not content:
+                continue
+
+            messages.append({"role": role, "content": content})
+
+        # 프론트가 /chat 호출 전에 현재 user message를 DB에 먼저 저장하므로,
+        # 마지막 user가 현재 질문이면 메모리 복원 대상에서 제외한다.
+        if messages and messages[-1]["role"] == "user" and messages[-1]["content"] == current_question:
+            messages.pop()
+
+        max_messages = self.memory_manager.window_turns * 2
+        return messages[-max_messages:]
+
+    async def _compress_memory(self, session_id: str, force: bool = False):
+        history = self.memory_manager.get_history(session_id)
+        if not history:
+            return
+        if not force and not self.memory_manager.should_summarize(session_id):
+            return
+
+        summary = await self._summarize_history(session_id, history)
+        if not summary:
+            return
+
+        self.memory_manager.replace_with_summary(session_id, summary)
+
+    async def _summarize_history(self, session_id: str, history: list) -> str:
+        history_text = self._format_history_for_summary(history)
+        if not history_text:
+            return ""
+
+        messages = self.prompt_manager.build_summary(
+            prompt_id="memory_summary",
+            history_text=history_text,
+        )
+
+        try:
+            return (await self.llm.ainvoke(messages)).strip()
+        except Exception as e:
+            # 요약 실패가 실제 답변 흐름을 막지 않도록 기존 메모리를 그대로 사용한다.
+            print(f"memory summary error: session_id={session_id}, error={e}")
+            return ""
+
+    def _format_history_for_summary(self, history: list) -> str:
+        lines = []
+        for message in history:
+            role = message.get("role")
+            content = message.get("content")
+
+            if role not in ("user", "assistant"):
+                continue
+            if not content:
+                continue
+
+            label = "사용자" if role == "user" else "답변"
+            lines.append(f"{label}: {content}")
+
+        return "\n\n".join(lines)
 
 class DailyReportService:
     """MES 데일리 리포트 Chain 생성 서비스"""
@@ -85,6 +236,7 @@ class DailyReportService:
 
     # ── 섹션 단위 LLM 호출 ────────────────────────────────────────────────────
 
+    # 리포트 섹션 생성은 채팅처럼 토큰 스트리밍이 필요 없으므로 ainvoke로 한 번에 생성한다.
     async def _generate_section(self, section: str, section_data: dict | list | str) -> str:
         data_str = (
             section_data
@@ -96,10 +248,8 @@ class DailyReportService:
             {"role": "system", "content": self._system_prompt},
             {"role": "user",   "content": prompt_text},
         ]
-        parts: list[str] = []
-        async for token in self.llm.astream(messages):
-            parts.append(token)
-        return "".join(parts)
+
+        return await self.llm.ainvoke(messages)
 
     # ── 출력 검증 ─────────────────────────────────────────────────────────────
 

@@ -55,6 +55,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [shouldRestoreMemory, setShouldRestoreMemory] = useState(false);
 
   // =========================
   // 함수
@@ -82,6 +83,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       setError(null);
       const sessionMessages = await getMessages(sessionId);
       setMessages(sessionMessages);
+      setShouldRestoreMemory(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "세션 메시지 조회 중 오류가 발생했습니다.";
       setError(`세션 로드 실패: ${message}`);
@@ -140,6 +142,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
 
     if (forceNewSession) {
       setMessages([]);
+      setShouldRestoreMemory(false);
     }
 
     setIsLoading(true);
@@ -205,6 +208,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         llmModel,
         llmMode,
         promptNo: prompt.prompt_no,
+        restoreMemory: shouldRestoreMemory,
         onChunk: (chunk) => {
           streamedAnswer += chunk;
           setMessages((prev) =>
@@ -232,6 +236,8 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         content: finalAnswer,
         metadata: metadataWithUsedChunks,
       });
+
+      setShouldRestoreMemory(false);
       onHistoryRefresh?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "질문 요청 중 오류가 발생했습니다.";

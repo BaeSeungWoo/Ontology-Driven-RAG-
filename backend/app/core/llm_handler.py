@@ -10,7 +10,12 @@ from google.genai import types
 from app.factories.config import LLMConfig
 
 class BaseLLM:
+    # astream(): 토큰 단위 스트리밍, ainvoke(): 전체 답변을 문자열로 반환.
+
     async def astream(self, messages: list):
+        raise NotImplementedError
+    
+    async def ainvoke(self, messages: list) -> str:
         raise NotImplementedError
 
 
@@ -38,6 +43,17 @@ class OpenAILLM(BaseLLM):
         async for chunk in stream:
             if chunk.choices[0].delta.content:
                 yield chunk.choices[0].delta.content
+
+    async def ainvoke(self, messages: list) -> str:
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+            stream=False,
+            temperature=self.temperature,
+            max_tokens=self.max_tokens,
+        )
+
+        return response.choices[0].message.content or ""
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -87,6 +103,35 @@ class OllamaLLM(BaseLLM):
                     )
                     if token:
                         yield token             
+
+    async def ainvoke(self, messages: list) -> str:
+        prompt = self._to_prompt(messages)
+
+        async with httpx.AsyncClient(timeout=None) as client:
+            response = await client.post(
+                f"{self.base_url}/api/generate",
+                json={
+                    "model": self.model,
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": self.temperature,
+                        "num_ctx": self.num_ctx,
+                        "num_predict": self.max_tokens,
+                    },
+                    "think": False,
+                },
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        return (
+            data.get("response")
+            or data.get("content")
+            or data.get("message", {}).get("content", "")
+            or ""
+        )
+
 
     @staticmethod
     def _to_prompt(messages: list) -> str:
@@ -152,6 +197,42 @@ class AnthropicLLM(BaseLLM):
                     except json.JSONDecodeError:
                         continue
 
+    async def ainvoke(self, messages: list) -> str:
+        system_prompt = next(
+            (m["content"] for m in messages if m["role"] == "system"), ""
+        )
+        user_messages = [
+            {"role": m["role"], "content": m["content"]}
+            for m in messages if m["role"] != "system"
+        ]
+
+        payload = {
+            "model": self.model,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "stream": False,
+            "messages": user_messages,
+        }
+        if system_prompt:
+            payload["system"] = system_prompt
+
+        headers = {
+            "x-api-key": self.api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+
+        async with httpx.AsyncClient(timeout=None) as client:
+            response = await client.post(self.url, headers=headers, json=payload)
+            response.raise_for_status()
+            data = response.json()
+
+        return "".join(
+            item.get("text", "")
+            for item in data.get("content", [])
+            if item.get("type") == "text"
+        )
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Google Gemini
@@ -199,6 +280,39 @@ class GoogleLLM(BaseLLM):
         for chunk in stream:
             if chunk.text:
                 yield chunk.text
+
+    async def ainvoke(self, messages: list) -> str:
+        system_prompt = next(
+            (m["content"] for m in messages if m["role"] == "system"), ""
+        )
+
+        contents = [
+            types.Content(
+                role="user" if m["role"] == "user" else "model",
+                parts=[types.Part(text=m["content"])],
+            )
+            for m in messages if m["role"] != "system"
+        ]
+
+        config = types.GenerateContentConfig(
+            temperature=self.temperature,
+            max_output_tokens=self.max_tokens,
+            system_instruction=system_prompt or None,
+        )
+
+        import asyncio
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(
+            None,
+            lambda: self.client.models.generate_content(
+                model=self.model,
+                contents=contents,
+                config=config,
+            )
+        )
+
+        return response.text or ""
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Provider Factory

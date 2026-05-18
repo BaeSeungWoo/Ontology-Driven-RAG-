@@ -12,11 +12,13 @@ class PromptManager:
         with path.open(encoding="utf-8") as f:
             self.registry: dict = json.load(f)
 
+    # DB 사용자 프롬프트는 system prompt가 아니라 user message의 하위 지시로 삽입한다.
+    # 역할/안전/인용 규칙은 registry.json의 system prompt가 우선한다.
     def build(
         self,
         prompt_id: str,                     # registry.json - ex) "tech_expert"
         question: str,                      # 사용자가 채팅창에 입력한 질문
-        history: list | None = None,                 # Memory_manager가 넘겨주는 이전 대화
+        history: list | None = None,        # Memory_manager가 넘겨주는 이전 대화
         context: str = "",                  # RAG/Graph 검색으로 가져온 참고 정보
         user_prompt: str | None = None,     # DB에서 가져온 사용자 정의 프롬프트
         mode: str = "base",                 # base | rag | graph
@@ -125,3 +127,40 @@ class PromptManager:
         messages.append({"role": "user", "content": user_content})
 
         return messages
+
+    # summary 타입 프롬프트를 사용해 대화 메모리 압축용 messages를 조립한다.
+    def build_summary(
+        self,
+        prompt_id: str = "memory_summary",
+        history_text: str = "",
+    ) -> list:
+        cfg = self.registry.get(prompt_id) or self.registry["memory_summary"]
+
+        persona = cfg.get("persona", "")
+        summary_policy = cfg.get("summary_policy", [])
+        output_format = cfg.get("output_format", {})
+
+        system_sections = []
+
+        if persona:
+            system_sections.append(persona)
+
+        if summary_policy:
+            system_sections.append(
+                "[요약 규칙]\n" + "\n".join(f"- {rule}" for rule in summary_policy)
+            )
+
+        default_format = output_format.get("default", [])
+
+        if default_format:
+            system_sections.append(
+                "[출력 형식]\n" + "\n".join(f"- {item}" for item in default_format)
+            )
+
+        system_content = "\n\n".join(system_sections)
+        user_content = f"[압축 대상 대화]\n{history_text}"
+
+        return [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]
