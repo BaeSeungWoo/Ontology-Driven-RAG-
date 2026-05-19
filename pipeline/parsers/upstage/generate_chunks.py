@@ -5,7 +5,7 @@ import re
 from typing import Any
 from pathlib import Path
 from collections import defaultdict 
-from assets import make_asset_path, export_table_assets, serialize_table_text, analyze_picture_policy, export_picture_assets
+from assets_upstage import make_asset_path, export_table_assets, serialize_table_text, analyze_picture_policy, export_picture_assets
 
 TEXT_LABELS_TO_SKIP = {"header", "footer"}
 

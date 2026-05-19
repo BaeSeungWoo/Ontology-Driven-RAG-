@@ -37,12 +37,12 @@ class ChunkBuilder:
         container = meta.get("container", {})
 
         return {
-            "chunk_id": chunk.get("chunk_id"),
-            "source_doc_name": source.get("doc_name"),
-            "section_title": section.get("title"),
+            "chunk_id": chunk.get("chunk_id") or "",
+            "source_doc_name": source.get("doc_name") or "",
+            "section_title": section.get("title") or "",
             "section_level": str(section.get("level")) if section.get("level") is not None else "0",
-            "page_range": pages.get("range"),
-            "container_type": container.get("type"),
+            "page_range": pages.get("range") or "",
+            "container_type": container.get("type") or "",
             "asset_path": container.get("asset_path") if container.get("asset_path") is not None else "",
         }
 

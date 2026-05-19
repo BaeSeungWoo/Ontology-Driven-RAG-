@@ -87,7 +87,7 @@ CONFIGS: Dict[str, Config] = {
 
     # ── A 공장 : Ollama 로컬 모델 ─────────────────────────────────────────────
     "ollama_config": Config(
-        id="A",
+        id="yunam",
         llm=LLMConfig(
             provider="ollama",
             # model_name="gpt-oss:20b",
@@ -103,20 +103,20 @@ CONFIGS: Dict[str, Config] = {
             model="qwen3-embedding:8b",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/A/chroma",
-            search_path="../pipeline/data/A/chroma",
+            db_path="./data/yunam/chroma",
+            search_path="../pipeline/data/yunam/chroma",
             retrieval_k=3,
             score_threshold=0.8,
         ),
         prompt=PromptConfig(
             default_prompt_id="tech_expert",
-            fallback_system_prompt="당신은 A 공장의 설비 유지보수 전문가입니다.",
+            fallback_system_prompt="당신은 연암 공장의 설비 유지보수 전문가입니다.",
         ),
     ),
 
     # ── B 공장 : OpenAI ───────────────────────────────────────────────────────
     "openai_config": Config(
-        id="B",
+        id="yulkok",
         llm=LLMConfig(
             provider="openai",
             model_name="gpt-4o",
@@ -128,20 +128,20 @@ CONFIGS: Dict[str, Config] = {
             base_url="http://192.168.1.180:11434",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/B/chroma",
-            search_path="../pipeline/data/B/chroma",
+            db_path="./data/yulkok/chroma",
+            search_path="../pipeline/data/yulkok/chroma",
             retrieval_k=7,
             score_threshold=0.6,
         ),
         prompt=PromptConfig(
             default_prompt_id="tech_expert",
-            fallback_system_prompt="당신은 B 공장의 정밀 공정 분석가입니다.",
+            fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
     ),
 
     # ── C 공장 : Anthropic ────────────────────────────────────────────────────
     "anthropic_config": Config(
-        id="C",
+        id="poongsan",
         llm=LLMConfig(
             provider="anthropic",
             model_name="claude-sonnet-4-6",
@@ -153,14 +153,14 @@ CONFIGS: Dict[str, Config] = {
             base_url="http://192.168.1.180:11434",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/C/chroma",
-            search_path="../pipeline/data/C/chroma",
+            db_path="./data/poongsan/chroma",
+            search_path="../pipeline/data/poongsan/chroma",
             retrieval_k=5,
             score_threshold=0.75,
         ),
         prompt=PromptConfig(
             default_prompt_id="tech_expert",
-            fallback_system_prompt="당신은 C 공장의 품질 관리 전문가입니다.",
+            fallback_system_prompt="당신은 풍산 공장의 품질 관리 전문가입니다.",
         ),
     ),
 

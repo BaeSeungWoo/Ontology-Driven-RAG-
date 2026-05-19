@@ -106,7 +106,7 @@ def get_picture_render_payload(picture_node: dict[str, Any], doc: fitz.Document)
 def analyze_picture_policy(
     picture_node: dict[str, Any], 
     pdf_path: str | Path, 
-    picture_render_scale: float, 
+    picture_render_scale: float = PICTURE_RENDER_SCALE, 
     small_picture_max_width: int = SMALL_PICTURE_MAX_WIDTH, 
     small_picture_max_height: int = SMALL_PICTURE_MAX_HEIGHT) -> dict[str, Any]:
     """PDF 내 이미지들의 크기와 렌더링 가능 여부에 따라 추출 여부 반환

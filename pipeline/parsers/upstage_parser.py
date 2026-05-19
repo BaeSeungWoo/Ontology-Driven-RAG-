@@ -67,10 +67,10 @@ class UpstageParser:
                     >>> output_dir/merged_jsons/삼성화재.json   
         """
         input_pdf_path = Path(pdf_path)
-        split_pdf_root_dir = output_dir / "split_pdfs"
-        async_result_root_dir = output_dir / "async_results"
-        batch_json_root_dir = output_dir / "batch_jsons"
-        merged_output_dir = output_dir / "merged_jsons"
+        split_pdf_root_dir = Path(output_dir) / "split_pdfs"
+        async_result_root_dir = Path(output_dir) / "async_results"
+        batch_json_root_dir = Path(output_dir) / "batch_jsons"
+        merged_output_dir = Path(output_dir) / "merged_jsons"
 
         divise_dir = div_pdf.split_all_pdfs_in_folder(
             pdf_path=input_pdf_path,
@@ -107,7 +107,7 @@ class UpstageParser:
         upstage_data = self._extract(pdf_path=pdf_path, output_dir=extract_dir)
         if not upstage_data:
             return None
-        chunks = process_document(pdf_path=pdf_path, asset_root=asset_dir, data=upstage_data)
+        chunks = process_document(pdf_path=pdf_path, asset_dir=asset_dir, data=upstage_data)
         output_path = Path(struct_dir) / f"{Path(pdf_path).stem}.jsonl"
         save_jsonl(chunks, output_path)
         return chunks
