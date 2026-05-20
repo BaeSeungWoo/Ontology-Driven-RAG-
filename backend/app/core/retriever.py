@@ -13,7 +13,7 @@ class KnowledgeRetriever:
         )
         self.embedding_fn = load_embeddings(config=self.config)
         self.collection = self.chroma.get_or_create_collection(
-            name="test_a",
+            name=self.config.id,
             embedding_function=self.embedding_fn,
         )
 

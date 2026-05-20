@@ -4,7 +4,7 @@ import json
 import uvicorn
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -33,10 +33,11 @@ if ASSET_ROOT.exists():
 # Frontend(Next.js)에서 오는 브라우저 요청 허용
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    # allow_origins=[
+    #     "http://localhost:3000",
+    #     "http://127.0.0.1:3000",
+    # ],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -64,8 +65,12 @@ class ChatRequest(BaseModel):
 @app.post("/chat/{factory_id}")
 # /chat은 HTTP 스트리밍 포맷만 담당한다.
 # 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
-async def chat_endpoint(factory_id: str, request: ChatRequest):
+async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: Request):
     service = get_service(factory_id)
+
+    # 클라이언트 ip 확인
+    user_ip = client_request.client.host if client_request.client else "IP 확인 불가"
+    print(f"{user_ip}에서 LLM에 질문 요청을 보냈습니다.")
     
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None

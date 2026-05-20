@@ -29,18 +29,16 @@ class SiteAParser(BaseParser):
         """일반 텍스트 PDF 매뉴얼 — Docling으로 섹션 구조 보존."""
         docs = self._docling.parse(pdf_path=file_path,output_dir=source_dir)
         for doc in docs:
-            doc["metadata"]["site"] = "A"
+            doc["metadata"]["site"] = "yunam"
         return docs
 
     # ── 스캔본 (Upstage) ──────────────────────────────────────────────
 
-    def parse_scanned(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_scanned(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """스캔 이미지 PDF — Upstage OCR로 텍스트 추출."""
-        with Path(file_path).open("r", encoding="utf-8") as f:
-            data = json.load(f)
-            docs = self._upstage.parse(data)
+        docs = self._upstage.parse(pdf_path=file_path,output_dir=source_dir)
         for doc in docs:
-            doc["metadata"]["site"] = "A"
+            doc["metadata"]["site"] = "yunam"
         return docs
 
     # ── 도면 (PyMuPDF) ────────────────────────────────────────────────
@@ -59,7 +57,7 @@ class SiteAParser(BaseParser):
                 content=text,
                 source=file_path,
                 doc_type="drawing",
-                site="A",
+                site="yunam",
                 page=page_num,
                 drawing_id=self._extract_drawing_id(text),
                 has_image=len(page.get_images()) > 0,

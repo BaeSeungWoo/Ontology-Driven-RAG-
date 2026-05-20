@@ -37,8 +37,8 @@ class VectorDBBuilder:
         self.vectordb_client = chromadb.PersistentClient(path=self.config.vector_db.db_path)
         self.embedding = load_embeddings(self.config)
         self.collection = self.vectordb_client.get_or_create_collection(
-            # name=self.config.id,
-            name="test_a",
+            name=self.config.id,
+            # name="test_a",
             embedding_function=self.embedding,
             metadata={"hnsw:space": "cosine"}
         )

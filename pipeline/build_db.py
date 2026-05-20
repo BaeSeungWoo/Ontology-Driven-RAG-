@@ -7,49 +7,49 @@ from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
 SITE_SETTINGS = {
-    "A": {
+    "yunam": {
         "adapter": SiteAParser(),
         "sources": {
             "drawing": {
-                "input": "./data/A/drawings/inputs",
-                "extract": "./data/A/drawings/extract",
-                "struct": "./data/A/drawings/struct",
-                "asset": "./data/A/drawings/asset"
+                "input": "./data/yunam/drawings/inputs",
+                "extract": "./data/yunam/drawings/extract",
+                "struct": "./data/yunam/drawings/struct",
+                "asset": "./data/yunam/drawings/asset"
             },
             "manual":  {
-                "input": "./data/A/manuals/inputs",
-                "extract": "./data/A/manuals/extract",
-                "struct": "./data/A/manuals/struct",
-                "asset": "./data/A/manuals/asset"
+                "input": "./data/yunam/manuals/inputs",
+                "extract": "./data/yunam/manuals/extract",
+                "struct": "./data/yunam/manuals/struct",
+                "asset": "./data/yunam/manuals/asset"
             },     # 일반 PDF → Docling
             "scanned": {
-                "input": "./data/A/scanned/inputs",
-                "extract": "./data/A/scanned/extract",
-                "struct": "./data/A/scanned/struct",
-                "asset": "./data/A/scanned/asset"
+                "input": "./data/yunam/scanned/inputs",
+                "extract": "./data/yunam/scanned/extract",
+                "struct": "./data/yunam/scanned/struct",
+                "asset": "./data/yunam/scanned/asset"
             },     # 스캔본  → Upstage
         },
     },
-    "B": {
+    "yulkok": {
         "adapter": SiteBParser(),
         "sources": {
             "drawing": {
-                "input": "./data/B/drawings/inputs",
-                "extract": "./data/B/drawings/extract",
-                "struct": "./data/B/drawings/struct",
-                "asset": "./data/B/drawings/asset"
+                "input": "./data/yulkok/drawings/inputs",
+                "extract": "./data/yulkok/drawings/extract",
+                "struct": "./data/yulkok/drawings/struct",
+                "asset": "./data/yulkok/drawings/asset"
             },
             "manual":  {
-                "input": "./data/B/manuals/inputs",
-                "extract": "./data/B/manuals/extract",
-                "struct": "./data/B/manuals/struct",
-                "asset": "./data/B/manuals/asset"
+                "input": "./data/yulkok/manuals/inputs",
+                "extract": "./data/yulkok/manuals/extract",
+                "struct": "./data/yulkok/manuals/struct",
+                "asset": "./data/yulkok/manuals/asset"
             },     # PDF + Excel → Docling / openpyxl
             "scanned": {
-                "input": "./data/B/scanned/inputs",
-                "extract": "./data/B/scanned/extract",
-                "struct": "./data/B/scanned/struct",
-                "asset": "./data/B/scanned/asset"
+                "input": "./data/yulkok/scanned/inputs",
+                "extract": "./data/yulkok/scanned/extract",
+                "struct": "./data/yulkok/scanned/struct",
+                "asset": "./data/yulkok/scanned/asset"
             },     # 스캔본  → Upstage   
         },
     },
