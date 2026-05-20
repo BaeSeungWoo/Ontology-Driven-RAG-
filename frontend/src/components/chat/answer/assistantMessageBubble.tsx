@@ -176,7 +176,7 @@ export default function AssistantMessageBubble({
                   const citationMatch = href?.match(/^#chunk-(\d+)$/);
                   const isCitationActive =
                     isCitation &&
-                    citationMatch !== null &&
+                    citationMatch &&
                     Number(citationMatch[1]) === selectedCitationChunkIndex;
                   return (
                     <a
