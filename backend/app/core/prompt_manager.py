@@ -18,6 +18,7 @@ class PromptManager:
         self,
         prompt_id: str,                     # registry.json - ex) "tech_expert"
         question: str,                      # 사용자가 채팅창에 입력한 질문
+        m_info: dict,                       # 장비정보
         history: list | None = None,        # Memory_manager가 넘겨주는 이전 대화
         context: str = "",                  # RAG/Graph 검색으로 가져온 참고 정보
         user_prompt: str | None = None,     # DB에서 가져온 사용자 정의 프롬프트
@@ -49,7 +50,7 @@ class PromptManager:
         # if cfg.get("type") != "chat_rag":
         #     cfg = self.registry["tech_expert"]
 
-        persona = system_override or cfg.get("persona", "")
+        persona = system_override or cfg.get("persona", "")    
         response_policy = cfg.get("response_policy", [])
         rag_policy = cfg.get("rag_policy", [])
         citation_policy = cfg.get("citation_policy", [])
@@ -58,6 +59,24 @@ class PromptManager:
 
         # system 메시지 조립
         system_sections = []
+
+        # 장비 정보 등록 예시
+        # [장비 정보]
+        # - 장비명: LCV-6700 #1
+        # - IP: 192.168.1.10
+        # - 제조사: SMEC
+        # - 컨트롤러: 화낙
+        # - 버전: 0i-MF
+        if m_info:
+            machine_lines = [                
+                "장비명: " + m_info.get('machine_name'),
+                "IP: " +  m_info.get('machine_ip'),
+                "제조사: " +  m_info.get('machine_maker'),
+                "컨트롤러: " +  m_info.get('machine_controller'),
+                "버전: " +  m_info.get('machine_ver'),
+            ]
+
+            system_sections.append("[장비 정보]\n" + "\n".join(machine_lines))
 
         if persona:
             system_sections.append(persona)
@@ -120,6 +139,8 @@ class PromptManager:
         user_parts.append(f"[질문]\n{question}")
 
         user_content = "\n\n".join(user_parts)
+
+        print(f"system_content : {system_content}")
 
         # ✅ messages 리스트 반환 — llm_handler.astream()과 규격 통일
         messages = [{"role": "system", "content": system_content}]

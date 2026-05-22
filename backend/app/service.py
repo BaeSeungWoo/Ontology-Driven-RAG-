@@ -1,6 +1,8 @@
 # backend/app/service.py
 import json
 import re
+
+from pydantic.v1 import ConfigDict
 from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
 from app.core.retriever import KnowledgeRetriever
@@ -13,9 +15,9 @@ class RAGService:
     def __init__(self, config: Config):
         self.config = config
         self.llm = LLMProvider.get_model(config)
-        self.retriever = KnowledgeRetriever(config)
-        self.prompt_manager = PromptManager()
         self.memory_manager = MemoryManager()
+        self.prompt_manager = PromptManager()
+        self.retriever = KnowledgeRetriever(config)
 
     # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
@@ -44,11 +46,13 @@ class RAGService:
         self,
         session_id: str,
         question: str,
+        user_ip: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         restore_memory: bool = False,
     ) -> tuple[list, list, list, list]:
+
         history = self.memory_manager.get_history(session_id)
 
         if restore_memory and not history:
@@ -65,8 +69,21 @@ class RAGService:
         tables = []
         chunks = []
 
+        machine_code = "UnKnown Code"
+        machine_name = ""
+        m_info = {}
+
+        for code, m_info in self.config.machines.items():
+            if m_info.get("machine_ip") == user_ip:
+                machine_code = code
+                m_info = m_info
+                break
+        if m_info:
+            machine_name = m_info.get('machine_name', 'UnKnown Name')
+        print(f"일치하는 장비 코드 및 이름 : {machine_code}, {machine_name}")
+
         if mode != "base":
-            context, imgs, tables, chunks = self.retriever.get_context(question, mode)
+            context, imgs, tables, chunks = self.retriever.get_context(question, mode, machine_code)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,
@@ -75,6 +92,7 @@ class RAGService:
             context=context,
             mode=mode,
             user_prompt=user_prompt,
+            m_info=m_info
         )
 
         return messages, imgs, tables, chunks
@@ -86,10 +104,11 @@ class RAGService:
         self,
         session_id: str,
         question: str,
+        user_ip: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
-        restore_memory: bool = False
+        restore_memory: bool = False,
     ):
         # prepare_ask_context로 준비물 생성
         # metadata 이벤트 먼저 yield
@@ -103,6 +122,7 @@ class RAGService:
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             restore_memory=restore_memory,
+            user_ip=user_ip
         )
 
         yield {

@@ -1,0 +1,432 @@
+{
+  "M003": {
+    "machine_name": "OKUMA #1",
+    "machine_ip": "172.16.10.3",
+    "document": [],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB"
+  },
+  "M004": {
+    "machine_name": "OKUMA #4",
+    "machine_ip": "172.16.10.4",
+    "document": [
+      "연암(OKUMA#4)_JPY  OCUMA #4 VMP_10 보수설명서-162P"
+    ],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB"
+  },
+  "M005": {
+    "machine_name": "DHF8000",
+    "machine_ip": "172.16.10.5",
+    "document": [],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5"
+  },
+  "M006": {
+    "machine_name": "DMU85 #1",
+    "machine_ip": "172.16.10.6",
+    "document": [
+      "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p",
+      "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p",
+      "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
+      "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640"
+  },
+  "M007": {
+    "machine_name": "HERMLE C42",
+    "machine_ip": "172.16.10.7",
+    "document": [
+      "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006 eg부록 2 1A 1061P"
+    ],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M008": {
+    "machine_name": "HERMLE C30",
+    "machine_ip": "172.16.10.8",
+    "document": [
+      "연암(HERMLE C30)_EN HERMLE C30UOperating manual iTNC 530 1050p"
+    ],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M009": {
+    "machine_name": "HERMLE C40",
+    "machine_ip": "172.16.10.9",
+    "document": [
+      "연암(HERMLE C40)_EN HERMLE C40U Operating manual iTNC 530 1004p"
+    ],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M012": {
+    "machine_name": "VC630/5AX #2",
+    "machine_ip": "172.16.10.12",
+    "document": [],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-A5"
+  },
+  "M013": {
+    "machine_name": "DMU125P #1",
+    "machine_ip": "172.16.10.13",
+    "document": [
+      "연암(DMU125P#1)_EN vDMU 125 P duoBLOCK 1호기 장비메뉴얼 682p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M014": {
+    "machine_name": "DMU125P #2",
+    "machine_ip": "172.16.10.14",
+    "document": [],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M015": {
+    "machine_name": "WIA L280",
+    "machine_ip": "172.16.10.15",
+    "document": [],
+    "machine_maker": "현대위아",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D"
+  },
+  "M016": {
+    "machine_name": "HI-TECH 300S",
+    "machine_ip": "172.16.10.16",
+    "document": [],
+    "machine_maker": "화천기계",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-T"
+  },
+  "M017": {
+    "machine_name": "PUMA 350LB",
+    "machine_ip": "172.16.10.17",
+    "document": [],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "18T"
+  },
+  "M019": {
+    "machine_name": "OKUMA #6",
+    "machine_ip": "172.16.10.1",
+    "document": [],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB"
+  },
+  "M020": {
+    "machine_name": "OKUMA #8",
+    "machine_ip": "172.16.10.20",
+    "document": [],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB"
+  },
+  "M021": {
+    "machine_name": "DMU85 #3",
+    "machine_ip": "172.16.10.21",
+    "document": [
+      "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p",
+      "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p",
+      "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
+      "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M022": {
+    "machine_name": "DMU85 #2",
+    "machine_ip": "172.16.10.22",
+    "document": [
+      "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p",
+      "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p",
+      "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
+      "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640"
+  },
+  "M023": {
+    "machine_name": "DMU60 EVO",
+    "machine_ip": "172.16.10.23",
+    "document": [
+      "연암(DMU60 EVO)_EN DMU 60eVo Heidenhain iTMC 530 장비매뉴얼 588p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M024": {
+    "machine_name": "GROB G550",
+    "machine_ip": "172.16.10.47",
+    "document": [],
+    "machine_maker": "GROB",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M025": {
+    "machine_name": "MYNX6500 #2",
+    "machine_ip": "172.16.10.25",
+    "document": [],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD"
+  },
+  "M026": {
+    "machine_name": "MYNX6500 #1",
+    "machine_ip": "172.16.10.26",
+    "document": [],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MB"
+  },
+  "M027": {
+    "machine_name": "MYNX7500",
+    "machine_ip": "172.16.10.27",
+    "document": [],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD"
+  },
+  "M028": {
+    "machine_name": "SIRIUS7050",
+    "machine_ip": "172.16.10.28",
+    "document": [],
+    "machine_maker": "화천기공",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD"
+  },
+  "M029": {
+    "machine_name": "NT10/12F VTL",
+    "machine_ip": "172.16.10.29",
+    "document": [],
+    "machine_maker": "한국정밀기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B"
+  },
+  "M030": {
+    "machine_name": "KTC14/16F #2",
+    "machine_ip": "172.16.10.30",
+    "document": [],
+    "machine_maker": "KDM",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-T"
+  },
+  "M031": {
+    "machine_name": "KTC14/16F #1",
+    "machine_ip": "172.16.10.31",
+    "document": [],
+    "machine_maker": "KDM",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-T"
+  },
+  "M032": {
+    "machine_name": "DMU75",
+    "machine_ip": "172.16.10.48",
+    "document": [
+      "연암(DMU75)_GER DMG MORI operating instructions 1 584p",
+      "연암(DMU75)_GER DMG MORI operating instructions 2 706p"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M033": {
+    "machine_name": "STARRAG #3",
+    "machine_ip": "172.16.10.49",
+    "document": [],
+    "machine_maker": "STARRAG",
+    "machine_controller": "지멘스",
+    "machine_ver": "SL"
+  },
+  "M034": {
+    "machine_name": "MILACRON T35 #2",
+    "machine_ip": "172.16.10.34",
+    "document": [
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p",
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
+      "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
+    ],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950"
+  },
+  "M035": {
+    "machine_name": "MILACRON T35 #1",
+    "machine_ip": "172.16.10.35",
+    "document": [
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p",
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
+      "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
+    ],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950"
+  },
+  "M036": {
+    "machine_name": "H-5",
+    "machine_ip": "172.16.10.50",
+    "document": [],
+    "machine_maker": "MAG CINCINNATI",
+    "machine_controller": "지멘스",
+    "machine_ver": "PL"
+  },
+  "M039": {
+    "machine_name": "HAS-628",
+    "machine_ip": "172.16.10.39",
+    "document": [],
+    "machine_maker": "HARTFORD",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-MB"
+  },
+  "M040": {
+    "machine_name": "APEC G3080",
+    "machine_ip": "172.16.10.40",
+    "document": [
+      "연암(APEC G3080)_EN G Series Electrical Operation Manual Heidenhain iTNC530-99p",
+      "연암(APEC G3080)_EN G Series Operation and Maintenance Manual(Original instruction) 98P"
+    ],
+    "machine_maker": "APEC",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M041": {
+    "machine_name": "HAS-423",
+    "machine_ip": "172.16.10.41",
+    "document": [],
+    "machine_maker": "HARTFORD",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF"
+  },
+  "M042": {
+    "machine_name": "KEN B4060",
+    "machine_ip": "172.16.10.51",
+    "document": [
+      "연암(KEN B4060)_KR KEN ICHI MACHINE 작동 및 유지보수 매뉴얼 lIN MAX 시리즈 GSB-4060(5-AX)-186p"
+    ],
+    "machine_maker": "KEN",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M043": {
+    "machine_name": "STARRAG #2",
+    "machine_ip": "172.16.10.43",
+    "document": [],
+    "machine_maker": "STARRAG",
+    "machine_controller": "지멘스",
+    "machine_ver": "PL"
+  },
+  "M044": {
+    "machine_name": "C400",
+    "machine_ip": "172.16.10.52",
+    "document": [],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M045": {
+    "machine_name": "C42-2",
+    "machine_ip": "172.16.10.53",
+    "document": [],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M046": {
+    "machine_name": "C32",
+    "machine_ip": "172.16.10.54",
+    "document": [
+      "연암(C32) c32u 장비메뉴얼 267p"
+    ],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M047": {
+    "machine_name": "MILACRON T35 #3",
+    "machine_ip": "172.16.10.55",
+    "document": [
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p",
+      "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
+      "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
+    ],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950"
+  },
+  "M048": {
+    "machine_name": "DMU160",
+    "machine_ip": "172.16.10.56",
+    "document": [
+      "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part1",
+      "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part3"
+    ],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530"
+  },
+  "M049": {
+    "machine_name": "LCV-6700 #1",
+    "machine_ip": "192.168.1.10",
+    "document": [
+      "B-64602EN_01_0i-F_Descriptions",
+      "B-64603EN_01_0i-F_Connection(Hardware)",
+      "B-64604EN_01_0i-F_Common_OP",
+      "B-64604EN-1_01_0i-F_Lathe",
+      "B-64604EN-2_01_0i-F_Machining Center",
+      "B-64605EN_01_0i-F_Mainternance",
+      "B-64610EN_01_0i-F_Parameter",
+      "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p"
+    ],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF"
+  },
+  "M050": {
+    "machine_name": "LCV-6700 #2",
+    "machine_ip": "192.168.1.31",
+    "document": [
+      "B-64602EN_01_0i-F_Descriptions",
+      "B-64603EN_01_0i-F_Connection(Hardware)",
+      "B-64604EN_01_0i-F_Common_OP",
+      "B-64604EN-1_01_0i-F_Lathe",
+      "B-64604EN-2_01_0i-F_Machining Center",
+      "B-64605EN_01_0i-F_Mainternance",
+      "B-64610EN_01_0i-F_Parameter",
+      "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p"
+    ],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF"
+  },
+  "M051": {
+    "machine_name": "DHF8000 #2",
+    "machine_ip": "172.16.10.57",
+    "document": [],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5"
+  },
+  "M052": {
+    "machine_name": "APEC SK3060",
+    "machine_ip": "172.16.10.60",
+    "document": [],
+    "machine_maker": "APEC",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640"
+  }
+}

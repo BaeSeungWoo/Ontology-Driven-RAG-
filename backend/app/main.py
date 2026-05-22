@@ -54,6 +54,21 @@ def get_service(factory_id: str) -> RAGService:
         services[factory_id] = RAGService(cfg)
     return services[factory_id]
 
+# nginx 등 리버스 프록시 대응
+def get_client_ip_nginx(request: Request) -> str:
+    # 프록시 서버 헤더 확인 (확인용 출력 문구)
+    # print("--- [모든 헤더 출력 시작] ---")
+    # for header_name, header_value in request.headers.items():
+    #     print(f"{header_name}: {header_value}")
+    # print("--- [모든 헤더 출력 끝] ---")
+
+    forwarded = request.headers.get("X-Forwarded-For")
+    # 헤더 있으면 헤더 안 ip 출력
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    # 프록시 헤더 x 시 기존 ip 출력
+    return request.client.host if request.client else "Unknown IP"
+
 class ChatRequest(BaseModel):
     session_id: str
     question: str
@@ -62,16 +77,16 @@ class ChatRequest(BaseModel):
     prompt_no: int | None = None
     restore_memory: bool = False
 
-@app.post("/chat/{factory_id}")
+@app.post("/api/chat/{factory_id}")
 # /chat은 HTTP 스트리밍 포맷만 담당한다.
 # 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
 async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: Request):
+    # 클라이언트 ip 확인
+    user_ip = get_client_ip_nginx(client_request)
+    print(f"{user_ip}에서 LLM에 질문 요청을 보냈습니다.")
+
     service = get_service(factory_id)
 
-    # 클라이언트 ip 확인
-    user_ip = client_request.client.host if client_request.client else "IP 확인 불가"
-    print(f"{user_ip}에서 LLM에 질문 요청을 보냈습니다.")
-    
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
     if request.prompt_no is not None:
@@ -85,6 +100,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             prompt_id=request.prompt_id,
             user_prompt=user_prompt,
             restore_memory=request.restore_memory,
+            user_ip=user_ip
         ):
             if event["type"] == "metadata":
                 yield f"METADATA:{json.dumps(event['data'])}\n\n"

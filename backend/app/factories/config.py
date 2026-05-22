@@ -2,6 +2,8 @@
 
 from dataclasses import dataclass, field
 from typing import Dict, Optional
+import json
+from pathlib import Path
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -65,6 +67,10 @@ class PromptConfig:
 #  최상위 통합 설정
 # ──────────────────────────────────────────────────────────────────────────────
 
+MACHINE_INFO_PATH = Path(__file__).resolve().parent / "machine_info.json"
+with MACHINE_INFO_PATH.open("r", encoding="utf-8-sig") as f:
+    machine_info = json.load(f)
+
 @dataclass
 class Config:
     id: str                                 # 공장 식별자 — URL /chat/{id} 와 일치
@@ -73,6 +79,7 @@ class Config:
     vector_db: VectorDBConfig  = field(default_factory=VectorDBConfig)
     prompt: PromptConfig       = field(default_factory=PromptConfig)
     graph_db_url: Optional[str] = None
+    machines: dict[str, dict] = field(default_factory=dict)
 
     def get_embedding_base_url(self) -> str:
         return self.embedding.resolve_base_url(self.llm.base_url)
@@ -112,6 +119,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 연암 공장의 설비 유지보수 전문가입니다.",
         ),
+        machines=machine_info
     ),
 
     # ── B 공장 : OpenAI ───────────────────────────────────────────────────────
@@ -137,6 +145,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
+        machines=machine_info
     ),
 
     # ── C 공장 : Anthropic ────────────────────────────────────────────────────
@@ -162,6 +171,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 풍산 공장의 품질 관리 전문가입니다.",
         ),
+        machines=machine_info
     ),
 
     # ── D 공장 : Google Gemini ────────────────────────────────────────────────
@@ -187,5 +197,6 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 D 공장의 자동화 설비 전문가입니다.",
         ),
+        machines=machine_info
     ),
 }

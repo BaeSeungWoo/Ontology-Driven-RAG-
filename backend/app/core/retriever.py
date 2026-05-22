@@ -12,17 +12,23 @@ class KnowledgeRetriever:
             path=self.config.vector_db.search_path
         )
         self.embedding_fn = load_embeddings(config=self.config)
-        self.collection = self.chroma.get_or_create_collection(
-            name=self.config.id,
-            embedding_function=self.embedding_fn,
-        )
 
-    def get_context(self, query: str, mode: str) -> tuple[str, list, list, list]:
+        # self.collection = self.chroma.get_or_create_collection(
+        #     name=f"{self.config.id}_{machine_code}",
+        #     embedding_function=self.embedding_fn,
+        # )
+
+    def get_context(self, query: str, mode: str, machine_code: str) -> tuple[str, list, list, list]:
         """Build retrieval context and metadata for LLM + UI."""
         if mode == "base":
             return "", [], [], []
 
-        results = self.collection.query(
+        collection = self.chroma.get_or_create_collection(
+            name=f"{self.config.id}_{machine_code}",
+            embedding_function=self.embedding_fn,
+        )
+
+        results = collection.query(
             query_texts=[query],
             n_results=self.config.vector_db.retrieval_k,
             include=["documents", "metadatas", "distances"],
