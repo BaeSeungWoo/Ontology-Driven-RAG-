@@ -42,7 +42,7 @@ export async function askApi({
   restoreMemory = false,
   onChunk,
 }: AskRequest): Promise<AskResponse> {
-  const response = await fetch(`${API_BASE_URL}/chat/${llmModel}`, {
+  const response = await fetch(`${API_BASE_URL}/api/chat/${llmModel}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
