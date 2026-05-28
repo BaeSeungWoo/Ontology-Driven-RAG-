@@ -25,7 +25,7 @@ class VectorDBBuilder:
         "manual":  "parse_manual",
         "scanned": "parse_scanned",
         "drawing": "parse_drawing",
-        "excel": "parse_excel"
+        "text": "parse_text"
     }
 
     def __init__(self, config: Config, adapter: BaseParser):
@@ -45,19 +45,8 @@ class VectorDBBuilder:
             for doc_name in info.get("document", []):
                 key = doc_name
                 self._doc_to_machine.setdefault(key, []).append(machine_code)
-        # self.collection = self.vectordb_client.get_or_create_collection(
-        #     name=self.config.id,
-        #     # name="test_a",
-        #     embedding_function=self.embedding,
-        #     metadata={"hnsw:space": "cosine"}
-        # )
-    
-    def _get_collection_name(self, machine_code: str) -> str:
-        return f"{self.config.id}_{machine_code}"
-
-    def _get_collection(self, machine_code: str):
-        return self.vectordb_client.get_or_create_collection(
-            name=self._get_collection_name(machine_code),
+        self.collection = self.vectordb_client.get_or_create_collection(
+            name=self.config.id,
             embedding_function=self.embedding,
             metadata={"hnsw:space": "cosine"}
         )
@@ -72,12 +61,12 @@ class VectorDBBuilder:
         if key in self._doc_to_machine:
             return self._doc_to_machine[key]
 
-        # 부분 매칭 fallback: JSON 문서명이 source_doc_name을 포함하거나 그 반대
-        for doc_name, machine_code in self._doc_to_machine.items():
+        matched: list[str] = []
+        for doc_name, machine_codes in self._doc_to_machine.items():
             if key in doc_name or doc_name in key:
-                return machine_code
+                matched.extend(machine_codes)
 
-        return None  # 매칭 실패
+        return sorted(set(matched))
 
     def build_from(self, source_dir: dict[str, Any], doc_type: str, reset: bool = False):
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 후 
@@ -134,36 +123,22 @@ class VectorDBBuilder:
             return
 
         # 1) machine_code별 그룹핑
-        groups: dict[str, list[dict[str, Any]]] = {}
-        unmatched: list[dict[str, Any]] = []
+        prepared_chunks: list[dict[str, Any]] = []
 
         for chunk in chunks:
             source_doc_name = chunk["metadata"].get("source_doc_name", "")
-            machine_code = self._resolve_machine_code(source_doc_name)
+            machine_codes = self._resolve_machine_code(source_doc_name)
 
-            if machine_code is None:
-                unmatched.append(chunk)
-                continue
+            machine_code_value = ",".join(machine_codes) if machine_codes else ""
 
-            codes = machine_code if isinstance(machine_code, list) else [machine_code]
-            for code in codes:
-                groups.setdefault(code, []).append(chunk)
+            chunk = dict(chunk)
+            metadata = dict(chunk["metadata"])
+            metadata["machine_code"] = machine_code_value
+            chunk["metadata"] = metadata
 
-        if unmatched:
-            print(
-                f"[경고] machine_code 매칭 실패 청크 {len(unmatched)}개 — "
-                "source_doc_name을 JSON document 목록과 비교해 확인하세요."
-            )
+            prepared_chunks.append(chunk)
 
-        # 2) 그룹별 upsert
-        for machine_code, group_chunks in groups.items():
-            collection = self._get_collection(machine_code)
-            print(
-                f"  [{machine_code}] collection: {self._get_collection_name(machine_code)}, "
-                f"청크 수: {len(group_chunks)}"
-            )
-            self._upsert(collection, group_chunks)
-
+        self._upsert(self.collection, prepared_chunks)
         print(f"[{self.config.id}] 저장 완료 → {self.config.vector_db.db_path}")
 
     def _upsert(self, collection, chunks: list[dict[str, Any]]):
