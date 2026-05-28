@@ -123,13 +123,13 @@ def updatePrompt(updatePrompt) :
 
 # 대화 이력(세션 정보) 목록 조회
 @with_thread_pool("db")
-def getHistoryList():
+def getHistoryList(machine_code):
     try:
         with get_db_connection() as conn:
             conn.autocommit = True
             cursor = conn.cursor()
             proc_name = "dbo.WAFC_WEB_HISTORY_SEL01_SP"
-            exec_stored_proc(cursor, proc_name)
+            exec_stored_proc(cursor, proc_name, (machine_code,))
             results = cursor.fetchall()
             cursor.close()
     except Exception as e:
@@ -143,7 +143,7 @@ def getHistoryList():
 # - 1st result set: rows (SESSION_ID, QUESTIONER, TITLE, LLM_MODEL, LLM_MODE, PROMPT_NO, CREATED_AT, UPDATED_AT, PROMPT_NAME)
 # - 2nd result set: meta (TOTAL_COUNT, TOTAL_PAGES, PAGE, PAGE_SIZE)
 @with_thread_pool("db")
-def getHistoryPagination(page, page_size):
+def getHistoryPagination(page, page_size, machine_code):
     conn = None
     cursor = None
     try:
@@ -151,7 +151,7 @@ def getHistoryPagination(page, page_size):
             conn.autocommit = True
             cursor = conn.cursor()
             proc_name = "dbo.WAFC_WEB_HISTORY_SEL02_SP"
-            exec_stored_proc(cursor, proc_name, (page, page_size))
+            exec_stored_proc(cursor, proc_name, (page, page_size, machine_code))
 
             rows = cursor.fetchall()
             total_count = len(rows)
@@ -190,7 +190,7 @@ def getHistoryPagination(page, page_size):
 # - 1st result set: rows
 # - 2nd result set: meta (TOTAL_COUNT, TOTAL_PAGES, PAGE, PAGE_SIZE)
 @with_thread_pool("db")
-def getHistoryQuestioner(questioner, page, page_size):
+def getHistoryQuestioner(questioner, page, page_size, machine_code):
     conn = None
     cursor = None
     try:
@@ -198,7 +198,7 @@ def getHistoryQuestioner(questioner, page, page_size):
             conn.autocommit = True
             cursor = conn.cursor()
             proc_name = "dbo.WAFC_WEB_HISTORY_SEL03_SP"
-            exec_stored_proc(cursor, proc_name, (questioner, page, page_size))
+            exec_stored_proc(cursor, proc_name, (questioner, page, page_size, machine_code))
 
             rows = cursor.fetchall()
             total_count = len(rows)
@@ -237,7 +237,7 @@ def getHistoryQuestioner(questioner, page, page_size):
 # 질문자별 이력 건수 조회 (프로시저 기반)
 # result set: (QUESTIONER, COUNT)
 @with_thread_pool("db")
-def getHistoryQuestionerCounts():
+def getHistoryQuestionerCounts(machine_code):
     conn = None
     cursor = None
     try:
@@ -245,7 +245,7 @@ def getHistoryQuestionerCounts():
             conn.autocommit = True
             cursor = conn.cursor()
             proc_name = "dbo.WAFC_WEB_HISTORY_SEL04_SP"
-            exec_stored_proc(cursor, proc_name)
+            exec_stored_proc(cursor, proc_name, (machine_code,))
             return cursor.fetchall()
     except Exception as e:
         print(f"database getHistoryQuestionerCounts() error: {e}")
@@ -259,7 +259,7 @@ def getHistoryQuestionerCounts():
 
 # 신규 대화 세션 생성
 @with_thread_pool("db")
-def createSession(questioner, title, llm_model, llm_mode, prompt_no):
+def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_code):
     conn = None
     cursor = None
     try:
@@ -267,7 +267,7 @@ def createSession(questioner, title, llm_model, llm_mode, prompt_no):
             conn.autocommit = False
             cursor = conn.cursor()
             proc_name = "dbo.WAFC_WEB_HISTORY_INS01_SP"
-            exec_stored_proc(cursor, proc_name, (questioner, title, llm_model, llm_mode, prompt_no))
+            exec_stored_proc(cursor, proc_name, (questioner, title, llm_model, llm_mode, prompt_no, machine_code))
 
             # 프로시저에서 OUTPUT INSERTED.SESSION_ID로 반환된 값 받기
             row = cursor.fetchone()

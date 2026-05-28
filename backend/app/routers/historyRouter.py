@@ -1,16 +1,43 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 import json
 import traceback
+import os
+from pathlib import Path
 from app.database import database
+from dotenv import load_dotenv
 
 historyRouter = APIRouter(prefix="/api/history", tags=["history"])
 
+def get_machine_code(request: Request) -> str:
+    forwarded = request.headers.get("X-Forwarded-For")
+    # 헤더 있으면 헤더 안 ip 출력
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    # 프록시 헤더 x 시 기존 ip 출력
+    user_ip = forwarded.split(",")[0].strip() if forwarded else request.client.host if request.client else "Unknown IP"
+
+    # is_host = os.getenv("MSSQL_HOST") == user_ip
+
+    # if is_host:
+    #     return "main_server"
+
+    json_path = Path(__file__).resolve().parent.parent / "factories" / "machine_info.json"
+    with json_path.open("r", encoding="utf-8-sig") as f:
+        machine_info = json.load(f)
+
+    machine_code = ""
+    for code, m_info in machine_info.items():
+        if m_info.get("machine_ip") == user_ip:
+            machine_code = code
+            break
+    return machine_code
 
 @historyRouter.post("/getHistory")
-def getHistoryList():
+def getHistoryList(client_request: Request):
+    machine_code = get_machine_code(client_request)
     try:
-        history_list = database.getHistoryList()
+        history_list = database.getHistoryList(machine_code)
         json_data = []
 
         for row in history_list:
@@ -78,10 +105,11 @@ def _paginate_rows(rows, page: int, page_size: int):
 
 
 @historyRouter.post("/getHistoryPagination")
-def getHistoryPagination(req: HistoryPaginationRequest):
+def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request):
+    machine_code = get_machine_code(client_request)
     try:
         page, page_size = _sanitize_page(req.page, req.page_size)
-        result = database.getHistoryPagination(page, page_size)
+        result = database.getHistoryPagination(page, page_size, machine_code)
         rows = result.get("rows", [])
         total_count = int(result.get("total_count", 0))
         total_pages = max(1, int(result.get("total_pages", 1)))
@@ -105,11 +133,12 @@ def getHistoryPagination(req: HistoryPaginationRequest):
 
 
 @historyRouter.post("/getHistoryQuestioner")
-def getHistoryQuestioner(req: HistoryQuestionerRequest):
+def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request):
+    machine_code = get_machine_code(client_request)
     try:
         # 요청 바디가 {} 인 경우: 질문자별 count 목록 반환
         if req.questioner is None:
-            count_rows = database.getHistoryQuestionerCounts()
+            count_rows = database.getHistoryQuestionerCounts(machine_code)
             return [
                 {"questioner": row[0] if row[0] else "-", "count": int(row[1]) if row[1] is not None else 0}
                 for row in count_rows
@@ -124,7 +153,7 @@ def getHistoryQuestioner(req: HistoryQuestionerRequest):
 
         page, page_size = _sanitize_page(req.page, req.page_size)
         target_questioner = req.questioner.strip() if req.questioner else "-"
-        result = database.getHistoryQuestioner(target_questioner, page, page_size)
+        result = database.getHistoryQuestioner(target_questioner, page, page_size, machine_code)
         rows = result.get("rows", [])
         total_count = int(result.get("total_count", 0))
         total_pages = max(1, int(result.get("total_pages", 1)))
@@ -187,7 +216,8 @@ class GetMessagesRequest(BaseModel):
 
 
 @historyRouter.post("/newSession", response_model=CreateSessionResponse)
-def createSession(req: CreateSessionRequest):
+def createSession(req: CreateSessionRequest, client_request: Request):
+    machine_code = get_machine_code(client_request)
     try:
         session_id = database.createSession(
             req.questioner,
@@ -195,6 +225,7 @@ def createSession(req: CreateSessionRequest):
             req.llm_model,
             req.llm_mode,
             req.prompt_no,
+            machine_code
         )
         return {"result": "success", "session_id": session_id}
     except Exception as e:
