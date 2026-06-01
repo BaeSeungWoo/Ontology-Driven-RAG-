@@ -1,8 +1,8 @@
 # pipeline/build_db.py
-
+import json
+from pathlib import Path
 import argparse
 from backend.app.factories.config import CONFIGS
-from backend.app.factories.machine_setting import load_machine_info_json
 from pipeline.data_loader import VectorDBBuilder
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
@@ -69,7 +69,15 @@ def build(site_id: str, reset: bool = False):
         reset (bool): vectorDB 재생성 여부
     
     """
-    machine_info = load_machine_info_json()
+    machine_path = (
+        Path(__file__).resolve().parent.parent
+        / "backend"
+        / "app"
+        / "factories"
+        / "machine_info.json"
+    )
+    with machine_path.open("r", encoding="utf-8-sig") as f:
+        machine_info = json.load(f)
 
     config = CONFIGS.get(site_id)
     config.machines = machine_info
@@ -94,6 +102,10 @@ def build(site_id: str, reset: bool = False):
                     "extract": f"./data/{config.id}/scanned/extract",
                     "struct": f"./data/{config.id}/scanned/struct",
                     "asset": f"./data/{config.id}/scanned/asset"
+                },
+                "text": {
+                    "input": f"./data/{config.id}/texts/inputs",
+                    "struct": f"./data/{config.id}/texts/struct",
                 }
             }
         }

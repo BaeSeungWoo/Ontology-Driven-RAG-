@@ -15,14 +15,15 @@ import fitz  # PyMuPDF
 from pipeline.adapters.base import BaseParser
 from pipeline.parsers.docling_parser import DoclingParser
 from pipeline.parsers.upstage_parser import UpstageParser
-
+from pipeline.parsers.text_parser import TextParser
 
 class SiteAParser(BaseParser):
 
     def __init__(self):
         self._docling = DoclingParser()
         self._upstage = UpstageParser()
-
+        self._text = TextParser()
+        
     # ── 일반 매뉴얼 (Docling) ──────────────────────────────────────────
 
     def parse_manual(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
@@ -37,6 +38,12 @@ class SiteAParser(BaseParser):
     def parse_scanned(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """스캔 이미지 PDF — Upstage OCR로 텍스트 추출."""
         docs = self._upstage.parse(pdf_path=file_path,output_dir=source_dir)
+        for doc in docs:
+            doc["metadata"]["site"] = "yunam"
+        return docs
+    
+    def parse_text(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
+        docs = self._text.parse(txt_path=file_path,output_dir=source_dir)
         for doc in docs:
             doc["metadata"]["site"] = "yunam"
         return docs

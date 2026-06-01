@@ -44,6 +44,7 @@ class ChunkBuilder:
             "page_range": pages.get("range") or "",
             "container_type": container.get("type") or "",
             "asset_path": container.get("asset_path") if container.get("asset_path") is not None else "",
+            "machine_code": ""
         }
 
     def _recursive_split(self, text: str, separators: list[str]) -> list[str]:
