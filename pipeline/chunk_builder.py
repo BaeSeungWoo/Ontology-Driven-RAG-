@@ -133,7 +133,11 @@ class ChunkBuilder:
             base_metadata = self._flatten_metadata(chunk)
 
             # 텍스트 분할 로직 수행
-            split_texts = self._recursive_split(text, self.separators)
+            container_type = base_metadata.get("container_type")
+            if container_type == "texts":
+                split_texts = self._recursive_split(text, self.separators)
+            else:
+                split_texts = [text]
             total_parts = len(split_texts)
 
             if total_parts == 0 and asset_path:

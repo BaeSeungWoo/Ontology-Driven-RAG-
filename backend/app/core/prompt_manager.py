@@ -140,7 +140,7 @@ class PromptManager:
 
         user_content = "\n\n".join(user_parts)
 
-        print(f"system_content : {system_content}")
+        # print(f"system_content : {system_content}")
 
         # ✅ messages 리스트 반환 — llm_handler.astream()과 규격 통일
         messages = [{"role": "system", "content": system_content}]

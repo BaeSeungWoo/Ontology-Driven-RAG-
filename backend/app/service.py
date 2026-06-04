@@ -73,16 +73,16 @@ class RAGService:
         machine_name = ""
         m_info = {}
 
-        for code, m_info in self.config.machines.items():
-            if m_info.get("machine_ip") == user_ip:
-                machine_code = code
-                m_info = m_info
-                break
-        if m_info:
-            machine_name = m_info.get('machine_name', 'UnKnown Name')
-        print(f"일치하는 장비 코드 및 이름 : {machine_code}, {machine_name}")
 
         if mode != "base":
+            for code, m_info in self.config.machines.items():
+                if m_info.get("machine_ip") == user_ip:
+                    machine_code = code
+                    m_info = m_info
+                    break
+            if m_info:
+                machine_name = m_info.get('machine_name', 'UnKnown Name')
+            print(f"일치하는 장비 코드 및 이름 : {machine_code}, {machine_name}")
             context, imgs, tables, chunks = self.retriever.get_context(question, mode, machine_code)
 
         messages = self.prompt_manager.build(

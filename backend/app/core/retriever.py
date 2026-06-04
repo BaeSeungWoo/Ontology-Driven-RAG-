@@ -13,25 +13,21 @@ class KnowledgeRetriever:
         )
         self.embedding_fn = load_embeddings(config=self.config)
 
-        # self.collection = self.chroma.get_or_create_collection(
-        #     name=f"{self.config.id}_{machine_code}",
-        #     embedding_function=self.embedding_fn,
-        # )
+        self.collection = self.chroma.get_or_create_collection(
+            name=self.config.id,
+            embedding_function=self.embedding_fn,
+        )
 
     def get_context(self, query: str, mode: str, machine_code: str) -> tuple[str, list, list, list]:
         """Build retrieval context and metadata for LLM + UI."""
         if mode == "base":
             return "", [], [], []
 
-        collection = self.chroma.get_or_create_collection(
-            name=f"{self.config.id}_{machine_code}",
-            embedding_function=self.embedding_fn,
-        )
-
-        results = collection.query(
+        results = self.collection.query(
             query_texts=[query],
             n_results=self.config.vector_db.retrieval_k,
             include=["documents", "metadatas", "distances"],
+            where={"machine_code": {"$contains": machine_code.strip()}}
         )
 
         context_parts: list[str] = []
@@ -67,6 +63,8 @@ class KnowledgeRetriever:
                 tables.append(asset_path)
 
         context = "\n\n".join(context_parts)
+
+        print(chunks)
 
         if mode == "graph":
             graph_text = self._get_graph_context(query)
