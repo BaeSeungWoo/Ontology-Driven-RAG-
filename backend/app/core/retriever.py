@@ -23,12 +23,19 @@ class KnowledgeRetriever:
         if mode == "base":
             return "", [], [], []
 
-        results = self.collection.query(
-            query_texts=[query],
-            n_results=self.config.vector_db.retrieval_k,
-            include=["documents", "metadatas", "distances"],
-            where={"machine_code": {"$contains": machine_code.strip()}}
-        )
+        if machine_code == "ALL":
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=self.config.vector_db.retrieval_k,
+                include=["documents", "metadatas", "distances"],
+            )
+        else:
+            results = self.collection.query(
+                query_texts=[query],
+                n_results=self.config.vector_db.retrieval_k,
+                include=["documents", "metadatas", "distances"],
+                where={"machine_code": {"$contains": machine_code.strip()}}
+            )
 
         context_parts: list[str] = []
         chunks: list[dict] = []

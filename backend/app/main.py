@@ -11,9 +11,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 import dotenv
+import os
 
 from app.factories.config import CONFIGS
 from app.service import RAGService
+from app.security.validate_code import resolve_request_code, validate_code
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
@@ -82,11 +84,18 @@ class ChatRequest(BaseModel):
 # 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
 async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: Request):
     # 클라이언트 ip 확인
-    user_ip = get_client_ip_nginx(client_request)
-    print(f"{user_ip}에서 LLM에 질문 요청을 보냈습니다.")
-
+    # user_ip = get_client_ip_nginx(client_request)
+    
     service = get_service(factory_id)
 
+    ctx = resolve_request_code(
+        request=client_request,
+        machines = service.config.machines,
+        main_server_ips=set([os.getenv("MSSQL_HOST")])
+    )
+
+    session_info = database.getChatSessionInfo(request.session_id)
+    effective_machine_code = validate_code(ctx, session_info)
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
     if request.prompt_no is not None:
@@ -100,7 +109,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             prompt_id=request.prompt_id,
             user_prompt=user_prompt,
             restore_memory=request.restore_memory,
-            user_ip=user_ip
+            effective_machine_code=effective_machine_code
         ):
             if event["type"] == "metadata":
                 yield f"METADATA:{json.dumps(event['data'])}\n\n"
