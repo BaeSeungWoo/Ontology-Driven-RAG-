@@ -296,6 +296,38 @@ def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_cod
                 pass
 
 
+# 세션 id 및 소속 장비코드
+@with_thread_pool("db")
+def getChatSessionInfo(session_id):
+    with get_db_connection() as conn:
+        conn.autocommit = True
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                SESSION_ID,
+                MACHINE_CODE,
+                QUESTIONER,
+                TITLE
+            FROM dbo.CHAT_HISTORY
+            WHERE SESSION_ID = ?
+            """,
+            (session_id,),
+        )
+
+        row = cursor.fetchone()
+        cursor.close()
+
+    if not row:
+        return None
+
+    return {
+        "session_id": int(row[0]),
+        "machine_code": row[1],
+        "questioner": row[2],
+        "title": row[3],
+    }
+
 # CHAT_MESSAGE 질문 / 답변(Temp) 저장
 @with_thread_pool("db")
 def createChatMessage(session_id, role, content):
@@ -444,6 +476,28 @@ def getChatMessagesBySession(session_id):
                 cursor.close()
             except Exception:
                 pass
+
+# 메세지 업데이트 시 세션 검증용 세션 id 추출
+@with_thread_pool("db")
+def getSessionIdByMessageId(message_id):
+    with get_db_connection() as conn:
+        conn.autocommit = True
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT SESSION_ID
+            FROM dbo.CHAT_MESSAGE
+            WHERE MESSAGE_ID = ?
+            """,
+            (message_id,),
+        )
+        row = cursor.fetchone()
+        cursor.close()
+
+    if not row:
+        return None
+
+    return int(row[0])
 
 
 #   ===============

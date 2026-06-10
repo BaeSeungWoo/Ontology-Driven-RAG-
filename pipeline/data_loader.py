@@ -129,11 +129,11 @@ class VectorDBBuilder:
             source_doc_name = chunk["metadata"].get("source_doc_name", "")
             machine_codes = self._resolve_machine_code(source_doc_name)
 
-            machine_code_value = ",".join(machine_codes) if machine_codes else ""
+            # machine_code_value = ",".join(machine_codes) if machine_codes else ""
 
             chunk = dict(chunk)
             metadata = dict(chunk["metadata"])
-            metadata["machine_code"] = machine_code_value
+            metadata["machine_code"] = machine_codes
             chunk["metadata"] = metadata
 
             prepared_chunks.append(chunk)

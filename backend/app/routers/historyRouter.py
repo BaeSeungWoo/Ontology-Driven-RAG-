@@ -5,37 +5,33 @@ import traceback
 import os
 from pathlib import Path
 from app.database import database
+from app.security.validate_code import resolve_request_code, validate_code
 from dotenv import load_dotenv
 
 historyRouter = APIRouter(prefix="/api/history", tags=["history"])
 
-def get_machine_code(request: Request) -> str:
-    forwarded = request.headers.get("X-Forwarded-For")
-    # 헤더 있으면 헤더 안 ip 출력
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    # 프록시 헤더 x 시 기존 ip 출력
-    user_ip = forwarded.split(",")[0].strip() if forwarded else request.client.host if request.client else "Unknown IP"
-
-    # is_host = os.getenv("MSSQL_HOST") == user_ip
-
-    # if is_host:
-    #     return "main_server"
-
+def load_machine_info() -> dict:
     json_path = Path(__file__).resolve().parent.parent / "factories" / "machine_info.json"
     with json_path.open("r", encoding="utf-8-sig") as f:
-        machine_info = json.load(f)
+        return json.load(f)
 
-    machine_code = ""
-    for code, m_info in machine_info.items():
-        if m_info.get("machine_ip") == user_ip:
-            machine_code = code
-            break
-    return machine_code
+def set_history_code(ctx) -> str:
+    if ctx.is_main_server:
+        return "ALL"   # 또는 프로시저가 이해하는 다른 전체조회 값
+    if not ctx.request_machine_code:
+        raise HTTPException(status_code=403, detail="IP에 매핑된 장비가 없습니다.")
+    return ctx.request_machine_code
+
 
 @historyRouter.post("/getHistory")
 def getHistoryList(client_request: Request):
-    machine_code = get_machine_code(client_request)
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+    machine_code = set_history_code(ctx)
     try:
         history_list = database.getHistoryList(machine_code)
         json_data = []
@@ -106,7 +102,13 @@ def _paginate_rows(rows, page: int, page_size: int):
 
 @historyRouter.post("/getHistoryPagination")
 def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request):
-    machine_code = get_machine_code(client_request)
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+    machine_code = set_history_code(ctx)
     try:
         page, page_size = _sanitize_page(req.page, req.page_size)
         result = database.getHistoryPagination(page, page_size, machine_code)
@@ -134,7 +136,13 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
 
 @historyRouter.post("/getHistoryQuestioner")
 def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request):
-    machine_code = get_machine_code(client_request)
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+    machine_code = set_history_code(ctx)
     try:
         # 요청 바디가 {} 인 경우: 질문자별 count 목록 반환
         if req.questioner is None:
@@ -217,7 +225,13 @@ class GetMessagesRequest(BaseModel):
 
 @historyRouter.post("/newSession", response_model=CreateSessionResponse)
 def createSession(req: CreateSessionRequest, client_request: Request):
-    machine_code = get_machine_code(client_request)
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+    machine_code = set_history_code(ctx)
     try:
         session_id = database.createSession(
             req.questioner,
@@ -235,7 +249,17 @@ def createSession(req: CreateSessionRequest, client_request: Request):
 
 
 @historyRouter.post("/getMessages")
-def getMessages(req: GetMessagesRequest):
+def getMessages(req: GetMessagesRequest, client_request: Request):
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+
+    session_info = database.getChatSessionInfo(req.session_id)
+    validate_code(ctx, session_info)
+
     try:
         rows = database.getChatMessagesBySession(req.session_id)
         json_data = []
@@ -270,7 +294,17 @@ def getMessages(req: GetMessagesRequest):
 
 
 @historyRouter.post("/messages", response_model=CreateMessageResponse)
-def createMessage(req: CreateMessageRequest):
+def createMessage(req: CreateMessageRequest, client_request: Request):
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+
+    session_info = database.getChatSessionInfo(req.session_id)
+    validate_code(ctx, session_info)
+
     try:
         if req.role not in ("user", "assistant"):
             raise HTTPException(status_code=400, detail="role must be 'user' or 'assistant'")
@@ -286,7 +320,21 @@ def createMessage(req: CreateMessageRequest):
 
 
 @historyRouter.put("/messages/{message_id}", response_model=UpdateMessageResponse)
-def updateMessage(message_id: int, req: UpdateMessageRequest):
+def updateMessage(message_id: int, req: UpdateMessageRequest, client_request: Request):
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+
+    session_id = database.getSessionIdByMessageId(message_id)
+    if session_id is None:
+        raise HTTPException(status_code=404, detail="메시지를 찾을 수 없습니다.")
+
+    session_info = database.getChatSessionInfo(session_id)
+    validate_code(ctx, session_info)
+
     try:
         metadata_json = json.dumps(req.metadata, ensure_ascii=False) if req.metadata is not None else None
         database.updateChatMessage(message_id, req.content, metadata_json)

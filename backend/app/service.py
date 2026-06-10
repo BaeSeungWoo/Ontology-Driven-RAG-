@@ -46,7 +46,7 @@ class RAGService:
         self,
         session_id: str,
         question: str,
-        user_ip: str,
+        effective_machine_code: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
@@ -68,22 +68,11 @@ class RAGService:
         imgs = []
         tables = []
         chunks = []
-
-        machine_code = "UnKnown Code"
-        machine_name = ""
         m_info = {}
 
-        for code, m_info in self.config.machines.items():
-            if m_info.get("machine_ip") == user_ip:
-                machine_code = code
-                m_info = m_info
-                break
-        if m_info:
-            machine_name = m_info.get('machine_name', 'UnKnown Name')
-        print(f"일치하는 장비 코드 및 이름 : {machine_code}, {machine_name}")
-
         if mode != "base":
-            context, imgs, tables, chunks = self.retriever.get_context(question, mode, machine_code)
+            context, imgs, tables, chunks = self.retriever.get_context(question, mode, effective_machine_code)
+            m_info = self.config.machines.get(effective_machine_code, {})
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,
@@ -104,7 +93,7 @@ class RAGService:
         self,
         session_id: str,
         question: str,
-        user_ip: str,
+        effective_machine_code: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
@@ -122,7 +111,7 @@ class RAGService:
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             restore_memory=restore_memory,
-            user_ip=user_ip
+            effective_machine_code=effective_machine_code
         )
 
         yield {
