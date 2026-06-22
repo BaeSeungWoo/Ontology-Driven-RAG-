@@ -218,7 +218,7 @@ def export_table_assets(table_node: dict[str, Any], asset_path: str | Path) -> b
 
     table_text = table_node["content"]["text"]
 
-    table_markdown = table_text.replace("\r\n", "\n").replace("\r", "\n").strip()
+    table_markdown = table_text.replace("\r\n", "\n").replace("\r", "\n").replace("![image](/image/placeholder)", "").strip()
     if not table_markdown:
         return False
 

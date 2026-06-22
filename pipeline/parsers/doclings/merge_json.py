@@ -151,7 +151,12 @@ def merge_docling_jsons(input_dir: str | Path, pdf_name: str) -> dict[str, Any]:
         FileNotFoundError: 입력 디렉터리에 JSON 파일이 하나도 없을 때 발생한다.
     """
     input_dir = Path(input_dir)
-    json_files = sorted(input_dir.glob("*.json"), key=sort_key)
+    # `_part_XXX.json` 파일만 병합 대상으로 사용해, 기존 merge 결과가
+    # 다시 입력으로 섞여 누적 증폭되는 것을 막는다.
+    json_files = sorted(
+        [path for path in input_dir.glob("*.json") if PART_RE.search(path.name)],
+        key=sort_key,
+    )
 
     if not json_files:
         raise FileNotFoundError(f"No JSON files found in: {input_dir}")
