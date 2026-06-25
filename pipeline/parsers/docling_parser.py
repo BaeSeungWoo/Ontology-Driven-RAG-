@@ -85,7 +85,7 @@ class DoclingParser:
 
         converter = self._create_converter()
 
-        with tqdm(total=len(page_steps), desc=f" > {pdf_name}", leave=False) as pbar:
+        with tqdm(total=len(page_steps), desc=f" > {pdf_name}", leave=True) as pbar:
             for start in page_steps:
                 end = min(start + batch_size, total_pages)
 
@@ -116,7 +116,7 @@ class DoclingParser:
                         del result
                 except Exception as e:
                     print(f"\n[부분 실패] {start}~{end-1}p: {e}")
-                    
+                finally:
                     # 리소스 정리
                     temp_pdf.close()
                     stream.close()

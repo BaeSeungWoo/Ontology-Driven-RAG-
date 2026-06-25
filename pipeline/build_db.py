@@ -1,63 +1,58 @@
 # pipeline/build_db.py
-import json
 from pathlib import Path
 import argparse
+import shutil
+
+from typing import Any
+
 from backend.app.factories.config import CONFIGS
-from pipeline.data_loader import VectorDBBuilder
+from backend.app.embeddings import save_embedding_meta
+
+from pipeline.ingestion.data_loader import VectorDBBuilder
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
-# SITE_SETTINGS = {
-#     "yunam": {
-#         "adapter": SiteAParser(),
-#         "sources": {
-#             "drawing": {
-#                 "input": "./data/yunam/drawings/inputs",
-#                 "extract": "./data/yunam/drawings/extract",
-#                 "struct": "./data/yunam/drawings/struct",
-#                 "asset": "./data/yunam/drawings/asset"
-#             },
-#             "manual":  {
-#                 "input": "./data/yunam/manuals/inputs",
-#                 "extract": "./data/yunam/manuals/extract",
-#                 "struct": "./data/yunam/manuals/struct",
-#                 "asset": "./data/yunam/manuals/asset"
-#             },     # 일반 PDF → Docling
-#             "scanned": {
-#                 "input": "./data/yunam/scanned/inputs",
-#                 "extract": "./data/yunam/scanned/extract",
-#                 "struct": "./data/yunam/scanned/struct",
-#                 "asset": "./data/yunam/scanned/asset"
-#             },     # 스캔본  → Upstage
-#         },
-#     },
-#     "yulkok": {
-#         "adapter": SiteBParser(),
-#         "sources": {
-#             "drawing": {
-#                 "input": "./data/yulkok/drawings/inputs",
-#                 "extract": "./data/yulkok/drawings/extract",
-#                 "struct": "./data/yulkok/drawings/struct",
-#                 "asset": "./data/yulkok/drawings/asset"
-#             },
-#             "manual":  {
-#                 "input": "./data/yulkok/manuals/inputs",
-#                 "extract": "./data/yulkok/manuals/extract",
-#                 "struct": "./data/yulkok/manuals/struct",
-#                 "asset": "./data/yulkok/manuals/asset"
-#             },     # PDF + Excel → Docling / openpyxl
-#             "scanned": {
-#                 "input": "./data/yulkok/scanned/inputs",
-#                 "extract": "./data/yulkok/scanned/extract",
-#                 "struct": "./data/yulkok/scanned/struct",
-#                 "asset": "./data/yulkok/scanned/asset"
-#             },     # 스캔본  → Upstage   
-#         },
-#     },
-# }
+def _build_sources(factory_id: str) -> dict[str, Any]:
+    return {
+        "drawing": {
+            "input": f"./data/{factory_id}/drawings/inputs",
+            "extract": f"./data/{factory_id}/drawings/extract",
+            "struct": f"./data/{factory_id}/drawings/struct",
+            "asset": f"./data/{factory_id}/drawings/asset",
+        },
+        "manual": {
+            "input": f"./data/{factory_id}/manuals/inputs",
+            "extract": f"./data/{factory_id}/manuals/extract",
+            "struct": f"./data/{factory_id}/manuals/struct",
+            "asset": f"./data/{factory_id}/manuals/asset",
+        },
+        "scanned": {
+            "input": f"./data/{factory_id}/scanned/inputs",
+            "extract": f"./data/{factory_id}/scanned/extract",
+            "struct": f"./data/{factory_id}/scanned/struct",
+            "asset": f"./data/{factory_id}/scanned/asset",
+        },
+        "text": {
+            "input": f"./data/{factory_id}/texts/inputs",
+            "struct": f"./data/{factory_id}/texts/struct",
+        },
+    }
 
+def _build_site_settings(factory_id: str) -> dict[str, Any]:
+    adapter_map = {
+        "yunam": SiteAParser,
+        "yulkok": SiteBParser,
+    }
+    adapter_cls = adapter_map.get(factory_id)
+    if adapter_cls is None:
+        raise ValueError(f"'{factory_id}'에 대한 adapter가 정의되지 않았습니다.")
 
-def build(site_id: str, reset: bool = False):
+    return {
+        "adapter": adapter_cls(),
+        "sources": _build_sources(factory_id),
+    }
+
+def build(site_id: str, reset: bool = False) -> None:
     """메인 실행 부.
     각 site_id에 따라 정해진 폴더 경로에서 vectorDB를 생성
 
@@ -69,55 +64,19 @@ def build(site_id: str, reset: bool = False):
         reset (bool): vectorDB 재생성 여부
     
     """
-    machine_path = (
-        Path(__file__).resolve().parent.parent
-        / "backend"
-        / "app"
-        / "factories"
-        / "machine_info.json"
-    )
-    with machine_path.open("r", encoding="utf-8-sig") as f:
-        machine_info = json.load(f)
-
     config = CONFIGS.get(site_id)
-    config.machines = machine_info
-    settings = {
-        config.id: {
-            "adapter": SiteAParser(),
-            "sources": {
-                "drawing": {
-                    "input": f"./data/{config.id}/drawings/inputs",
-                    "extract": f"./data/{config.id}/drawings/extract",
-                    "struct": f"./data/{config.id}/drawings/struct",
-                    "asset": f"./data/{config.id}/drawings/asset"
-                },
-                "manual": {
-                    "input": f"./data/{config.id}/manuals/inputs",
-                    "extract": f"./data/{config.id}/manuals/extract",
-                    "struct": f"./data/{config.id}/manuals/struct",
-                    "asset": f"./data/{config.id}/manuals/asset"
-                },
-                "scanned": {
-                    "input": f"./data/{config.id}/scanned/inputs",
-                    "extract": f"./data/{config.id}/scanned/extract",
-                    "struct": f"./data/{config.id}/scanned/struct",
-                    "asset": f"./data/{config.id}/scanned/asset"
-                },
-                "text": {
-                    "input": f"./data/{config.id}/texts/inputs",
-                    "struct": f"./data/{config.id}/texts/struct",
-                }
-            }
-        }
-    }
-    # settings = SITE_SETTINGS.get(site_id)
-
-    if not config or not settings:
+    if not config:
         print(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
         return
+    settings = _build_site_settings(config.id)
+
+    if reset and Path(config.vector_db.db_path).exists():
+        shutil.rmtree(config.vector_db.db_path)
+        print(f"[{config.id}] 기존 DB 삭제")
+
 
     print(f"\n{'='*50}")
-    print(f"  ID: {site_id} | 어댑터: {settings[config.id]['adapter'].__class__.__name__}")
+    print(f"  ID: {site_id} | 어댑터: {settings['adapter'].__class__.__name__}")
     print(f"  임베딩: {config.embedding.model} @ {config.get_embedding_base_url()}")
     print(f"  DB 경로: {config.vector_db.db_path}")
     print(f"{'='*50}")
@@ -126,8 +85,9 @@ def build(site_id: str, reset: bool = False):
 
     for doc_type, source_dir in settings["sources"].items():
         print(f"\n  [{doc_type}]")
-        builder.build_from(source_dir=source_dir, doc_type=doc_type, reset=reset)
+        builder.build_from(source_dir=source_dir, doc_type=doc_type)
 
+    save_embedding_meta(config)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")
 
 

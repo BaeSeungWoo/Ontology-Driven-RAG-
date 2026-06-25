@@ -50,7 +50,7 @@ class SiteAParser(BaseParser):
 
     # ── 도면 (PyMuPDF) ────────────────────────────────────────────────
 
-    def parse_drawing(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_drawing(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """설비 도면 PDF — 도면 번호(DWG-XXXX)를 메타데이터로 추출."""
         docs = []
         pdf = fitz.open(file_path)
