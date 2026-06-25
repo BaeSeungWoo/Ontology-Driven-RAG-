@@ -15,15 +15,19 @@ class BaseParser(ABC):
     """
 
     @abstractmethod
-    def parse_manual(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_manual(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """일반 텍스트 기반 PDF 매뉴얼을 파싱합니다 (Docling)."""
 
     @abstractmethod
-    def parse_scanned(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_scanned(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """스캔 이미지 기반 PDF를 파싱합니다 (Upstage OCR)."""
 
     @abstractmethod
-    def parse_drawing(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_text(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
+        """텍스트 파일을 파싱합니다."""
+        
+    @abstractmethod
+    def parse_drawing(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """도면 파일을 파싱합니다."""
 
     @staticmethod

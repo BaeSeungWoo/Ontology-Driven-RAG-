@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-class ChunkBuilder:
+class ChunkRefiner:
     """Docling, Upstage 추출물에서 변환된 jsonl 형태의 구조화된 청크 객체 들을
     실제 VectorDB에 들어갈 청크로 변환하는 클래스
 
@@ -43,8 +43,7 @@ class ChunkBuilder:
             "section_level": str(section.get("level")) if section.get("level") is not None else "0",
             "page_range": pages.get("range") or "",
             "container_type": container.get("type") or "",
-            "asset_path": container.get("asset_path") if container.get("asset_path") is not None else "",
-            "machine_code": ""
+            "asset_path": container.get("asset_path") if container.get("asset_path") is not None else ""
         }
 
     def _recursive_split(self, text: str, separators: list[str]) -> list[str]:

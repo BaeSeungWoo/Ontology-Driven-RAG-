@@ -15,6 +15,7 @@ import openpyxl
 from pipeline.adapters.base import BaseParser
 from pipeline.parsers.docling_parser import DoclingParser
 from pipeline.parsers.upstage_parser import UpstageParser
+from pipeline.parsers.text_parser import TextParser
 
 
 class SiteBParser(BaseParser):
@@ -22,6 +23,7 @@ class SiteBParser(BaseParser):
     def __init__(self):
         self._docling = DoclingParser()
         self._upstage = UpstageParser()
+        self._text = TextParser()
 
     # ── 일반 매뉴얼 (Docling / Excel 자동 분기) ────────────────────────
 
@@ -40,18 +42,22 @@ class SiteBParser(BaseParser):
 
     # ── 스캔본 (Upstage) ──────────────────────────────────────────────
 
-    def parse_scanned(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_scanned(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         """스캔 이미지 PDF — Upstage OCR로 텍스트 추출."""
-        with Path(file_path).open("r", encoding="utf-8") as f:
-            data = json.load(f)
-            docs = self._upstage.parse(data)
+        docs = self._upstage.parse(pdf_path=file_path,output_dir=source_dir)
+        for doc in docs:
+            doc["metadata"]["site"] = "B"
+        return docs
+    
+    def parse_text(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
+        docs = self._text.parse(txt_path=file_path,output_dir=source_dir)
         for doc in docs:
             doc["metadata"]["site"] = "B"
         return docs
 
     # ── 도면 (PyMuPDF) ────────────────────────────────────────────────
 
-    def parse_drawing(self, file_path: str) -> list[dict[str, Any]]:
+    def parse_drawing(self, file_path: str, source_dir: dict[str, Any]) -> list[dict[str, Any]]:
         docs = []
         pdf = fitz.open(file_path)
         for page_num, page in enumerate(pdf, start=1):
