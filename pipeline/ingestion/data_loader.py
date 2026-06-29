@@ -39,7 +39,7 @@ class VectorDBBuilder:
         self.doc_to_machine = build_doc_to_machine_index(config.machines)
         self.collection = create_vector_collection(config)
 
-    def build_from(self, source_dir: dict[str, Any], doc_type: str):
+    def build_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 후 
         
         vectorDB에 들어갈 청크로 변환 및 vectorDB에 삽입.
@@ -64,6 +64,7 @@ class VectorDBBuilder:
             id=self.config.id,
             db_path=self.config.vector_db.db_path
         )
+        return enriched_chunks
 
     def _load(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 

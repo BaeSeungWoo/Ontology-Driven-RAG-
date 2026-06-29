@@ -1,11 +1,12 @@
 # backend/app/service.py
 import json
+import os
 import re
 
 from pydantic.v1 import ConfigDict
 from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
-from app.core.retriever import KnowledgeRetriever
+from app.core.retriever import HybridKnowledgeRetriever, KnowledgeRetriever
 from app.core.prompt_manager import PromptManager
 from app.core.memory_manager import MemoryManager
 from app.database import database
@@ -18,6 +19,7 @@ class RAGService:
         self.memory_manager = MemoryManager()
         self.prompt_manager = PromptManager()
         self.retriever = KnowledgeRetriever(config)
+        self.hybrid_retriever: HybridKnowledgeRetriever | None = None
 
     # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
@@ -28,7 +30,8 @@ class RAGService:
         user_prompt: str | None = None,
     ) -> tuple[list, list, list, list]:
 
-        context, imgs, tables, chunks = self.retriever.get_context(question, mode)
+        retriever = self._get_retriever()
+        context, imgs, tables, chunks = retriever.get_context(question, mode)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
@@ -46,7 +49,7 @@ class RAGService:
         self,
         session_id: str,
         question: str,
-        effective_machine_code: str,
+        effective_machine_code: str = "ALL",
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
@@ -71,7 +74,8 @@ class RAGService:
         m_info = {}
 
         if mode != "base":
-            context, imgs, tables, chunks = self.retriever.get_context(question, mode, effective_machine_code)
+            retriever = self._get_retriever()
+            context, imgs, tables, chunks = retriever.get_context(question, mode, effective_machine_code)
             m_info = self.config.machines.get(effective_machine_code, {})
 
         messages = self.prompt_manager.build(
@@ -134,6 +138,16 @@ class RAGService:
 
         answer = "".join(answer_parts)
         self.memory_manager.add_turn(session_id, question, answer)
+
+    def _get_retriever(self):
+        use_hybrid_retriever = True  # HybridRAG 사용여부 True/False 테스트용 변수
+
+        if not use_hybrid_retriever:
+            return self.retriever
+
+        if self.hybrid_retriever is None:
+            self.hybrid_retriever = HybridKnowledgeRetriever(self.config)
+        return self.hybrid_retriever
 
     # non-streaming/batch 용도로 남겨둔 후보 함수.
     async def ask(
