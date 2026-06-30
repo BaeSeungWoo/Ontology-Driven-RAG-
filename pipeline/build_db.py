@@ -9,6 +9,7 @@ from backend.app.factories.config import CONFIGS
 from backend.app.embeddings import save_embedding_meta
 
 from pipeline.ingestion.data_loader import VectorDBBuilder
+from pipeline.ingestion.bm25_writer import write_bm25_bundle
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
@@ -70,9 +71,15 @@ def build(site_id: str, reset: bool = False) -> None:
         return
     settings = _build_site_settings(config.id)
 
+    # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
     if reset and Path(config.vector_db.db_path).exists():
         shutil.rmtree(config.vector_db.db_path)
         print(f"[{config.id}] 기존 DB 삭제")
+
+    bm25_dir = Path(config.vector_db.db_path).parent / "bm25"
+    if reset and bm25_dir.exists():
+        shutil.rmtree(bm25_dir)
+        print(f"[{config.id}] 기존 BM25 삭제")
 
 
     print(f"\n{'='*50}")
@@ -82,10 +89,14 @@ def build(site_id: str, reset: bool = False) -> None:
     print(f"{'='*50}")
 
     builder = VectorDBBuilder(config, adapter=settings["adapter"])
+    all_chunks = []
 
     for doc_type, source_dir in settings["sources"].items():
         print(f"\n  [{doc_type}]")
-        builder.build_from(source_dir=source_dir, doc_type=doc_type)
+        all_chunks.extend(builder.build_from(source_dir=source_dir, doc_type=doc_type))
+
+    if all_chunks:
+        write_bm25_bundle(config, all_chunks)
 
     save_embedding_meta(config)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")

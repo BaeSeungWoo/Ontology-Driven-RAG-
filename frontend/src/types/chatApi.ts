@@ -19,6 +19,10 @@ export type ChatChunk = {
   metadata: Record<string, unknown>;
   distance: number | null;
   similarity?: number | null;
+  bm25_score?: number | null;
+  rrf_score?: number | null;
+  vector_rank?: number | null;
+  bm25_rank?: number | null;
 };
 
 export type ChatMetadata = Record<string, unknown> & {

@@ -4,6 +4,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import styles from "./answer.module.css";
+import { toCitationDisplayText } from "./citationText";
 import type { AnswerMessage } from "@/types/chat";
 
 type AssistantMessageBubbleProps = {
@@ -31,7 +32,6 @@ export default function AssistantMessageBubble({
   const isPlaceholderLoading =
     normalizedText.length === 0 || normalizedText === "(응답 생성 중...)";
   const isThinking = isGenerating || isPlaceholderLoading;
-  const citationLabelMap = new Map<number, number>();
 
   // =========================
   // 함수
@@ -60,26 +60,6 @@ export default function AssistantMessageBubble({
           <Fragment key={key}>{part}</Fragment>,
         ];
       });
-    });
-  };
-
-  /**
-   * 기능: 모델 응답의 [chunk:N] 표기를 화면용 참조 배지 링크로 변환한다.
-   * 목적: 실제 chunk index는 유지하면서 사용자에게는 참조1, 참조2처럼 짧게 보여준다.
-   * In: text(string)
-   * Out: markdown link text
-   */
-  const toDisplayText = (text: string) => {
-    citationLabelMap.clear();
-    let nextLabel = 1;
-
-    return text.replace(/\[(?:chunk:)?(\d+)\]/gi, (_match, chunkIndexText: string) => {
-      const chunkIndex = Number(chunkIndexText);
-      if (!citationLabelMap.has(chunkIndex)) {
-        citationLabelMap.set(chunkIndex, nextLabel);
-        nextLabel += 1;
-      }
-      return `[참조${citationLabelMap.get(chunkIndex)}](#chunk-${chunkIndex})`;
     });
   };
 
@@ -197,7 +177,7 @@ export default function AssistantMessageBubble({
                 },
               }}
             >
-              {toDisplayText(message.text)}
+              {toCitationDisplayText(message.text)}
             </ReactMarkdown>
           </div>
         )}
