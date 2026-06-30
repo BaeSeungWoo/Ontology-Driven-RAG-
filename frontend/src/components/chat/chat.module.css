@@ -18,7 +18,8 @@
 .chatCitationPane,
 .chatAnswerPane,
 .chatHistoryPane,
-.chatPromptSettingPane {
+.chatPromptSettingPane,
+.chatPdfPane {
   border: 1px solid var(--chat-pane-border);
   border-radius: 14px;
   background: var(--chat-pane-bg);
@@ -30,9 +31,15 @@
 /* 위치: 스크롤 가능한 메인 패널 공통 */
 .chatCitationPane,
 .chatAnswerPane,
-.chatHistoryPane {
+.chatHistoryPane,
+.chatPdfPane {
   min-height: 0;
   overflow: auto;
+}
+
+.chatPdfPane {
+  padding: 0;
+  overflow: hidden;
 }
 
 /* 위치: 우측 패널 접힘 상태 */

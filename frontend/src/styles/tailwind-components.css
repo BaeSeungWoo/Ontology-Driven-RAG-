@@ -45,6 +45,14 @@
     grid-template-columns: 44px minmax(0, 1fr) 44px;
   }
 
+  .tw-chat-layout-pdf-open {
+    grid-template-columns: 44px minmax(360px, 42vw) minmax(500px, 1fr) 44px;
+  }
+
+  .tw-chat-layout-pdf-open.tw-chat-layout-collapsed {
+    grid-template-columns: 44px minmax(360px, 42vw) minmax(500px, 1fr) 44px;
+  }
+
   /* 좌측 컬럼 */
   .tw-chat-left {
     @apply flex min-h-0;
@@ -58,5 +66,13 @@
   /* 우측 컬럼: 이력 + 설정 */
   .tw-chat-right {
     @apply grid min-h-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
+  }
+
+  @media (max-width: 1024px) {
+    .tw-chat-layout-pdf-open,
+    .tw-chat-layout-pdf-open.tw-chat-layout-collapsed {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto;
+    }
   }
 }
