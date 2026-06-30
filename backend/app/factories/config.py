@@ -31,6 +31,8 @@ class LLMConfig:
 @dataclass
 class EmbeddingConfig:
     model: str = "qwen3-embedding:8b"
+    colpali_model: str = "BAAI/bge-m3"
+    colpali_max_seq_length: int = 512
     base_url: Optional[str] = None          # None이면 llm.base_url 공용
 
     def resolve_base_url(self, llm_base_url: Optional[str]) -> str:
@@ -42,13 +44,37 @@ class EmbeddingConfig:
 # ──────────────────────────────────────────────────────────────────────────────
 
 @dataclass
+class StorePathConfig:
+    db_path: str
+    search_path: str
+
+@dataclass
 class VectorDBConfig:
-    db_path: str = "./data/chroma",
-    search_path: str = "../pipeline/data/chroma",
+    stores: dict[str, StorePathConfig] = field(
+        default_factory=lambda: {
+            "chroma": StorePathConfig(
+                db_path="./data/chroma",
+                search_path="../pipeline/data/chroma",
+            )
+        }
+    )
     retrieval_k: int = 5
     score_threshold: float = 0.7
     chunk_size: int = 800
     chunk_overlap: int = 150
+
+    def get_store(self, store_name: str) -> StorePathConfig:
+        try:
+            return self.stores[store_name]
+        except KeyError as exc:
+            available = ", ".join(sorted(self.stores))
+            raise KeyError(f"Unknown store '{store_name}'. Available: {available}") from exc
+
+    def get_db_path(self, store_name: str) -> str:
+        return self.get_store(store_name).db_path
+
+    def get_search_path(self, store_name: str) -> str:
+        return self.get_store(store_name).search_path
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -110,8 +136,28 @@ CONFIGS: Dict[str, Config] = {
             model="qwen3-embedding:8b",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/yunam/chroma",
-            search_path="../pipeline/data/yunam/chroma",
+            stores={
+                "chroma": StorePathConfig(
+                    db_path="./data/yunam/chroma",
+                    search_path="../pipeline/data/yunam/chroma",
+                ),
+                "bm25": StorePathConfig(
+                    db_path="./data/yunam/bm25",
+                    search_path="../pipeline/data/yunam/bm25",
+                ),
+                "faiss": StorePathConfig(
+                    db_path="./data/yunam/faiss",
+                    search_path="../pipeline/data/yunam/faiss",
+                ),
+                "kg": StorePathConfig(
+                    db_path="./data/yunam/kg",
+                    search_path="../pipeline/data/yunam/kg",
+                ),
+                "multimodal": StorePathConfig(
+                    db_path="./data/yunam/multimodal",
+                    search_path="../pipeline/data/yunam/multimodal",
+                ),
+            },
             retrieval_k=3,
             score_threshold=0.8,
         ),
@@ -136,8 +182,28 @@ CONFIGS: Dict[str, Config] = {
             base_url="http://192.168.1.180:11434",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/yulkok/chroma",
-            search_path="../pipeline/data/yulkok/chroma",
+            stores={
+                "chroma": StorePathConfig(
+                    db_path="./data/yulkok/chroma",
+                    search_path="../pipeline/data/yulkok/chroma",
+                ),
+                "bm25": StorePathConfig(
+                    db_path="./data/yulkok/bm25",
+                    search_path="../pipeline/data/yulkok/bm25",
+                ),
+                "faiss": StorePathConfig(
+                    db_path="./data/yulkok/faiss",
+                    search_path="../pipeline/data/yulkok/faiss",
+                ),
+                "kg": StorePathConfig(
+                    db_path="./data/yulkok/kg",
+                    search_path="../pipeline/data/yulkok/kg",
+                ),
+                "multimodal": StorePathConfig(
+                    db_path="./data/yulkok/multimodal",
+                    search_path="../pipeline/data/yulkok/multimodal",
+                ),
+            },
             retrieval_k=7,
             score_threshold=0.6,
         ),
@@ -162,8 +228,28 @@ CONFIGS: Dict[str, Config] = {
             base_url="http://192.168.1.180:11434",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/poongsan/chroma",
-            search_path="../pipeline/data/poongsan/chroma",
+            stores={
+                "chroma": StorePathConfig(
+                    db_path="./data/poongsan/chroma",
+                    search_path="../pipeline/data/poongsan/chroma",
+                ),
+                "bm25": StorePathConfig(
+                    db_path="./data/poongsan/bm25",
+                    search_path="../pipeline/data/poongsan/bm25",
+                ),
+                "faiss": StorePathConfig(
+                    db_path="./data/poongsan/faiss",
+                    search_path="../pipeline/data/poongsan/faiss",
+                ),
+                "kg": StorePathConfig(
+                    db_path="./data/poongsan/kg",
+                    search_path="../pipeline/data/poongsan/kg",
+                ),
+                "multimodal": StorePathConfig(
+                    db_path="./data/poongsan/multimodal",
+                    search_path="../pipeline/data/poongsan/multimodal",
+                ),
+            },
             retrieval_k=5,
             score_threshold=0.75,
         ),
@@ -188,8 +274,28 @@ CONFIGS: Dict[str, Config] = {
             base_url="http://192.168.1.180:11434",
         ),
         vector_db=VectorDBConfig(
-            db_path="./data/D/chroma",
-            search_path="../pipeline/data/D/chroma",
+            stores={
+                "chroma": StorePathConfig(
+                    db_path="./data/D/chroma",
+                    search_path="../pipeline/data/D/chroma",
+                ),
+                "bm25": StorePathConfig(
+                    db_path="./data/D/bm25",
+                    search_path="../pipeline/data/D/bm25",
+                ),
+                "faiss": StorePathConfig(
+                    db_path="./data/D/faiss",
+                    search_path="../pipeline/data/D/faiss",
+                ),
+                "kg": StorePathConfig(
+                    db_path="./data/D/kg",
+                    search_path="../pipeline/data/D/kg",
+                ),
+                "multimodal": StorePathConfig(
+                    db_path="./data/D/multimodal",
+                    search_path="../pipeline/data/D/multimodal",
+                ),
+            },
             retrieval_k=5,
             score_threshold=0.7,
         ),

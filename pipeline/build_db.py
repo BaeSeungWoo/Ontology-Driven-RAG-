@@ -9,7 +9,7 @@ from backend.app.factories.config import CONFIGS
 from backend.app.embeddings import save_embedding_meta
 
 from pipeline.ingestion.data_loader import VectorDBBuilder
-from pipeline.ingestion.bm25_writer import write_bm25_bundle
+from pipeline.ingestion.vector_writer import write_bm25_bundle
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
@@ -53,7 +53,7 @@ def _build_site_settings(factory_id: str) -> dict[str, Any]:
         "sources": _build_sources(factory_id),
     }
 
-def build(site_id: str, reset: bool = False) -> None:
+def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> None:
     """메인 실행 부.
     각 site_id에 따라 정해진 폴더 경로에서 vectorDB를 생성
 
@@ -70,22 +70,23 @@ def build(site_id: str, reset: bool = False) -> None:
         print(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
         return
     settings = _build_site_settings(config.id)
+    chroma_db_path = Path(config.vector_db.get_db_path("chroma"))
+    bm25_db_path = Path(config.vector_db.get_db_path("bm25"))
 
     # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
-    if reset and Path(config.vector_db.db_path).exists():
-        shutil.rmtree(config.vector_db.db_path)
+    if reset and chroma_db_path.exists():
+        shutil.rmtree(chroma_db_path)
         print(f"[{config.id}] 기존 DB 삭제")
 
-    bm25_dir = Path(config.vector_db.db_path).parent / "bm25"
-    if reset and bm25_dir.exists():
-        shutil.rmtree(bm25_dir)
+    if reset and bm25_db_path.exists():
+        shutil.rmtree(bm25_db_path)
         print(f"[{config.id}] 기존 BM25 삭제")
 
 
     print(f"\n{'='*50}")
     print(f"  ID: {site_id} | 어댑터: {settings['adapter'].__class__.__name__}")
     print(f"  임베딩: {config.embedding.model} @ {config.get_embedding_base_url()}")
-    print(f"  DB 경로: {config.vector_db.db_path}")
+    print(f"  DB 경로: {chroma_db_path}")
     print(f"{'='*50}")
 
     builder = VectorDBBuilder(config, adapter=settings["adapter"])
@@ -106,7 +107,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", type=str, default=None)
     parser.add_argument("--reset", action="store_true")
+    parser.add_argument("--colpali", action="store_true")
     args = parser.parse_args()
 
-    build(site_id=args.id, reset=args.reset)
+    build(site_id=args.id, reset=args.reset, build_colpali=args.colpali)
     # for sid in ([args.id] if args.id else list(SITE_SETTINGS.keys())):

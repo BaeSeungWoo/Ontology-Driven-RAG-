@@ -62,7 +62,7 @@ class VectorDBBuilder:
             collection=self.collection, 
             chunks=enriched_chunks, 
             id=self.config.id,
-            db_path=self.config.vector_db.db_path
+            db_path=self.config.vector_db.get_db_path("chroma")
         )
         return enriched_chunks
 
