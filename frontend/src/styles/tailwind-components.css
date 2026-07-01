@@ -46,26 +46,26 @@
   }
 
   .tw-chat-layout-pdf-open {
-    grid-template-columns: 44px minmax(360px, 42vw) minmax(500px, 1fr) 44px;
+    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.08fr) 44px;
   }
 
   .tw-chat-layout-pdf-open.tw-chat-layout-collapsed {
-    grid-template-columns: 44px minmax(360px, 42vw) minmax(500px, 1fr) 44px;
+    grid-template-columns: 44px minmax(0, 1fr) minmax(0, 1.08fr) 44px;
   }
 
   /* 좌측 컬럼 */
   .tw-chat-left {
-    @apply flex min-h-0;
+    @apply flex min-h-0 min-w-0;
   }
 
   /* 가운데 컬럼: 답변 + 질문 */
   .tw-chat-center {
-    @apply grid min-h-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
+    @apply grid min-h-0 min-w-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
   }
 
   /* 우측 컬럼: 이력 + 설정 */
   .tw-chat-right {
-    @apply grid min-h-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
+    @apply grid min-h-0 min-w-0 gap-3 [grid-template-rows:minmax(0,1fr)_auto];
   }
 
   @media (max-width: 1024px) {
