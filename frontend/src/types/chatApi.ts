@@ -37,6 +37,12 @@ export type AskResponse = {
   metadata?: ChatMetadata;
 };
 
+export type ResolvedDocument = {
+  document_name: string;
+  asset_url: string;
+  page: number | null;
+};
+
 export type CreateSessionPayload = {
   questioner: string;
   title: string;
