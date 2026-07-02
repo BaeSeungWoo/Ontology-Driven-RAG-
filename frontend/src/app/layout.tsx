@@ -32,13 +32,13 @@ export default function RootLayout({
   // NEXT_PUBLIC_FACTORY_THEME=default
   // NEXT_PUBLIC_FACTORY_THEME=fac_YM
   // NEXT_PUBLIC_FACTORY_THEME=fac_PS
-  // NEXT_PUBLIC_FACTORY_THEME=fac_SD
+  // NEXT_PUBLIC_FACTORY_THEME=fac_YG
   const themeKey = process.env.NEXT_PUBLIC_FACTORY_THEME || "default";
   const themeClassMap: Record<string, string> = {
     default: "theme-factory-default",
     fac_YM: "theme-factory-ym",
     fac_PS: "theme-factory-ps",
-    fac_SD: "theme-factory-sd",
+    fac_YG: "theme-factory-yg",
   };
   const factoryThemeClass =
     themeClassMap[themeKey] || themeClassMap.default;

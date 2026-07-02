@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Settings, TriangleAlert } from "lucide-react";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import type { PromptRow } from "@/types/prompt";
 
 import PromptListModal from "./promptListModal";
@@ -17,6 +18,8 @@ type PromptSettingProps = {
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
   onSelectLlmMode: (model: LlmMode) => void;
+  selectedPersonaType: PersonaType;
+  onSelectPersonaType: (personaType: PersonaType) => void;
   onSelectPrompt: (prompt: PromptRow) => void;
 };
 
@@ -28,6 +31,8 @@ export default function PromptSetting({
   onSelectLlmModel,
   selectedLlmMode,
   onSelectLlmMode,
+  selectedPersonaType,
+  onSelectPersonaType,
   onSelectPrompt,
 }: PromptSettingProps) {
   // 내부 state
@@ -132,6 +137,8 @@ export default function PromptSetting({
           onSelectLlmModel={onSelectLlmModel}
           selectedLlmMode={selectedLlmMode}
           onSelectLlmMode={onSelectLlmMode}
+          selectedPersonaType={selectedPersonaType}
+          onSelectPersonaType={onSelectPersonaType}
           onApplyPrompt={handleApplyPrompt}
         />
       )}

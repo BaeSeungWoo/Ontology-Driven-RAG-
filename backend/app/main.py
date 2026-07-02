@@ -78,6 +78,7 @@ class ChatRequest(BaseModel):
     question: str
     mode: str = "base"          # base | rag | graph
     prompt_id: str = "tech_expert"
+    persona_type: str = "operator"
     prompt_no: int | None = None
     restore_memory: bool = False
 
@@ -109,6 +110,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             question=request.question,
             mode=request.mode,
             prompt_id=request.prompt_id,
+            persona_type=request.persona_type,
             user_prompt=user_prompt,
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code

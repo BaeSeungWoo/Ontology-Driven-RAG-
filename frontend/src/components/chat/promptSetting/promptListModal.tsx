@@ -5,6 +5,7 @@ import { usePrompt } from "@/hooks/usePrompt";
 import type { PromptRow, PromptSelectableRow } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
+import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
 import styles from "./promptSetting.module.css";
 
 type PromptListModalProps = {
@@ -14,6 +15,8 @@ type PromptListModalProps = {
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
   onSelectLlmMode: (model: LlmMode) => void;
+  selectedPersonaType: PersonaType;
+  onSelectPersonaType: (personaType: PersonaType) => void;
   onApplyPrompt: (prompt: PromptRow) => void;
 };
 
@@ -24,6 +27,8 @@ export default function PromptListModal({
   onSelectLlmModel,
   selectedLlmMode,
   onSelectLlmMode,
+  selectedPersonaType,
+  onSelectPersonaType,
   onApplyPrompt,
 }: PromptListModalProps) {
   const { getPromptList } = usePrompt();
@@ -149,8 +154,24 @@ export default function PromptListModal({
               </label>
             ))}
           </div>
+          <br/>
+          <p className={styles.llmGuideTitle}>사용 페르소나 선택</p>
+          <div className={styles.llmRadioGroup}>
+            {PERSONA_OPTIONS.map((option) => (
+              <label key={option.value} className={styles.llmRadioItem}>
+                <input
+                  type="radio"
+                  name="personaType"
+                  value={option.value}
+                  checked={selectedPersonaType === option.value}
+                  onChange={() => onSelectPersonaType(option.value)}
+                />
+                <span>{option.label}</span>
+              </label>
+            ))}
+          </div>
           <p className={styles.llmGuideDesc}>
-            선택한 LLM 모델과 모드, 선택한 프롬프트를 질문 요청과 함께 전달할 예정입니다.
+            선택한 LLM 모델과 모드, 페르소나, 선택한 프롬프트를 질문 요청과 함께 전달할 예정입니다.
           </p>
         </section>
 

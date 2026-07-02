@@ -135,7 +135,6 @@
   box-shadow: inset 0 0 0 1px rgb(255 214 191 / 78%);
 }
 
-
 /* 위치: 현재 선택 요약 */
 .currentSelection {
   border: 1px solid color-mix(in srgb, var(--chat-pane-border) 84%, var(--chat-title-color) 16%);
