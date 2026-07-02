@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from sentence_transformers import SentenceTransformer
 import pandas as pd
 import numpy as np
 
@@ -16,11 +15,11 @@ from rank_bm25 import BM25Okapi
 
 from backend.app.core.bm25_tokenizer import TOKENIZER_VERSION, tokenize_for_bm25
 from backend.app.core.llm_handler import BaseLLM
-from backend.app.embeddings import load_embeddings, encode
+from backend.app.embeddings import load_embeddings
 from backend.app.factories.config import Config
 
 from pipeline.ingestion.openie_extractor import extract_triples_batch
-import pipeline.ingestion.kg as kg_mod
+import pipeline.ingestion.kg_resolver as kg_mod
 
 BATCH_SIZE = 500
 
@@ -39,7 +38,7 @@ def create_vector_collection(config: Config) -> chromadb.Collection:
         metadata={"hnsw:space": "cosine"}
     )
 
-def upsert(collection, chunks: list[dict[str, Any]], id: str, db_path: str):
+def write_chroma(collection, chunks: list[dict[str, Any]], id: str, db_path: str):
     if not chunks:
         print(f"[{id}] 저장할 청크 데이터가 없습니다")
         return
@@ -62,7 +61,7 @@ def upsert(collection, chunks: list[dict[str, Any]], id: str, db_path: str):
 # ──────────────────────────────────────────────────────────────────────────────
 #  BM25 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def write_bm25_bundle(config: Config, chunks: list[dict[str, Any]], output: str | None = None):
+def write_bm25(config: Config, chunks: list[dict[str, Any]], output: str | None = None):
     documents = [f"passage: {chunk['page_content']}" for chunk in chunks]
     tokenized = [tokenize_for_bm25(chunk["page_content"]) for chunk in chunks]
     bm25 = BM25Okapi(tokenized)
@@ -96,7 +95,7 @@ def write_bm25_bundle(config: Config, chunks: list[dict[str, Any]], output: str 
 # ──────────────────────────────────────────────────────────────────────────────
 #  FAISS 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def indexing_and_save_parquet(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_path: str):
+def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
     faiss_path = Path(db_path)
     faiss_path.mkdir(parents=True, exist_ok=True)
 
@@ -118,14 +117,12 @@ def indexing_and_save_parquet(embedding: SentenceTransformer, chunks: list[dict[
             return f"passage: {section_title}\n{page_content}"
         return f"passage: {page_content}"
 
-    passages = [_build_passage(chunk) for chunk in chunks_df]
+    passages = [_build_passage(chunk) for chunk in chunks]
 
-    embs = encode(
-        embedding_model=embedding,
-        texts=passages,
-        batch_size=BATCH_SIZE,
-        normalize=True,
-    )
+    embedding = load_embeddings(config)
+    raw_embs = embedding(passages)
+    embs = np.array(raw_embs).astype('float32')
+    faiss.normalize_L2(embs)
 
     idx = faiss.IndexFlatIP(embs.shape[1])
 
@@ -139,7 +136,11 @@ def indexing_and_save_parquet(embedding: SentenceTransformer, chunks: list[dict[
 # ──────────────────────────────────────────────────────────────────────────────
 #  KG 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def build_kg(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_path: str, llm: BaseLLM):
+def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: BaseLLM):
+    if not chunks:
+        print("no chunks to kg")
+        return
+
     chunk_df = pd.DataFrame(chunks)
 
     kg_path = Path(db_path)
@@ -147,6 +148,7 @@ def build_kg(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_pa
 
     json_path = kg_path / "openie_results.jsonl"
     pkl_path = kg_path / "kg.pkl"
+
     def _build_pair(chunk: dict[str, Any]) -> tuple:
         metadata = chunk.get("metadata") or {}
         chunk_id = str(metadata.get("chunk_id") or "").strip()
@@ -168,14 +170,38 @@ def build_kg(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_pa
             "text": str(chunk.get("page_content") or "").strip(),
         })
     g, entity_list = kg_mod.build_kg_openie(chunk_records, results)
-    ent_embs = encode(embedding_model=embedding,texts=entity_list, normalize=True)
+
+    if not entity_list:
+        print("추출된 entity list 없음, 빈 kg 저장")
+        bundle = {
+            "g": g,
+            "entity_list": [],
+            "entity_embs": np.zeros((0, 0), dtype=np.float32),
+            "triple_embs": np.zeros((0, 0), dtype=np.float32),
+            "edge_to_row": {},
+        }
+        with open(str(pkl_path), "wb") as f:
+            pickle.dump(bundle, f)
+        return
+
+    embedding = load_embeddings(config)
+    raw_embs = embedding(entity_list)
+    ent_embs = np.array(raw_embs).astype('float32')
+    faiss.normalize_L2(ent_embs)
+
     kg_mod.add_synonym_edges(g, entity_list, ent_embs)
     edges = [(u, v, k, d) for u, v, k, d in g.edges(keys=True, data=True)
              if d.get("predicate") not in ("appears_in", "synonym")]
     edge_keys = [(u, v, k) for u, v, k, _ in edges]
     triple_texts = [" ".join(d.get("surface") or (u, d.get("predicate", ""), v)) for u, v, _k, d in edges]
-    tri_embs = encode(embedding_model=embedding,texts=triple_texts, normalize=True) if triple_texts \
-        else np.zeros((0, ent_embs.shape[1]), dtype=np.float32)
+
+    if triple_texts:
+        raw_tri_embs = embedding(triple_texts)
+        tri_embs = np.asarray(raw_tri_embs, dtype=np.float32)
+        faiss.normalize_L2(tri_embs)
+    else:
+        tri_embs = np.zeros((0, ent_embs.shape[1]), dtype=np.float32)
+
     bundle = {"g": g, "entity_list": entity_list, "entity_embs": ent_embs,
               "triple_embs": tri_embs, "edge_to_row": {ek: i for i, ek in enumerate(edge_keys)}}
     with open(str(pkl_path), "wb") as f:
@@ -184,3 +210,5 @@ def build_kg(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_pa
 # ──────────────────────────────────────────────────────────────────────────────
 #  멀티모달 관련
 # ──────────────────────────────────────────────────────────────────────────────
+def write_multimodal():
+    """"""

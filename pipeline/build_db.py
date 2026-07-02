@@ -6,11 +6,11 @@ import shutil
 from typing import Any
 
 from backend.app.factories.config import CONFIGS
-from backend.app.embeddings import save_embedding_meta, load_colpali_embeddings
+from backend.app.embeddings import save_embedding_meta
 
 from backend.app.core.llm_handler import LLMProvider
 from pipeline.ingestion.data_loader import DataLoader
-from pipeline.ingestion.vector_writer import write_bm25_bundle, create_vector_collection, upsert, indexing_and_save_parquet, build_kg
+from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
@@ -54,7 +54,7 @@ def _build_site_settings(factory_id: str) -> dict[str, Any]:
         "sources": _build_sources(factory_id),
     }
 
-def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> None:
+def build(site_id: str, reset: bool = False) -> None:
     """메인 실행 부.
     각 site_id에 따라 정해진 폴더 경로에서 vectorDB를 생성
 
@@ -75,6 +75,7 @@ def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> Non
     chroma_db_path = Path(config.vector_db.get_db_path("chroma"))
     bm25_db_path = Path(config.vector_db.get_db_path("bm25"))
     faiss_path = Path(config.vector_db.get_db_path("faiss"))
+    kg_path = Path(config.vector_db.get_db_path("kg"))
 
     # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
     if reset and chroma_db_path.exists():
@@ -85,11 +86,19 @@ def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> Non
         shutil.rmtree(bm25_db_path)
         print(f"[{config.id}] 기존 BM25 삭제")
 
+    if reset and faiss_path.exists():
+        shutil.rmtree(faiss_path)
+        print(f"[{config.id}] 기존 FAISS 삭제")
+
+    if reset and kg_path.exists():
+        shutil.rmtree(kg_path)
+        print(f"[{config.id}] 기존 KG 삭제")
+
 
     print(f"\n{'='*50}")
     print(f"  ID: {site_id} | 어댑터: {settings['adapter'].__class__.__name__}")
     print(f"  임베딩: {config.embedding.model} @ {config.get_embedding_base_url()}")
-    print(f"  DB 경로: {chroma_db_path}")
+    print(f"  DB 경로: {chroma_db_path.parent}")
     print(f"{'='*50}")
 
     builder = DataLoader(config, adapter=settings["adapter"])
@@ -102,25 +111,21 @@ def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> Non
     if all_chunks:
         collection = create_vector_collection(config)
 
-        upsert(
+        write_chroma(
             collection=collection, 
             chunks=all_chunks, 
             id=config.id,
             db_path=chroma_db_path
         )
 
-        write_bm25_bundle(config, all_chunks)
+        write_bm25(config, all_chunks)
 
-        if build_colpali:
-            colpali_embedding = load_colpali_embeddings(config)
+        write_faiss(config=config, chunks=all_chunks, db_path=faiss_path)
 
-            indexing_and_save_parquet(embedding=colpali_embedding, chunks=all_chunks, db_path=faiss_path)
+        llm = LLMProvider.get_model(config)
+        write_kg(config=config, chunks=all_chunks, db_path=kg_path, llm=llm)
 
-            kg_path = Path(config.vector_db.get_db_path("kg"))
-            llm = LLMProvider.get_colpali_model(config)
-            build_kg(embedding=colpali_embedding, chunks=all_chunks, db_path=kg_path, llm=llm)
-
-    save_embedding_meta(config=config, build_colpali=build_colpali)
+    save_embedding_meta(config=config)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")
 
 
@@ -128,8 +133,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--id", type=str, default=None)
     parser.add_argument("--reset", action="store_true")
-    parser.add_argument("--colpali", action="store_true")
     args = parser.parse_args()
 
-    build(site_id=args.id, reset=args.reset, build_colpali=args.colpali)
+    build(site_id=args.id, reset=args.reset)
     # for sid in ([args.id] if args.id else list(SITE_SETTINGS.keys())):

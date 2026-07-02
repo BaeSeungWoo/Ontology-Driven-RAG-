@@ -135,6 +135,36 @@ class OllamaLLM(BaseLLM):
             or ""
         )
 
+    def invoke(self, messages: list) -> str:
+        prompt = self._to_prompt(messages)
+
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": self.temperature,
+                "num_ctx": self.num_ctx,
+                "num_predict": self.max_tokens,
+            },
+            "think": False,
+        }
+
+        with httpx.Client(timeout=300.0) as client:
+            response = client.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        return (
+            data.get("response")
+            or data.get("content")
+            or data.get("message", {}).get("content", "")
+            or ""
+        )
+
 
     @staticmethod
     def _to_prompt(messages: list) -> str:
@@ -317,52 +347,6 @@ class GoogleLLM(BaseLLM):
         return response.text or ""
 
 # ──────────────────────────────────────────────────────────────────────────────
-#  colpali
-# ──────────────────────────────────────────────────────────────────────────────
-
-class ColpaliLLM(BaseLLM):
-    def __init__(self, cfg: LLMConfig):
-        self.base_url        = cfg.base_url or os.getenv("COLPALI_BASE_URL")
-        self.model           = cfg.model_name
-        self.temperature     = cfg.temperature
-        self.max_tokens      = cfg.max_tokens
-        self.enable_thinking = False
-
-    def invoke(self, messages: list) -> str:
-
-        payload = {
-            "model": self.model,
-            "messages": messages,
-            "max_tokens": self.max_tokens,
-            "temperature": self.temperature,
-            "chat_template_kwargs": {
-                "enable_thinking": False,
-            },
-        }
-
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer x",
-        }
-
-        with httpx.Client(timeout=300.0) as client:
-            response = client.post(
-                f"{self.base_url}/chat/completions",
-                json=payload,
-                headers=headers,
-            )
-            response.raise_for_status()
-            obj = response.json()
-
-        msg = obj["choices"][0]["message"]
-        content = (msg.get("content") or "").strip()
-
-        if not content:
-            content = (msg.get("reasoning_content") or "").strip()
-
-        return content
-
-# ──────────────────────────────────────────────────────────────────────────────
 #  Provider Factory
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -371,22 +355,12 @@ class LLMProvider:
         "openai":    OpenAILLM,
         "ollama":    OllamaLLM,
         "anthropic": AnthropicLLM,
-        "google":    GoogleLLM,
-        "colpali":   ColpaliLLM
+        "google":    GoogleLLM
     }
 
     @staticmethod
     def get_model(config) -> BaseLLM:
         cls = LLMProvider._MAP.get(config.llm.provider)
-        if not cls:
-            raise ValueError(
-                f"[{config.id}] 지원하지 않는 LLM 공급자: {config.llm.provider}"
-            )
-        return cls(config.llm)      # LLMConfig 전체를 전달
-
-    @staticmethod
-    def get_colpali_model(config) -> BaseLLM:
-        cls = LLMProvider._MAP.get(config.colpali_llm.provider)
         if not cls:
             raise ValueError(
                 f"[{config.id}] 지원하지 않는 LLM 공급자: {config.llm.provider}"
