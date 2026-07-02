@@ -10,9 +10,8 @@ from pipeline.ingestion.machine_resolver import (
     build_doc_to_machine_index,
     enrich_machine_codes,
 )
-from pipeline.ingestion.vector_writer import create_vector_collection, upsert
 
-class VectorDBBuilder:
+class DataLoader:
     """
     어댑터를 주입받아 doc_type 별 파싱 전략을 실행합니다.
 
@@ -37,9 +36,8 @@ class VectorDBBuilder:
             chunk_overlap=config.vector_db.chunk_overlap,
         )
         self.doc_to_machine = build_doc_to_machine_index(config.machines)
-        self.collection = create_vector_collection(config)
 
-    def build_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
+    def load_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 후 
         
         vectorDB에 들어갈 청크로 변환 및 vectorDB에 삽입.
@@ -57,13 +55,6 @@ class VectorDBBuilder:
         print(f"[{self.config.id}][{doc_type}] {len(docs)}개 문서 → {len(chunks)}개 청크")
 
         enriched_chunks = enrich_machine_codes(chunks, self.doc_to_machine)
-
-        upsert(
-            collection=self.collection, 
-            chunks=enriched_chunks, 
-            id=self.config.id,
-            db_path=self.config.vector_db.get_db_path("chroma")
-        )
         return enriched_chunks
 
     def _load(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:

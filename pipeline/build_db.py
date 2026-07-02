@@ -6,10 +6,11 @@ import shutil
 from typing import Any
 
 from backend.app.factories.config import CONFIGS
-from backend.app.embeddings import save_embedding_meta
+from backend.app.embeddings import save_embedding_meta, load_colpali_embeddings
 
-from pipeline.ingestion.data_loader import VectorDBBuilder
-from pipeline.ingestion.vector_writer import write_bm25_bundle
+from backend.app.core.llm_handler import LLMProvider
+from pipeline.ingestion.data_loader import DataLoader
+from pipeline.ingestion.vector_writer import write_bm25_bundle, create_vector_collection, upsert, indexing_and_save_parquet, build_kg
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
@@ -70,8 +71,10 @@ def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> Non
         print(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
         return
     settings = _build_site_settings(config.id)
+
     chroma_db_path = Path(config.vector_db.get_db_path("chroma"))
     bm25_db_path = Path(config.vector_db.get_db_path("bm25"))
+    faiss_path = Path(config.vector_db.get_db_path("faiss"))
 
     # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
     if reset and chroma_db_path.exists():
@@ -89,17 +92,35 @@ def build(site_id: str, reset: bool = False, build_colpali: bool = False) -> Non
     print(f"  DB 경로: {chroma_db_path}")
     print(f"{'='*50}")
 
-    builder = VectorDBBuilder(config, adapter=settings["adapter"])
+    builder = DataLoader(config, adapter=settings["adapter"])
     all_chunks = []
 
     for doc_type, source_dir in settings["sources"].items():
         print(f"\n  [{doc_type}]")
-        all_chunks.extend(builder.build_from(source_dir=source_dir, doc_type=doc_type))
+        all_chunks.extend(builder.load_from(source_dir=source_dir, doc_type=doc_type))
 
     if all_chunks:
+        collection = create_vector_collection(config)
+
+        upsert(
+            collection=collection, 
+            chunks=all_chunks, 
+            id=config.id,
+            db_path=chroma_db_path
+        )
+
         write_bm25_bundle(config, all_chunks)
 
-    save_embedding_meta(config)
+        if build_colpali:
+            colpali_embedding = load_colpali_embeddings(config)
+
+            indexing_and_save_parquet(embedding=colpali_embedding, chunks=all_chunks, db_path=faiss_path)
+
+            kg_path = Path(config.vector_db.get_db_path("kg"))
+            llm = LLMProvider.get_colpali_model(config)
+            build_kg(embedding=colpali_embedding, chunks=all_chunks, db_path=kg_path, llm=llm)
+
+    save_embedding_meta(config=config, build_colpali=build_colpali)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")
 
 

@@ -6,17 +6,21 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import torch
-import numpy as np
+from sentence_transformers import SentenceTransformer
 import pandas as pd
+import numpy as np
 
 import chromadb
 import faiss
 from rank_bm25 import BM25Okapi
 
 from backend.app.core.bm25_tokenizer import TOKENIZER_VERSION, tokenize_for_bm25
-from backend.app.embeddings import load_embeddings, load_colpali_embeddings, encode
+from backend.app.core.llm_handler import BaseLLM
+from backend.app.embeddings import load_embeddings, encode
 from backend.app.factories.config import Config
+
+from pipeline.ingestion.openie_extractor import extract_triples_batch
+import pipeline.ingestion.kg as kg_mod
 
 BATCH_SIZE = 500
 
@@ -92,9 +96,17 @@ def write_bm25_bundle(config: Config, chunks: list[dict[str, Any]], output: str 
 # ──────────────────────────────────────────────────────────────────────────────
 #  FAISS 관련
 # ──────────────────────────────────────────────────────────────────────────────
+def indexing_and_save_parquet(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_path: str):
+    faiss_path = Path(db_path)
+    faiss_path.mkdir(parents=True, exist_ok=True)
 
-def indexing_and_save_parquet(config: Config, chunks: list[dict[str, Any]]):
-    embedding = load_colpali_embeddings(config)
+    index_save_path = faiss_path / "faiss.index"
+    parquet_save_path = faiss_path / "chunks.parquet"
+
+    if not chunks:
+        print("no chunks to index")
+        return
+
     chunks_df = pd.DataFrame(chunks)
 
     def _build_passage(chunk: dict[str, Any]) -> str:
@@ -106,38 +118,68 @@ def indexing_and_save_parquet(config: Config, chunks: list[dict[str, Any]]):
             return f"passage: {section_title}\n{page_content}"
         return f"passage: {page_content}"
 
-    passages = [_build_passage(chunk) for chunk in chunks]
+    passages = [_build_passage(chunk) for chunk in chunks_df]
 
-    embs = None
-    if not passages:
-        embs = np.zeros((0, embedding.get_sentence_embedding_dimension()), dtype=np.float32)
-    else:
-        with torch.inference_mode():
-            embs = embedding.encode(
-                passages,
-                batch_size=BATCH_SIZE,
-                show_progress_bar=len(passages) > 256,
-                convert_to_numpy=True,
-                normalize_embeddings=True,
-            ).astype(np.float32)
+    embs = encode(
+        embedding_model=embedding,
+        texts=passages,
+        batch_size=BATCH_SIZE,
+        normalize=True,
+    )
 
     idx = faiss.IndexFlatIP(embs.shape[1])
+
     idx.add(embs)
-
-    faiss_path = Path(config.vector_db.get_db_path("faiss"))
-    faiss_path.mkdir(parents=True, exist_ok=True)
-    index_save_path = faiss_path / "faiss.index"
-    parquet_save_path = faiss_path / "chunks.parquet"
-
     faiss.write_index(idx, str(index_save_path))
-    print(f"[{config.id}] faiss index saved: {index_save_path}")
-    
+    print(f"faiss index saved: {index_save_path}")
+
     chunks_df.to_parquet(parquet_save_path, index=False)
-    print(f"[{config.id}] parquet saved: {parquet_save_path}")
+    print(f"parquet saved: {parquet_save_path}")
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  KG 관련
 # ──────────────────────────────────────────────────────────────────────────────
+def build_kg(embedding: SentenceTransformer, chunks: list[dict[str, Any]], db_path: str, llm: BaseLLM):
+    chunk_df = pd.DataFrame(chunks)
+
+    kg_path = Path(db_path)
+    kg_path.mkdir(parents=True, exist_ok=True)
+
+    json_path = kg_path / "openie_results.jsonl"
+    pkl_path = kg_path / "kg.pkl"
+    def _build_pair(chunk: dict[str, Any]) -> tuple:
+        metadata = chunk.get("metadata") or {}
+        chunk_id = str(metadata.get("chunk_id") or "").strip()
+        page_content = str(chunk.get("page_content") or "").strip()
+
+        return (chunk_id, page_content)
+
+    pairs = [_build_pair(r) for _, r in chunk_df.iterrows()]
+    results = extract_triples_batch(llm=llm, chunks=pairs, stream_path=str(json_path))
+
+    chunk_records = []
+    for chunk in chunks:
+        meta = chunk.get("metadata") or {}
+        chunk_records.append({
+            "chunk_id": str(meta.get("chunk_id") or "").strip(),
+            "section_title": str(meta.get("section_title") or "").strip(),
+            "doc_name": str(meta.get("source_doc_name") or "").strip(),
+            "page_range": str(meta.get("page_range") or "").strip(),
+            "text": str(chunk.get("page_content") or "").strip(),
+        })
+    g, entity_list = kg_mod.build_kg_openie(chunk_records, results)
+    ent_embs = encode(embedding_model=embedding,texts=entity_list, normalize=True)
+    kg_mod.add_synonym_edges(g, entity_list, ent_embs)
+    edges = [(u, v, k, d) for u, v, k, d in g.edges(keys=True, data=True)
+             if d.get("predicate") not in ("appears_in", "synonym")]
+    edge_keys = [(u, v, k) for u, v, k, _ in edges]
+    triple_texts = [" ".join(d.get("surface") or (u, d.get("predicate", ""), v)) for u, v, _k, d in edges]
+    tri_embs = encode(embedding_model=embedding,texts=triple_texts, normalize=True) if triple_texts \
+        else np.zeros((0, ent_embs.shape[1]), dtype=np.float32)
+    bundle = {"g": g, "entity_list": entity_list, "entity_embs": ent_embs,
+              "triple_embs": tri_embs, "edge_to_row": {ek: i for i, ek in enumerate(edge_keys)}}
+    with open(str(pkl_path), "wb") as f:
+        pickle.dump(bundle, f)
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  멀티모달 관련

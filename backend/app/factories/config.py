@@ -12,7 +12,7 @@ from pathlib import Path
 
 @dataclass
 class LLMConfig:
-    provider: str                           # "openai" | "ollama" | "anthropic" | "google"
+    provider: str                           # "openai" | "ollama" | "anthropic" | "google" | "colpali"
     model_name: str
     temperature: float = 0
 
@@ -106,9 +106,14 @@ class Config:
     prompt: PromptConfig       = field(default_factory=PromptConfig)
     graph_db_url: Optional[str] = None
     machines: dict[str, dict] = field(default_factory=dict)
+    colpali_llm: LLMConfig
+    colpali_embedding: EmbeddingConfig = field(default_factory=EmbeddingConfig)
 
     def get_embedding_base_url(self) -> str:
         return self.embedding.resolve_base_url(self.llm.base_url)
+
+    def get_colpali_base_url(self) -> str:
+        return self.colpali_embedding.resolve_base_url(self.colpali_llm.base_url)
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  인스턴스 등록
@@ -165,7 +170,17 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 연암 공장의 설비 유지보수 전문가입니다.",
         ),
-        machines=machine_info
+        machines=machine_info,
+        colpali_llm=LLMConfig(
+            provider="colpali",
+            model_name="gemma4",
+            base_url="http://192.168.1.179:8000/v1",
+            max_tokens=2048
+        ),
+        colpali_embedding=EmbeddingConfig(
+            colpali_model="BAAI/bge-m3",
+            colpali_max_seq_length=512 
+        )
     ),
 
     # ── B 공장 : OpenAI ───────────────────────────────────────────────────────
@@ -211,7 +226,17 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
-        machines=machine_info
+        machines=machine_info,
+        colpali_llm=LLMConfig(
+            provider="colpali",
+            model_name="gemma4",
+            base_url="http://192.168.1.180:8000/v1",
+            max_tokens=2048
+        ),
+        colpali_embedding=EmbeddingConfig(
+            colpali_model="BAAI/bge-m3",
+            colpali_max_seq_length=512 
+        )
     ),
 
     # ── C 공장 : Anthropic ────────────────────────────────────────────────────
@@ -257,7 +282,17 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 풍산 공장의 품질 관리 전문가입니다.",
         ),
-        machines=machine_info
+        machines=machine_info,
+        colpali_llm=LLMConfig(
+            provider="colpali",
+            model_name="gemma4",
+            base_url="http://192.168.1.180:8000/v1",
+            max_tokens=2048
+        ),
+        colpali_embedding=EmbeddingConfig(
+            colpali_model="BAAI/bge-m3",
+            colpali_max_seq_length=512 
+        )
     ),
 
     # ── D 공장 : Google Gemini ────────────────────────────────────────────────
@@ -303,6 +338,16 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 D 공장의 자동화 설비 전문가입니다.",
         ),
-        machines=machine_info
+        machines=machine_info,
+        colpali_llm=LLMConfig(
+            provider="colpali",
+            model_name="gemma4",
+            base_url="http://192.168.1.180:8000/v1",
+            max_tokens=2048
+        ),
+        colpali_embedding=EmbeddingConfig(
+            colpali_model="BAAI/bge-m3",
+            colpali_max_seq_length=512 
+        )
     ),
 }

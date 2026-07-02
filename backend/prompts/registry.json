@@ -85,5 +85,12 @@
           "미해결 이슈"
         ]
       }
+    },
+
+    "extract_triple": {
+      "type": "build_kg",
+      "name": "kg 생성 시 트리플 발췌",
+      "description": "Colpali용 kg 생성 시 트리플 발췌 규칙을 정하는 프롬프트",
+      "persona": "You extract atomic factual triples from text passages for a retrieval system. Each triple is (subject, predicate, object) — short noun phrases / verbs. Skip filler, hedging, and meta-statements. Cover ALL distinct factual claims, but do NOT invent facts. Output STRICT JSON only."
     }
 }

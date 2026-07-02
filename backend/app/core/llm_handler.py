@@ -18,6 +18,9 @@ class BaseLLM:
     async def ainvoke(self, messages: list) -> str:
         raise NotImplementedError
 
+    def invoke(self, messages: list) -> str:
+        raise NotImplementedError
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  OpenAI
@@ -313,6 +316,51 @@ class GoogleLLM(BaseLLM):
 
         return response.text or ""
 
+# ──────────────────────────────────────────────────────────────────────────────
+#  colpali
+# ──────────────────────────────────────────────────────────────────────────────
+
+class ColpaliLLM(BaseLLM):
+    def __init__(self, cfg: LLMConfig):
+        self.base_url        = cfg.base_url or os.getenv("COLPALI_BASE_URL")
+        self.model           = cfg.model_name
+        self.temperature     = cfg.temperature
+        self.max_tokens      = cfg.max_tokens
+        self.enable_thinking = False
+
+    def invoke(self, messages: list) -> str:
+
+        payload = {
+            "model": self.model,
+            "messages": messages,
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "chat_template_kwargs": {
+                "enable_thinking": False,
+            },
+        }
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer x",
+        }
+
+        with httpx.Client(timeout=300.0) as client:
+            response = client.post(
+                f"{self.base_url}/chat/completions",
+                json=payload,
+                headers=headers,
+            )
+            response.raise_for_status()
+            obj = response.json()
+
+        msg = obj["choices"][0]["message"]
+        content = (msg.get("content") or "").strip()
+
+        if not content:
+            content = (msg.get("reasoning_content") or "").strip()
+
+        return content
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Provider Factory
@@ -324,11 +372,21 @@ class LLMProvider:
         "ollama":    OllamaLLM,
         "anthropic": AnthropicLLM,
         "google":    GoogleLLM,
+        "colpali":   ColpaliLLM
     }
 
     @staticmethod
     def get_model(config) -> BaseLLM:
         cls = LLMProvider._MAP.get(config.llm.provider)
+        if not cls:
+            raise ValueError(
+                f"[{config.id}] 지원하지 않는 LLM 공급자: {config.llm.provider}"
+            )
+        return cls(config.llm)      # LLMConfig 전체를 전달
+
+    @staticmethod
+    def get_colpali_model(config) -> BaseLLM:
+        cls = LLMProvider._MAP.get(config.colpali_llm.provider)
         if not cls:
             raise ValueError(
                 f"[{config.id}] 지원하지 않는 LLM 공급자: {config.llm.provider}"
