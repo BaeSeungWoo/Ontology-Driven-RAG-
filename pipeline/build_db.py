@@ -4,15 +4,18 @@ import argparse
 import shutil
 
 from typing import Any
+from dotenv import load_dotenv
 
 from backend.app.factories.config import CONFIGS
-from backend.app.embeddings import save_embedding_meta
+from backend.app.embeddings import save_embedding_meta, ColpaliEmbedder
 
 from backend.app.core.llm_handler import LLMProvider
 from pipeline.ingestion.data_loader import DataLoader
-from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg
+from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg, write_multimodal
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
+
+load_dotenv()
 
 def _build_sources(factory_id: str) -> dict[str, Any]:
     return {
@@ -76,6 +79,7 @@ def build(site_id: str, reset: bool = False) -> None:
     bm25_db_path = Path(config.vector_db.get_db_path("bm25"))
     faiss_path = Path(config.vector_db.get_db_path("faiss"))
     kg_path = Path(config.vector_db.get_db_path("kg"))
+    multimodal_path = Path(config.vector_db.get_db_path("multimodal"))
 
     # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
     if reset and chroma_db_path.exists():
@@ -93,6 +97,10 @@ def build(site_id: str, reset: bool = False) -> None:
     if reset and kg_path.exists():
         shutil.rmtree(kg_path)
         print(f"[{config.id}] 기존 KG 삭제")
+    
+    if reset and multimodal_path.exists():
+        shutil.rmtree(multimodal_path)
+        print(f"[{config.id}] 기존 multimodal 삭제")
 
 
     print(f"\n{'='*50}")
@@ -103,10 +111,12 @@ def build(site_id: str, reset: bool = False) -> None:
 
     builder = DataLoader(config, adapter=settings["adapter"])
     all_chunks = []
+    all_img_chunks = []
 
     for doc_type, source_dir in settings["sources"].items():
         print(f"\n  [{doc_type}]")
-        all_chunks.extend(builder.load_from(source_dir=source_dir, doc_type=doc_type))
+        all_chunks.extend(builder.load_text_from(source_dir=source_dir, doc_type=doc_type))
+        all_img_chunks.extend(builder.load_image_from(source_dir=source_dir, doc_type=doc_type, output_dir=multimodal_path))
 
     if all_chunks:
         collection = create_vector_collection(config)
@@ -124,6 +134,17 @@ def build(site_id: str, reset: bool = False) -> None:
 
         llm = LLMProvider.get_model(config)
         write_kg(config=config, chunks=all_chunks, db_path=kg_path, llm=llm)
+
+    if all_img_chunks:
+        embedder = ColpaliEmbedder()
+        try:
+            write_multimodal(
+                chunks=all_img_chunks,
+                db_path=multimodal_path,
+                embedding=embedder
+            )
+        finally:
+            embedder.unload()
 
     save_embedding_meta(config=config)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")

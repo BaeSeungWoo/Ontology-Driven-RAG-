@@ -8,6 +8,7 @@ from typing import Any
 
 import pandas as pd
 import numpy as np
+import torch
 
 import chromadb
 import faiss
@@ -15,11 +16,11 @@ from rank_bm25 import BM25Okapi
 
 from backend.app.core.bm25_tokenizer import TOKENIZER_VERSION, tokenize_for_bm25
 from backend.app.core.llm_handler import BaseLLM
-from backend.app.embeddings import load_embeddings
+from backend.app.embeddings import load_embeddings, ColpaliEmbedder
 from backend.app.factories.config import Config
 
 from pipeline.ingestion.openie_extractor import extract_triples_batch
-import pipeline.ingestion.kg_resolver as kg_mod
+import pipeline.ingestion.kg_utils as kg_mod
 
 BATCH_SIZE = 500
 
@@ -210,5 +211,34 @@ def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: Ba
 # ──────────────────────────────────────────────────────────────────────────────
 #  멀티모달 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def write_multimodal():
-    """"""
+def write_multimodal(
+    chunks: list[dict[str, Any]],
+    db_path: str | Path,
+    embedding: ColpaliEmbedder,
+    batch_size: int = 2
+):
+    mm_path = Path(db_path)
+    mm_path.mkdir(parents=True, exist_ok=True)
+
+    emb_path = mm_path / "img_emb.pt"
+    meta_path = mm_path / "img_meta.parquet"
+
+    if not chunks:
+        print("no page images for multimodal index")
+        return
+
+    image_paths = [row["image_path"] for row in chunks]
+    image_embs = embedding.embed_images(image_paths, batch_size=batch_size)
+
+    rows: list[dict[str, Any]] = []
+    for row, emb in zip(chunks, image_embs):
+        item = dict(row)
+        item["n_patches"] = int(emb.shape[0])
+        rows.append(item)
+
+    torch.save(image_embs, emb_path)
+    pd.DataFrame(rows).to_parquet(meta_path, index=False)
+
+    print(f"multimodal embeddings saved: {emb_path}")
+    print(f"multimodal metadata saved: {meta_path}")
+    print(f"multimodal indexed pages: {len(rows)}")

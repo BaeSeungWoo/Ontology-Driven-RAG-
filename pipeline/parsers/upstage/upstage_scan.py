@@ -96,14 +96,15 @@ def download_result(async_json_path: Path, output_dir: Path) -> None:
         print(f"추출 결과가 존재하지 않습니다: {async_json_path}")
         return
 
-    for batch in batches:
+    pdf_name = f"{async_json_path.stem}.pdf"
+
+    for batch_idx, batch in enumerate(batches):
         url = batch.get("download_url")
         if not url:
-            continue 
-
-        # 파일명 추출
-        filename = url.split("/")[-1].split("?")[0]
-        filepath = output_dir / filename  # 하위 폴더 경로에 저장
+            continue
+ 
+        filename = f"{batch_idx}_{pdf_name}.json"
+        filepath = output_dir / filename
 
         print(f"다운로드 중: {filename}")
         urllib.request.urlretrieve(url, filepath)

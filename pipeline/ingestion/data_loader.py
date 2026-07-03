@@ -2,6 +2,7 @@
 
 from pathlib import Path
 from typing import Any
+import pypdfium2 as pdfium
 
 from backend.app.factories.config import Config
 from pipeline.adapters.base import BaseParser
@@ -37,7 +38,7 @@ class DataLoader:
         )
         self.doc_to_machine = build_doc_to_machine_index(config.machines)
 
-    def load_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
+    def load_text_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 후 
         
         vectorDB에 들어갈 청크로 변환 및 vectorDB에 삽입.
@@ -50,14 +51,14 @@ class DataLoader:
         if doc_type not in self._PARSE_DISPATCH:
             raise ValueError(f"지원하지 않는 doc_type: '{doc_type}'. 허용값: {list(self._PARSE_DISPATCH)}")
 
-        docs = self._load(source_dir, doc_type)
+        docs = self._load_text(source_dir, doc_type)
         chunks = self.chunk_refiner.convert(docs)
         print(f"[{self.config.id}][{doc_type}] {len(docs)}개 문서 → {len(chunks)}개 청크")
 
         enriched_chunks = enrich_machine_codes(chunks, self.doc_to_machine)
         return enriched_chunks
 
-    def _load(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
+    def _load_text(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
         """해당 문서 타입에 따른 parse 전략을 실행하여 구조화 청크 반환 
 
         Args:
@@ -79,3 +80,49 @@ class DataLoader:
                 doc["metadata"]["site_id"] = self.config.id
             docs.extend(parsed)
         return docs
+
+    def load_image_from(
+        self,
+        source_dir: dict[str, Any],
+        doc_type: str,
+        output_dir: str | Path,
+        render_dpi: int = 100,
+    ) -> list[dict[str, Any]]:
+        input_dir = Path(source_dir.get("input", ""))
+        out_dir = Path(output_dir) / "pages"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        rows = []
+        scale = render_dpi / 72.0
+
+        if not input_dir.exists():
+            return rows
+
+        for pdf_path in sorted(input_dir.rglob("*.pdf")):
+            doc_name = pdf_path.stem
+            doc_out_dir = out_dir / doc_name
+            doc_out_dir.mkdir(parents=True, exist_ok=True)
+
+            doc = pdfium.PdfDocument(str(pdf_path))
+            doc_pages = len(doc)
+            try:
+                for page_idx in range(doc_pages):
+                    page = doc[page_idx]
+                    try:
+                        pil = page.render(scale=scale).to_pil()
+                        image_path = doc_out_dir / f"page_{page_idx + 1:04d}.png"
+                        pil.save(image_path)
+
+                        rows.append({
+                            "doc_type": doc_type,
+                            "source_doc_name": doc_name,
+                            "page_num": page_idx + 1,
+                            "image_path": str(image_path),
+                            "source_path": str(pdf_path),
+                        })
+                    finally:
+                        page.close()
+            finally:
+                doc.close()
+            print(f"rendered {doc_pages} pages of {doc_name}")
+        return rows
