@@ -1,12 +1,30 @@
-﻿from fastapi import APIRouter, HTTPException
+﻿import json
+import os
+from pathlib import Path
+
+from fastapi import APIRouter, HTTPException, Request
 
 from app.database import database
+from app.security.validate_code import resolve_request_code
 
 promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
 
+def load_machine_info() -> dict:
+    json_path = Path(__file__).resolve().parent.parent / "factories" / "machine_info.json"
+    with json_path.open("r", encoding="utf-8-sig") as f:
+        return json.load(f)
+
+
 @promptRouter.post("/getPromptList")
-def getPromptList():
+def getPromptList(client_request: Request):
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+
     try:
         prompt_list = database.getPromptList()
         json_data = []
@@ -22,7 +40,12 @@ def getPromptList():
                 }
             )
 
-        return json_data
+        return {
+            "rows": json_data,
+            "machine_code": ctx.request_machine_code,
+            "machine_info": machine_info.get(ctx.request_machine_code) if ctx.request_machine_code else None,
+            "is_main_server": ctx.is_main_server,
+        }
     except Exception as e:
         print(f"get_prompt_list error: {e}")
         raise HTTPException(

@@ -2,11 +2,14 @@
 
 import { useMemo, useState, useEffect } from "react";
 import { usePrompt } from "@/hooks/usePrompt";
-import type { PromptRow, PromptSelectableRow } from "@/types/prompt";
+import type { MachineInfo, PromptRow, PromptSelectableRow } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
 import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
+import MachineInfoPanel from "./machineInfoPanel";
 import styles from "./promptSetting.module.css";
+
+const PROMPT_PAGE_SIZE = 5;
 
 type PromptListModalProps = {
   onClose: () => void;
@@ -40,22 +43,30 @@ export default function PromptListModal({
 
   // 레거시 엔드포인트에서 받은 전체 프롬프트 목록
   const [allRows, setAllRows] = useState<PromptSelectableRow[]>([]);
+  const [machineCode, setMachineCode] = useState<string | null>(null);
+  const [machineInfo, setMachineInfo] = useState<MachineInfo | null>(null);
+  const [isMainServer, setIsMainServer] = useState(false);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     let mounted = true;
 
     const fetchPromptList = async () => {
       try {
-        const rows = await getPromptList();
+        const result = await getPromptList();
         if (!mounted) return;
-        setAllRows(rows);
+        setAllRows(result.rows);
+        setMachineCode(result.machineCode);
+        setMachineInfo(result.machineInfo);
+        setIsMainServer(result.isMainServer);
+        setPage(1);
       } catch (error) {
         console.error("프롬프트 목록 조회 실패", error);
         if (!mounted) return;
         setAllRows([]);
-      } finally {
-        if (mounted) {
-        }
+        setMachineCode(null);
+        setMachineInfo(null);
+        setIsMainServer(false);
       }
     };
 
@@ -71,6 +82,12 @@ export default function PromptListModal({
     () => allRows.find((row) => row.prompt_no === selectedPromptNo) ?? null,
     [allRows, selectedPromptNo],
   );
+  const totalPages = Math.max(1, Math.ceil(allRows.length / PROMPT_PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = useMemo(() => {
+    const start = (currentPage - 1) * PROMPT_PAGE_SIZE;
+    return allRows.slice(start, start + PROMPT_PAGE_SIZE);
+  }, [allRows, currentPage]);
 
   const handleSelectRow = (promptNo: number) => {
     setSelectedPromptNo(promptNo);
@@ -98,6 +115,14 @@ export default function PromptListModal({
     onClose();
   };
 
+  const handlePrevPage = () => {
+    setPage((prev) => Math.max(1, prev - 1));
+  };
+
+  const handleNextPage = () => {
+    setPage((prev) => Math.min(totalPages, prev + 1));
+  };
+
   return (
     <div className={styles.modalBackdrop} onClick={onClose} role="presentation">
       <section
@@ -107,15 +132,8 @@ export default function PromptListModal({
         role="dialog"
       >
         <header className={styles.modalHeader}>
-          <h3 className={styles.modalTitle}>프롬프트 목록</h3>
+          <h3 className={styles.modalTitle}>서비스 설정</h3>
           <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.actionButton}
-              onClick={handleApplyPrompt}
-            >
-              사용 프롬프트 설정
-            </button>
             <button type="button" className={styles.closeButton} onClick={onClose}>
               닫기
             </button>
@@ -138,7 +156,6 @@ export default function PromptListModal({
               </label>
             ))}
           </div>
-          <br/>
           <p className={styles.llmGuideTitle}>사용 LLM 모드 선택</p>
           <div className={styles.llmRadioGroup}>
             {LLM_MODE_OPTIONS.map((option) => (
@@ -154,7 +171,6 @@ export default function PromptListModal({
               </label>
             ))}
           </div>
-          <br/>
           <p className={styles.llmGuideTitle}>사용 페르소나 선택</p>
           <div className={styles.llmRadioGroup}>
             {PERSONA_OPTIONS.map((option) => (
@@ -175,7 +191,16 @@ export default function PromptListModal({
           </p>
         </section>
 
+        <MachineInfoPanel
+          machineCode={machineCode}
+          machineInfo={machineInfo}
+          isMainServer={isMainServer}
+        />
+
         <div className={styles.tableWrap}>
+          <p className={styles.promptTableGuide}>
+            아래 목록에서 사용할 프롬프트를 클릭하여 선택하세요.
+          </p>
           <table className={styles.promptTable}>
             <thead>
               <tr>
@@ -185,8 +210,8 @@ export default function PromptListModal({
               </tr>
             </thead>
             <tbody>
-              {allRows.map((row) => {
-                const isActive = row.SEL_YN === "Y";
+              {pageRows.map((row) => {
+                const isActive = row.prompt_no === selectedPromptNo;
 
                 return (
                   <tr
@@ -210,6 +235,36 @@ export default function PromptListModal({
               )}
             </tbody>
           </table>
+          <div className={styles.tableFooter}>
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                className={styles.pageButton}
+                onClick={handlePrevPage}
+                disabled={currentPage === 1}
+              >
+                이전
+              </button>
+              <span className={styles.pageStatus}>
+                {currentPage} / {totalPages}
+              </span>
+              <button
+                type="button"
+                className={styles.pageButton}
+                onClick={handleNextPage}
+                disabled={currentPage === totalPages}
+              >
+                다음
+              </button>
+            </div>
+            <button
+              type="button"
+              className={styles.actionButton}
+              onClick={handleApplyPrompt}
+            >
+              사용 프롬프트 설정
+            </button>
+          </div>
         </div>
       </section>
     </div>

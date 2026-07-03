@@ -179,12 +179,12 @@
 
 .modal {
   width: min(760px, calc(100vw - 32px));
-  max-height: calc(100dvh - 48px);
-  overflow: auto;
+  max-height: calc(100dvh - 4px);
+  overflow: hidden;
   background: var(--chat-page-bg);
   border: 1px solid var(--chat-pane-border);
   border-radius: 6px;
-  padding: 10px;
+  padding: 7px;
   box-shadow: 0 8px 28px var(--chat-shadow);
 }
 
@@ -193,8 +193,8 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
-  padding: 2px 4px 8px;
+  margin-bottom: 8px;
+  padding: 0 4px 6px;
   border-bottom: 1px solid color-mix(in srgb, var(--chat-pane-border) 75%, transparent);
 }
 
@@ -218,9 +218,9 @@
   border-radius: 10px;
   background: color-mix(in srgb, var(--chat-title-color) 78%, #111 22%);
   color: var(--chat-pane-bg);
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
-  padding: 8px 14px;
+  padding: 7px 12px;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -245,28 +245,34 @@
 .llmGuideBox {
   border: 1px solid color-mix(in srgb, var(--chat-title-color) 25%, var(--chat-pane-border) 75%);
   background: var(--chat-pane-bg);
-  padding: 10px 12px;
-  margin: 6px 4px 14px;
+  padding: 7px 10px;
+  margin: 4px 4px 8px;
   border-radius: 8px;
 }
 
 .llmGuideTitle {
-  margin: 0 0 10px;
-  font-size: 14px;
+  margin: 0 0 5px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--chat-title-color);
 }
 
+.llmRadioGroup + .llmGuideTitle {
+  margin-top: 10px;
+}
+
 .llmGuideDesc {
-  margin: 10px 0 0;
-  font-size: 12px;
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.25;
   color: var(--chat-muted-text);
 }
 
 .llmRadioGroup {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  row-gap: 5px;
   flex-wrap: wrap;
 }
 
@@ -274,15 +280,15 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--chat-text-color);
   font-weight: 600;
   cursor: pointer;
 }
 
 .llmRadioItem input[type="radio"] {
-  width: 14px;
-  height: 14px;
+  width: 13px;
+  height: 13px;
   accent-color: var(--chat-title-color);
   margin: 0;
 }
@@ -295,6 +301,70 @@
   margin-bottom: 0;
 }
 
+.machineInfoBox {
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 22%, var(--chat-pane-border) 78%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 88%, var(--chat-page-bg) 12%);
+  margin: 0 4px 8px;
+  padding: 7px 12px;
+}
+
+.machineInfoHeading,
+.machineInfoList,
+.machineInfoRow,
+.machineInfoRow dd,
+.machineDocumentList {
+  margin: 0;
+}
+
+.machineInfoHeading {
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+
+.machineInfoList {
+  display: grid;
+  gap: 2px;
+}
+
+.machineInfoRow {
+  display: grid;
+  grid-template-columns: 142px minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.machineInfoRow dt {
+  color: var(--chat-muted-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.machineInfoRow dd {
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-text-color);
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.machineDocumentList {
+  display: grid;
+  gap: 1px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.machineDocumentList li {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--chat-muted-text);
+}
+
 
 
 /* 위치: 프롬프트 목록 테이블 */
@@ -303,6 +373,16 @@
   border-radius: 8px;
   overflow: hidden;
   margin: 0 4px 4px;
+}
+
+.promptTableGuide {
+  margin: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--chat-pane-border) 80%, var(--chat-text-color) 20%);
+  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-page-bg) 6%);
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--chat-muted-text);
 }
 
 .promptTable {
@@ -316,8 +396,8 @@
 .promptTable td {
   border-bottom: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
   border-right: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
-  padding: 10px 12px;
-  font-size: 13px;
+  padding: 6px 10px;
+  font-size: 12px;
   color: var(--chat-text-color);
 }
 
@@ -378,6 +458,53 @@
   padding: 16px 12px;
 }
 
+.tableFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
+  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-page-bg) 6%);
+  padding: 6px 10px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 0;
+}
+
+.pageButton {
+  min-width: 58px;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 28%, var(--chat-pane-border) 72%);
+  border-radius: 8px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-title-color);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.pageButton:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+}
+
+.pageButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pageStatus {
+  min-width: 52px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--chat-muted-text);
+}
+
 
 
 /* 위치: 반응형(태블릿 이하) 모달 보정 */
@@ -388,13 +515,13 @@
 
   .modal {
     width: calc(100vw - 24px);
-    max-height: calc(100dvh - 24px);
-    padding: 12px;
+    max-height: calc(100dvh - 4px);
+    padding: 7px;
   }
 
   .modalHeader {
-    flex-direction: column;
-    align-items: stretch;
+    flex-direction: row;
+    align-items: center;
   }
 
   .modalTitle {
@@ -402,8 +529,8 @@
   }
 
   .modalActions {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: flex-end;
     flex-wrap: wrap;
   }
 
@@ -425,10 +552,28 @@
     font-size: 11px;
   }
 
+  .machineInfoBox {
+    padding: 8px 10px;
+  }
+
+  .machineInfoRow {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
   .promptTable th,
   .promptTable td {
-    font-size: 13px;
-    padding: 8px 10px;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .tableFooter {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .tableFooter .actionButton {
+    width: auto;
   }
 }
 
