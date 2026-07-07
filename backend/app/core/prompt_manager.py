@@ -187,8 +187,8 @@ class PromptManager:
         ]
 
     # kg 생성 시 llm에 넘겨 줄 프롬프트 생성
-    def build_kg_prompt(self, text: str, prompt_id: str = "build_kg") -> list:
-        cfg = self.registry.get(prompt_id) or self.registry["build_kg"]
+    def build_kg_prompt(self, text: str, prompt_id: str = "extract_triple") -> list:
+        cfg = self.registry.get(prompt_id) or self.registry["extract_triple"]
 
         def _format_fewshot() -> str:
             parts = []

@@ -121,13 +121,22 @@ def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
     passages = [_build_passage(chunk) for chunk in chunks]
 
     embedding = load_embeddings(config)
-    raw_embs = embedding(passages)
-    embs = np.array(raw_embs).astype('float32')
+
+    all_embs = []
+    total = len(passages)
+
+    for i in range(0, total, BATCH_SIZE):
+        batch = passages[i:i + BATCH_SIZE]
+        raw_batch_embs = embedding(batch)
+        all_embs.extend(raw_batch_embs)
+        print(f"  - FAISS embedding 진행률: {min(i + BATCH_SIZE, total)}/{total}")
+
+    embs = np.array(all_embs, dtype="float32")
     faiss.normalize_L2(embs)
 
     idx = faiss.IndexFlatIP(embs.shape[1])
-
     idx.add(embs)
+
     faiss.write_index(idx, str(index_save_path))
     print(f"faiss index saved: {index_save_path}")
 
