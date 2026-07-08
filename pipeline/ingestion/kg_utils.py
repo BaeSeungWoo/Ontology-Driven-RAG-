@@ -139,6 +139,7 @@ def build_kg_openie(
         section_title = meta.get("section_title") or ""
         doc_name = meta.get("doc_name") or ""
         page = meta.get("page_range")
+        machine_code = meta.get("machine_code")
         passage_key = f"passage::{cid}"
         if not g.has_node(passage_key):
             g.add_node(
@@ -148,6 +149,7 @@ def build_kg_openie(
                 doc_name=doc_name,
                 section_title=section_title,
                 page_range=page,
+                machine_code=machine_code,
             )
         for s, p, o in r.triples:
             sl, ol = s.lower().strip(), o.lower().strip()
@@ -163,6 +165,7 @@ def build_kg_openie(
                 surface=(s, p, o),
                 sections={section_title} if section_title else set(),
                 chunk_ids={cid},
+                machine_code=machine_code,
             )
             # link both endpoints to the passage node
             g.add_edge(sl, passage_key, predicate="appears_in")

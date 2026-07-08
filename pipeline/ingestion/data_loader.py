@@ -10,6 +10,7 @@ from pipeline.ingestion.chunk_refiner import ChunkRefiner
 from pipeline.ingestion.machine_resolver import (
     build_doc_to_machine_index,
     enrich_machine_codes,
+    _resolve_machine_code
 )
 
 class DataLoader:
@@ -113,12 +114,15 @@ class DataLoader:
                         image_path = doc_out_dir / f"page_{page_idx + 1:04d}.png"
                         pil.save(image_path)
 
+                        machine_codes = _resolve_machine_code(doc_name, self.doc_to_machine)
+
                         rows.append({
                             "doc_type": doc_type,
                             "source_doc_name": doc_name,
                             "page_num": page_idx + 1,
                             "image_path": str(image_path),
                             "source_path": str(pdf_path),
+                            "machine_code": machine_codes,
                         })
                     finally:
                         page.close()

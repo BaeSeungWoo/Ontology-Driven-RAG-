@@ -96,6 +96,23 @@ def write_bm25(config: Config, chunks: list[dict[str, Any]], output: str | None 
 # ──────────────────────────────────────────────────────────────────────────────
 #  FAISS 관련
 # ──────────────────────────────────────────────────────────────────────────────
+def _embed_in_batches(embedding, texts: list[str], progress_label: str, batch_size: int = BATCH_SIZE) -> np.ndarray:
+    if not texts:
+        return np.zeros((0, 0), dtype=np.float32)
+
+    all_embs = []
+    total = len(texts)
+
+    for i in range(0, total, batch_size):
+        batch = texts[i:i + batch_size]
+        raw_batch_embs = embedding(batch)
+        all_embs.extend(raw_batch_embs)
+        print(f"  - {progress_label}: {min(i + batch_size, total)}/{total}")
+
+    embs = np.asarray(all_embs, dtype=np.float32)
+    faiss.normalize_L2(embs)
+    return embs
+
 def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
     faiss_path = Path(db_path)
     faiss_path.mkdir(parents=True, exist_ok=True)
@@ -122,17 +139,7 @@ def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
 
     embedding = load_embeddings(config)
 
-    all_embs = []
-    total = len(passages)
-
-    for i in range(0, total, BATCH_SIZE):
-        batch = passages[i:i + BATCH_SIZE]
-        raw_batch_embs = embedding(batch)
-        all_embs.extend(raw_batch_embs)
-        print(f"  - FAISS embedding 진행률: {min(i + BATCH_SIZE, total)}/{total}")
-
-    embs = np.array(all_embs, dtype="float32")
-    faiss.normalize_L2(embs)
+    embs = _embed_in_batches(embedding, passages, "FAISS embedding 진행률")
 
     idx = faiss.IndexFlatIP(embs.shape[1])
     idx.add(embs)
@@ -178,6 +185,7 @@ def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: Ba
             "doc_name": str(meta.get("source_doc_name") or "").strip(),
             "page_range": str(meta.get("page_range") or "").strip(),
             "text": str(chunk.get("page_content") or "").strip(),
+            "machine_code": chunk.get("machine_code") or []
         })
     g, entity_list = kg_mod.build_kg_openie(chunk_records, results)
 
@@ -195,9 +203,7 @@ def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: Ba
         return
 
     embedding = load_embeddings(config)
-    raw_embs = embedding(entity_list)
-    ent_embs = np.array(raw_embs).astype('float32')
-    faiss.normalize_L2(ent_embs)
+    ent_embs = _embed_in_batches(embedding, entity_list, "KG entity embedding 진행률", batch_size=100)
 
     kg_mod.add_synonym_edges(g, entity_list, ent_embs)
     edges = [(u, v, k, d) for u, v, k, d in g.edges(keys=True, data=True)
@@ -206,9 +212,7 @@ def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: Ba
     triple_texts = [" ".join(d.get("surface") or (u, d.get("predicate", ""), v)) for u, v, _k, d in edges]
 
     if triple_texts:
-        raw_tri_embs = embedding(triple_texts)
-        tri_embs = np.asarray(raw_tri_embs, dtype=np.float32)
-        faiss.normalize_L2(tri_embs)
+        tri_embs = _embed_in_batches(embedding, triple_texts, "KG triple embedding 진행률", batch_size=100)
     else:
         tri_embs = np.zeros((0, ent_embs.shape[1]), dtype=np.float32)
 
