@@ -18,17 +18,18 @@ class PromptManager:
         self,
         prompt_id: str,                     # registry.json - ex) "tech_expert"
         question: str,                      # 사용자가 채팅창에 입력한 질문
-        m_info: dict,                       # 장비정보
+        m_info: dict | None = None,         # 장비정보
         history: list | None = None,        # Memory_manager가 넘겨주는 이전 대화
         context: str = "",                  # RAG/Graph 검색으로 가져온 참고 정보
         user_prompt: str | None = None,     # DB에서 가져온 사용자 정의 프롬프트
         mode: str = "base",                 # base | rag | graph
+        persona_type: str = "operator",
+        intent_type: str = "troubleshooting",
         system_override: str | None = None, # system prompt를 덮어써야할 때만 사용
     ) -> list:  
         # ======================================================                      
         # system message:
         #   registry.json 기반. 모델의 역할, 규칙, 출력 제약
-        #   ㄴ persona
         #   ㄴ response_policy
         #   ㄴ rag_policy
         #   ㄴ citation_policy
@@ -50,7 +51,29 @@ class PromptManager:
         # if cfg.get("type") != "chat_rag":
         #     cfg = self.registry["tech_expert"]
 
-        persona = system_override or cfg.get("persona", "")    
+        m_info = m_info or {}
+        base_persona_raw = system_override or cfg.get("base_persona", cfg.get("persona", ""))
+        if isinstance(base_persona_raw, list):
+            base_persona = "\n".join(base_persona_raw)
+        else:
+            base_persona = base_persona_raw
+        domain_notation_policy = cfg.get("domain_notation_policy", [])
+        persona_overlays = cfg.get("persona_overlays", {})
+        persona_overlay = ""
+        if isinstance(persona_overlays, dict) and not system_override:
+            persona_overlay_raw = persona_overlays.get(persona_type) or persona_overlays.get("operator", "")
+            if isinstance(persona_overlay_raw, list):
+                persona_overlay = "\n".join(persona_overlay_raw)
+            else:
+                persona_overlay = persona_overlay_raw
+        intent_policies = cfg.get("intent_policies", {})
+        intent_policy = ""
+        if isinstance(intent_policies, dict):
+            intent_policy_raw = intent_policies.get(intent_type) or intent_policies.get("troubleshooting", "")
+            if isinstance(intent_policy_raw, list):
+                intent_policy = "\n".join(intent_policy_raw)
+            else:
+                intent_policy = intent_policy_raw
         response_policy = cfg.get("response_policy", [])
         rag_policy = cfg.get("rag_policy", [])
         citation_policy = cfg.get("citation_policy", [])
@@ -78,8 +101,19 @@ class PromptManager:
 
             system_sections.append("[장비 정보]\n" + "\n".join(machine_lines))
 
-        if persona:
-            system_sections.append(persona)
+        if base_persona:
+            system_sections.append(base_persona)
+
+        if domain_notation_policy:
+            system_sections.append(
+                "[도메인 표기 규약]\n" + "\n".join(f"- {rule}" for rule in domain_notation_policy)
+            )
+
+        if persona_overlay:
+            system_sections.append("[PERSONA]\n" + persona_overlay)
+
+        if intent_policy:
+            system_sections.append("[INTENT]\n" + intent_policy)
 
         if response_policy:
             system_sections.append(

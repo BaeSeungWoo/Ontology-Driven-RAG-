@@ -20,6 +20,7 @@ from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
 from app.routers.checkpointRouter import checkpointRouter
+from app.routers.documentRouter import documentRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -29,6 +30,7 @@ from .database.thread_pool_manager import initialize_thread_pools, get_db_thread
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
 
 ASSET_ROOT = Path(__file__).resolve().parents[2] / "pipeline" / "data"
+app.state.asset_root = ASSET_ROOT
 if ASSET_ROOT.exists():
     app.mount("/assets", StaticFiles(directory=ASSET_ROOT), name="assets")
 
@@ -76,6 +78,7 @@ class ChatRequest(BaseModel):
     question: str
     mode: str = "base"          # base | rag | graph
     prompt_id: str = "tech_expert"
+    persona_type: str = "operator"
     prompt_no: int | None = None
     restore_memory: bool = False
 
@@ -107,6 +110,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             question=request.question,
             mode=request.mode,
             prompt_id=request.prompt_id,
+            persona_type=request.persona_type,
             user_prompt=user_prompt,
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code
@@ -140,6 +144,7 @@ app.include_router(promptRouter)
 app.include_router(historyRouter)
 app.include_router(dailyReportRouter)
 app.include_router(checkpointRouter)
+app.include_router(documentRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화
