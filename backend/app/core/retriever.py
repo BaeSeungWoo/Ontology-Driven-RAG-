@@ -37,7 +37,7 @@ class KnowledgeRetriever:
     def __init__(self, config: Config):
         self.config = config
         self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.search_path
+            path=self.config.vector_db.get_search_path("chroma")
         )
         self.embedding_fn = load_embeddings(config=self.config)
 
@@ -130,7 +130,7 @@ class HybridKnowledgeRetriever:
     def __init__(self, config: Config, bm25_path: str | None = None):
         self.config = config
         self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.search_path
+            path=self.config.vector_db.get_search_path("chroma")
         )
         self.embedding_fn = load_embeddings(config=self.config)
         
@@ -197,8 +197,7 @@ class HybridKnowledgeRetriever:
 
     # ----- BM25 번들파일 경로, load -----
     def _default_bm25_path(self) -> Path:
-        chroma_path = Path(self.config.vector_db.search_path)
-        return chroma_path.parent / "bm25" / "bm25_bundle.pkl"
+        return Path(self.config.vector_db.get_search_path("bm25")) / "bm25_bundle.pkl"
 
     def _load_bm25_bundle(self, bm25_path: Path) -> dict:
         if not bm25_path.exists():

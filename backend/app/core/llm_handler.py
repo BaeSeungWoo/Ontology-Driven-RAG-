@@ -18,6 +18,9 @@ class BaseLLM:
     async def ainvoke(self, messages: list) -> str:
         raise NotImplementedError
 
+    def invoke(self, messages: list) -> str:
+        raise NotImplementedError
+
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  OpenAI
@@ -121,6 +124,36 @@ class OllamaLLM(BaseLLM):
                     },
                     "think": False,
                 },
+            )
+            response.raise_for_status()
+            data = response.json()
+
+        return (
+            data.get("response")
+            or data.get("content")
+            or data.get("message", {}).get("content", "")
+            or ""
+        )
+
+    def invoke(self, messages: list) -> str:
+        prompt = self._to_prompt(messages)
+
+        payload = {
+            "model": self.model,
+            "prompt": prompt,
+            "stream": False,
+            "options": {
+                "temperature": self.temperature,
+                "num_ctx": self.num_ctx,
+                "num_predict": self.max_tokens,
+            },
+            "think": False,
+        }
+
+        with httpx.Client(timeout=300.0) as client:
+            response = client.post(
+                f"{self.base_url}/api/generate",
+                json=payload,
             )
             response.raise_for_status()
             data = response.json()
@@ -313,7 +346,6 @@ class GoogleLLM(BaseLLM):
 
         return response.text or ""
 
-
 # ──────────────────────────────────────────────────────────────────────────────
 #  Provider Factory
 # ──────────────────────────────────────────────────────────────────────────────
@@ -323,7 +355,7 @@ class LLMProvider:
         "openai":    OpenAILLM,
         "ollama":    OllamaLLM,
         "anthropic": AnthropicLLM,
-        "google":    GoogleLLM,
+        "google":    GoogleLLM
     }
 
     @staticmethod

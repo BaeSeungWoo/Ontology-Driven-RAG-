@@ -219,3 +219,65 @@ class PromptManager:
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ]
+
+    # kg 생성 시 llm에 넘겨 줄 프롬프트 생성
+    def build_kg_prompt(self, text: str, prompt_id: str = "extract_triple") -> list:
+        cfg = self.registry.get(prompt_id) or self.registry["extract_triple"]
+
+        def _format_fewshot() -> str:
+            parts = []
+            for ex in FEWSHOT:
+                parts.append(
+                    "Passage:\n" + ex["passage"] + "\n"
+                    "Triples:\n" + json.dumps(ex["triples"], ensure_ascii=False)
+                )
+            return "\n\n".join(parts)
+        system_content = cfg.get("persona", "")
+
+        FEWSHOT = [
+            {
+                "passage": (
+                    "The Transformer is the first transduction model relying entirely on "
+                    "self-attention to compute representations of its input and output "
+                    "without using sequence-aligned RNNs or convolution."
+                ),
+                "triples": [
+                    ["Transformer", "is", "first transduction model relying entirely on self-attention"],
+                    ["Transformer", "computes representations of", "its input and output"],
+                    ["Transformer", "does not use", "sequence-aligned RNNs"],
+                    ["Transformer", "does not use", "convolution"],
+                ],
+            },
+            {
+                "passage": (
+                    "System alarm 195 indicates an embedded software system error and is "
+                    "logged in the alarm history."
+                ),
+                "triples": [
+                    ["system alarm 195", "indicates", "embedded software system error"],
+                    ["system alarm 195", "is logged in", "alarm history"],
+                ],
+            },
+            {
+                "passage": (
+                    "The Adam optimizer was used with beta1 = 0.9 and beta2 = 0.98."
+                ),
+                "triples": [
+                    ["Adam optimizer", "was used with beta1", "0.9"],
+                    ["Adam optimizer", "was used with beta2", "0.98"],
+                ],
+            },
+        ]
+
+        PROMPT_TEMPLATE = (
+            "{fewshot}\n\n"
+            "Passage:\n{passage}\n"
+            "Triples (JSON array of [s, p, o] arrays, no commentary):\n"
+        )
+
+        user_content = PROMPT_TEMPLATE.format(fewshot=_format_fewshot(), passage=text.strip())
+
+        return [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]

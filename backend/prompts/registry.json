@@ -143,24 +143,31 @@
         "guide": "출력은 반드시 자연스러운 한국어 문장으로 작성하세요. 불필요한 설명 없이 보고서 문장 형태로 작성하세요."
     },
     "memory_summary": {
-        "type": "summary",
-        "name": "대화 메모리 압축 요약",
-        "description": "MemoryManager에 저장된 이전 대화를 하나의 컨텍스트로 압축하는 프롬프트",
-        "persona": "당신은 대화 메모리를 압축하는 요약기입니다. 이전 대화에서 이후 질문에 필요할 사실, 결정사항, 사용자의 의도, 미해결 이슈만 보존하세요.",
-        "summary_policy": [
-            "원문을 길게 반복하지 말고 핵심 맥락만 압축하세요.",
-            "숫자, 명칭, 조건, 사용자가 정한 정책은 유지하세요.",
-            "이후 답변에 필요 없는 인사말이나 중복 표현은 제거하세요.",
-            "이미 요약된 이전 대화가 포함되어 있으면, 새 대화와 병합해서 하나의 누적 요약으로 갱신하세요.",
-            "출력은 한국어로 작성하세요."
-        ],
-        "output_format": {
-            "default": [
-                "핵심 사실",
-                "사용자 의도",
-                "결정된 정책",
-                "미해결 이슈"
-            ]
-        }
+      "type": "summary",
+      "name": "대화 메모리 압축 요약",
+      "description": "MemoryManager에 저장된 이전 대화를 하나의 컨텍스트로 압축하는 프롬프트",
+      "persona": "당신은 대화 메모리를 압축하는 요약기입니다. 이전 대화에서 이후 질문에 필요할 사실, 결정사항, 사용자의 의도, 미해결 이슈만 보존하세요.",
+      "summary_policy": [
+        "원문을 길게 반복하지 말고 핵심 맥락만 압축하세요.",
+        "숫자, 명칭, 조건, 사용자가 정한 정책은 유지하세요.",
+        "이후 답변에 필요 없는 인사말이나 중복 표현은 제거하세요.",
+        "이미 요약된 이전 대화가 포함되어 있으면, 새 대화와 병합해서 하나의 누적 요약으로 갱신하세요.",
+        "출력은 한국어로 작성하세요."
+      ],
+      "output_format": {
+        "default": [
+          "핵심 사실",
+          "사용자 의도",
+          "결정된 정책",
+          "미해결 이슈"
+        ]
+      }
+    },
+
+    "extract_triple": {
+      "type": "build_kg",
+      "name": "kg 생성 시 트리플 발췌",
+      "description": "kg 생성 시 트리플 발췌 규칙을 정하는 프롬프트",
+      "persona": "You extract atomic factual triples from text passages for a retrieval system. Each triple is (subject, predicate, object) — short noun phrases / verbs. Skip filler, hedging, and meta-statements. Cover ALL distinct factual claims, but do NOT invent facts. Output STRICT JSON only."
     }
 }
