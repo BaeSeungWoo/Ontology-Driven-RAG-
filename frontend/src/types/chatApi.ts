@@ -1,4 +1,5 @@
-﻿import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 
 export type ChatRole = "user" | "assistant";
 
@@ -8,6 +9,7 @@ export type AskRequest = {
   llmModel: LlmModel;
   llmMode: LlmMode;
   promptNo: number;
+  personaType: PersonaType;
   restoreMemory?: boolean;
   onChunk?: (chunk: string) => void;
 };

@@ -6,7 +6,7 @@ import {
 } from "@/services/promptApi";
 import type {
   CreatePromptPayload,
-  PromptSelectableRow,
+  PromptListResult,
   PromptRow,
   UpdatePromptPayload,
 } from "@/types/prompt";
@@ -25,7 +25,7 @@ export const usePrompt = () => {
    * In: 없음
    * Out: PromptSelectableRow[]
    */
-  const getPromptList = useCallback(async (): Promise<PromptSelectableRow[]> => {
+  const getPromptList = useCallback(async (): Promise<PromptListResult> => {
     return getPromptListApi();
   }, []);
 

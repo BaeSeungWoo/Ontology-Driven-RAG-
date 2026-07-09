@@ -16,6 +16,7 @@ import {
   type LlmModel,
   type LlmMode,
 } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import Question, { type QuestionPayload } from "./question/question";
 import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
@@ -65,6 +66,7 @@ export default function Chat() {
   const [selectedPrompt, setSelectedPrompt] = useState<PromptRow | null>(null);
   const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("ollama_config");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("base");
+  const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const isSessionResetPendingRef = useRef(false);
@@ -98,11 +100,13 @@ export default function Chat() {
     promptNo: number | null;
     llmModel: LlmModel;
     llmMode: LlmMode;
+    personaType: PersonaType;
   }>({
     questioner: questioner.trim(),
     promptNo: selectedPrompt?.prompt_no ?? null,
     llmModel: selectedLlmModel,
     llmMode: selectedLlmMode,
+    personaType: selectedPersonaType,
   });
 
   const isPromptRequiredMissing =
@@ -281,6 +285,7 @@ export default function Chat() {
       promptNo: selectedPrompt?.prompt_no ?? null,
       llmModel: selectedLlmModel,
       llmMode: selectedLlmMode,
+      personaType: selectedPersonaType,
     };
 
     const previousSettings = previousSettingsRef.current;
@@ -294,14 +299,15 @@ export default function Chat() {
       previousSettings.questioner !== nextSettings.questioner ||
       previousSettings.promptNo !== nextSettings.promptNo ||
       previousSettings.llmModel !== nextSettings.llmModel ||
-      previousSettings.llmMode !== nextSettings.llmMode;
+      previousSettings.llmMode !== nextSettings.llmMode ||
+      previousSettings.personaType !== nextSettings.personaType;
 
     if (isSettingsChanged && selectedSessionId !== null) {
       isSessionResetPendingRef.current = true;
     }
 
     previousSettingsRef.current = nextSettings;
-  }, [questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedSessionId]);
+  }, [questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedPersonaType, selectedSessionId]);
 
   // render
   return (
@@ -411,6 +417,7 @@ export default function Chat() {
               selectedPrompt={selectedPrompt}
               selectedLlmModel={selectedLlmModel}
               selectedLlmMode={selectedLlmMode}
+              selectedPersonaType={selectedPersonaType}
               onSend={handleSendQuestion}
             />
           </section>
@@ -447,6 +454,8 @@ export default function Chat() {
                 onSelectLlmModel={setSelectedLlmModel}
                 selectedLlmMode={selectedLlmMode}
                 onSelectLlmMode={setSelectedLlmMode}
+                selectedPersonaType={selectedPersonaType}
+                onSelectPersonaType={setSelectedPersonaType}
               />
             </section>
           ) : null}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Settings, TriangleAlert } from "lucide-react";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import type { PromptRow } from "@/types/prompt";
 
 import PromptListModal from "./promptListModal";
@@ -17,6 +18,8 @@ type PromptSettingProps = {
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
   onSelectLlmMode: (model: LlmMode) => void;
+  selectedPersonaType: PersonaType;
+  onSelectPersonaType: (personaType: PersonaType) => void;
   onSelectPrompt: (prompt: PromptRow) => void;
 };
 
@@ -28,6 +31,8 @@ export default function PromptSetting({
   onSelectLlmModel,
   selectedLlmMode,
   onSelectLlmMode,
+  selectedPersonaType,
+  onSelectPersonaType,
   onSelectPrompt,
 }: PromptSettingProps) {
   // 내부 state
@@ -78,7 +83,7 @@ export default function PromptSetting({
     <div className="flex flex-col gap-2.5">
       <div className={styles.promptHeader}>
         <div className={styles.promptTitleGroup}>
-          <h2 className={`pane-title ${styles.promptTitle}`}>프롬프트 설정</h2>
+          <h2 className={`pane-title ${styles.promptTitle}`}>서비스 설정</h2>
           <Settings className={styles.promptTitleIcon} aria-hidden="true" />
         </div>
         <div
@@ -121,7 +126,7 @@ export default function PromptSetting({
         className="w-full cursor-pointer rounded-[10px] border-0 bg-[color-mix(in_srgb,var(--chat-title-color)_78%,#111_22%)] px-3.5 py-3 text-[20px] leading-[1.2] font-bold text-(--chat-pane-bg) hover:bg-[color-mix(in_srgb,var(--chat-title-color)_64%,var(--chat-pane-bg)_36%)]"
         onClick={handleOpenModal}
       >
-        프롬프트 목록
+        설정하기
       </button>
 
       {isOpen && (
@@ -132,6 +137,8 @@ export default function PromptSetting({
           onSelectLlmModel={onSelectLlmModel}
           selectedLlmMode={selectedLlmMode}
           onSelectLlmMode={onSelectLlmMode}
+          selectedPersonaType={selectedPersonaType}
+          onSelectPersonaType={onSelectPersonaType}
           onApplyPrompt={handleApplyPrompt}
         />
       )}

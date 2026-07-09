@@ -2,6 +2,7 @@
 import { askApi } from "@/services/chatApi";
 import { createMessage, createSession, getMessages, updateMessage } from "@/services/chatApi";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import type { PromptRow } from "@/types/prompt";
 import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 
@@ -16,6 +17,7 @@ export type SendQuestionParams = {
   questioner: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
+  personaType: PersonaType;
   prompt: PromptRow;
   forceNewSession?: boolean;
 };
@@ -102,6 +104,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     questioner,
     llmModel,
     llmMode,
+    personaType,
     prompt,
     forceNewSession = false,
   }: SendQuestionParams) => {
@@ -207,6 +210,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         question: normalizedQuestion,
         llmModel,
         llmMode,
+        personaType,
         promptNo: prompt.prompt_no,
         restoreMemory: shouldRestoreMemory,
         onChunk: (chunk) => {

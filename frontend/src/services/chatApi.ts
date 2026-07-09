@@ -39,6 +39,7 @@ export async function askApi({
   llmModel,
   llmMode,
   promptNo,
+  personaType,
   restoreMemory = false,
   onChunk,
 }: AskRequest): Promise<AskResponse> {
@@ -53,6 +54,7 @@ export async function askApi({
       mode: llmMode,
       prompt_no: promptNo,
       prompt_id: "tech_expert",
+      persona_type: personaType,
       restore_memory: restoreMemory,
     }),
   });
