@@ -12,6 +12,7 @@ from backend.app.embeddings import save_embedding_meta, ColpaliEmbedder
 from backend.app.core.llm_handler import LLMProvider
 from pipeline.ingestion.data_loader import DataLoader
 from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg, write_multimodal
+from pipeline.parsers.mnemonic_ladder import build_mnemonic_files
 from pipeline.adapters.site_a import SiteAParser
 from pipeline.adapters.site_b import SiteBParser
 
@@ -108,6 +109,23 @@ def build(site_id: str, reset: bool = False) -> None:
     print(f"  임베딩: {config.embedding.model} @ {config.get_embedding_base_url()}")
     print(f"  DB 경로: {chroma_db_path.parent}")
     print(f"{'='*50}")
+
+    # build ladder ----------------------------------------------
+    ladder_input_dir = Path(f"./data/{config.id}/ladder/inputs")
+    ladder_output_dir = Path(f"./data/{config.id}/ladder/struct")
+    ladder_inputs = sorted(ladder_input_dir.glob("*.LST"))
+
+    # .LST 파일이 1개인지 확인
+    if len(ladder_inputs) != 1:
+        raise ValueError(
+            f"Expected exactly one .LST file in {ladder_input_dir}"
+        )
+
+    build_mnemonic_files(
+        input_file=ladder_inputs[0],
+        output_dir=ladder_output_dir,
+    )
+    # ------------------------------------------------------------
 
     builder = DataLoader(config, adapter=settings["adapter"])
     all_chunks = []
