@@ -30,3 +30,7 @@ export async function getHistoryQuestionerCounts(): Promise<HistoryQuestionerCou
   const response = await api.post<HistoryQuestionerCount[]>("/api/history/getHistoryQuestioner", {});
   return response.data;
 }
+
+export async function deleteHistorySession(sessionId: number): Promise<void> {
+  await api.delete(`/api/history/sessions/${sessionId}`);
+}

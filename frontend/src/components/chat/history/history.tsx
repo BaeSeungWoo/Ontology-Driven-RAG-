@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
+import { deleteHistorySession } from "@/services/historyApi";
 
 import HistoryCard from "./historyCard";
 import type { HistoryItem } from "./historyCard";
@@ -23,6 +24,8 @@ type HistoryProps = {
   selectedSessionId: number | null;
   onSelectSession: (sessionId: number, sessionMeta?: HistorySessionMeta) => void;
   onStartNewChat?: () => void;
+  onDeleteSession?: (sessionId: number) => void;
+  onHistoryRefresh?: () => void;
   refreshKey?: number;
   isCollapsed?: boolean;
   onToggleCollapse?: () => void;
@@ -54,6 +57,8 @@ export default function History({
   selectedSessionId,
   onSelectSession,
   onStartNewChat,
+  onDeleteSession,
+  onHistoryRefresh,
   refreshKey = 0,
   isCollapsed = false,
   onToggleCollapse,
@@ -116,6 +121,12 @@ export default function History({
           }
         : undefined
     );
+  };
+
+  const handleDeleteChat = async (sessionId: number) => {
+    await deleteHistorySession(sessionId);
+    onDeleteSession?.(sessionId);
+    onHistoryRefresh?.();
   };
 
   // 함수: 페이지네이션
@@ -263,7 +274,12 @@ export default function History({
           <div className={styles.historyListWrap}>
             <div className={styles.historyList}>
               {historyItems.map((item) => (
-                <HistoryCard key={item.id} item={item} onSelect={handleSelectChat} />
+                <HistoryCard
+                  key={item.id}
+                  item={item}
+                  onSelect={handleSelectChat}
+                  onDelete={handleDeleteChat}
+                />
               ))}
               {isHistoryEmpty && (
                 <p className={styles.emptyHistoryText}>선택한 질문자의 이력이 없습니다.</p>

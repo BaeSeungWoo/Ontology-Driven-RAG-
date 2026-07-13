@@ -126,6 +126,11 @@ export default function Chat() {
     resetChatState();
   };
 
+  const handleDeleteSession = (sessionId: number) => {
+    if (selectedSessionId !== sessionId) return;
+    resetToNewSession();
+  };
+
   const handleSendQuestion = async (payload: QuestionPayload) => {
     const shouldForceNewSession = isSessionResetPendingRef.current;
     const isSuccess = await sendQuestion({
@@ -433,6 +438,8 @@ export default function Chat() {
               selectedSessionId={selectedSessionId}
               onSelectSession={handleSelectSession}
               onStartNewChat={resetToNewSession}
+              onDeleteSession={handleDeleteSession}
+              onHistoryRefresh={() => setHistoryRefreshKey((prev) => prev + 1)}
               refreshKey={historyRefreshKey}
               isCollapsed={isRightPanelCollapsed}
               onToggleCollapse={handleRightPanelToggle}
