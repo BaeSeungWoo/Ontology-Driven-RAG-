@@ -34,12 +34,7 @@ from .database.thread_pool_manager import initialize_thread_pools, get_db_thread
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
 
-<<<<<<< HEAD
 ASSET_ROOT = ROOT_DIR / "pipeline" / "data"
-=======
-ASSET_ROOT = Path(__file__).resolve().parents[2] / "pipeline" / "data"
-app.state.asset_root = ASSET_ROOT
->>>>>>> 5657b9d3a8f32749438cf3b283a0ad14e5747ae2
 if ASSET_ROOT.exists():
     app.mount("/assets", StaticFiles(directory=ASSET_ROOT), name="assets")
 
