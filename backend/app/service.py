@@ -1,14 +1,23 @@
 # backend/app/service.py
+import asyncio
 import json
-import os
 import re
+from typing import Any
+from datetime import datetime
+from pathlib import Path
 
-from pydantic.v1 import ConfigDict
 from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
-from app.core.retriever import HybridKnowledgeRetriever, KnowledgeRetriever
+from app.core.retriever import (
+    BaseRetriever,
+    ChromaRetriever,
+    FAISSRetriever,
+    KGRetriever,
+    MultimodalRetriever,
+)
 from app.core.prompt_manager import PromptManager
 from app.core.memory_manager import MemoryManager
+from app.core.judge import judge_triple
 from app.database import database
 
 
@@ -18,8 +27,24 @@ class RAGService:
         self.llm = LLMProvider.get_model(config)
         self.memory_manager = MemoryManager()
         self.prompt_manager = PromptManager()
-        self.retriever = KnowledgeRetriever(config)
-        self.hybrid_retriever: HybridKnowledgeRetriever | None = None
+        self._retrievers: dict[str, BaseRetriever] = {}
+
+    def _save_search_result_json(
+        self,
+        session_id: str,
+        payload: dict[str, Any],
+        prefix: str = "search",
+    ) -> str:
+        out_dir = Path("logs") / "search_results"
+        out_dir.mkdir(parents=True, exist_ok=True)
+
+        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+        out_path = out_dir / f"{prefix}_{session_id}_{ts}.json"
+
+        with out_path.open("w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+
+        return str(out_path)
 
     # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
@@ -30,8 +55,14 @@ class RAGService:
         user_prompt: str | None = None,
     ) -> tuple[list, list, list, list]:
 
-        retriever = self._get_retriever()
-        context, imgs, tables, chunks = retriever.get_context(question, mode)
+        retriever = self._get_retriever(mode)
+        context = ""
+        imgs = []
+        tables = []
+        chunks = []
+        
+        if retriever:
+            context, imgs, tables, chunks = retriever.get_context(question)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
@@ -40,6 +71,7 @@ class RAGService:
             context=context,
             mode=mode,
             user_prompt=user_prompt,
+            m_info={},
         )
         return messages, imgs, tables, chunks
 
@@ -73,11 +105,18 @@ class RAGService:
         chunks = []
         m_info = {}
 
-        if mode != "base":
-            retriever = self._get_retriever()
-            context, imgs, tables, chunks = retriever.get_context(question, mode, effective_machine_code)
+        retriever = self._get_retriever(mode)
+        if retriever:
+            context, imgs, tables, chunks = retriever.get_context(query=question, machine_code=effective_machine_code)
             m_info = self.config.machines.get(effective_machine_code, {})
 
+        # if mode == "multimodal":
+        #     messages = self.prompt_manager.build_multimodal(
+        #         question=question,
+        #         context=context,
+        #         history=history,
+        #     )
+        # else:
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,
             question=question,
@@ -89,7 +128,7 @@ class RAGService:
         )
 
         return messages, imgs, tables, chunks
-    
+
     # Chat에서 실제 사용하는 정식 스트리밍 함수
     # metadata를 먼저 보내고, 이후 LLM 토큰을 순차적으로 yield한다.
     # 전체 답변이 끝난 뒤 현재 턴을 MemoryManager에 저장한다.
@@ -135,19 +174,43 @@ class RAGService:
                 "type": "token",
                 "data": token,
             }
-
+        
         answer = "".join(answer_parts)
+
+        search_log = {
+            "mode": mode,
+            "question": question,
+            "answer": answer,
+            "machine_code": effective_machine_code,
+            "context": messages[-1]["content"],
+            "images": imgs,
+            "tables": tables,
+            "chunks": chunks,
+        }
+
+        self._save_search_result_json(
+            session_id=session_id,
+            payload=search_log,
+            prefix=mode,
+        )
+
         self.memory_manager.add_turn(session_id, question, answer)
 
-    def _get_retriever(self):
-        use_hybrid_retriever = True  # HybridRAG 사용여부 True/False 테스트용 변수
-
-        if not use_hybrid_retriever:
-            return self.retriever
-
-        if self.hybrid_retriever is None:
-            self.hybrid_retriever = HybridKnowledgeRetriever(self.config)
-        return self.hybrid_retriever
+    def _get_retriever(self, mode: str) -> BaseRetriever | None:
+        if mode not in self._retrievers:
+            if mode in {"rag", "chroma"}:
+                self._retrievers[mode] = ChromaRetriever(self.config, use_bm25=True)
+            elif mode == "faiss":
+                self._retrievers[mode] = FAISSRetriever(self.config, use_bm25=True)
+            elif mode == "kg":
+                self._retrievers[mode] = KGRetriever(self.config)
+            elif mode == "multimodal":
+                self._retrievers[mode] = MultimodalRetriever(self.config)
+            elif mode == "base":
+                return None
+            else:
+                raise ValueError(f"Unsupported retriever mode: {mode}")
+        return self._retrievers[mode]
 
     # non-streaming/batch 용도로 남겨둔 후보 함수.
     async def ask(
@@ -157,7 +220,7 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
-    ) -> str:
+    ) -> dict[str, Any]:
         messages, imgs, tables, chunks = await self.prepare_ask_context(
             session_id=session_id,
             question=question,
@@ -178,6 +241,372 @@ class RAGService:
                 "chunks": chunks,
             },
         }
+
+
+class JudgeRAGService(RAGService):
+    def _is_judge_mode(self, mode: str) -> bool:
+        return mode == "judge"
+
+    def _chunks_to_sources(self, chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        sources: list[dict[str, Any]] = []
+        for chunk in chunks:
+            meta = chunk.get("metadata") or {}
+            sources.append({
+                "source_doc_name": meta.get("source_doc_name"),
+                "section_title": meta.get("section_title"),
+                "page_range": meta.get("page_range"),
+                "chunk_id": meta.get("chunk_id"),
+                "asset_path": meta.get("asset_path"),
+                "container_type": meta.get("container_type"),
+                "similarity": chunk.get("similarity"),
+            })
+        return sources
+
+    def _section_titles_from_chunks(self, chunks: list[dict[str, Any]]) -> list[str]:
+        titles: list[str] = []
+        seen: set[str] = set()
+
+        for chunk in chunks:
+            meta = chunk.get("metadata") or {}
+            title = str(meta.get("section_title") or "").strip()
+            if not title or title in seen:
+                continue
+            seen.add(title)
+            titles.append(title)
+
+        return titles
+
+    def _triples_from_chunks(self, chunks: list[dict[str, Any]]) -> list[tuple[str, str, str]]:
+        triples: list[tuple[str, str, str]] = []
+        for chunk in chunks:
+            triple = chunk.get("triple")
+            if not triple or len(triple) != 3:
+                continue
+            triples.append((str(triple[0]), str(triple[1]), str(triple[2])))
+        return triples
+
+    async def _answer_branch(
+        self,
+        question: str,
+        mode: str,
+        effective_machine_code: str = "ALL",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        history: list | None = None,
+    ) -> dict[str, Any]:
+        context = ""
+        imgs: list[str] = []
+        tables: list[str] = []
+        chunks: list[dict[str, Any]] = []
+        m_info = self.config.machines.get(effective_machine_code, {})
+
+        retriever = self._get_retriever(mode)
+        if retriever:
+            context, imgs, tables, chunks = retriever.get_context(
+                query=question,
+                machine_code=effective_machine_code,
+            )
+
+        messages = self.prompt_manager.build(
+            prompt_id=prompt_id,
+            question=question,
+            history=history or [],
+            context=context,
+            mode=mode,
+            user_prompt=user_prompt,
+            m_info=m_info,
+        )
+
+        answer = await self.llm.ainvoke(messages)
+
+        branch_out: dict[str, Any] = {
+            "answer": answer,
+            "sources": self._chunks_to_sources(chunks),
+            "section_titles": self._section_titles_from_chunks(chunks),
+            "images": imgs,
+            "tables": tables,
+            "chunks": chunks,
+        }
+
+        if mode == "kg":
+            branch_out["triples"] = self._triples_from_chunks(chunks)
+
+        return branch_out
+
+    async def _answer_doc(
+        self,
+        question: str,
+        effective_machine_code: str = "ALL",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        history: list | None = None,
+    ) -> dict[str, Any]:
+        return await self._answer_branch(
+            question=question,
+            mode="rag",
+            effective_machine_code=effective_machine_code,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            history=history,
+        )
+
+    async def _answer_kg(
+        self,
+        question: str,
+        effective_machine_code: str = "ALL",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        history: list | None = None,
+    ) -> dict[str, Any]:
+        return await self._answer_branch(
+            question=question,
+            mode="kg",
+            effective_machine_code=effective_machine_code,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            history=history,
+        )
+
+    async def _answer_multimodal(
+        self,
+        question: str,
+        effective_machine_code: str = "ALL",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        history: list | None = None,
+    ) -> dict[str, Any]:
+        return await self._answer_branch(
+            question=question,
+            mode="multimodal",
+            effective_machine_code=effective_machine_code,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            history=history,
+        )
+
+    def _merge_branch_lists(self, *lists: list[Any]) -> list[Any]:
+        merged: list[Any] = []
+        seen: set[str] = set()
+
+        for values in lists:
+            for value in values or []:
+                key = json.dumps(value, ensure_ascii=False, sort_keys=True, default=str)
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append(value)
+
+        return merged
+
+    async def _answer_with_judge(
+        self,
+        question: str,
+        effective_machine_code: str = "ALL",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        history: list | None = None,
+        judge_prompt_id: str = "judge",
+    ) -> dict[str, Any]:
+        graph_out, doc_out, mm_out = await asyncio.gather(
+            self._answer_kg(
+                question=question,
+                effective_machine_code=effective_machine_code,
+                prompt_id=prompt_id,
+                user_prompt=user_prompt,
+                history=history,
+            ),
+            self._answer_doc(
+                question=question,
+                effective_machine_code=effective_machine_code,
+                prompt_id=prompt_id,
+                user_prompt=user_prompt,
+                history=history,
+            ),
+            self._answer_multimodal(
+                question=question,
+                effective_machine_code=effective_machine_code,
+                prompt_id=prompt_id,
+                user_prompt=user_prompt,
+                history=history,
+            ),
+        )
+
+        verdict = await judge_triple(
+            llm=self.llm,
+            prompt_manager=self.prompt_manager,
+            question=question,
+            graph_out=graph_out,
+            doc_out=doc_out,
+            mm_out=mm_out,
+            prompt_id=judge_prompt_id,
+        )
+
+        branch_map = {
+            "A": graph_out,
+            "B": doc_out,
+            "C": mm_out,
+        }
+        selected_branch = branch_map.get(verdict.choice)
+
+        if selected_branch is not None:
+            images = list(selected_branch.get("images") or [])
+            tables = list(selected_branch.get("tables") or [])
+            chunks = list(selected_branch.get("chunks") or [])
+            section_titles = list(selected_branch.get("section_titles") or [])
+            triples = list(selected_branch.get("triples") or [])
+        else:
+            images = self._merge_branch_lists(
+                graph_out.get("images") or [],
+                doc_out.get("images") or [],
+                mm_out.get("images") or [],
+            )
+            tables = self._merge_branch_lists(
+                graph_out.get("tables") or [],
+                doc_out.get("tables") or [],
+                mm_out.get("tables") or [],
+            )
+            chunks = self._merge_branch_lists(
+                graph_out.get("chunks") or [],
+                doc_out.get("chunks") or [],
+                mm_out.get("chunks") or [],
+            )
+            section_titles = self._merge_branch_lists(
+                graph_out.get("section_titles") or [],
+                doc_out.get("section_titles") or [],
+                mm_out.get("section_titles") or [],
+            )
+            triples = self._merge_branch_lists(
+                graph_out.get("triples") or [],
+                doc_out.get("triples") or [],
+                mm_out.get("triples") or [],
+            )
+
+        judge_log = {
+            "mode": "judge",
+            "question": question,
+            "machine_code": effective_machine_code,
+            "judge": {
+                "choice": verdict.choice,
+                "reason": verdict.reason,
+                "final_answer": verdict.final_answer,
+                "sources": verdict.sources,
+            },
+            "branches": {
+                "kg": graph_out,
+                "rag": doc_out,
+                "multimodal": mm_out,
+            },
+        }
+
+        self._save_search_result_json(
+            session_id="",
+            payload=judge_log,
+            prefix="judge_full",
+        )
+
+        return {
+            "answer": verdict.final_answer,
+            "metadata": {
+                "choice": verdict.choice,
+                "reason": verdict.reason,
+                "sources": verdict.sources,
+                "images": images,
+                "tables": tables,
+                "chunks": chunks,
+                "section_titles": section_titles,
+                "triples": triples,
+                "branches": {
+                    "kg": graph_out,
+                    "rag": doc_out,
+                    "multimodal": mm_out,
+                },
+            },
+        }
+
+    async def ask_stream(
+        self,
+        session_id: str,
+        question: str,
+        effective_machine_code: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        restore_memory: bool = False,
+    ):
+        if not self._is_judge_mode(mode):
+            async for event in super().ask_stream(
+                session_id=session_id,
+                question=question,
+                effective_machine_code=effective_machine_code,
+                mode=mode,
+                prompt_id=prompt_id,
+                user_prompt=user_prompt,
+                restore_memory=restore_memory,
+            ):
+                yield event
+            return
+
+        history = self.memory_manager.get_history(session_id)
+
+        if restore_memory and not history:
+            restored_history = self._load_recent_history_from_db(session_id, question)
+            self.memory_manager.set_history(session_id, restored_history)
+            await self._compress_memory(session_id, force=True)
+            history = self.memory_manager.get_history(session_id)
+        else:
+            await self._compress_memory(session_id)
+            history = self.memory_manager.get_history(session_id)
+
+        result = await self._answer_with_judge(
+            question=question,
+            effective_machine_code=effective_machine_code,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            history=history,
+        )
+
+        yield {
+            "type": "metadata",
+            "data": result["metadata"],
+        }
+        yield {
+            "type": "token",
+            "data": result["answer"],
+        }
+
+        self.memory_manager.add_turn(session_id, question, result["answer"])
+
+    async def ask(
+        self,
+        session_id: str,
+        question: str,
+        mode: str = "rag",
+        prompt_id: str = "tech_expert",
+        user_prompt: str | None = None,
+        effective_machine_code: str = "ALL",
+    ) -> dict[str, Any]:
+        if not self._is_judge_mode(mode):
+            return await super().ask(
+                session_id=session_id,
+                question=question,
+                mode=mode,
+                prompt_id=prompt_id,
+                user_prompt=user_prompt,
+            )
+
+        history = self.memory_manager.get_history(session_id)
+        await self._compress_memory(session_id)
+        history = self.memory_manager.get_history(session_id)
+
+        result = await self._answer_with_judge(
+            question=question,
+            effective_machine_code=effective_machine_code,
+            prompt_id=prompt_id,
+            user_prompt=user_prompt,
+            history=history,
+        )
+        self.memory_manager.add_turn(session_id, question, result["answer"])
+        return result
     
     def _load_recent_history_from_db(self, session_id: str, current_question: str) -> list:
         rows = database.getChatMessagesBySession(int(session_id))

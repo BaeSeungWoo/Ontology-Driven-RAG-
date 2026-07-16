@@ -3,6 +3,8 @@
 import os
 import json
 import httpx
+import base64
+from pathlib import Path
 from openai import AsyncOpenAI
 from google import genai
 from google.genai import types
@@ -20,7 +22,6 @@ class BaseLLM:
 
     def invoke(self, messages: list) -> str:
         raise NotImplementedError
-
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  OpenAI
@@ -176,6 +177,26 @@ class OllamaLLM(BaseLLM):
         prompt += "[ASSISTANT]\n"
         return prompt
 
+    @staticmethod
+    def _encode_images(image_paths: list[str]) -> list[str]:
+        out: list[str] = []
+        project_root = Path(__file__).resolve().parents[3]
+
+        for path_str in image_paths:
+            path = Path(path_str)
+
+            if not path.is_absolute():
+                path = project_root / "pipeline" / path
+
+            path = path.resolve()
+
+            if not path.exists():
+                raise FileNotFoundError(f"image not found: {path}")
+
+            raw = path.read_bytes()
+            out.append(base64.b64encode(raw).decode("utf-8"))
+
+        return out
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Anthropic
