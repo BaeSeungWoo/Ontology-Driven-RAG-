@@ -20,9 +20,10 @@ export type HistoryItem = {
 type HistoryCardProps = {
   item: HistoryItem;
   onSelect: (chatId: number) => void;
+  onDelete: (chatId: number) => Promise<void>;
 };
 
-export default function HistoryCard({ item, onSelect }: HistoryCardProps) {
+export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardProps) {
   // 내부 state
   // 기능/목적: 대화 삭제 확인 모달의 열림 상태를 관리한다.
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -53,7 +54,8 @@ export default function HistoryCard({ item, onSelect }: HistoryCardProps) {
     setIsDeleteConfirmOpen(false);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
+    await onDelete(item.id);
     setIsDeleteConfirmOpen(false);
   };
 
@@ -97,11 +99,7 @@ export default function HistoryCard({ item, onSelect }: HistoryCardProps) {
             onClick={(event) => event.stopPropagation()}
           >
             <p className={styles.modalTitle}>이 대화를 삭제할까요?</p>
-            <p className={styles.modalText}>
-              삭제 확인 UX만 먼저 연결된 상태입니다.
-              <br />
-              지금은 확인을 눌러도 실제 삭제는 실행되지 않습니다.
-            </p>
+            <p className={styles.modalText}>삭제한 대화는 복구할 수 없습니다.</p>
             <div className={styles.modalActions}>
               <button
                 type="button"

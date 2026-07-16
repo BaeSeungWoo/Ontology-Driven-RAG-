@@ -296,6 +296,31 @@ def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_cod
                 pass
 
 
+@with_thread_pool("db")
+def deleteChatSession(session_id):
+    conn = None
+    cursor = None
+    try:
+        with get_db_connection() as conn:
+            conn.autocommit = False
+            cursor = conn.cursor()
+            proc_name = "dbo.WAFC_WEB_HISTORY_DEL01_SP"
+            exec_stored_proc(cursor, proc_name, (session_id,))
+            conn.commit()
+            return 1
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        print(f"database deleteChatSession() Error: session_id={session_id}, error={e}")
+        raise
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+
+
 # 세션 id 및 소속 장비코드
 @with_thread_pool("db")
 def getChatSessionInfo(session_id):

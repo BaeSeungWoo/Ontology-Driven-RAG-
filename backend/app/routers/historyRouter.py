@@ -248,6 +248,27 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         raise HTTPException(status_code=500, detail=f"newSession error: {str(e)}")
 
 
+@historyRouter.delete("/sessions/{session_id}")
+def deleteChatSession(session_id: int, client_request: Request):
+    machine_info = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machine_info,
+        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+    )
+
+    session_info = database.getChatSessionInfo(session_id)
+    validate_code(ctx, session_info)
+
+    try:
+        database.deleteChatSession(session_id)
+        return {"result": "success"}
+    except Exception as e:
+        print("[history/sessions] delete error:", e)
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"deleteChatSession error: {str(e)}")
+
+
 @historyRouter.post("/getMessages")
 def getMessages(req: GetMessagesRequest, client_request: Request):
     machine_info = load_machine_info()
