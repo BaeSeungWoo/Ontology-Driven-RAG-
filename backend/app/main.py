@@ -2,6 +2,7 @@
 
 import json
 import uvicorn
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request
@@ -13,8 +14,12 @@ from pydantic import BaseModel
 import dotenv
 import os
 
+ROOT_DIR = Path(__file__).resolve().parents[2]
+if str(ROOT_DIR) not in sys.path:
+    sys.path.insert(0, str(ROOT_DIR))
+
 from app.factories.config import CONFIGS
-from app.service import RAGService
+from app.service import JudgeRAGService
 from app.security.validate_code import resolve_request_code, validate_code
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
@@ -29,8 +34,7 @@ from .database.thread_pool_manager import initialize_thread_pools, get_db_thread
 
 app = FastAPI(title="WAFF Ontology-Driven RAG System")
 
-ASSET_ROOT = Path(__file__).resolve().parents[2] / "pipeline" / "data"
-app.state.asset_root = ASSET_ROOT
+ASSET_ROOT = ROOT_DIR / "pipeline" / "data"
 if ASSET_ROOT.exists():
     app.mount("/assets", StaticFiles(directory=ASSET_ROOT), name="assets")
 
@@ -48,14 +52,14 @@ app.add_middleware(
 )
 
 # 미리 생성하지 않고 요청 시 초기화
-services: dict[str, RAGService] = {}
+services: dict[str, JudgeRAGService] = {}
 
-def get_service(factory_id: str) -> RAGService:
+def get_service(factory_id: str) -> JudgeRAGService:
     if factory_id not in services:
         cfg = CONFIGS.get(factory_id)
         if not cfg:
             raise HTTPException(status_code=404, detail="해당 공장 설정을 찾을 수 없습니다.")
-        services[factory_id] = RAGService(cfg)
+        services[factory_id] = JudgeRAGService(cfg)
     return services[factory_id]
 
 # nginx 등 리버스 프록시 대응

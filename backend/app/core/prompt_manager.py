@@ -281,3 +281,75 @@ class PromptManager:
             {"role": "system", "content": system_content},
             {"role": "user", "content": user_content},
         ]
+
+    # judge 판단용 프롬프트 세팅
+    def build_judge_prompt(self, text: str, graph_out: dict, doc_out: dict, mm_out: dict, prompt_id: str = "judge") -> list:
+        cfg = self.registry.get(prompt_id) or self.registry["judge"]
+        
+        system_content = cfg.get("persona", "")
+
+        def _format_sections(secs: list[str], limit: int = 5) -> str:
+            if not secs:
+                return "(none)"
+            short = secs[:limit]
+            return " | ".join(short)
+
+
+        def _format_triples(triples: list[tuple[str, str, str]], limit: int = 5) -> str:
+            if not triples:
+                return "(none)"
+            return " | ".join(f"({s},{p},{o})" for s, p, o in triples[:limit])
+
+        TRIPLE_TEMPLATE = """Question: {question}
+            [Candidate A — KG-grounded Graph RAG]
+            Answer: {a_answer}
+            KG triples used: {a_triples}
+            Sections: {a_sections}
+
+            [Candidate B — vector Doc RAG]
+            Answer: {b_answer}
+            Sections: {b_sections}
+
+            [Candidate C — multimodal (Colpali) RAG]
+            Answer: {c_answer}
+            Related sections: {c_sections}
+
+            Output STRICT JSON: {{"choice": "A" | "B" | "C" | "SYNTH", "reason": "<short>", "final_answer": "<full answer>"}}
+        """
+        user_content = TRIPLE_TEMPLATE.format(
+            question=text,
+            a_answer=graph_out.get("answer", "").strip(),
+            a_triples=_format_triples(graph_out.get("triples") or []),
+            a_sections=_format_sections(graph_out.get("section_titles") or []),
+            b_answer=doc_out.get("answer", "").strip(),
+            b_sections=_format_sections(doc_out.get("section_titles") or []),
+            c_answer=mm_out.get("answer", "").strip(),
+            c_sections=_format_sections(mm_out.get("section_titles") or []),
+        )
+
+        return [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": user_content},
+        ]
+
+    def build_multimodal(
+        self,
+        question: str,
+        context: str,
+        history: list | None = None,
+    ) -> list:
+        system_content = (
+            "매뉴얼 전문가입니다. 회수된 도면/이미지의 인접 텍스트로 답하세요. "
+            "관련 어드레스/심볼 우선. 'Sources:' 블록 금지."
+        )
+
+        history = history or []
+        user_content = (
+            f"회수된 도면 + 인접 텍스트:\n{context or '(이미지만 회수됨)'}\n\n"
+            f"질문: {question}\n\n답변:"
+        )
+
+        messages = [{"role": "system", "content": system_content}]
+        messages.extend(history)
+        messages.append({"role": "user", "content": user_content})
+        return messages

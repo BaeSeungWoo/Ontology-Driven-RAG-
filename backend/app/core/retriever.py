@@ -1,213 +1,227 @@
-# backend/app/core/retriever.py
-
-import pickle
-import re
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from typing import Any
 from pathlib import Path
 
+import re
+import pickle
+
 import chromadb
+import faiss
+import pandas as pd
 import numpy as np
+import torch
 
-from app.core.bm25_tokenizer import tokenize_for_bm25
+from app.embeddings import load_embeddings, ColpaliEmbedder
 from app.factories.config import Config
-from app.embeddings import load_embeddings
+from app.core.bm25_tokenizer import tokenize_for_bm25
 
+from pipeline.ingestion.kg_utils import match_entities, expand_bfs
+
+@dataclass
+class RetrievalItem:
+    id: str
+    text: str
+    score: float | None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    extra: dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class RetrievalResult:
+    items: list[RetrievalItem]
+    context: str = ""
 
 def _content_key(document: str) -> str:
     return re.sub(r"\s+", " ", document).strip().lower()
 
-
-def _deduplicate_by_content(items: list[dict], top_k: int) -> list[dict]:
-    selected: list[dict] = []
-    seen: set[str] = set()
+def _deduplicate_items(items: list[RetrievalItem], top_k: int) -> list[RetrievalItem]:
+    selected = []
+    seen = set()
 
     for item in items:
-        key = _content_key(item.get("document") or "")
+        key = _content_key(item.text or "")
         if key in seen:
             continue
 
         seen.add(key)
         selected.append(item)
+
         if len(selected) >= top_k:
             break
 
     return selected
 
-
-class KnowledgeRetriever:
+class BaseRetriever(ABC):
     def __init__(self, config: Config):
         self.config = config
-        self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.get_search_path("chroma")
-        )
-        self.embedding_fn = load_embeddings(config=self.config)
+        self.embedding_fn = load_embeddings(self.config)
 
-        self.collection = self.chroma.get_or_create_collection(
-            name=self.config.id,
-            embedding_function=self.embedding_fn,
-        )
+    @abstractmethod
+    def search(self, query: str, top_k: int = 5, machine_code: str = "ALL", **kwargs) -> RetrievalResult:
+        pass    
 
-    def get_context(self, query: str, mode: str, machine_code: str = "ALL") -> tuple[str, list, list, list]:
-        """Build retrieval context and metadata for LLM + UI."""
-        if mode == "base":
-            return "", [], [], []
-
-        top_k = self.config.vector_db.retrieval_k
-        candidate_k = max(top_k * 4, 20)
-
-        if machine_code == "ALL":
-            results = self.collection.query(
-                query_texts=[query],
-                n_results=candidate_k,
-                include=["documents", "metadatas", "distances"],
-            )
-        else:
-            results = self.collection.query(
-                query_texts=[query],
-                n_results=candidate_k,
-                include=["documents", "metadatas", "distances"],
-                where={"machine_code": {"$contains": machine_code.strip()}}
-            )
-
-        context_parts: list[str] = []
-        chunks: list[dict] = []
-        imgs: list[str] = []
-        tables: list[str] = []
-
-        items = _deduplicate_by_content([
-            {
-                "document": doc,
-                "metadata": meta or {},
-                "distance": float(dist) if dist is not None else None,
-            }
-            for doc, meta, dist in zip(
-                results["documents"][0],
-                results["metadatas"][0],
-                results["distances"][0],
-            )
-        ], top_k)
-
-        for index, item in enumerate(items, start=1):
-            doc = item["document"]
-            meta = item["metadata"]
-            dist = item["distance"]
-            source = meta.get("source_doc_name", "unknown")
-            container_type = meta.get("container_type")
-            similarity = (1 - dist) if dist is not None else None
-
-            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{doc}")
-
-            chunks.append({
-                "index": index,
-                "retrieval_rank": index,
-                "document": doc,
-                "metadata": meta,
-                "distance": dist,
-                "similarity": similarity,
-            })
-
-            asset_path = meta.get("asset_path")
-            if asset_path and container_type == "pictures":
-                imgs.append(asset_path)
-            elif asset_path and container_type == "tables":
-                tables.append(asset_path)
-
-        context = "\n\n".join(context_parts)
-
-        print(chunks)
-
-        if mode == "graph":
-            graph_text = self._get_graph_context(query)
-            context = f"{context}\n\n[참고 정보]\n{graph_text}"
-
-        return context, imgs, tables, chunks
-
-    def _get_graph_context(self, query: str) -> str:
-        # TODO: Neo4j integration
-        return "[Graph DB 미연동 - 관계 정보 없음]"
-
-
-class HybridKnowledgeRetriever:
-    def __init__(self, config: Config, bm25_path: str | None = None):
-        self.config = config
-        self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.get_search_path("chroma")
-        )
-        self.embedding_fn = load_embeddings(config=self.config)
-        
-        self.collection = self.chroma.get_or_create_collection(
-            name=self.config.id,
-            embedding_function=self.embedding_fn,
-        )
-        # BM25 추가
-        self.bm25_path = Path(bm25_path) if bm25_path else self._default_bm25_path()
-        self.bm25_bundle = self._load_bm25_bundle(self.bm25_path)
-
-    def get_context(self, query: str, mode: str, machine_code: str = "ALL") -> tuple[str, list, list, list]:
-        if mode == "base":
-            return "", [], [], []
-
-        top_k = self.config.vector_db.retrieval_k
-        candidate_k = max(top_k * 4, 20) # 후보 수
-        # 의미기반 검색후보
-        vector_items = self._vector_search(query, machine_code, candidate_k) 
-        # 키워드기반 검색후보
-        bm25_items = self._bm25_search(query, machine_code, candidate_k)
-        # RRF 점수 방식으로 의미기반+키워드기반 최종후보 결정 
-        merged_items = self._rrf_merge(vector_items, bm25_items, top_k) 
-
-        context_parts: list[str] = []
-        chunks: list[dict] = []
-        imgs: list[str] = []
-        tables: list[str] = []
-
-        # context 생성
-        for index, item in enumerate(merged_items, start=1):
-            doc = item["document"]
-            meta = item["metadata"]
-            source = meta.get("source_doc_name", "unknown")
-            container_type = meta.get("container_type")
-
-            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{doc}")
-            chunks.append({
-                "index": index,
-                "retrieval_rank": index,
-                "document": doc,
-                "metadata": meta,
-                "distance": item.get("distance"),
-                "similarity": item.get("similarity"),
-                # 디버깅용 필드 추가
-                "vector_rank": item.get("vector_rank"),
-                "bm25_rank": item.get("bm25_rank"),
-                "bm25_score": item.get("bm25_score"),
-                "rrf_score": item.get("rrf_score"),
-            })
-
-            asset_path = meta.get("asset_path")
-            if asset_path and container_type == "pictures":
-                imgs.append(asset_path)
-            elif asset_path and container_type == "tables":
-                tables.append(asset_path)
-
-        context = "\n\n".join(context_parts)
-        
-        if mode == "graph":
-            context = f"{context}\n\n[참고 정보]\n{self._get_graph_context(query)}"
-
-        return context, imgs, tables, chunks
-
-    # ----- BM25 번들파일 경로, load -----
-    def _default_bm25_path(self) -> Path:
-        return Path(self.config.vector_db.get_search_path("bm25")) / "bm25_bundle.pkl"
-
-    def _load_bm25_bundle(self, bm25_path: Path) -> dict:
+    def _load_bm25(self):
+        bm25_path = Path(self.config.vector_db.get_search_path("bm25")) / "bm25_bundle.pkl"
         if not bm25_path.exists():
             raise FileNotFoundError(f"BM25 bundle not found: {bm25_path}")
         with bm25_path.open("rb") as f:
             return pickle.load(f)
-    # -----------------------------------
 
-    # ----- machine_code 필터 -----
-    # Vector: Chroma DB query 단계에서 where 필터
+    def _bm25_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
+        if self.bm25 is None:
+            return []
+
+        scores = self.bm25["bm25"].get_scores(tokenize_for_bm25(query))
+        order = np.argsort(-scores)
+        items: list[dict] = []
+
+        for index in order:
+            index = int(index)
+            meta = self.bm25["metadatas"][index] or {}
+            if machine_code != "ALL" and not self._matches_machine(meta, machine_code):
+                continue
+
+            items.append({
+                "id": self.bm25["ids"][index],
+                "document": self.bm25["documents"][index],
+                "metadata": meta,
+                "distance": None,
+                "similarity": None,
+                "bm25_score": float(scores[index]),
+                "vector_rank": None,
+                "bm25_rank": len(items) + 1,
+            })
+
+            if len(items) >= top_k:
+                break
+
+        return items
+
+    def _matches_machine(self, meta: dict, machine_code: str) -> bool:
+        target = machine_code.strip()
+        value = meta.get("machine_code")
+
+        if value is None:
+            return False
+
+        if isinstance(value, str):
+            return target in value
+
+        if isinstance(value, (list, tuple, set)):
+            return any(target == str(v).strip() for v in value if v is not None)
+
+        if isinstance(value, np.ndarray):
+            return any(target == str(v).strip() for v in value.tolist() if v is not None)
+
+        return target in str(value)
+
+    def _rrf_merge(self, vector_items: list[dict], bm25_items: list[dict], rrf_k: int = 60) -> list[dict]:
+        merged: dict[str, dict] = {}
+
+        for source_name, items in (("vector", vector_items), ("bm25", bm25_items)):
+            for rank, item in enumerate(items, start=1):
+                chunk_id = item["id"]
+                if chunk_id not in merged:
+                    merged[chunk_id] = {**item, "rrf_score": 0.0}
+
+                merged[chunk_id]["rrf_score"] += 1.0 / (rrf_k + rank)
+                merged[chunk_id][f"{source_name}_rank"] = rank
+
+                if source_name == "vector":
+                    merged[chunk_id]["distance"] = item.get("distance")
+                    merged[chunk_id]["similarity"] = item.get("similarity")
+                else:
+                    merged[chunk_id]["bm25_score"] = item.get("bm25_score")
+
+        return sorted(
+            merged.values(),
+            key=lambda item: item["rrf_score"],
+            reverse=True,
+        )
+
+    def _load_chunks_df(self) -> pd.DataFrame:
+        chunks_path = Path(self.config.vector_db.get_search_path("faiss")) / "chunks.parquet"
+        if not chunks_path.exists():
+            raise FileNotFoundError(f"Chunks parquet not found: {chunks_path}")
+        return pd.read_parquet(chunks_path)
+
+    def _to_json_safe(self, value: Any) -> Any:
+        if isinstance(value, dict):
+            return {str(k): self._to_json_safe(v) for k, v in value.items()}
+
+        if isinstance(value, list):
+            return [self._to_json_safe(v) for v in value]
+
+        if isinstance(value, tuple):
+            return [self._to_json_safe(v) for v in value]
+
+        if isinstance(value, set):
+            return [self._to_json_safe(v) for v in value]
+
+        if isinstance(value, np.ndarray):
+            return [self._to_json_safe(v) for v in value.tolist()]
+
+        if isinstance(value, np.integer):
+            return int(value)
+
+        if isinstance(value, np.floating):
+            return float(value)
+
+        if isinstance(value, np.bool_):
+            return bool(value)
+
+        return value
+
+    def get_context(self, query: str, machine_code: str = "ALL") -> tuple[str, list[str], list[str], list[dict]]:
+        result = self.search(query=query, machine_code=machine_code)
+
+        context_parts = []
+        imgs = []
+        tables = []
+        chunks = []
+
+        for index, item in enumerate(result.items, start=1):
+            meta = item.metadata
+            safe_meta = self._to_json_safe(meta)
+            source = safe_meta.get("source_doc_name", "unknown")
+            container_type = safe_meta.get("container_type", "texts")
+            asset_path = safe_meta.get("asset_path")
+
+            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{item.text}")
+
+            chunks.append({
+                "index": index,
+                "retrieval_rank": index,
+                "document": item.text,
+                "metadata": safe_meta,
+                **item.extra,
+            })
+
+            if asset_path and container_type == "pictures":
+                imgs.append(asset_path)
+            elif asset_path and container_type == "tables":
+                tables.append(asset_path)
+
+        context = "\n\n".join(context_parts)
+
+        if result.context:
+            context = f"{context}\n\n[참고 정보]\n{result.context}" if context else f"[참고 정보]\n{result.context}"
+
+        return context, imgs, tables, chunks
+
+class ChromaRetriever(BaseRetriever):
+    def __init__(self, config: Config, use_bm25: bool = False):
+        super().__init__(config)
+        self.use_bm25 = use_bm25
+        self.chroma = chromadb.PersistentClient(
+            path=self.config.vector_db.get_search_path("chroma")
+        )
+        self.collection = self.chroma.get_or_create_collection(
+            name=self.config.id,
+            embedding_function=self.embedding_fn
+        )
+        self.bm25 = self._load_bm25() if self.use_bm25 else None
+
     def _vector_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
         query_args = {
             "query_texts": [query],
@@ -239,68 +253,467 @@ class HybridKnowledgeRetriever:
                 "bm25_score": None,
                 "vector_rank": rank,
                 "bm25_rank": None,
+                "rrf_score": None,
             })
 
         return items
 
-    # BM25: 점수 계산 후 metadata를 직접 검사해서 continue
-    def _bm25_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
-        scores = self.bm25_bundle["bm25"].get_scores(tokenize_for_bm25(query))
-        order = np.argsort(-scores)
+    def search(self, query: str, top_k: int = 5, machine_code: str = "ALL",**kwargs) -> RetrievalResult:
+        top_k = top_k or self.config.vector_db.retrieval_k
+        candidate_k = max(top_k * 4, 20)
+
+        vector_items = self._vector_search(query, machine_code, candidate_k)
+
+        if self.use_bm25:
+            bm25_items = self._bm25_search(query, machine_code, candidate_k)
+            merged_items = self._rrf_merge(vector_items, bm25_items)
+        else:
+            merged_items = vector_items
+
+        raw_items: list[RetrievalItem] = []
+        for item in merged_items:
+            raw_items.append(
+                RetrievalItem(
+                    id=item["id"],
+                    text=item["document"],
+                    score=item.get("similarity"),
+                    metadata=item.get("metadata", {}),
+                    extra={
+                        "distance": item.get("distance"),
+                        "similarity": item.get("similarity"),
+                        "vector_rank": item.get("vector_rank"),
+                        "bm25_rank": item.get("bm25_rank"),
+                        "bm25_score": item.get("bm25_score"),
+                        "rrf_score": item.get("rrf_score"),
+                    },
+                )
+            )
+
+        items = _deduplicate_items(raw_items, top_k)
+        return RetrievalResult(items=items, context="")
+
+class FAISSRetriever(BaseRetriever):
+    def __init__(self, config: Config, use_bm25: bool = False):
+        super().__init__(config)
+        self.use_bm25 = use_bm25
+        self.faiss_index = self._load_faiss_index()
+        self.chunks_df = self._load_chunks_df()
+        self.bm25 = self._load_bm25() if self.use_bm25 else None
+
+    def _load_faiss_index(self):
+        faiss_path = Path(self.config.vector_db.get_search_path("faiss")) / "faiss.index"
+        if not faiss_path.exists():
+            raise FileNotFoundError(f"FAISS index not found: {faiss_path}")
+        return faiss.read_index(str(faiss_path))
+
+    def _embed_query(self, query: str) -> np.ndarray:
+        passage = f"passage: {query}"
+        raw = self.embedding_fn([passage])
+        arr = np.asarray(raw, dtype=np.float32).reshape(1, -1)
+        faiss.normalize_L2(arr)
+        return arr
+
+    def _vector_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
+        query_vec = self._embed_query(query)
+        scores, indices = self.faiss_index.search(query_vec, top_k)
+
         items: list[dict] = []
 
-        for index in order:
-            index = int(index)
-            meta = self.bm25_bundle["metadatas"][index] or {}
+        for rank, (idx, score) in enumerate(zip(indices[0], scores[0]), start=1):
+            if idx < 0:
+                continue
+
+            row = self.chunks_df.iloc[int(idx)].to_dict()
+            meta = row.get("metadata") or {}
+
             if machine_code != "ALL" and not self._matches_machine(meta, machine_code):
                 continue
 
+            doc = str(row.get("page_content") or "").strip()
+            row_id = str(row.get("id") or "").strip()
+            meta_chunk_id = str(meta.get("chunk_id") or "").strip()
+            chunk_id = row_id or meta_chunk_id or str(idx)
+
             items.append({
-                "id": self.bm25_bundle["ids"][index],
-                "document": self.bm25_bundle["documents"][index],
+                "id": chunk_id,
+                "document": doc,
                 "metadata": meta,
                 "distance": None,
-                "similarity": None,
-                "bm25_score": float(scores[index]),
-                "vector_rank": None,
-                "bm25_rank": len(items) + 1,
+                "similarity": float(score),
+                "bm25_score": None,
+                "vector_rank": rank,
+                "bm25_rank": None,
             })
-
-            if len(items) >= top_k:
-                break
 
         return items
 
-    def _matches_machine(self, meta: dict, machine_code: str) -> bool:
-        value = meta.get("machine_code")
-        if isinstance(value, list):
-            return machine_code.strip() in value
-        return machine_code.strip() in str(value or "")
+    def search(self, query: str, top_k: int = 5, machine_code: str = "ALL", **kwargs) -> RetrievalResult:
+        top_k = top_k or self.config.vector_db.retrieval_k
+        candidate_k = max(top_k * 4, 20)
 
-    # -----------------------------
+        vector_items = self._vector_search(query, machine_code, candidate_k)
 
-    def _rrf_merge(self, vector_items: list[dict], bm25_items: list[dict], top_k: int, rrf_k: int = 60) -> list[dict]:
-        merged: dict[str, dict] = {}
+        if self.use_bm25:
+            bm25_items = self._bm25_search(query, machine_code, candidate_k)
+            merged_items = self._rrf_merge(vector_items, bm25_items)
+        else:
+            merged_items = vector_items
 
-        # Vector 결과와 BM25 결과를 모두 돌면서 같은 chunk_id를 기준으로 합칩니다.
-        for source_name, items in (("vector", vector_items), ("bm25", bm25_items)):
-            # RRF 점수 병합 로직
-            for rank, item in enumerate(items, start=1):
-                chunk_id = item["id"]
-                if chunk_id not in merged:
-                    merged[chunk_id] = {**item, "rrf_score": 0.0}
-                merged[chunk_id]["rrf_score"] += 1.0 / (rrf_k + rank)
-                merged[chunk_id][f"{source_name}_rank"] = rank
+        raw_items: list[RetrievalItem] = []
+        for item in merged_items:
+            raw_items.append(
+                RetrievalItem(
+                    id=item["id"],
+                    text=item["document"],
+                    score=item.get("similarity"),
+                    metadata=item.get("metadata", {}),
+                    extra={
+                        "distance": item.get("distance"),
+                        "similarity": item.get("similarity"),
+                        "vector_rank": item.get("vector_rank"),
+                        "bm25_rank": item.get("bm25_rank"),
+                        "bm25_score": item.get("bm25_score"),
+                        "rrf_score": item.get("rrf_score"),
+                    },
+                )
+            )
 
-                if source_name == "vector":
-                    merged[chunk_id]["distance"] = item.get("distance")
-                    merged[chunk_id]["similarity"] = item.get("similarity")
-                else:
-                    merged[chunk_id]["bm25_score"] = item.get("bm25_score")
-        # 병합 후 최종 k개 후보 반환
-        ranked_items = sorted(merged.values(), key=lambda item: item["rrf_score"], reverse=True)
-        return _deduplicate_by_content(ranked_items, top_k)
+        items = _deduplicate_items(raw_items, top_k)
+        return RetrievalResult(items=items, context="")
 
-    def _get_graph_context(self, query: str) -> str:
-        # TODO: Neo4j integration
-        return "[Graph DB 미연동 - 관계 정보 없음]"
+class KGRetriever(BaseRetriever):
+    def __init__(self, config: Config):
+        super().__init__(config)
+        self.kg = self._load_kg()
+
+    def _load_kg(self):
+        kg_path = Path(self.config.vector_db.get_search_path("kg")) / "kg.pkl"
+        if not kg_path.exists():
+            raise FileNotFoundError(f"KG bundle not found: {kg_path}")
+        with kg_path.open("rb") as f:
+            return pickle.load(f)
+
+    def _embed_query(self, query: str) -> np.ndarray:
+        passage = f"passage: {query}"
+        raw = self.embedding_fn([passage])
+        arr = np.asarray(raw, dtype=np.float32).reshape(1, -1)
+        faiss.normalize_L2(arr)
+        return arr[0]
+
+    def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        machine_code: str = "ALL",
+        **kwargs,
+    ) -> RetrievalResult:
+        top_k = top_k or self.config.vector_db.retrieval_k
+
+        g = self.kg["g"]
+        entity_list = self.kg["entity_list"]
+        entity_embs = self.kg["entity_embs"]
+        triple_embs = self.kg["triple_embs"]
+        edge_to_row = self.kg["edge_to_row"]
+
+        query_emb = self._embed_query(query)
+
+        seeds = match_entities(
+            query_emb=query_emb,
+            entity_embs=entity_embs,
+            entity_list=entity_list,
+            top_k=max(top_k, 5),
+            min_score=0.5,
+        )
+        seed_entities = [name for name, _ in seeds]
+        print(f"seed_entities: {seed_entities}")
+
+        if not seed_entities:
+            return RetrievalResult(items=[], context="")
+
+        triples, _sections, graph_scores = expand_bfs(
+            g=g,
+            seeds=seed_entities,
+            query_emb=query_emb,
+            triple_embs=triple_embs,
+            edge_to_row=edge_to_row,
+            max_triples=max(top_k * 4, 20),
+            min_edge_score=0.30,
+            max_depth=4,
+        )
+
+        raw_items: list[RetrievalItem] = []
+
+        for rank, (triple, score) in enumerate(zip(triples, graph_scores), start=1):
+            s, p, o = triple
+
+            matched_meta = None
+            matched_chunk_id = None
+            matched_doc_name = ""
+            matched_section_title = ""
+            matched_page_range = ""
+            matched_machine_code = None
+
+            for u, v, k, d in g.edges(keys=True, data=True):
+                surface = d.get("surface")
+                if surface != triple:
+                    continue
+
+                chunk_ids = sorted(d.get("chunk_ids") or [])
+                sections = sorted(d.get("sections") or [])
+                edge_machine_code = d.get("machine_code")
+
+                if chunk_ids:
+                    matched_chunk_id = chunk_ids[0]
+
+                if sections:
+                    matched_section_title = sections[0]
+
+                candidate_passage_nodes = []
+                for entity_node in (u, v):
+                    if not g.has_node(entity_node):
+                        continue
+
+                    for _, nb, _k2, d2 in g.out_edges(entity_node, keys=True, data=True):
+                        if d2.get("predicate") != "appears_in":
+                            continue
+                        if not g.has_node(nb):
+                            continue
+                        nb_data = g.nodes[nb]
+                        if nb_data.get("kind") != "passage":
+                            continue
+                        candidate_passage_nodes.append(nb)
+
+                for passage_node in candidate_passage_nodes:
+                    node_data = g.nodes[passage_node]
+                    node_chunk_id = str(node_data.get("chunk_id") or "").strip()
+
+                    if matched_chunk_id and node_chunk_id != matched_chunk_id:
+                        continue
+
+                    matched_chunk_id = matched_chunk_id or node_chunk_id
+                    matched_doc_name = str(node_data.get("doc_name") or "").strip()
+                    matched_section_title = matched_section_title or str(node_data.get("section_title") or "").strip()
+                    matched_page_range = str(node_data.get("page_range") or "").strip()
+                    matched_machine_code = node_data.get("machine_code")
+                    break
+
+                matched_machine_code = matched_machine_code or edge_machine_code
+
+                matched_meta = {
+                    "chunk_id": str(matched_chunk_id or "").strip(),
+                    "source_doc_name": matched_doc_name,
+                    "section_title": matched_section_title,
+                    "page_range": matched_page_range,
+                    "machine_code": matched_machine_code,
+                }
+                break
+
+            if machine_code != "ALL":
+                if not matched_meta or not self._matches_machine(matched_meta, machine_code):
+                    continue
+
+            text_lines = [
+                f"[triple] ({s}, {p}, {o})",
+            ]
+            if matched_section_title:
+                text_lines.append(f"[section] {matched_section_title}")
+            if matched_doc_name:
+                text_lines.append(f"[document] {matched_doc_name}")
+            if matched_page_range:
+                text_lines.append(f"[pages] {matched_page_range}")
+            if matched_chunk_id:
+                text_lines.append(f"[chunk_id] {matched_chunk_id}")
+
+            raw_items.append(
+                RetrievalItem(
+                    id=str(matched_chunk_id or f"triple-{rank}"),
+                    text="\n".join(text_lines),
+                    score=float(score),
+                    metadata=matched_meta or {},
+                    extra={
+                        "similarity": float(score),
+                        "graph_rank": rank,
+                        "seed_entities": seed_entities,
+                        "triple": [s, p, o],
+                        "section": matched_section_title,
+                        "doc_name": matched_doc_name,
+                        "page_range": matched_page_range,
+                        "chunk_id": matched_chunk_id,
+                    },
+                )
+            )
+
+        items = _deduplicate_items(raw_items, top_k)
+
+        graph_context_lines = []
+        for item in items:
+            triple = item.extra.get("triple")
+            sim = item.extra.get("similarity")
+            if triple:
+                graph_context_lines.append(
+                    f"- ({triple[0]}, {triple[1]}, {triple[2]}) score={sim:.4f}"
+                )
+
+        return RetrievalResult(
+            items=items,
+            context="\n".join(graph_context_lines),
+        )
+
+class MultimodalRetriever(BaseRetriever):
+    def __init__(self, config: Config):
+        super().__init__(config)
+        self.mm_embs, self.mm_meta = self._load_multimodal_index()
+        self.encoder = ColpaliEmbedder()
+        self.chunks_df = self._load_chunks_df()
+
+    def _load_multimodal_index(self) -> tuple[list[torch.Tensor], pd.DataFrame]:
+        mm_path = Path(self.config.vector_db.get_search_path("multimodal"))
+        emb_path = mm_path / "img_emb.pt"
+        meta_path = mm_path / "img_meta.parquet"
+
+        if not emb_path.exists():
+            raise FileNotFoundError(f"Multimodal embeddings not found: {emb_path}")
+        if not meta_path.exists():
+            raise FileNotFoundError(f"Multimodal metadata not found: {meta_path}")
+
+        return torch.load(emb_path, weights_only=False), pd.read_parquet(meta_path)
+
+    def _page_matches(self, page_range: str, page_num: int | None) -> bool:
+        if page_num is None:
+            return True
+
+        raw = str(page_range or "").strip()
+        if not raw:
+            return False
+
+        target = int(page_num)
+
+        if raw.isdigit():
+            return int(raw) == target
+
+        if "-" in raw:
+            left, right = raw.split("-", 1)
+            left = left.strip()
+            right = right.strip()
+
+            if left.isdigit() and right.isdigit():
+                start = int(left)
+                end = int(right)
+                return start <= target <= end
+
+        if "," in raw:
+            parts = [p.strip() for p in raw.split(",")]
+            return any(p.isdigit() and int(p) == target for p in parts)
+
+        return raw == str(target)
+
+    def _find_page_chunks(self, page_num: int | None) -> list[dict[str, Any]]:
+        matched_chunks: list[dict[str, Any]] = []
+
+        for _, chunk_row in self.chunks_df.iterrows():
+            chunk_dict = chunk_row.to_dict()
+            chunk_meta = chunk_dict.get("metadata") or {}
+            chunk_page_range = chunk_dict.get("page_range") or chunk_meta.get("page_range")
+
+            if self._page_matches(chunk_page_range, page_num):
+                matched_chunks.append(chunk_dict)
+
+        return matched_chunks
+
+    def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        machine_code: str = "ALL",
+        **kwargs,
+    ) -> RetrievalResult:
+        top_k = top_k or self.config.vector_db.retrieval_k
+
+        query_emb = self.encoder.embed_query(query)
+        scores = self.encoder.score(query_emb, self.mm_embs)
+
+        rows = self.mm_meta.to_dict("records")
+
+        scored_rows: list[dict[str, Any]] = []
+
+        for row, score in zip(rows, scores):
+            row_copy = dict(row)
+            row_copy["_score"] = float(score)
+            scored_rows.append(row_copy)
+
+        scored_rows.sort(key=lambda item: item["_score"], reverse=True)
+        candidate_k = max(top_k * 5, 20)
+        scored_rows = scored_rows[:candidate_k]
+
+        raw_items = []
+
+        for rank, row in enumerate(scored_rows, start=1):
+            doc_name = str(row.get("source_doc_name") or "").strip()
+            page_num = row.get("page_num")
+            image_path = str(row.get("image_path") or "").strip()
+            row_machine_code = row.get("machine_code")
+
+            # if machine_code != "ALL" and not self._matches_machine(
+            #     {"machine_code": row_machine_code},
+            #     machine_code,
+            # ):
+            #     continue
+
+            matched_chunks = self._find_page_chunks(page_num)
+
+            section_titles: list[str] = []
+            seen_titles: set[str] = set()
+            chunk_ids: list[str] = []
+            chunk_texts: list[str] = []
+
+            for matched_chunk in matched_chunks:
+                chunk_meta = matched_chunk.get("metadata") or {}
+                section_title = str(chunk_meta.get("section_title") or "").strip()
+                chunk_id = str(chunk_meta.get("chunk_id") or "").strip()
+                chunk_text = str(matched_chunk.get("page_content") or "").strip()
+
+                if section_title and section_title not in seen_titles:
+                    seen_titles.add(section_title)
+                    section_titles.append(section_title)
+
+                if chunk_id:
+                    chunk_ids.append(chunk_id)
+
+                if chunk_text:
+                    chunk_texts.append(chunk_text)
+
+            section_title_text = " / ".join(section_titles)
+            chunk_text = "\n\n".join(chunk_texts)
+
+            text_parts = [f"[이미지: {image_path}]"]
+            if section_title_text:
+                text_parts.append(f"[{section_title_text}]")
+            if chunk_text:
+                text_parts.append(chunk_text)
+
+            raw_items.append(
+                RetrievalItem(
+                    id=f"{doc_name}:{page_num or rank}",
+                    text=" ".join(text_parts),
+                    score=float(row["_score"]),
+                    metadata={
+                        "source_doc_name": doc_name,
+                        "page_range": str(page_num or "").strip(),
+                        "asset_path": image_path,
+                        "container_type": "pictures",
+                        "machine_code": row_machine_code,
+                        "section_title": section_title_text,
+                        "chunk_ids": chunk_ids,
+                    },
+                    extra={
+                        "similarity": float(row["_score"]),
+                        "image_path": image_path,
+                        "page_num": page_num,
+                        "source_path": row.get("source_path"),
+                        "doc_type": row.get("doc_type"),
+                    },
+                )
+            )
+
+        items = raw_items[:top_k]
+        return RetrievalResult(items=items, context="")
