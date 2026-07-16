@@ -5,6 +5,15 @@ export type PromptRow = {
   create_user: string;
 };
 
+export type MachineInfo = {
+  machine_name: string;
+  machine_ip: string;
+  document: readonly string[];
+  machine_maker: string;
+  machine_controller: string;
+  machine_ver: string;
+};
+
 export type PromptApiItem = PromptRow;
 
 export type PromptListResponse = PromptApiItem[] | { data?: PromptApiItem[] };
@@ -33,4 +42,11 @@ export type UpdatePromptPayload = {
 /** 모달 선택 상태를 포함한 프롬프트 행 */
 export type PromptSelectableRow = PromptRow & {
   SEL_YN: "Y" | "N";
+};
+
+export type PromptListResult = {
+  rows: PromptSelectableRow[];
+  machineCode: string | null;
+  machineInfo: MachineInfo | null;
+  isMainServer: boolean;
 };

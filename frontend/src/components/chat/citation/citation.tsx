@@ -1,13 +1,20 @@
-import { Lightbulb, MousePointerClick, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { useState } from "react";
-import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
+import { FileText, Lightbulb, MousePointerClick, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { useEffect, useState } from "react";
+import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
+import {
+  formatJson,
+  getActiveMessage,
+  getCitationDocumentRequest,
+  getChunkPageLabel,
+  getReferenceItems,
+  getReferenceLabelMap,
+  getSelectedChunk,
+  getSelectedMessage,
+  type CitationDocumentRequest,
+  type SelectedCitation,
+} from "./citationUtils";
 import styles from "./citation.module.css";
-
-type SelectedCitation = {
-  messageId: string;
-  chunkIndex: number;
-} | null;
 
 type CitationProps = {
   isCollapsed: boolean;
@@ -17,118 +24,8 @@ type CitationProps = {
   activeAssistantMessageId?: string | null;
   selectedCitation?: SelectedCitation;
   onCitationSelect?: (messageId: string, chunkIndex: number) => void;
+  onDocumentOpen?: (documentRequest: CitationDocumentRequest) => Promise<void> | void;
 };
-
-// 외부 함수: 메시지 선택
-// 기능/목적: 답변 메시지 목록에서 인용근거가 참조할 assistant 메시지를 찾는다.
-// In: messages, activeAssistantMessageId / Out: MessageItem | undefined
-function getLatestAssistantMessage(messages: MessageItem[]): MessageItem | undefined {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message.role === "assistant" && message.metadata) return message;
-  }
-  return undefined;
-}
-
-function getActiveMessage(
-  messages: MessageItem[],
-  activeAssistantMessageId?: string | null
-): MessageItem | undefined {
-  if (activeAssistantMessageId) {
-    const activeMessage = messages.find(
-      (message) =>
-        message.role === "assistant" &&
-        String(message.message_id) === activeAssistantMessageId
-    );
-    if (activeMessage) return activeMessage;
-  }
-
-  return getLatestAssistantMessage(messages);
-}
-
-function getSelectedMessage(
-  messages: MessageItem[],
-  selectedCitation?: SelectedCitation
-): MessageItem | undefined {
-  if (!selectedCitation) return undefined;
-  return messages.find(
-    (message) => String(message.message_id) === selectedCitation.messageId
-  );
-}
-
-function getSelectedChunk(
-  messages: MessageItem[],
-  selectedCitation?: SelectedCitation
-): ChatChunk | undefined {
-  const message = getSelectedMessage(messages, selectedCitation);
-  const chunks = message?.metadata?.chunks ?? [];
-  return chunks.find((chunk) => chunk.index === selectedCitation?.chunkIndex);
-}
-
-// 외부 함수: 참조/페이지 표시
-// 기능/목적: 답변 본문의 [참조] 순서를 UI 라벨과 페이지 라벨로 변환한다.
-// In: answerText, chunk metadata / Out: 참조 목록, 페이지 문자열
-function getReferenceLabelMap(answerText = "") {
-  const labelMap = new Map<number, number>();
-  const citationPattern = /\[(?:chunk:)?(\d+)\]/gi;
-  let match: RegExpExecArray | null;
-
-  while ((match = citationPattern.exec(answerText)) !== null) {
-    const chunkIndex = Number(match[1]);
-    if (!labelMap.has(chunkIndex)) {
-      labelMap.set(chunkIndex, labelMap.size + 1);
-    }
-  }
-
-  return labelMap;
-}
-
-function getReferenceItems(answerText = "") {
-  return Array.from(getReferenceLabelMap(answerText).entries())
-    .map(([chunkIndex, label]) => ({ chunkIndex, label }))
-    .sort((left, right) => left.label - right.label);
-}
-
-function toPageLabel(range: unknown): string | null {
-  if (typeof range !== "string") return null;
-  const normalized = range.trim();
-  if (!normalized) return null;
-
-  const rangeMatch = normalized.match(/^(\d+)\s*-\s*(\d+)$/);
-  if (rangeMatch) {
-    const [, start, end] = rangeMatch;
-    return start === end ? `p.${start}` : `p.${start}~p.${end}`;
-  }
-
-  return /^\d+$/.test(normalized)
-    ? `p.${normalized}`
-    : `p.${normalized.replace(/\s*-\s*/g, "~")}`;
-}
-
-function getChunkPageLabel(chunk?: ChatChunk): string | null {
-  const pageRange = typeof chunk?.metadata?.page_range === "string" ? chunk.metadata.page_range : null;
-  const directLabel = toPageLabel(pageRange);
-  if (directLabel) return directLabel;
-
-  const pages = chunk?.metadata?.pages;
-  if (pages && typeof pages === "object" && "range" in pages) {
-    return toPageLabel(pages.range);
-  }
-
-  return null;
-}
-
-// 외부 함수: 포맷
-// 기능/목적: metadata/chunk 원본을 개발 확인용 JSON 문자열로 안전하게 변환한다.
-// In: unknown / Out: string
-function formatJson(value?: unknown) {
-  if (value === undefined) return "";
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
 
 export default function Citation({
   isCollapsed,
@@ -138,13 +35,12 @@ export default function Citation({
   activeAssistantMessageId,
   selectedCitation,
   onCitationSelect,
+  onDocumentOpen,
 }: CitationProps) {
-  // 내부 state
-  // 기능/목적: 선택 답변의 metadata 원본 팝오버 열림 상태를 관리한다.
   const [isMetadataOpen, setIsMetadataOpen] = useState(false);
+  const [documentError, setDocumentError] = useState<string | null>(null);
+  const [isDocumentLoading, setIsDocumentLoading] = useState(false);
 
-  // render 데이터
-  // 기능/목적: 현재 답변, 선택 참조, 참조 버튼 목록을 렌더링에 맞는 값으로 계산한다.
   const activeMessage = getActiveMessage(messages, activeAssistantMessageId);
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
@@ -173,8 +69,31 @@ export default function Citation({
       : undefined;
   const selectedPageLabel = getChunkPageLabel(selectedChunk);
   const hasMetadata = activeMetadata !== undefined;
+  const selectedDocumentRequest = getCitationDocumentRequest(
+    messages,
+    selectedCitation,
+    activeAssistantMessageId
+  );
 
-  // render
+  useEffect(() => {
+    setDocumentError(null);
+  }, [selectedCitation?.messageId, selectedCitation?.chunkIndex]);
+
+  const handleOpenDocument = async () => {
+    if (!selectedDocumentRequest) return;
+
+    setIsDocumentLoading(true);
+    setDocumentError(null);
+
+    try {
+      await onDocumentOpen?.(selectedDocumentRequest);
+    } catch {
+      setDocumentError("참고문서를 찾을 수 없습니다.");
+    } finally {
+      setIsDocumentLoading(false);
+    }
+  };
+
   return (
     <div className={styles.citationRoot}>
       <div
@@ -214,7 +133,7 @@ export default function Citation({
             <div className={styles.referenceHeadingGroup}>
               <h3 className={styles.referenceTitleWithIcon}>
                 <MousePointerClick className={styles.referenceTitleIcon} aria-hidden="true" />
-                <span>선택된 참조</span>
+                <span>선택한 참조</span>
               </h3>
               <div className={styles.referenceBadges}>
                 {selectedReferenceLabel ? <span>{selectedReferenceLabel}</span> : null}
@@ -250,6 +169,20 @@ export default function Citation({
                   <span className={styles.chunkMetaLabel}>페이지</span>
                   <span>{selectedPageLabel ?? "-"}</span>
                 </p>
+              </div>
+              <div className={styles.documentActionBlock}>
+                <button
+                  type="button"
+                  className={styles.openDocumentButton}
+                  onClick={handleOpenDocument}
+                  disabled={!selectedDocumentRequest || isDocumentLoading}
+                >
+                  <FileText className={styles.openDocumentIcon} aria-hidden="true" />
+                  {isDocumentLoading ? "문서 여는 중..." : "참고문서 열기"}
+                </button>
+                {documentError ? (
+                  <p className={styles.documentError}>{documentError}</p>
+                ) : null}
               </div>
               <div className={styles.chunkBodyBlock}>
                 <p className={styles.chunkBodyTitle}>청크 원문</p>
@@ -305,6 +238,7 @@ export default function Citation({
           </nav>
         ) : null}
       </div>
+
     </div>
   );
 }

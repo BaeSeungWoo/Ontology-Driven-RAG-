@@ -20,6 +20,14 @@ from app.core.memory_manager import MemoryManager
 from app.core.judge import judge_triple
 from app.database import database
 
+INTENT_TYPES = {
+    "emergency_action",
+    "troubleshooting",
+    "part_identification",
+    "root_cause_analysis",
+    "concept_explanation",
+}
+
 
 class RAGService:
     def __init__(self, config: Config):
@@ -53,7 +61,8 @@ class RAGService:
         mode: str,
         prompt_id: str = "tech_expert",   # ✅ main.py에서 전달받도록 추가
         user_prompt: str | None = None,
-    ) -> tuple[list, list, list, list]:
+        persona_type: str = "operator",
+    ) -> tuple[list, list, list, list, dict]:
 
         retriever = self._get_retriever(mode)
         context = ""
@@ -63,6 +72,7 @@ class RAGService:
         
         if retriever:
             context, imgs, tables, chunks = retriever.get_context(question)
+        intent = await self._resolve_intent(question, persona_type)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
@@ -72,8 +82,10 @@ class RAGService:
             mode=mode,
             user_prompt=user_prompt,
             m_info={},
+            persona_type=persona_type,
+            intent_type=intent["type"],
         )
-        return messages, imgs, tables, chunks
+        return messages, imgs, tables, chunks, intent
 
     # ask/ask_stream의 공통 준비함수
     # session_id 기준으로 휘발성 memory history를 가져오고, RAG context/user_prompt와 함께 messages를 조립한다.
@@ -85,10 +97,12 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
+        persona_type: str = "operator",
         restore_memory: bool = False,
-    ) -> tuple[list, list, list, list]:
+    ) -> tuple[list, list, list, list, dict]:
 
         history = self.memory_manager.get_history(session_id)
+        intent = await self._resolve_intent(question, persona_type)
 
         if restore_memory and not history:
             restored_history = self._load_recent_history_from_db(session_id, question)
@@ -124,11 +138,13 @@ class RAGService:
             context=context,
             mode=mode,
             user_prompt=user_prompt,
-            m_info=m_info
+            persona_type=persona_type,
+            m_info=m_info,
+            intent_type=intent["type"],
         )
 
-        return messages, imgs, tables, chunks
-
+        return messages, imgs, tables, chunks, intent
+    
     # Chat에서 실제 사용하는 정식 스트리밍 함수
     # metadata를 먼저 보내고, 이후 LLM 토큰을 순차적으로 yield한다.
     # 전체 답변이 끝난 뒤 현재 턴을 MemoryManager에 저장한다.
@@ -140,6 +156,7 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
+        persona_type: str = "operator",
         restore_memory: bool = False,
     ):
         # prepare_ask_context로 준비물 생성
@@ -147,12 +164,13 @@ class RAGService:
         # LLM token을 하나씩 yield
         # 마지막에 전체 답변을 memory에 저장
 
-        messages, imgs, tables, chunks = await self.prepare_ask_context(
+        messages, imgs, tables, chunks, intent = await self.prepare_ask_context(
             session_id=session_id,
             question=question,
             mode=mode,
             prompt_id=prompt_id,
             user_prompt=user_prompt,
+            persona_type=persona_type,
             restore_memory=restore_memory,
             effective_machine_code=effective_machine_code
         )
@@ -163,6 +181,7 @@ class RAGService:
                 "images": imgs,
                 "tables": tables,
                 "chunks": chunks,
+                "intent": intent,
             },
         }
 
@@ -212,6 +231,114 @@ class RAGService:
                 raise ValueError(f"Unsupported retriever mode: {mode}")
         return self._retrievers[mode]
 
+    async def _resolve_intent(self, question: str, persona_type: str) -> dict:
+        rule_intent = self._detect_intent_by_rule(question)
+        if rule_intent is not None:
+            print(
+                "[INTENT] "
+                f"type={rule_intent['type']} source=rule confidence=high "
+                f"persona={persona_type} matched_rule={rule_intent['matched_rule']}"
+            )
+            return rule_intent
+
+        llm_intent = await self._classify_intent_with_llm(question, persona_type)
+        print(
+            "[INTENT] "
+            f"type={llm_intent['type']} source={llm_intent['source']} "
+            f"confidence={llm_intent['confidence']} persona={persona_type}"
+        )
+        return llm_intent
+
+    def _detect_intent_by_rule(self, question: str) -> dict | None:
+        normalized = question.lower()
+
+        if self._contains_any(normalized, ["반복", "계속", "재발", "패턴", "근본 원인", "원인 분석"]):
+            return {
+                "type": "root_cause_analysis",
+                "source": "rule",
+                "confidence": "high",
+                "matched_rule": "root_cause_keywords",
+            }
+
+        if self._contains_any(normalized, ["부품", "도면", "좌표", "주소", "km", "fr", "qf", "sq", "yv"]) or re.search(r"[xy]\d+", normalized):
+            return {
+                "type": "part_identification",
+                "source": "rule",
+                "confidence": "high",
+                "matched_rule": "part_or_drawing_keywords",
+            }
+
+        if self._contains_any(normalized, ["뜻", "의미", "설명", "개념", "무슨 말", "뭐야"]):
+            return {
+                "type": "concept_explanation",
+                "source": "rule",
+                "confidence": "high",
+                "matched_rule": "explanation_keywords",
+            }
+
+        if self._contains_any(normalized, ["지금", "바로", "먼저", "뭐 해야", "어떻게", "어떻게 해야", "조치", "멈췄", "멈춤", "안돼", "안 돼"]):
+            return {
+                "type": "emergency_action",
+                "source": "rule",
+                "confidence": "high",
+                "matched_rule": "urgent_action_keywords",
+            }
+
+        return None
+
+    async def _classify_intent_with_llm(self, question: str, persona_type: str) -> dict:
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "너는 CNC 정비 Q&A의 intent 분류기다. "
+                    "반드시 JSON만 출력한다. "
+                    "intent_type은 emergency_action, troubleshooting, part_identification, "
+                    "root_cause_analysis, concept_explanation 중 하나다."
+                ),
+            },
+            {
+                "role": "user",
+                "content": (
+                    f"persona_type: {persona_type}\n"
+                    f"question: {question}\n"
+                    "출력 형식: {\"intent_type\":\"...\",\"confidence\":\"medium\"}"
+                ),
+            },
+        ]
+
+        try:
+            raw = await self.llm.ainvoke(messages)
+            matched = re.search(r"\{.*\}", raw, re.DOTALL)
+            parsed = json.loads(matched.group(0) if matched else raw)
+            intent_type = parsed.get("intent_type")
+            confidence = parsed.get("confidence", "medium")
+            if intent_type in INTENT_TYPES:
+                return {
+                    "type": intent_type,
+                    "source": "llm_classifier",
+                    "confidence": confidence,
+                    "matched_rule": None,
+                }
+        except Exception as error:
+            return {
+                "type": "troubleshooting",
+                "source": "fallback",
+                "confidence": "low",
+                "matched_rule": None,
+                "error": error.__class__.__name__,
+            }
+
+        return {
+            "type": "troubleshooting",
+            "source": "fallback",
+            "confidence": "low",
+            "matched_rule": None,
+        }
+
+    def _contains_any(self, text: str, keywords: list[str]) -> bool:
+        return any(keyword in text for keyword in keywords)
+
     # non-streaming/batch 용도로 남겨둔 후보 함수.
     async def ask(
         self,
@@ -220,13 +347,15 @@ class RAGService:
         mode: str = "rag",
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
+        persona_type: str = "operator",
     ) -> dict[str, Any]:
-        messages, imgs, tables, chunks = await self.prepare_ask_context(
+        messages, imgs, tables, chunks, intent = await self.prepare_ask_context(
             session_id=session_id,
             question=question,
             mode=mode,
             prompt_id=prompt_id,
             user_prompt=user_prompt,
+            persona_type=persona_type,
         )
 
         answer = await self.llm.ainvoke(messages)
@@ -239,6 +368,7 @@ class RAGService:
                 "images": imgs,
                 "tables": tables,
                 "chunks": chunks,
+                "intent": intent,
             },
         }
 

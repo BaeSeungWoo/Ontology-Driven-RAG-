@@ -327,6 +327,55 @@
   color: var(--chat-muted-text);
 }
 
+.documentActionBlock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.openDocumentButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--chat-title-color) 46%, var(--chat-pane-border) 54%);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  color: var(--chat-title-color);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
+    0 1px 2px color-mix(in srgb, var(--chat-shadow) 30%, transparent);
+}
+
+.openDocumentButton:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
+  background: color-mix(in srgb, var(--chat-title-color) 16%, var(--chat-pane-bg) 84%);
+}
+
+.openDocumentButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.openDocumentIcon {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.2;
+}
+
+.documentError {
+  margin: 0;
+  color: #b42318;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
 .chunkBodyBlock {
   display: flex;
   flex-direction: column;
@@ -547,6 +596,241 @@
   color: var(--chat-text-color);
   font-size: 10px;
   line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.pdfModalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgb(8 16 28 / 72%);
+}
+
+.pdfModalDialog {
+  width: min(1180px, 96vw);
+  height: min(900px, 94vh);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  background: var(--chat-pane-bg);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 35%);
+  overflow: hidden;
+}
+
+.pdfPanelDialog {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  border: 0;
+  border-radius: 14px;
+  box-shadow: none;
+}
+
+.pdfModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--chat-pane-border);
+  padding: 10px 12px;
+}
+
+.pdfModalTitleBlock {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.pdfModalTitleBlock strong {
+  color: var(--chat-title-color);
+  font-size: 13px;
+  line-height: 1.3;
+  word-break: break-word;
+}
+
+.pdfModalTitleBlock span {
+  color: var(--chat-muted-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pdfModalActions {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pdfModalIconButton {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-pane-bg) 92%, #fff 8%);
+  color: var(--chat-title-color);
+  cursor: pointer;
+}
+
+.pdfModalIconButton:hover {
+  border-color: color-mix(in srgb, var(--chat-title-color) 50%, var(--chat-pane-border) 50%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+}
+
+.pdfModalIconButton svg {
+  width: 17px;
+  height: 17px;
+  stroke-width: 2.2;
+}
+
+.pdfModalFrame {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.pdfFallbackFrame {
+  width: 100%;
+  min-height: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.pdfViewerStage {
+  position: relative;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #2b2f36;
+  padding: 18px;
+}
+
+.pdfViewerStatus {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: 3;
+  transform: translateX(-50%);
+  border: 1px solid rgb(148 163 184 / 48%);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 86%);
+  color: #fff;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.pdfViewerLoadingShade {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: rgb(15 23 42 / 34%);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  backdrop-filter: blur(1.5px);
+}
+
+.pdfViewerLoadingShade > span:last-child {
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 999px;
+  background: rgb(15 23 42 / 86%);
+  padding: 7px 12px;
+}
+
+.pdfViewerSpinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgb(255 255 255 / 40%);
+  border-top-color: #fff;
+  border-radius: 999px;
+  animation: pdfViewerSpin 780ms linear infinite;
+}
+
+@keyframes pdfViewerSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pdfCanvasWrap {
+  position: relative;
+  box-shadow: 0 14px 32px rgb(0 0 0 / 34%);
+  background: #fff;
+}
+
+.pdfCanvas {
+  display: block;
+  background: #fff;
+}
+
+.pdfHighlightLayer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.pdfHighlightMark {
+  position: absolute;
+  display: block;
+  border-radius: 3px;
+  background: rgb(255 230 71 / 48%);
+  box-shadow:
+    0 0 0 1px rgb(245 158 11 / 18%),
+    0 2px 4px rgb(245 158 11 / 14%);
+  mix-blend-mode: multiply;
+}
+
+.pdfChunkHighlight {
+  max-height: 180px;
+  overflow: auto;
+  border-top: 1px solid var(--chat-pane-border);
+  background: #fff8db;
+  padding: 12px;
+  color: #2f2504;
+}
+
+.pdfChunkHighlightHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pdfChunkHighlightHeader span,
+.pdfChunkHighlightHeader strong {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgb(217 161 15 / 42%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 70%);
+  padding: 3px 8px;
+  color: #5f4700;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.pdfChunkHighlight p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
 }

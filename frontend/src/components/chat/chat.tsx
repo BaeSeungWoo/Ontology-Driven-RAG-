@@ -5,6 +5,7 @@ import { MessageSquareMore } from "lucide-react";
 import Answer from "./answer/answer";
 import AssetPanel from "./assetPanel";
 import Citation from "./citation/citation";
+import PdfDocumentViewer from "./citation/pdfDocumentViewer";
 import History from "./history/history";
 import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
@@ -15,11 +16,19 @@ import {
   type LlmModel,
   type LlmMode,
 } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import Question, { type QuestionPayload } from "./question/question";
 import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
 import PageTabs from "@/components/navigation/pageTabs";
-import type { MessageItem } from "@/types/chatApi";
+import { resolveDocument } from "@/services/documentApi";
+import type { ResolvedDocument } from "@/types/chatApi";
+import {
+  getCitationDocumentRequest,
+  getLatestAssistantMessage,
+  type CitationDocumentRequest,
+  type SelectedCitation,
+} from "./citation/citationUtils";
 import styles from "./chat.module.css";
 
 const ENABLE_DEV_ASSET_PANEL = true;
@@ -29,21 +38,13 @@ type HistorySessionMeta = Pick<
   "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName"
 >;
 
-type SelectedCitation = {
-  messageId: string;
-  chunkIndex: number;
+type ActivePdfDocument = {
+  documentKey: string;
+  document: ResolvedDocument;
+  pageLabel: string | null;
+  chunkText: string;
+  referenceLabel: string;
 } | null;
-
-// 외부 함수
-// 기능/목적: 메시지 목록에서 가장 최근 metadata 보유 assistant 답변을 찾는다.
-// In: messages / Out: MessageItem | undefined
-function getLatestAssistantMessage(messages: MessageItem[]): MessageItem | undefined {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const message = messages[index];
-    if (message.role === "assistant" && message.metadata) return message;
-  }
-  return undefined;
-}
 
 export default function Chat() {
   const themeKey =
@@ -56,6 +57,8 @@ export default function Chat() {
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
   const [activeAssistantMessageId, setActiveAssistantMessageId] = useState<string | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<SelectedCitation>(null);
+  const [activePdfDocument, setActivePdfDocument] = useState<ActivePdfDocument>(null);
+  const [isPdfDocumentUpdating, setIsPdfDocumentUpdating] = useState(false);
 
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
@@ -63,10 +66,12 @@ export default function Chat() {
   const [selectedPrompt, setSelectedPrompt] = useState<PromptRow | null>(null);
   const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("ollama_config");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("base");
+  const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const isSessionResetPendingRef = useRef(false);
   const isHistorySessionSyncingRef = useRef(false);
+  const lastSyncedDocumentKeyRef = useRef<string | null>(null);
 
   const { messages, sendQuestion, loadSessionMessages, resetChatState, isLoading } = useChat({
     selectedSessionId,
@@ -85,17 +90,23 @@ export default function Chat() {
       ) ?? latestAssistantMessage
     );
   }, [activeAssistantMessageId, latestAssistantMessage, messages]);
+  const selectedDocumentRequest = useMemo(
+    () => getCitationDocumentRequest(messages, selectedCitation, activeAssistantMessageId),
+    [activeAssistantMessageId, messages, selectedCitation]
+  );
 
   const previousSettingsRef = useRef<{
     questioner: string;
     promptNo: number | null;
     llmModel: LlmModel;
     llmMode: LlmMode;
+    personaType: PersonaType;
   }>({
     questioner: questioner.trim(),
     promptNo: selectedPrompt?.prompt_no ?? null,
     llmModel: selectedLlmModel,
     llmMode: selectedLlmMode,
+    personaType: selectedPersonaType,
   });
 
   const isPromptRequiredMissing =
@@ -108,6 +119,9 @@ export default function Chat() {
     setSelectedSessionId(null);
     setActiveAssistantMessageId(null);
     setSelectedCitation(null);
+    setActivePdfDocument(null);
+    setIsPdfDocumentUpdating(false);
+    lastSyncedDocumentKeyRef.current = null;
     isSessionResetPendingRef.current = false;
     resetChatState();
   };
@@ -132,6 +146,9 @@ export default function Chat() {
     isSessionResetPendingRef.current = false;
     setActiveAssistantMessageId(null);
     setSelectedCitation(null);
+    setActivePdfDocument(null);
+    setIsPdfDocumentUpdating(false);
+    lastSyncedDocumentKeyRef.current = null;
     setSelectedSessionId(sessionId);
 
     if (sessionMeta?.questioner && sessionMeta.questioner.trim().length > 0) {
@@ -194,6 +211,71 @@ export default function Chat() {
     setSelectedCitation({ messageId, chunkIndex });
   }, []);
 
+  const handleDocumentOpen = useCallback(async (documentRequest: CitationDocumentRequest) => {
+    lastSyncedDocumentKeyRef.current = documentRequest.documentKey;
+    setIsPdfDocumentUpdating(true);
+    setIsCitationCollapsed(true);
+    setIsRightPanelCollapsed(true);
+
+    try {
+      const document = await resolveDocument(documentRequest.sourceDocName, documentRequest.pageRange);
+      setActivePdfDocument({
+        documentKey: documentRequest.documentKey,
+        document,
+        pageLabel: documentRequest.pageLabel,
+        chunkText: documentRequest.chunkText,
+        referenceLabel: documentRequest.referenceLabel,
+      });
+    } finally {
+      setIsPdfDocumentUpdating(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!activePdfDocument || !selectedDocumentRequest) return;
+    if (lastSyncedDocumentKeyRef.current === selectedDocumentRequest.documentKey) return;
+
+    let isCurrent = true;
+    lastSyncedDocumentKeyRef.current = selectedDocumentRequest.documentKey;
+    setIsPdfDocumentUpdating(true);
+
+    resolveDocument(selectedDocumentRequest.sourceDocName, selectedDocumentRequest.pageRange)
+      .then((document) => {
+        if (!isCurrent) return;
+        setActivePdfDocument({
+          documentKey: selectedDocumentRequest.documentKey,
+          document,
+          pageLabel: selectedDocumentRequest.pageLabel,
+          chunkText: selectedDocumentRequest.chunkText,
+          referenceLabel: selectedDocumentRequest.referenceLabel,
+        });
+      })
+      .catch(() => {
+        if (isCurrent) setIsPdfDocumentUpdating(false);
+      })
+      .finally(() => {
+        if (isCurrent) setIsPdfDocumentUpdating(false);
+      });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [activePdfDocument, selectedDocumentRequest]);
+
+  const handleCitationToggle = useCallback(() => {
+    setActivePdfDocument(null);
+    setIsPdfDocumentUpdating(false);
+    lastSyncedDocumentKeyRef.current = null;
+    setIsCitationCollapsed((prev) => !prev);
+  }, []);
+
+  const handleRightPanelToggle = useCallback(() => {
+    setActivePdfDocument(null);
+    setIsPdfDocumentUpdating(false);
+    lastSyncedDocumentKeyRef.current = null;
+    setIsRightPanelCollapsed((prev) => !prev);
+  }, []);
+
   // 함수: 설정 변경 감지
   // 기능/목적: 기존 세션에서 질문 설정이 바뀌면 다음 전송을 새 세션으로 분기한다.
   // In: 질문자/프롬프트/LLM 설정 / Out: isSessionResetPendingRef 갱신
@@ -203,6 +285,7 @@ export default function Chat() {
       promptNo: selectedPrompt?.prompt_no ?? null,
       llmModel: selectedLlmModel,
       llmMode: selectedLlmMode,
+      personaType: selectedPersonaType,
     };
 
     const previousSettings = previousSettingsRef.current;
@@ -216,14 +299,15 @@ export default function Chat() {
       previousSettings.questioner !== nextSettings.questioner ||
       previousSettings.promptNo !== nextSettings.promptNo ||
       previousSettings.llmModel !== nextSettings.llmModel ||
-      previousSettings.llmMode !== nextSettings.llmMode;
+      previousSettings.llmMode !== nextSettings.llmMode ||
+      previousSettings.personaType !== nextSettings.personaType;
 
     if (isSettingsChanged && selectedSessionId !== null) {
       isSessionResetPendingRef.current = true;
     }
 
     previousSettingsRef.current = nextSettings;
-  }, [questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedSessionId]);
+  }, [questioner, selectedPrompt, selectedLlmModel, selectedLlmMode, selectedPersonaType, selectedSessionId]);
 
   // render
   return (
@@ -241,7 +325,7 @@ export default function Chat() {
           isCitationCollapsed ? "tw-chat-layout-collapsed" : ""
         } ${isRightPanelCollapsed ? "tw-chat-layout-right-collapsed" : ""} ${
           isCitationCollapsed && isRightPanelCollapsed ? "tw-chat-layout-both-collapsed" : ""
-        }`}
+        } ${activePdfDocument ? "tw-chat-layout-pdf-open" : ""}`}
       >
         <aside className="tw-chat-left">
           <section
@@ -251,15 +335,34 @@ export default function Chat() {
           >
             <Citation
               isCollapsed={isCitationCollapsed}
-              onToggle={() => setIsCitationCollapsed((prev) => !prev)}
+              onToggle={handleCitationToggle}
               messages={messages}
               isLoading={isLoading}
               activeAssistantMessageId={activeAssistantMessageId}
               selectedCitation={selectedCitation}
               onCitationSelect={handleCitationSelect}
+              onDocumentOpen={handleDocumentOpen}
             />
           </section>
         </aside>
+
+        {activePdfDocument ? (
+          <aside className={styles.chatPdfPane}>
+            <PdfDocumentViewer
+              document={activePdfDocument.document}
+              pageLabel={activePdfDocument.pageLabel}
+              chunkText={activePdfDocument.chunkText}
+              referenceLabel={activePdfDocument.referenceLabel}
+              onClose={() => {
+                setActivePdfDocument(null);
+                setIsPdfDocumentUpdating(false);
+                lastSyncedDocumentKeyRef.current = null;
+              }}
+              variant="panel"
+              isUpdating={isPdfDocumentUpdating}
+            />
+          </aside>
+        ) : null}
 
         <main className="tw-chat-center">
           <section className={styles.chatAnswerPane}>
@@ -314,6 +417,7 @@ export default function Chat() {
               selectedPrompt={selectedPrompt}
               selectedLlmModel={selectedLlmModel}
               selectedLlmMode={selectedLlmMode}
+              selectedPersonaType={selectedPersonaType}
               onSend={handleSendQuestion}
             />
           </section>
@@ -331,7 +435,7 @@ export default function Chat() {
               onStartNewChat={resetToNewSession}
               refreshKey={historyRefreshKey}
               isCollapsed={isRightPanelCollapsed}
-              onToggleCollapse={() => setIsRightPanelCollapsed((prev) => !prev)}
+              onToggleCollapse={handleRightPanelToggle}
             />
           </section>
 
@@ -350,6 +454,8 @@ export default function Chat() {
                 onSelectLlmModel={setSelectedLlmModel}
                 selectedLlmMode={selectedLlmMode}
                 onSelectLlmMode={setSelectedLlmMode}
+                selectedPersonaType={selectedPersonaType}
+                onSelectPersonaType={setSelectedPersonaType}
               />
             </section>
           ) : null}

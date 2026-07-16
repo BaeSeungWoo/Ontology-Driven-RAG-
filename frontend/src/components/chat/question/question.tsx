@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ArrowUp } from "lucide-react";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
+import type { PersonaType } from "@/constants/personaOptions";
 import type { PromptRow } from "@/types/prompt";
 
 import styles from "./question.module.css";
@@ -13,6 +14,7 @@ export type QuestionPayload = {
   questioner: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
+  personaType: PersonaType;
   prompt: PromptRow;
 };
 
@@ -20,6 +22,7 @@ type QuestionProps = {
   questioner: string;
   selectedLlmModel: LlmModel;
   selectedLlmMode: LlmMode;
+  selectedPersonaType: PersonaType;
   selectedPrompt: PromptRow | null;
   onSend: (payload: QuestionPayload) => void;
 };
@@ -28,6 +31,7 @@ export default function Question({
   questioner,
   selectedLlmModel,
   selectedLlmMode,
+  selectedPersonaType,
   selectedPrompt,
   onSend,
 }: QuestionProps) {
@@ -52,6 +56,7 @@ export default function Question({
       question: normalizedQuestion,
       llmModel: selectedLlmModel,
       llmMode: selectedLlmMode,
+      personaType: selectedPersonaType,
       questioner: questioner.trim(),
       prompt: selectedPrompt,
     });
