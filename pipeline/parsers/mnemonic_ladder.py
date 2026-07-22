@@ -1,8 +1,3 @@
-# .LST 파일 읽기
-# → %@3 구역만 자르기
-# → N00001, N00002 단위로 묶기
-# → 각 명령어를 JSON 구조로 만들기
-
 from __future__ import annotations
 
 import json
@@ -11,10 +6,13 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Final
 
+# region 섹션별 상수
 SECTION_SYMBOLS: Final = "%@2-C"
 SECTION_LADDER: Final = "%@3"
 SECTION_ALARMS: Final = "%@4"
+# endregion
 
+# region 데이터 모델 정의
 # 주소사전
 @dataclass(frozen=True, slots=True)
 class SymbolDictionaryEntry:
@@ -91,9 +89,11 @@ class LogicNode:
     operator: str | None
     label: str | None
     children: tuple["LogicNode", ...]
+# endregion
 
-# %@2-C (주소/심볼 사전) 구역 잘라내는 함수
-def extract_symbol_section(text: str) -> list[str]:
+# region Section extraction
+# 지정한 %@ 구역을 잘라내는 함수
+def extract_section(text: str, section: str) -> list[str]:
     lines = text.splitlines()
     in_section = False
     section_lines: list[str] = []
@@ -101,7 +101,7 @@ def extract_symbol_section(text: str) -> list[str]:
     for line in lines:
         stripped = line.strip()
 
-        if stripped == SECTION_SYMBOLS:
+        if stripped == section:
             in_section = True
             continue
 
@@ -112,49 +112,9 @@ def extract_symbol_section(text: str) -> list[str]:
             section_lines.append(line)
 
     return section_lines
+# endregion
 
-# %@3 (Ladder Logic) 구역 잘라내는 함수
-def extract_ladder_section(text: str) -> list[str]:
-    lines = text.splitlines()
-    in_section = False
-    section_lines: list[str] = []
-
-    for line in lines:
-        stripped = line.strip()
-
-        if stripped == SECTION_LADDER:
-            in_section = True
-            continue
-
-        if in_section and stripped.startswith("%@"):
-            break
-
-        if in_section:
-            section_lines.append(line)
-
-    return section_lines
-
-# %@4 (알람) 구역 잘라내는 함수
-def extract_alarm_section(text: str) -> list[str]:
-    lines = text.splitlines()
-    in_section = False
-    section_lines: list[str] = []
-
-    for line in lines:
-        stripped = line.strip()
-
-        if stripped == SECTION_ALARMS:
-            in_section = True
-            continue
-
-        if in_section and stripped.startswith("%@"):
-            break
-
-        if in_section:
-            section_lines.append(line)
-
-    return section_lines
-
+# region Symbol and alarm parsing
 # %@2-c 구역 정규식
 SYMBOL_ENTRY_RE: Final = re.compile(r"^(?P<address>[A-Z]\d+(?:\.\d+)?)(?:\s+(?P<symbol>\S+))?\s*$")
 SYMBOL_DESCRIPTION_RE: Final = re.compile(r"^\$1\s+''\s+'(?P<description>.*)'\s*$")
@@ -278,7 +238,9 @@ def parse_alarm_entries(lines: list[str]) -> list[AlarmEntry]:
         )
 
     return entries
+# endregion
 
+# region Ladder analysis
 # 논리(role) 정의
 def get_step_role(op: str) -> str:
     roles = {
@@ -514,7 +476,9 @@ def build_logic_expression(steps: list[LadderStep]) -> str | None:
     write_text = ", ".join(writes)
 
     return f"{render_logic_node(current_expression)} -> {write_text}"
+# endregion
 
+# region Ladder parsing
 # N블록으로 묶기 // 다음 N블록이 오기전까지 라인들을 하나의 블록으로 규합
 def parse_ladder_nblocks(lines: list[str]) -> list[LadderNBlock]:
     nblocks: list[LadderNBlock] = []
@@ -685,7 +649,9 @@ def parse_ladder_nblocks(lines: list[str]) -> list[LadderNBlock]:
         )
 
     return nblocks
+# endregion
 
+# region JSON output
 def serialize_ladder_step(step: LadderStep) -> dict[str, object]:
     payload = asdict(step)
     if step.sub_instruction is None:
@@ -695,7 +661,7 @@ def serialize_ladder_step(step: LadderStep) -> dict[str, object]:
 # 파일을 읽고 %@3 Ladder logic 구역을 JSON으로 저장
 def build_ladder_json(input_path: Path, output_path: Path) -> None:
     text = input_path.read_text(encoding="utf-8")
-    section_lines = extract_ladder_section(text)
+    section_lines = extract_section(text, SECTION_LADDER)
     nblocks = parse_ladder_nblocks(section_lines)
 
     payload = {
@@ -723,7 +689,7 @@ def build_ladder_json(input_path: Path, output_path: Path) -> None:
 # 파일을 읽고 %@2-C 주소/심볼 사전 구역을 JSON으로 저장
 def build_symbols_json(input_path: Path, output_path: Path) -> None:
     text = input_path.read_text(encoding="utf-8")
-    section_lines = extract_symbol_section(text)
+    section_lines = extract_section(text, SECTION_SYMBOLS)
     entries = parse_symbol_entries(section_lines)
 
     payload = {
@@ -740,7 +706,7 @@ def build_symbols_json(input_path: Path, output_path: Path) -> None:
 # 파일을 읽고 %@4 알람구역을 JSON으로 저장
 def build_alram_json(input_path: Path, output_path: Path) -> None:
     text = input_path.read_text(encoding="utf-8")
-    section_lines = extract_alarm_section(text)
+    section_lines = extract_section(text, SECTION_ALARMS)
     entries = parse_alarm_entries(section_lines)
 
     payload = {
@@ -761,22 +727,9 @@ def build_mnemonic_files(input_file: Path, output_dir: Path) -> None:
     build_ladder_json(input_file, output_dir / "ladder.json")
     build_symbols_json(input_file, output_dir / "symbols.json")
     build_alram_json(input_file, output_dir / "alram.json")
+# endregion
 
-# if __name__ == "__main__":
-#     input_file = Path(r"C:\Users\User\Desktop\자료\가치사슬\도메인공부\mnemonic_conversion_full.LST")
-
-#     ladder_output_file = Path("ladder.json")
-#     symbols_output_file = Path("symbols.json")
-#     alram_output_file = Path("alram.json")
-
-#     build_ladder_json(input_file, ladder_output_file)
-#     build_symbols_json(input_file, symbols_output_file)
-#     build_alram_json(input_file, alram_output_file)
-
-#     print(f"created: {ladder_output_file}")
-#     print(f"created: {symbols_output_file}")
-#     print(f"created: {alram_output_file}")
-
+# region CLI
 if __name__ == "__main__":
     import argparse
 
@@ -794,3 +747,4 @@ if __name__ == "__main__":
 
     build_mnemonic_files(args.input, output_dir)
     print(f"created: {output_dir}")
+# endregion
