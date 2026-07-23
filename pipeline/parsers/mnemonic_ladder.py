@@ -395,11 +395,23 @@ def render_logic_node(node: LogicNode) -> str:
 
     return f"({f' {node.operator} '.join(child_texts)})"
 
+def format_sub_instruction_label(step: LadderStep) -> str:
+    if step.sub_instruction is None:
+        return "SUB"
+
+    label = f"SUB {step.sub_instruction.code}"
+
+    if step.sub_instruction.name is not None:
+        label = f"{label} ({step.sub_instruction.name})"
+
+    return label
+
 # 조건식 생성 함수
 def build_logic_expression(steps: list[LadderStep]) -> str | None:
     current_expression: LogicNode | None = None
     expression_stack: list[LogicNode] = []
     writes: list[str] = []
+    sub_instructions: list[str] = []
 
     for step in steps:
         if step.role.startswith("write"):
@@ -422,6 +434,28 @@ def build_logic_expression(steps: list[LadderStep]) -> str | None:
                 previous_expression,
                 current_expression,
             )
+            continue
+
+        if step.op == "SUB":
+            if current_expression is None:
+                if expression_stack:
+                    return None
+
+                sub_instructions.append(format_sub_instruction_label(step))
+                continue
+
+            if expression_stack:
+                stack_text = ", ".join(
+                    render_logic_node(expression)
+                    for expression in expression_stack
+                )
+                sub_instructions.append(
+                    f"{format_sub_instruction_label(step)} [stack: {stack_text}]"
+                )
+                expression_stack.clear()
+            else:
+                sub_instructions.append(format_sub_instruction_label(step))
+
             continue
 
         label = format_condition_label(step)
@@ -470,12 +504,17 @@ def build_logic_expression(steps: list[LadderStep]) -> str | None:
 
         current_expression = make_logic_leaf(label)
 
-    if current_expression is None or not writes or expression_stack:
+    if expression_stack:
         return None
 
-    write_text = ", ".join(writes)
+    targets = sub_instructions + writes
+    if not targets:
+        return None
 
-    return f"{render_logic_node(current_expression)} -> {write_text}"
+    if current_expression is None:
+        return " -> ".join(targets)
+
+    return f"{render_logic_node(current_expression)} -> {' -> '.join(targets)}"
 # endregion
 
 # region Ladder parsing
