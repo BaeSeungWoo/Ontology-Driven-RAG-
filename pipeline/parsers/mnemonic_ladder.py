@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Final
 
 # region 섹션별 상수
-SECTION_SYMBOLS: Final = "%@2-C"
+SECTION_SYMBOLS: Final = "%@2"
 SECTION_LADDER: Final = "%@3"
 SECTION_ALARMS: Final = "%@4"
 # endregion
@@ -101,7 +101,7 @@ def extract_section(text: str, section: str) -> list[str]:
     for line in lines:
         stripped = line.strip()
 
-        if stripped == section:
+        if stripped.startswith(section):
             in_section = True
             continue
 
@@ -117,7 +117,7 @@ def extract_section(text: str, section: str) -> list[str]:
 # region Symbol and alarm parsing
 # %@2-c 구역 정규식
 SYMBOL_ENTRY_RE: Final = re.compile(r"^(?P<address>[A-Z]\d+(?:\.\d+)?)(?:\s+(?P<symbol>\S+))?\s*$")
-SYMBOL_DESCRIPTION_RE: Final = re.compile(r"^\$1\s+''\s+'(?P<description>.*)'\s*$")
+SYMBOL_DESCRIPTION_RE: Final = re.compile(r"^\$1\s+'(?P<description>.*)'\s*$")
 # %@3
 STEP_RE: Final = re.compile(r"^(?:(N\d+):\s*)?(?P<op>[A-Z][A-Z0-9.]*)(?:\s+(?P<operand>[A-Z]\d+(?:\.\d+)?))?\s*(?:;\((?P<symbol>[^)]*)\))?")
 SUB_RE: Final = re.compile(r"^(?:(?P<nblock>N\d+):\s*)?SUB\s+(?P<code>\d+)(?:\s*;\s*(?P<name>.*\S))?\s*$")
