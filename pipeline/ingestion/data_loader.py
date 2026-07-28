@@ -7,6 +7,7 @@ import pypdfium2 as pdfium
 from backend.app.factories.config import Config
 from pipeline.adapters.base import BaseParser
 from pipeline.ingestion.chunk_refiner import ChunkRefiner
+from pipeline.parsers.mnemonic_ladder import build_mnemonic_files
 from pipeline.ingestion.machine_resolver import (
     build_doc_to_machine_index,
     enrich_machine_codes,
@@ -130,3 +131,33 @@ class DataLoader:
                 doc.close()
             print(f"rendered {doc_pages} pages of {doc_name}")
         return rows
+
+    def load_ladder_from(self, source_dir: dict[str, Any], doc_type: str) -> list[dict[str, Any]]:
+        """LST 미모닉 구조화 이후 VectorDB 저장용 청크로 변환"""
+
+        input_dir = Path(source_dir["input"])
+        struct_dir = Path(source_dir["struct"])
+        lst_files = sorted(input_dir.glob("*.LST"))
+    
+        # .LST 파일이 1개인지 확인
+        if len(lst_files) != 1:
+            raise ValueError(
+                f"Expected exactly one .LST file in {input_dir}, "
+                f"but found {len(lst_files)}"
+            )
+    
+        source_file = lst_files[0]
+        ladder_dict = build_mnemonic_files(
+            input_file=source_file,
+            output_dir=struct_dir,
+        )
+
+        docs = self.chunk_refiner.ladder_convert(
+            raw_chunks=ladder_dict,
+            site_id=self.config.id,
+        )
+
+        docs = enrich_machine_codes(docs, self.doc_to_machine)
+
+        print(f"[{self.config.id}][{doc_type}] {len(docs)}개 래더 청크 생성")
+        return docs

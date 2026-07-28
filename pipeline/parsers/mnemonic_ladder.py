@@ -4,7 +4,7 @@ import json
 import re
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Final
+from typing import Final, Any
 
 # region 섹션별 상수
 SECTION_SYMBOLS: Final = "%@2-C"
@@ -698,7 +698,7 @@ def serialize_ladder_step(step: LadderStep) -> dict[str, object]:
     return payload
 
 # 파일을 읽고 %@3 Ladder logic 구역을 JSON으로 저장
-def build_ladder_json(input_path: Path, output_path: Path) -> None:
+def build_ladder_json(input_path: Path, output_path: Path) -> dict[str, Any]:
     text = input_path.read_text(encoding="utf-8")
     section_lines = extract_section(text, SECTION_LADDER)
     nblocks = parse_ladder_nblocks(section_lines)
@@ -724,6 +724,7 @@ def build_ladder_json(input_path: Path, output_path: Path) -> None:
         json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
+    return payload
 
 # 파일을 읽고 %@2-C 주소/심볼 사전 구역을 JSON으로 저장
 def build_symbols_json(input_path: Path, output_path: Path) -> None:
@@ -760,12 +761,13 @@ def build_alram_json(input_path: Path, output_path: Path) -> None:
     )
 
 # 파일 일괄 생성
-def build_mnemonic_files(input_file: Path, output_dir: Path) -> None:
+def build_mnemonic_files(input_file: Path, output_dir: Path) -> dict[str, Any]:
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    build_ladder_json(input_file, output_dir / "ladder.json")
+    ladder_struct = build_ladder_json(input_file, output_dir / "ladder.json")
     build_symbols_json(input_file, output_dir / "symbols.json")
     build_alram_json(input_file, output_dir / "alram.json")
+    return ladder_struct
 # endregion
 
 # region CLI

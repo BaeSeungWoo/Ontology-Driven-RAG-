@@ -157,3 +157,99 @@ class ChunkRefiner:
                 })
 
         return final_docs
+
+    @staticmethod
+    def _flatten_ladder_value(
+        value: Any,
+        prefix: str,
+    ) -> dict[str, str | int | float | bool]:
+        """dict/list를 Chroma가 저장 가능한 scalar metadata로 완전 평탄화한다."""
+        flat: dict[str, str | int | float | bool] = {}
+
+        if isinstance(value, dict):
+            # 빈 dict와 키 자체가 없던 경우를 구분하기 위해 type을 남긴다.
+            flat[f"{prefix}__type"] = "dict"
+
+            for key, child in value.items():
+                flat.update(
+                    ChunkRefiner._flatten_ladder_value(
+                        child,
+                        f"{prefix}__{key}",
+                    )
+                )
+            return flat
+
+        if isinstance(value, list):
+            # 빈 list도 보존한다.
+            flat[f"{prefix}__type"] = "list"
+            flat[f"{prefix}__length"] = len(value)
+
+            for index, child in enumerate(value):
+                flat.update(
+                    ChunkRefiner._flatten_ladder_value(
+                        child,
+                        f"{prefix}__{index:03d}",
+                    )
+                )
+            return flat
+
+        if value is None:
+            # 키가 없던 경우와 `key: null`을 구분한다.
+            flat[f"{prefix}__is_null"] = True
+            return flat
+
+        if isinstance(value, (str, int, float, bool)):
+            flat[prefix] = value
+            return flat
+
+        raise TypeError(
+            f"지원하지 않는 래더 metadata 타입: "
+            f"{type(value).__name__} ({prefix})"
+        )
+    
+    def ladder_convert(self, raw_chunks: dict[str, Any], site_id: str) -> list[dict[str, Any]]:
+        source_file = str(raw_chunks.get("source_file", "unknown"))
+        source_stem = source_file.rsplit(".", 1)[0]
+        final_docs = []
+
+        for block in raw_chunks["nblocks"]:
+            nblock = str(block["nblock"])
+            chunk_id = f"ladder:{source_stem}:{nblock}"
+
+            # search_text는 page_content에 이미 보존되므로 metadata에서는 제외한다.
+            block_details = {
+                key: value
+                for key, value in block.items()
+                if key != "search_text"
+            }
+
+            metadata: dict[str, str | int | float | bool] = {
+                "chunk_id": chunk_id,
+                "site_id": site_id,
+                "source_type": "mnemonic",
+                "mnemonic_kind": "ladder",
+                "source_doc_name": source_file,
+                "source_section": str(raw_chunks["section"]),
+
+                # 기존 검색/응답 코드와 호환하기 위한 필드
+                "section_title": nblock,
+                "page_range": "",
+                "container_type": "ladder",
+                "asset_path": "",
+            }
+
+            # summary, steps, operand, sub_instruction 등을 모두 scalar로 변환
+            metadata.update(
+                self._flatten_ladder_value(
+                    value=block_details,
+                    prefix="ladder",
+                )
+            )
+
+            final_docs.append({
+                "id": chunk_id,
+                "page_content": str(block["search_text"]),
+                "metadata": metadata,
+            })
+
+        return final_docs

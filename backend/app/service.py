@@ -660,6 +660,7 @@ class JudgeRAGService(RAGService):
         effective_machine_code: str,
         mode: str = "rag",
         prompt_id: str = "tech_expert",
+        persona_type: str = "operator",
         user_prompt: str | None = None,
         restore_memory: bool = False,
     ):
@@ -671,6 +672,7 @@ class JudgeRAGService(RAGService):
                 mode=mode,
                 prompt_id=prompt_id,
                 user_prompt=user_prompt,
+                persona_type=persona_type,
                 restore_memory=restore_memory,
             ):
                 yield event
