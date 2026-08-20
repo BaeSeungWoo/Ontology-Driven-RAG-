@@ -214,6 +214,9 @@ def process_document(data: dict[str, Any], asset_dir: str | Path, pdf_path: str 
     Returns:
         list[dict[str, Any]]: 문서에서 생성된 최종 chunk 목록.
     """
+
+    # 전달받은 pdf_path가 str일 수 있으므로, .stem 사용 전 Path 객체로 변환한다.
+    pdf_path = Path(pdf_path)
     doc_name = pdf_path.stem
 
     elements = data["elements"]

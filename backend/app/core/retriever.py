@@ -15,6 +15,7 @@ import torch
 from app.embeddings import load_embeddings, ColpaliEmbedder
 from app.factories.config import Config
 from app.core.bm25_tokenizer import tokenize_for_bm25
+from app.core.ladder_linker import LadderLinker
 
 from pipeline.ingestion.kg_utils import match_entities, expand_bfs
 
@@ -291,6 +292,272 @@ class ChromaRetriever(BaseRetriever):
 
         items = _deduplicate_items(raw_items, top_k)
         return RetrievalResult(items=items, context="")
+
+class LadderRetriever(BaseRetriever):
+    def __init__(self, config: Config):
+        super().__init__(config)
+        self.chroma = chromadb.PersistentClient(
+            path=self.config.vector_db.get_search_path("chroma")
+        )
+        self.collection = self.chroma.get_or_create_collection(
+            name=self.config.id,
+            embedding_function=self.embedding_fn,
+        )
+        self.bm25 = self._load_bm25()
+        project_root = Path(__file__).resolve().parents[3]
+        structure_dir = project_root / "pipeline" / "data" / self.config.id / "ladder" / "struct"
+        self.ladder_linker = LadderLinker(structure_dir)
+
+    def _where_for_container(self, container_type: str, machine_code: str) -> dict:
+        container_filter = (
+            {"container_type": "ladder"}
+            if container_type == "ladder"
+            else {"container_type": {"$ne": "ladder"}}
+        )
+
+        if machine_code == "ALL":
+            return container_filter
+
+        return {
+            "$and": [
+                container_filter,
+                {"machine_code": {"$contains": machine_code.strip()}},
+            ]
+        }
+
+    def _vector_search(
+        self,
+        query: str,
+        machine_code: str,
+        top_k: int,
+        container_type: str,
+    ) -> list[dict]:
+        results = self.collection.query(
+            query_texts=[query],
+            n_results=top_k,
+            where=self._where_for_container(container_type, machine_code),
+            include=["documents", "metadatas", "distances"],
+        )
+
+        items: list[dict] = []
+        for rank, (chunk_id, doc, meta, dist) in enumerate(
+            zip(
+                results.get("ids", [[]])[0],
+                results.get("documents", [[]])[0],
+                results.get("metadatas", [[]])[0],
+                results.get("distances", [[]])[0],
+            ),
+            start=1,
+        ):
+            distance = float(dist) if dist is not None else None
+            items.append({
+                "id": chunk_id,
+                "document": doc,
+                "metadata": meta or {},
+                "distance": distance,
+                "similarity": (1 - distance) if distance is not None else None,
+                "bm25_score": None,
+                "vector_rank": rank,
+                "bm25_rank": None,
+                "rrf_score": None,
+            })
+
+        return items
+
+    def _bm25_search_by_container(
+        self,
+        query: str,
+        machine_code: str,
+        top_k: int,
+        container_type: str,
+    ) -> list[dict]:
+        if self.bm25 is None:
+            return []
+
+        scores = self.bm25["bm25"].get_scores(tokenize_for_bm25(query))
+        order = np.argsort(-scores)
+        items: list[dict] = []
+
+        for index in order:
+            index = int(index)
+            meta = self.bm25["metadatas"][index] or {}
+            is_ladder = meta.get("container_type") == "ladder"
+            if (container_type == "ladder") != is_ladder:
+                continue
+            if machine_code != "ALL" and not self._matches_machine(meta, machine_code):
+                continue
+
+            items.append({
+                "id": self.bm25["ids"][index],
+                "document": self.bm25["documents"][index],
+                "metadata": meta,
+                "distance": None,
+                "similarity": None,
+                "bm25_score": float(scores[index]),
+                "vector_rank": None,
+                "bm25_rank": len(items) + 1,
+            })
+            if len(items) >= top_k:
+                break
+
+        return items
+
+    def _search_container(
+        self,
+        query: str,
+        machine_code: str,
+        top_k: int,
+        container_type: str,
+    ) -> list[RetrievalItem]:
+        candidate_k = max(top_k * 4, 20)
+        vector_items = self._vector_search(query, machine_code, candidate_k, container_type)
+        bm25_items = self._bm25_search_by_container(query, machine_code, candidate_k, container_type)
+        merged_items = self._rrf_merge(vector_items, bm25_items)
+        retrieval_group = "ladder" if container_type == "ladder" else "document"
+
+        raw_items = [
+            RetrievalItem(
+                id=item["id"],
+                text=item["document"],
+                score=item.get("similarity"),
+                metadata=item.get("metadata", {}),
+                extra={
+                    "retrieval_group": retrieval_group,
+                    "distance": item.get("distance"),
+                    "similarity": item.get("similarity"),
+                    "vector_rank": item.get("vector_rank"),
+                    "bm25_rank": item.get("bm25_rank"),
+                    "bm25_score": item.get("bm25_score"),
+                    "rrf_score": item.get("rrf_score"),
+                },
+            )
+            for item in merged_items
+        ]
+        return _deduplicate_items(raw_items, top_k)
+
+    def _profile_ladder_items(
+        self,
+        seed_nblocks: list[str],
+        machine_code: str,
+    ) -> list[RetrievalItem]:
+        items = []
+        for nblock in seed_nblocks:
+            where = self._where_for_container("ladder", machine_code)
+            if "$and" in where:
+                where = {"$and": [*where["$and"], {"section_title": nblock}]}
+            else:
+                where = {"$and": [where, {"section_title": nblock}]}
+
+            result = self.collection.get(
+                where=where,
+                include=["documents", "metadatas"],
+            )
+            for chunk_id, document, metadata in zip(
+                result.get("ids", []),
+                result.get("documents", []),
+                result.get("metadatas", []),
+            ):
+                items.append(RetrievalItem(
+                    id=chunk_id,
+                    text=document,
+                    score=None,
+                    metadata=metadata or {},
+                    extra={
+                        "retrieval_group": "ladder",
+                        "profile_seed": True,
+                    },
+                ))
+        return items
+
+    def search(
+        self,
+        query: str,
+        top_k: int = 5,
+        machine_code: str = "ALL",
+        intent_type: str = "troubleshooting",
+        **kwargs,
+    ) -> RetrievalResult:
+        top_k = top_k or self.config.vector_db.retrieval_k
+        query_plan = self.ladder_linker.build_query_plan(query)
+        search_query = query_plan["expanded_query"]
+        ladder_limit = max(top_k, len(query_plan["seed_nblocks"]))
+        document_items = self._search_container(search_query, machine_code, top_k, "document")
+        ladder_candidates = self._search_container(search_query, machine_code, max(ladder_limit * 4, 20), "ladder")
+        seeded_items = self._profile_ladder_items(query_plan["seed_nblocks"], machine_code)
+        ladder_items = _deduplicate_items([*seeded_items, *ladder_candidates], max(ladder_limit * 4, 20))
+        linked_addresses = self.ladder_linker.linked_addresses(
+            question=query,
+            document_texts=[item.text for item in document_items],
+            profile_addresses=query_plan["addresses"],
+        )
+        ladder_items = self.ladder_linker.rerank(
+            ladder_items,
+            linked_addresses,
+            seed_nblocks=query_plan["seed_nblocks"],
+        )[:ladder_limit]
+        trace_roots = ladder_items[:2]
+        for item in trace_roots:
+            item.extra["trace_root"] = True
+
+        trace_lines = self.ladder_linker.trace(trace_roots, intent_type=intent_type)
+
+        return RetrievalResult(
+            items=[*document_items, *ladder_items],
+            context="\n".join(trace_lines),
+        )
+
+    def get_context(
+        self,
+        query: str,
+        machine_code: str = "ALL",
+        intent_type: str = "troubleshooting",
+    ):
+        result = self.search(
+            query=query,
+            machine_code=machine_code,
+            intent_type=intent_type,
+        )
+        grouped_items = {
+            "document": [item for item in result.items if item.extra.get("retrieval_group") == "document"],
+            "ladder": [item for item in result.items if item.extra.get("retrieval_group") == "ladder"],
+        }
+
+        context_sections = []
+        imgs = []
+        tables = []
+        chunks = []
+        index = 0
+
+        for group, title in (("document", "문서 근거"), ("ladder", "래더 근거")):
+            parts = []
+            for item in grouped_items[group]:
+                index += 1
+                meta = self._to_json_safe(item.metadata)
+                source = meta.get("source_doc_name", "unknown")
+                container_type = meta.get("container_type", "texts")
+                asset_path = meta.get("asset_path")
+                parts.append(f"[chunk:{index}]\n[문서: {source}]\n{item.text}")
+                chunks.append({
+                    "index": index,
+                    "retrieval_rank": index,
+                    "document": item.text,
+                    "metadata": meta,
+                    **item.extra,
+                })
+
+                if asset_path and container_type == "pictures":
+                    imgs.append(asset_path)
+                elif asset_path and container_type == "tables":
+                    tables.append(asset_path)
+
+            if parts:
+                context_sections.append(f"[{title}]\n" + "\n\n".join(parts))
+
+        if result.context:
+            context_sections.append(result.context)
+
+        context_payload = "\n\n".join(context_sections), imgs, tables, chunks
+        return context_payload
 
 class FAISSRetriever(BaseRetriever):
     def __init__(self, config: Config, use_bm25: bool = False):

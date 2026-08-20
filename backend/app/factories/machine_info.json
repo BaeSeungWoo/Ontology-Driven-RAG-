@@ -409,7 +409,8 @@
       "B-64605EN_01_0i-F_Mainternance",
       "B-64610EN_01_0i-F_Parameter",
       "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p",
-      "lcv6700"
+      "lcv6700",
+      "20V-120"
     ],
     "machine_maker": "SMEC",
     "machine_controller": "화낙",

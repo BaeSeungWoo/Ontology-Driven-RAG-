@@ -149,7 +149,8 @@ class PromptManager:
 
             system_sections.append("[인용 예시]\n" + "\n\n".join(example_text))
 
-        default_format = output_format.get("default", [])
+        format_key = "ladder" if mode == "ladder" else "default"
+        default_format = output_format.get(format_key, output_format.get("default", []))
 
         if default_format:
             system_sections.append(
