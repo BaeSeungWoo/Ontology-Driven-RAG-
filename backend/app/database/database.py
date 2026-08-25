@@ -699,3 +699,61 @@ def _find_first_row(rows):
             return row
     return None
 
+#region CMS 데이터 조회
+
+CMS_DASHBOARD_VIEW_TABLES = {
+    "daily-planned-rate": "dbo.V_CMS_DAILY_PLANNED_RATE",
+    "hourly-rate": "dbo.V_CMS_HOURLY_RATE",
+    "daily-alarm-summary": "dbo.V_CMS_DAILY_ALARM_SUMMARY",
+    "alarm-machine-top3": "dbo.V_CMS_DAILY_ALARM_MACHINE_TOP3",
+    "longest-alarm-top3": "dbo.V_CMS_DAILY_LONGEST_ALARM_TOP3",
+}
+
+CMS_DASHBOARD_VIEW_ORDER_BY = {
+    "daily-planned-rate": "WORK_DATE ASC",
+    "hourly-rate": "WORK_DATE ASC, HOUR_SEQ ASC",
+    "daily-alarm-summary": "WORK_DATE ASC, ALARM_RANK ASC",
+    "alarm-machine-top3": "WORK_DATE ASC, ALARM_RANK ASC",
+    "longest-alarm-top3": "WORK_DATE ASC, ALARM_RANK ASC",
+}
+
+def _get_cms_dashboard_view_rows(view_key: str) -> list[dict]:
+    table_name = CMS_DASHBOARD_VIEW_TABLES.get(view_key)
+    order_by = CMS_DASHBOARD_VIEW_ORDER_BY.get(view_key)
+    if table_name is None or order_by is None:
+        raise ValueError(f"Unsupported CMS view: {view_key}")
+
+    cursor = None
+
+    try:
+        with get_db_connection(pool_name="third") as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            cursor.execute(f"SELECT * FROM {table_name} ORDER BY {order_by}")
+
+            columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    except Exception as e:
+        print(e, f"database CMS view query error: view_key={view_key}")
+        raise
+
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+
+@with_thread_pool("db")
+def getCmsDashboardView(view_key: str) -> list[dict]:
+    return _get_cms_dashboard_view_rows(view_key)
+
+@with_thread_pool("db")
+def getCmsDashboardViews() -> dict[str, list[dict]]:
+    return {
+        view_key: _get_cms_dashboard_view_rows(view_key)
+        for view_key in CMS_DASHBOARD_VIEW_TABLES
+    }
+
+#endregion

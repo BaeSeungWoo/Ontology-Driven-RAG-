@@ -3,7 +3,7 @@ import asyncio
 import json
 import re
 from typing import Any
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 from app.factories.config import Config
@@ -897,6 +897,255 @@ class DailyReportService:
         async for token in self.astream_report(report_date, factory):
             parts.append(token)
         return "".join(parts)
+
+
+class CmsDailyReportService:
+    """전일 CMS 리포트의 조회·요약 경계이다."""
+
+    _SYSTEM_PROMPT = """당신은 제조 현장의 전일 운영 현황을 요약하는 분석가입니다.
+제공된 집계 데이터에 있는 수치만 근거로 한국어 요약을 작성하세요.
+원인·조치·추세를 추측하지 말고, 알람 코드를 해석할 수 없으면 코드 그대로 언급하세요.
+계획가동률은 30% 미만 위험, 30% 이상 50% 미만 경고, 50% 이상 양호 기준을 사용하세요.
+다음 형식의 3개 줄만 작성하세요.
+• 계획가동률: 계획가동률과 상태시간 요약(가동 / 정지 / 알람 / 전원OFF)
+• 시간별 가동률: 최고·최저 또는 주의 시간대 요약
+• 알람: 총 발생 건수와 함께 최다 알람 발생 장비(발생건수)와 최장 알람 이력(알람유지시간) 1개씩
+상태시간은 반드시 'n시간 m분' 형식으로 표기하고 초 단위는 사용하지 마세요.
+각 줄은 100자 이내로 작성하며, Markdown 제목은 사용하지 마세요."""
+
+    def __init__(self, config: Config):
+        self.llm = LLMProvider.get_model(config)
+
+    @staticmethod
+    def _evaluate_rate(value: float) -> dict:
+        if value < 30:
+            return {"status": "danger", "label": "위험", "description": "가동률이 30% 미만입니다."}
+        if value < 50:
+            return {"status": "warning", "label": "경고", "description": "가동률이 50% 미만입니다."}
+        return {"status": "good", "label": "양호", "description": "가동률이 50% 이상입니다."}
+
+    @staticmethod
+    def _format_work_date(value: Any) -> tuple[str, str]:
+        if isinstance(value, datetime):
+            value = value.date()
+        elif isinstance(value, str):
+            value = date.fromisoformat(value[:10])
+
+        if not isinstance(value, date):
+            raise ValueError("WORK_DATE 형식이 올바르지 않습니다.")
+
+        return value.isoformat(), value.strftime("%m/%d")
+
+    async def generate_report(
+        self,
+        daily_planned_rate_rows: list[dict],
+        hourly_rate_rows: list[dict],
+        alarm_summary_rows: list[dict],
+        alarm_machine_rows: list[dict],
+        longest_alarm_rows: list[dict],
+        with_summary: bool = True,
+    ) -> dict:
+        if not daily_planned_rate_rows:
+            raise ValueError("최근 7일 계획가동률 데이터가 없습니다.")
+        if not hourly_rate_rows:
+            raise ValueError("시간대별 가동률 데이터가 없습니다.")
+
+        weekly_planned_rates = []
+        daily_totals = []
+        for row in daily_planned_rate_rows:
+            work_date, label = self._format_work_date(row.get("WORK_DATE"))
+            rate = float(row.get("PLANNED_RATE") or 0)
+            daily_totals.append({
+                "workDate": work_date,
+                "totalSeconds": int(row.get("TOTAL_SECONDS") or 0),
+                "operateSeconds": int(row.get("OPERATE_SECONDS") or 0),
+                "stopSeconds": int(row.get("STOP_SECONDS") or 0),
+                "alarmSeconds": int(row.get("ALARM_SECONDS") or 0),
+                "offSeconds": int(row.get("OFF_SECONDS") or 0),
+            })
+            weekly_planned_rates.append({
+                "workDate": work_date,
+                "label": label,
+                "value": rate,
+                "status": self._evaluate_rate(rate)["status"],
+            })
+
+        weekly_planned_rates.sort(key=lambda row: row["workDate"])
+        daily_totals.sort(key=lambda row: row["workDate"])
+        hourly_rates = [
+            {
+                "label": str(row.get("ST_TIME") or ""),
+                "value": float(row.get("VALUE") or 0),
+                "sequence": int(row.get("HOUR_SEQ") or 0),
+            }
+            for row in hourly_rate_rows
+        ]
+        hourly_rates.sort(key=lambda row: row["sequence"])
+        top_alarms = [
+            {
+                "code": str(row.get("ALARM_DETAILS") or row.get("ALARM_CODE") or "미지정 알람"),
+                "count": int(row.get("ALARM_COUNT") or 0),
+                "machines": [str(row["MAIN_MACHINES"])] if row.get("MAIN_MACHINES") else [],
+            }
+            for row in sorted(
+                alarm_summary_rows,
+                key=lambda row: int(row.get("ALARM_RANK") or 0),
+            )
+        ]
+        total_alarm_events = (
+            int(alarm_summary_rows[0].get("TOTAL_ALARM_EVENTS") or 0)
+            if alarm_summary_rows else 0
+        )
+        total_alarm_types = (
+            int(alarm_summary_rows[0].get("TOTAL_ALARM_TYPES") or 0)
+            if alarm_summary_rows else 0
+        )
+        top_alarm_machines = [
+            {
+                "rank": int(row.get("ALARM_RANK") or 0),
+                "machineCode": str(row.get("MACHINE_CODE") or ""),
+                "machineName": str(row.get("MACHINE_NAME") or row.get("MACHINE_CODE") or "미지정 설비"),
+                "count": int(row.get("ALARM_COUNT") or 0),
+            }
+            for row in sorted(
+                alarm_machine_rows,
+                key=lambda row: int(row.get("ALARM_RANK") or 0),
+            )
+        ]
+        longest_alarms = [
+            {
+                "rank": int(row.get("ALARM_RANK") or 0),
+                "machineCode": str(row.get("MACHINE_CODE") or ""),
+                "machineName": str(row.get("MACHINE_NAME") or row.get("MACHINE_CODE") or "미지정 설비"),
+                "code": str(row.get("ALARM_CODE") or "미지정 알람"),
+                "details": str(row.get("ALARM_DETAILS") or row.get("ALARM_CODE") or "미지정 알람"),
+                "occurDate": str(row.get("OCCUR_DATE") or ""),
+                "finishDate": str(row.get("FINISH_DATE") or ""),
+                "durationSeconds": int(row.get("OPERATE_PERIOD") or 0),
+            }
+            for row in sorted(
+                longest_alarm_rows,
+                key=lambda row: int(row.get("ALARM_RANK") or 0),
+            )
+        ]
+        now = datetime.now()
+        planned_rate = weekly_planned_rates[-1]["value"]
+        latest_totals = daily_totals[-1]
+
+        report = {
+            "generatedAt": now.isoformat(timespec="seconds"),
+            "metrics": {
+                "plannedRate": planned_rate,
+                "plannedSeconds": latest_totals["totalSeconds"],
+                "operateSeconds": latest_totals["operateSeconds"],
+                "stopSeconds": latest_totals["stopSeconds"],
+                "alarmSeconds": latest_totals["alarmSeconds"],
+                "offSeconds": latest_totals["offSeconds"],
+                "alarmEvents": total_alarm_events,
+                "alarmTypes": total_alarm_types,
+            },
+            "evaluation": self._evaluate_rate(planned_rate),
+            "weeklyPlannedRates": weekly_planned_rates,
+            "dailyTotals": daily_totals,
+            "hourlyRates": hourly_rates,
+            "topAlarms": top_alarms,
+            "topAlarmMachines": top_alarm_machines,
+            "longestAlarms": longest_alarms,
+            "executiveSummary": "",
+        }
+        if with_summary:
+            report["executiveSummary"] = await self.generate_summary(report)
+        return report
+
+    @staticmethod
+    def _format_hours(seconds: int) -> str:
+        total_minutes = round(seconds / 60)
+        return f"{total_minutes // 60}시간 {total_minutes % 60}분"
+
+    @staticmethod
+    def _build_llm_context(report: dict) -> dict:
+        return {
+            "기준일": report["weeklyPlannedRates"][-1]["workDate"],
+            "계획가동률_7일": [
+                {"일자": row["workDate"], "가동률": row["value"]}
+                for row in report["weeklyPlannedRates"]
+            ],
+            "기준일_상태시간_시간": {
+                "계획공수": CmsDailyReportService._format_hours(report["metrics"]["plannedSeconds"]),
+                "가동": CmsDailyReportService._format_hours(report["metrics"]["operateSeconds"]),
+                "정지": CmsDailyReportService._format_hours(report["metrics"]["stopSeconds"]),
+                "알람": CmsDailyReportService._format_hours(report["metrics"]["alarmSeconds"]),
+                "전원OFF": CmsDailyReportService._format_hours(report["metrics"]["offSeconds"]),
+            },
+            "시간대별가동률": [
+                {"시간": row["label"], "가동률": row["value"]}
+                for row in report["hourlyRates"]
+            ],
+            "알람요약": {
+                "총발생": report["metrics"]["alarmEvents"],
+                "알람종류": report["metrics"]["alarmTypes"],
+                "상위알람": [
+                    {
+                        "코드": alarm["code"],
+                        "발생": alarm["count"],
+                        "주요발생장비": alarm["machines"],
+                    }
+                    for alarm in report["topAlarms"][:10]
+                ],
+            },
+            "최다알람발생장비_TOP3": [
+                {
+                    "순위": machine["rank"],
+                    "장비": machine["machineName"],
+                    "장비코드": machine["machineCode"],
+                    "발생": machine["count"],
+                }
+                for machine in report["topAlarmMachines"]
+            ],
+            "최장알람이력_TOP3": [
+                {
+                    "순위": alarm["rank"],
+                    "장비": alarm["machineName"],
+                    "알람코드": alarm["code"],
+                    "알람내용": alarm["details"],
+                    "발생시각": alarm["occurDate"],
+                    "종료시각": alarm["finishDate"],
+                    "지속시간초": alarm["durationSeconds"],
+                }
+                for alarm in report["longestAlarms"]
+            ],
+        }
+    async def generate_summary(self, report: dict) -> str:
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._SYSTEM_PROMPT},
+            {"role": "user", "content": json.dumps(self._build_llm_context(report), ensure_ascii=False)},
+        ])
+        return response.strip() or "전일 운영 요약을 생성하지 못했습니다."
+
+    async def answer_question(
+        self,
+        question: str,
+        history: list[dict[str, str]],
+        report: dict,
+    ) -> str:
+        messages = [
+            {
+                "role": "system",
+                "content": (
+                    "당신은 CMS 전일 리포트 질의 도우미입니다. 제공된 리포트 집계 데이터만 "
+                    "근거로 한국어로 답하세요. 데이터에 없는 내용·원인·조치는 추측하지 말고 "
+                    "'현재 리포트 데이터로는 확인할 수 없습니다.'라고 답하세요. 답변은 3문장 이내로 간결하게 작성하세요."
+                ),
+            },
+            {
+                "role": "user",
+                "content": f"리포트 집계 데이터:\n{json.dumps(self._build_llm_context(report), ensure_ascii=False)}",
+            },
+        ]
+        messages.extend(history[-6:])
+        messages.append({"role": "user", "content": question})
+        response = await self.llm.ainvoke(messages)
+        return response.strip() or "답변을 생성하지 못했습니다."
     
 _SECTION_PROMPTS: dict[str, str] = {
      "base": """\
