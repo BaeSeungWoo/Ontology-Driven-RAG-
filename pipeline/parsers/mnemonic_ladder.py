@@ -122,6 +122,7 @@ SYMBOL_DESCRIPTION_RE: Final = re.compile(r"^\$1\s+'(?P<description>.*)'\s*$")
 STEP_RE: Final = re.compile(r"^(?:(N\d+):\s*)?(?P<op>[A-Z][A-Z0-9.]*)(?:\s+(?P<operand>[A-Z]\d+(?:\.\d+)?))?\s*(?:;\((?P<symbol>[^)]*)\))?")
 SUB_RE: Final = re.compile(r"^(?:(?P<nblock>N\d+):\s*)?SUB\s+(?P<code>\d+)(?:\s*;\s*(?P<name>.*\S))?\s*$")
 DESCRIPTION_RE: Final = re.compile(r"^\s*;\[(?P<description>.*)\]\s*$")
+INLINE_DESCRIPTION_RE: Final = re.compile(r'\s+"(?P<description>[^"]*)"\s*$')
 OPERAND_RE: Final = re.compile(r"^(?P<device>[A-Z])(?P<word>\d+)(?:\.(?P<bit>\d+))?$")
 # %@4
 ALARM_ENTRY_RE: Final = re.compile(r"^(?P<address>A\d+(?:\.\d+)?)\s+(?P<code>\d+)(?:\s+(?P<message>.*\S))?\s*$")
@@ -618,7 +619,11 @@ def parse_ladder_nblocks(lines: list[str]) -> list[LadderNBlock]:
             continue
 
         description_match = DESCRIPTION_RE.match(line)
-        if description_match and pending_step is not None:
+        if (
+            description_match
+            and pending_step is not None
+            and pending_step.op != "SUB"
+        ):
             pending_step = LadderStep(
                 op=pending_step.op,
                 role=pending_step.role,
@@ -660,15 +665,20 @@ def parse_ladder_nblocks(lines: list[str]) -> list[LadderNBlock]:
             continue
 
         symbol = step_match.group("symbol")
-        
+        inline_description_match = INLINE_DESCRIPTION_RE.search(line)
         op = step_match.group("op")
+        operand = parse_operand(step_match.group("operand"))
         step = LadderStep(
             op=op,
             role=get_step_role(op),
             stack_op=get_stack_op(op),
-            operand=parse_operand(step_match.group("operand")),
+            operand=operand,
             symbol=symbol.strip() if symbol is not None else None,
-            description=None,
+            description=(
+                inline_description_match.group("description").strip()
+                if inline_description_match is not None
+                else None
+            ),
         )
         current_steps.append(step)
         pending_step = step
@@ -766,7 +776,7 @@ def build_mnemonic_files(input_file: Path, output_dir: Path) -> dict[str, Any]:
 
     ladder_struct = build_ladder_json(input_file, output_dir / "ladder.json")
     build_symbols_json(input_file, output_dir / "symbols.json")
-    build_alram_json(input_file, output_dir / "alram.json")
+    build_alram_json(input_file, output_dir / "alarm.json")
     return ladder_struct
 # endregion
 

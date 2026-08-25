@@ -13,6 +13,7 @@ from app.core.retriever import (
     ChromaRetriever,
     FAISSRetriever,
     KGRetriever,
+    LadderRetriever,
     MultimodalRetriever,
 )
 from app.core.prompt_manager import PromptManager
@@ -64,6 +65,7 @@ class RAGService:
         persona_type: str = "operator",
     ) -> tuple[list, list, list, list, dict]:
 
+        intent = await self._resolve_intent(question, persona_type)
         retriever = self._get_retriever(mode)
         context = ""
         imgs = []
@@ -71,8 +73,13 @@ class RAGService:
         chunks = []
         
         if retriever:
-            context, imgs, tables, chunks = retriever.get_context(question)
-        intent = await self._resolve_intent(question, persona_type)
+            if mode == "ladder":
+                context, imgs, tables, chunks = retriever.get_context(
+                    question,
+                    intent_type=intent["type"],
+                )
+            else:
+                context, imgs, tables, chunks = retriever.get_context(question)
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,          # ✅ main.py의 request.prompt_id 반영
@@ -118,10 +125,16 @@ class RAGService:
         tables = []
         chunks = []
         m_info = {}
-
         retriever = self._get_retriever(mode)
         if retriever:
-            context, imgs, tables, chunks = retriever.get_context(query=question, machine_code=effective_machine_code)
+            if mode == "ladder":
+                context, imgs, tables, chunks = retriever.get_context(
+                    query=question,
+                    machine_code=effective_machine_code,
+                    intent_type=intent["type"],
+                )
+            else:
+                context, imgs, tables, chunks = retriever.get_context(query=question, machine_code=effective_machine_code)
             m_info = self.config.machines.get(effective_machine_code, {})
 
         # if mode == "multimodal":
@@ -196,22 +209,22 @@ class RAGService:
         
         answer = "".join(answer_parts)
 
-        search_log = {
-            "mode": mode,
-            "question": question,
-            "answer": answer,
-            "machine_code": effective_machine_code,
-            "context": messages[-1]["content"],
-            "images": imgs,
-            "tables": tables,
-            "chunks": chunks,
-        }
-
-        self._save_search_result_json(
-            session_id=session_id,
-            payload=search_log,
-            prefix=mode,
-        )
+        if mode != "ladder":
+            search_log = {
+                "mode": mode,
+                "question": question,
+                "answer": answer,
+                "machine_code": effective_machine_code,
+                "context": messages[-1]["content"],
+                "images": imgs,
+                "tables": tables,
+                "chunks": chunks,
+            }
+            self._save_search_result_json(
+                session_id=session_id,
+                payload=search_log,
+                prefix=mode,
+            )
 
         self.memory_manager.add_turn(session_id, question, answer)
 
@@ -223,6 +236,8 @@ class RAGService:
                 self._retrievers[mode] = FAISSRetriever(self.config, use_bm25=True)
             elif mode == "kg":
                 self._retrievers[mode] = KGRetriever(self.config)
+            elif mode == "ladder":
+                self._retrievers[mode] = LadderRetriever(self.config)
             elif mode == "multimodal":
                 self._retrievers[mode] = MultimodalRetriever(self.config)
             elif mode == "base":
@@ -432,10 +447,18 @@ class JudgeRAGService(RAGService):
 
         retriever = self._get_retriever(mode)
         if retriever:
-            context, imgs, tables, chunks = retriever.get_context(
-                query=question,
-                machine_code=effective_machine_code,
-            )
+            if mode == "ladder":
+                intent = await self._resolve_intent(question, "operator")
+                context, imgs, tables, chunks = retriever.get_context(
+                    query=question,
+                    machine_code=effective_machine_code,
+                    intent_type=intent["type"],
+                )
+            else:
+                context, imgs, tables, chunks = retriever.get_context(
+                    query=question,
+                    machine_code=effective_machine_code,
+                )
 
         messages = self.prompt_manager.build(
             prompt_id=prompt_id,
