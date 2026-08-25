@@ -309,6 +309,8 @@ def initialize_connection_pool(pool_name="default"):
     database = os.getenv("MSSQL_DATABASE")
     if pool_name == "secondary":
         database = os.getenv("MSSQL_SECONDARY_DATABASE")
+    elif pool_name == "third":
+        database = os.getenv("MSSQL_THIRD_DATABASE")
     try:
         db_pools[pool_name] = DatabaseConnectionPool(
             pool_name=pool_name,

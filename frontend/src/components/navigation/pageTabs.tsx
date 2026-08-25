@@ -8,6 +8,7 @@ const PAGE_TABS = [
   { href: "/chat", label: "Chat" },
   { href: "/checkpoint", label: "CheckPoint" },
   { href: "/dailyReport", label: "DailyReport" },
+  { href: "/cms", label: "CMS" },
 ] as const;
 
 export default function PageTabs() {
