@@ -27,7 +27,10 @@ def resolve_request_code(request: Request, machines: dict, main_server_ips: set[
     return RequestCode(
         user_ip=user_ip,
         request_machine_code=request_machine_code,
-        is_main_server=user_ip in main_server_ips,
+        is_main_server=(
+            "*" in main_server_ips
+            or user_ip in main_server_ips
+        ),
     )
 
 # 세션 장비코드와 요청자 장비코드 비교

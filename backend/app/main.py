@@ -99,7 +99,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     ctx = resolve_request_code(
         request=client_request,
         machines = service.config.machines,
-        main_server_ips=set([os.getenv("MSSQL_HOST")])
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     session_info = database.getChatSessionInfo(request.session_id)

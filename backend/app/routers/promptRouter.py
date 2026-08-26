@@ -22,7 +22,7 @@ def getPromptList(client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     try:
