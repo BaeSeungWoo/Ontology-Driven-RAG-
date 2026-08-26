@@ -29,7 +29,7 @@ def getHistoryList(client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
     try:
@@ -106,7 +106,7 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
     try:
@@ -140,7 +140,7 @@ def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
     try:
@@ -229,7 +229,7 @@ def createSession(req: CreateSessionRequest, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
     try:
@@ -254,7 +254,7 @@ def deleteChatSession(session_id: int, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     session_info = database.getChatSessionInfo(session_id)
@@ -275,7 +275,7 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     session_info = database.getChatSessionInfo(req.session_id)
@@ -320,7 +320,7 @@ def createMessage(req: CreateMessageRequest, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     session_info = database.getChatSessionInfo(req.session_id)
@@ -346,7 +346,7 @@ def updateMessage(message_id: int, req: UpdateMessageRequest, client_request: Re
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
-        main_server_ips=set([os.getenv("MSSQL_HOST")]),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
     session_id = database.getSessionIdByMessageId(message_id)
