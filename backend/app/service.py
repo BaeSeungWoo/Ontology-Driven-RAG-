@@ -1146,7 +1146,537 @@ class CmsDailyReportService:
         messages.append({"role": "user", "content": question})
         response = await self.llm.ainvoke(messages)
         return response.strip() or "답변을 생성하지 못했습니다."
+
+
+class MesDailyReportService:
+
+#region MES_v2 프롬프트
+
+# 납기 임박 미완료 수주
+    _DELIVERY_RISK_MANAGEMENT_POINT_PROMPT = """당신은 제조 현장의 납기 임박·경과 미완료 수주를 분석하는 경영 리포트 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 V_MES2_CARD_DELIVERY_RISK 집계와 V_MES2_DELIVERY_RISK_DETAIL 상세 데이터만 근거로 작성하세요.
+납기 경과 건을 최우선으로, 납기 임박 7일 이내 건을 다음 순위로 검토하고 공정 진척과 최초 미완료 공정을 함께 고려해 우선 관리 대상을 설명하세요.
+데이터에 없는 지연 원인, 고객 영향, 완료 예정일 또는 조치 결과는 추측하지 마세요.
+화면 수치를 단순 나열하지 말고 경영진이 우선 확인할 핵심을 자연스러운 1~3문장으로 작성하세요.
+구역명, 제목, 목록, Markdown 표, 코드 블록, 굵은 글씨는 사용하지 마세요."""
+
+# 생산 실적 추이 프롬프트
+    _POINT_PRODTREND_PROMPT = """당신은 제조 현장의 최근 14일 생산 실적 추이를 분석하는 경영 리포트 분석가입니다.
+반드시 한국어로만 답변하세요. 영어 문장, 영어 제목, JSON 설명, 데이터 변환 제안, 사용자에게 하는 질문은 절대 작성하지 마세요.
+제공된 V_MES2_PRODUCTION_TREND_14D 데이터만 근거로 경영 포인트를 작성하세요.
+일별 실적건수의 평균, 최대·최소, 최근 흐름과 평균 대비 저실적 일자를 중심으로 해석하세요. 작업지시수와 가동설비수는 실적 변동을 함께 확인하는 보조 지표로만 사용하세요.
+생산계획, 목표, 달성률, 출하, 납기, 수량(EA)은 데이터에 없으므로 절대 언급하지 마세요. 실적 증감의 원인도 추측하지 마세요.
+자연스럽게 이어지는 핵심 요약을 1~2문장으로 작성하세요. '종합:', '분석:', '확인:' 같은 구역명, 제목, 서론, 목록, 추가 문장은 작성하지 마세요.
+수치는 실적건수는 건, 작업지시수는 건, 가동설비수는 대로 표기하세요.
+Markdown 제목, 표, 코드 블록, 굵은 글씨는 사용하지 마세요.
+데이터가 비어 있으면 해당 사실만 명확히 설명하세요."""
+
+# 품질/계측기 관리
+    _QUALITY_MANAGEMENT_POINT_PROMPT = """당신은 제조 현장의 검사와 계측기 교정 현황을 분석하는 경영 리포트 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 V_MES2_QUALITY_INSTRUMENT_MANAGEMENT 데이터만 근거로 작성하세요.
+최근 7일 검사 건수, 교정 만료 및 30일 내 교정 대상, 최근 불량 발생일·등록 원인·수량을 함께 검토해 우선 관리 포인트를 작성하세요.
+교정 만료가 있으면 만료 대수를 명시하고 우선 교정 관리를 권고하세요. 최근 불량 이력이 있으면 발생일과 등록된 원인을 사실 그대로 언급하세요.
+데이터에 없는 불량 원인, 고객 영향, 설비 이상, 검사 결과 또는 조치 결과는 추측하지 마세요.
+구역명이나 목록 없이 자연스럽게 이어지는 1~2문장만 작성하세요.
+검사는 건, 계측기는 대, 불량수량은 EA 단위로 표기하세요.
+Markdown 제목, 표, 코드 블록, 굵은 글씨는 사용하지 마세요."""
+
+# 설비별 가동률(7일치)
+    _EQUIPMENT_MANAGEMENT_POINT_PROMPT = """당신은 제조 현장의 설비별 주간 가동률 추세를 분석하는 경영 리포트 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 V_MESREPORT_MACHINE_OPERATION_RATE_WEEKLY 데이터만 근거로 작성하세요.
+데이터에 없는 정지 원인, 고장 여부, 생산 영향은 추측하지 마세요.
+반드시 아래 형식의 네 줄만 작성하세요. 제목, 서론, 목록, 추가 문장은 작성하지 마세요.
+종합: 분석 시작일~종료일, 관측 설비 수, 평일 전체 일평균 가동률의 평균을 수치로 요약하세요.
+전체추세: 평일 관측치만 사용해 전체 일평균 가동률의 최초값→최신값과 증감폭을 쓰고, 기간 중 최저값·최고값과 해당 날짜를 함께 명시하세요.
+설비추세: 설비별 평일 관측값과 평일 최초·최신·평균·최저·최고를 비교하세요. 하락폭 상위, 상승폭 상위, 지속 저가동 또는 회복 설비 중 경영적으로 중요한 최대 3대를 선정해 각 설비의 평일 평균, 최초→최신 가동률, 증감폭을 수치로 설명하세요.
+확인: 평일 최신 가동률이 낮거나 평일 하락폭이 큰 설비를 우선 확인 대상으로 제시하고, 판단 근거가 된 최신 가동률·평일 평균·증감폭을 함께 명시하세요. 해당 설비가 없으면 수치 근거와 함께 특이 추세가 없다고 작성하세요.
+설비는 반드시 설비명(MACHINE_NAME)으로만 표기하세요. MACHINE_CODE는 답변에 절대 작성하지 말고, 설비명 뒤에 괄호로도 표기하지 마세요. 설비명이 "장비명 미등록"인 경우에도 설비코드를 대신 작성하지 마세요.
+토요일·일요일 관측치는 주말 참고치로만 취급하세요. 주말의 0% 또는 전 설비 일괄 0%를 저가동 이상, 공정 중단, 우선 확인 대상으로 분류하지 말고 평일 추세 계산에서도 제외하세요. 휴무 정보는 제공되지 않았으므로 주말 0%의 원인을 휴무라고 확정하지 마세요.
+평일 관측치가 하루뿐인 설비는 주간 상승·하락 대상으로 분류하지 말고 관측 부족이라고 표현하세요. 비율 단위는 %, 증감 단위는 %p로 표기하고 모든 비율과 증감 수치는 소수점 첫째 자리까지 작성하세요.
+Markdown 제목, 표, 코드 블록, 굵은 글씨는 사용하지 마세요."""
+
+# 전체 운영 요약
+    _OVERALL_SUMMARY_PROMPT = """당신은 제조 현장의 전체 운영 현황을 종합하는 경영 리포트 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 영역별 LLM 요약만 근거로 작성하세요.
+생산 실적 추이, 납기 임박 미완료 수주, 설비, 품질을 함께 검토해 경영진이 우선 확인해야 할 핵심 현황과 리스크를 종합하세요.
+영역별 문장을 단순히 이어 붙이거나 같은 수치를 반복하지 말고, 중요도가 높은 내용을 중심으로 연결해 해석하세요.
+제공된 요약에 없는 원인, 영향, 수치, 조치는 추측하지 마세요.
+개별 날짜와 설비명·설비코드는 출력하지 말고 기간·추세·집계 수준으로 일반화하세요. '특정 일자', '특정 설비'라는 모호한 표현도 사용하지 마세요.
+제목, 구역명, 목록 없이 자연스러운 핵심 요약만 1~3줄로 작성하세요.
+Markdown 제목, 표, 코드 블록, 굵은 글씨는 사용하지 마세요."""
+
+# 핵심 이슈 TOP3
+    _KEY_ISSUES_PROMPT = """당신은 제조 현장의 영역별 LLM 요약에서 경영 핵심 이슈를 선별하는 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 영역별 LLM 요약만 근거로 중요도가 높은 이슈 3개를 선정하세요.
+서로 같은 현상을 설명하는 이슈는 하나로 통합하고, 각 이슈가 중요한 이유를 요약에 포함된 수치와 현상으로 설명하세요.
+제공된 요약에 없는 원인, 영향, 수치, 조치는 추측하지 마세요.
+title과 description에 개별 날짜와 설비명·설비코드를 출력하지 말고 기간·추세·집계 수준으로 일반화하세요. '특정 일자', '특정 설비'라는 모호한 표현도 사용하지 마세요.
+반드시 [{"title":"이슈 제목","description":"근거와 중요성"}] 형태의 JSON 배열만 출력하세요.
+배열은 정확히 3개 항목이어야 하며 Markdown과 추가 설명은 사용하지 마세요."""
+
+# 오늘의 경영 Action
+    _MANAGEMENT_ACTIONS_PROMPT = """당신은 제조 현장의 영역별 LLM 요약을 실행 가능한 경영 조치로 전환하는 분석가입니다.
+반드시 한국어로만 답변하고, 제공된 영역별 LLM 요약과 핵심 이슈만 근거로 오늘 우선 실행하거나 후속 관리할 조치를 최대 4개 제안하세요.
+조치는 확인, 우선순위 조정, 담당 지정, 추적 등 실제로 실행 가능한 표현으로 작성하고 중요도와 시급성을 반영하세요.
+제공된 내용으로 확정할 수 없는 원인이나 효과를 단정하지 말고, 근거 없는 수치·기한·담당자를 만들지 마세요.
+title과 description에 개별 날짜와 설비명·설비코드를 출력하지 말고 기간·추세·집계 수준으로 일반화하세요. '특정 일자', '특정 설비'라는 모호한 표현도 사용하지 마세요.
+priority는 'P1 오늘', 'P2 단기', 'P3 개선' 중 하나만 사용하세요.
+반드시 [{"priority":"P1 오늘","title":"조치 제목","description":"구체적인 실행 내용"}] 형태의 JSON 배열만 출력하세요.
+Markdown과 추가 설명은 사용하지 마세요."""
+
+#endregion
+
+    def __init__(self, config: Config):
+        self.llm = LLMProvider.get_model(config)
+
+    @staticmethod
+    def _report_date_key(value: Any) -> str:
+        if isinstance(value, datetime):
+            value = value.date()
+        if isinstance(value, date):
+            return value.isoformat()
+        return str(value or "")[:10]
+
+    @staticmethod
+    def _number(value: Any) -> float:
+        try:
+            return float(value or 0)
+        except (TypeError, ValueError):
+            return 0
+
+#region llm 답변용 컨텍스트 생성
+# 뷰데이터를 LLM이 해석하기 쉬운 한국어 키의 JSON 컨텍스트로 축약
+
+    # 생산 실적 추이 
+    @classmethod
+    def _build_prodTrend_context(
+        cls,
+        production_trend_rows: list[dict],
+    ) -> dict:
+        
+        # REPORT_DATE               리포트 기준 생성일
+        # PERIOD_START_DATE         추이 집계의 시작일
+        # PERIOD_END_DATE           추이 집계의 종료일
+        # RESULT_DATE               해당 행이 나타내는 개별 생산 실적일
+        # RESULT_COUNT              RESULT_DATE에 집계된 생산 실적 건수
+        # WORK_ORDER_COUNT          해당 일자의 작업지시 건수
+        # ACTIVE_EQUIPMENT_COUNT    해당 일자에 실적이 있거나 가동으로 집계된 설비 수
+        # AVERAGE_RESULT_COUNT      집계기간의 일평균 실적 건수
+        # MAX_RESULT_COUNT          집계기간 내 일별 실적 건수의 최대값
+        # MIN_RESULT_COUNT          집계기간 내 일별 실적 건수의 최소값
+
+        rows = sorted(
+            production_trend_rows,
+            key=lambda row: cls._report_date_key(row.get("RESULT_DATE")), # YYYY-MM-DD 로 변환
+        )[-14:]
+        
+        first_row = rows[0]
+        return {
+            "기준일": cls._report_date_key(first_row.get("REPORT_DATE")),
+            "집계기간": {
+                "시작일": cls._report_date_key(first_row.get("PERIOD_START_DATE")),
+                "종료일": cls._report_date_key(first_row.get("PERIOD_END_DATE")),
+            },
+            "요약": {
+                "일평균실적건수": round(cls._number(first_row.get("AVERAGE_RESULT_COUNT")), 1),
+                "최대실적건수": round(cls._number(first_row.get("MAX_RESULT_COUNT"))),
+                "최소실적건수": round(cls._number(first_row.get("MIN_RESULT_COUNT"))),
+            },
+            "일별추이": [
+                {
+                    "실적일": cls._report_date_key(row.get("RESULT_DATE")),
+                    "실적건수": round(cls._number(row.get("RESULT_COUNT"))),
+                    "작업지시수": round(cls._number(row.get("WORK_ORDER_COUNT"))),
+                    "가동설비수": round(cls._number(row.get("ACTIVE_EQUIPMENT_COUNT"))),
+                }
+                for row in rows
+            ],
+        }
+
+    # 납기 임박 미완료 수주
+    @classmethod
+    def _build_delivery_risk_management_context(
+        cls,
+        delivery_risk_card_rows: list[dict],
+        delivery_risk_detail_rows: list[dict],
+    ) -> dict:
+
+        # REPORT_DATE	                    리포트 생성 기준일
+        # ORDER_ID	                        수주번호
+        # ORDER_SEQ	                        수주일련번호
+        # ITEM_CD	                        품목 코드
+        # ITEM_NM	                        품목 명
+        # CUST_CD	                        거래처 코드
+        # CUST_NM	                        거래처 명
+        # DELIVERY_DATE	                    해당 수주의 납기일
+        # REMAINING_DAYS                    납기일까지 남은 일수
+        # ORDER_QTY                         수주 수량
+        # TOTAL_PROCESS_COUNT               해당 수주의 완료되어야 하는 전체 공정 수
+        # COMPLETED_PROCESS_COUNT           전체 공정 중 완료처리된 공정 수
+        # FIRST_INCOMPLETE_PROCESS          완료되지 않은 공정의 코드
+        # FIRST_INCOMPLETE_PROCESS_NM       공정명
+
+        card = delivery_risk_card_rows[0] if delivery_risk_card_rows else {}
+        sorted_rows = sorted(
+            delivery_risk_detail_rows,
+            key=lambda row: cls._number(row.get("REMAINING_DAYS")),
+        )
+
+        overdue_rows = [row for row in sorted_rows if cls._number(row.get("REMAINING_DAYS")) < 0][:5]
+        imminent_rows = [
+            row
+            for row in sorted_rows
+            if 0 <= cls._number(row.get("REMAINING_DAYS")) <= 7
+        ][:5]
+
+        def order_detail(row: dict) -> dict:
+            return {
+                "수주번호": str(row.get("ORDER_ID") or "-"),
+                "수주일련번호": str(row.get("ORDER_SEQ") or "-"),
+                "품목": str(row.get("ITEM_NM") or row.get("ITEM_CD") or "-"),
+                "거래처": str(row.get("CUST_NM") or row.get("CUST_CD") or "-"),
+                "납기일": cls._report_date_key(row.get("DELIVERY_DATE")),
+                "잔여일": round(cls._number(row.get("REMAINING_DAYS"))),
+                "수주수량": round(cls._number(row.get("ORDER_QTY")), 2),
+                "완료공정수": round(cls._number(row.get("COMPLETED_PROCESS_COUNT"))),
+                "전체공정수": round(cls._number(row.get("TOTAL_PROCESS_COUNT"))),
+                "최초미완료공정": str(
+                    row.get("FIRST_INCOMPLETE_PROCESS_NM")
+                    or row.get("FIRST_INCOMPLETE_PROCESS")
+                    or "-"
+                ),
+            }
+
+        return {
+            "기준일": cls._report_date_key(card.get("REPORT_DATE")),
+            "집계": {
+                "납기경과_최대30일": round(cls._number(card.get("OVERDUE_COUNT"))),
+                "납기임박_7일이내": round(cls._number(card.get("DUE_WITHIN_7_COUNT"))),
+                "납기예정_8일에서30일": round(cls._number(card.get("DUE_WITHIN_8_TO_30_COUNT"))),
+                "전체위험": round(cls._number(card.get("TOTAL_RISK_COUNT"))),
+            },
+            "우선관리상세": {
+                "납기경과": [order_detail(row) for row in overdue_rows],
+                "납기임박_7일이내": [order_detail(row) for row in imminent_rows],
+            },
+        }
+
+    # 설비별 가동률
+    @classmethod
+    def _build_equipment_management_context(
+        cls,
+        equipment_weekly_rows: list[dict],
+    ) -> dict:
+
+        # BASE_DATE         일자
+        # MACHINE_CODE      설비코드
+        # MACHINE_NAME      설비명
+        # OPERATION_RATE    가동률
+
+        # 일자, 설비코드 오름차순 정렬
+        rows = sorted(
+            equipment_weekly_rows,
+            key=lambda row: (
+                cls._report_date_key(row.get("BASE_DATE")),
+                str(row.get("MACHINE_CODE") or ""),
+            ),
+        )
+        # 설비코드 : 설비명 대응표 생성 (LLM 답변에 MACHINE_NAME만 보여주기 위한 처리)
+        machine_names = {
+            str(row.get("MACHINE_CODE")): str(row.get("MACHINE_NAME"))
+            for row in rows
+            if row.get("MACHINE_CODE") and row.get("MACHINE_NAME")
+        }
+        machines: dict[str, dict] = {}
+        daily_rates: dict[str, list[float]] = {}    # 해당 날짜 전체 설비의 평균 가동률 계산에 사용
+
+        # 주말 판별
+        def calendar_info(base_date: str) -> tuple[str, bool]:
+            try:
+                weekday = date.fromisoformat(base_date).weekday()
+            except ValueError:
+                return "미확인", False
+            return ["월", "화", "수", "목", "금", "토", "일"][weekday], weekday >= 5
+
+        for row in rows:
+            base_date = cls._report_date_key(row.get("BASE_DATE"))
+            weekday_name, is_weekend = calendar_info(base_date)
+            machine_code = str(row.get("MACHINE_CODE") or "-")
+            rate = round(cls._number(row.get("OPERATION_RATE")), 1)
+            machine = machines.setdefault(machine_code, {
+                "설비명": machine_names.get(machine_code, "장비명 미등록"),
+                "일별 가동률": [],
+            })
+            machine["일별 가동률"].append({
+                "기준일": base_date,
+                "요일": weekday_name,
+                "주말 여부": is_weekend,
+                "가동률": rate,
+            })
+            daily_rates.setdefault(base_date, []).append(rate)
+
+        machine_trends = []
+        for machine in machines.values():
+            weekday_rates = [
+                observation["가동률"]
+                for observation in machine["일별 가동률"]
+                if not observation["주말 여부"]
+            ]
+            machine_trends.append({
+                **machine,
+                "평일 관측일수": len(weekday_rates),
+                "평일 평균 가동률": round(sum(weekday_rates) / len(weekday_rates), 1) if weekday_rates else None,
+                "평일 최초 가동률": weekday_rates[0] if weekday_rates else None,
+                "평일 최신 가동률": weekday_rates[-1] if weekday_rates else None,
+                "평일 최초 대비 증감": round(weekday_rates[-1] - weekday_rates[0], 1) if weekday_rates else None,
+                "평일 최저 가동률": min(weekday_rates) if weekday_rates else None,
+                "평일 최고 가동률": max(weekday_rates) if weekday_rates else None,
+            })
+
+        dates = list(daily_rates)
+        daily_average_rates = [
+            {
+                "기준일": base_date,
+                "요일": calendar_info(base_date)[0],
+                "주말 여부": calendar_info(base_date)[1],
+                "평균 가동률": round(sum(rates) / len(rates), 1),
+            }
+            for base_date, rates in daily_rates.items()
+        ]
+        return {
+            "분석 기간": {
+                "시작일": dates[0] if dates else None,
+                "종료일": dates[-1] if dates else None,
+            },
+            "설비 수": len(machine_trends),
+            "일자별 전체 평균 가동률(주말 포함)": daily_average_rates,
+            "평일 일자별 전체 평균 가동률": [
+                daily_average
+                for daily_average in daily_average_rates
+                if not daily_average["주말 여부"]
+            ],
+            "설비별 주간 추세": machine_trends,
+        }
+
+#endregion
+
+    async def generate_report(
+        self,
+        production_trend_rows: list[dict],
+        delivery_risk_card_rows: list[dict],
+        delivery_risk_detail_rows: list[dict],
+        equipment_weekly_rows: list[dict],
+        quality_instrument_rows: list[dict],
+    ) -> dict:
+        report = {
+            "generatedAt": datetime.now().isoformat(timespec="seconds"),
+            "overallSummary": "",
+            "keyIssues": [],
+            "managementActions": [],
+            "point_prodTrend": "",
+            "point_deliveryRisk": "",
+            "point_equipRate": "",
+            "point_quality": "",
+        }
+        report["point_prodTrend"] = await self.generate_point_prod_trend(
+            production_trend_rows,
+        )
+        report["point_deliveryRisk"] = await self.generate_delivery_risk_management_point(
+            delivery_risk_card_rows,
+            delivery_risk_detail_rows,
+        )
+        report["point_equipRate"] = await self.generate_equipment_management_point(
+            equipment_weekly_rows,
+        )
+        report["point_quality"] = await self.generate_quality_management_point(
+            quality_instrument_rows,
+        )
+        report["overallSummary"] = await self.generate_overall_summary(report)
+        report["keyIssues"] = await self.generate_key_issues(report)
+        report["managementActions"] = await self.generate_management_actions(report)
+        return report
+
+    @staticmethod
+    def _build_answer_context(report: dict) -> dict:
+        return {
+            "생산 실적 추이": report["point_prodTrend"],
+            "납기 임박 미완료 수주": report["point_deliveryRisk"],
+            "설비별 가동률": report["point_equipRate"],
+            "품질": report["point_quality"],
+        }
+
+    @staticmethod
+    def _parse_json_items(response: str, fields: tuple[str, ...]) -> list[dict]:
+        content = response.strip()
+        if content.startswith("```") and content.endswith("```"):
+            content = content.split("\n", 1)[-1][:-3].strip()
+        try:
+            items = json.loads(content)
+        except (TypeError, json.JSONDecodeError):
+            return []
+        if not isinstance(items, list):
+            return []
+        return [
+            {field: str(item.get(field, "")).strip() for field in fields}
+            for item in items
+            if isinstance(item, dict) and all(str(item.get(field, "")).strip() for field in fields)
+        ]
+
+#region LLM 답변 생성
+
+    # 생산 실적 추이
+    async def generate_point_prod_trend(
+        self,
+        production_trend_rows: list[dict],
+    ) -> str:
+        if not production_trend_rows:
+            return "경영 포인트를 생성할 생산 실적 추이 데이터가 없습니다."
+
+        prodTrend_context = self._build_prodTrend_context(production_trend_rows)
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._POINT_PRODTREND_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    f"V_MES2_PRODUCTION_TREND_14D 생산 실적 추이 데이터:\n"
+                    f"{json.dumps(prodTrend_context, ensure_ascii=False, default=str)}\n\n"
+                    "응답 규칙: 구역명이나 목록 없이 최근 14일 생산 실적의 흐름과 "
+                    "주의해서 볼 날짜를 1~2문장으로 작성하세요. 제공되지 않은 생산계획과 "
+                    "출하 데이터는 언급하지 마세요."
+                ),
+            },
+        ])
+        return response.strip() or "경영 포인트를 생성하지 못했습니다."
     
+    # 납기 임박 미완료 수주
+    async def generate_delivery_risk_management_point(
+        self,
+        delivery_risk_card_rows: list[dict],
+        delivery_risk_detail_rows: list[dict],
+    ) -> str:
+        if not delivery_risk_card_rows and not delivery_risk_detail_rows:
+            return "경영 포인트를 생성할 납기 임박 미완료 수주 데이터가 없습니다."
+
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._DELIVERY_RISK_MANAGEMENT_POINT_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "V_MES2_CARD_DELIVERY_RISK 집계 및 V_MES2_DELIVERY_RISK_DETAIL 상세 데이터:\n"
+                    f"{json.dumps(self._build_delivery_risk_management_context(delivery_risk_card_rows, delivery_risk_detail_rows), ensure_ascii=False)}\n\n"
+                    "응답 규칙: 구역명이나 목록 없이 우선 관리할 납기 리스크와 근거를 1~3문장으로 작성하세요."
+                ),
+            },
+        ])
+        return response.strip() or "납기 임박 미완료 수주 경영 포인트를 생성하지 못했습니다."
+
+    # 설비별 가동률 Top8
+    async def generate_equipment_management_point(
+        self,
+        equipment_weekly_rows: list[dict],
+    ) -> str:
+        if not equipment_weekly_rows:
+            return "경영 포인트를 생성할 주간 설비별 가동률 데이터가 없습니다."
+
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._EQUIPMENT_MANAGEMENT_POINT_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "V_MESREPORT_MACHINE_OPERATION_RATE_WEEKLY 주간 설비별 가동률 데이터:\n"
+                    f"{json.dumps(self._build_equipment_management_context(equipment_weekly_rows), ensure_ascii=False)}\n\n"
+                    "응답 규칙: 반드시 '종합:', '전체추세:', '설비추세:', '확인:'으로 시작하는 네 줄만 작성하세요."
+                ),
+            },
+        ])
+        return response.strip() or "설비 경영 포인트를 생성하지 못했습니다."
+
+    # 품질/계측기 관리
+    async def generate_quality_management_point(
+        self,
+        quality_instrument_rows: list[dict],
+    ) -> str:
+        if not quality_instrument_rows:
+            return "경영 포인트를 생성할 품질·계측기 데이터가 없습니다."
+
+        row = quality_instrument_rows[0]
+        quality_context = {
+            "기준일": self._report_date_key(row.get("REPORT_DATE")),
+            "검사 집계기간": {
+                "시작일": self._report_date_key(row.get("INSPECTION_START_DATE")),
+                "종료일": self._report_date_key(row.get("INSPECTION_END_DATE")),
+            },
+            "최근 7일 검사": {
+                "전체검사건수": round(self._number(row.get("INSPECTION_COUNT_7D"))),
+                "입고검사건수": round(self._number(row.get("RECEIVING_INSPECTION_COUNT"))),
+                "공정·최종검사건수": round(self._number(row.get("PROCESS_FINAL_INSPECTION_COUNT"))),
+            },
+            "계측기 교정": {
+                "관리대상수": round(self._number(row.get("CALIBRATION_EQUIPMENT_COUNT"))),
+                "교정만료수": round(self._number(row.get("EXPIRED_CALIBRATION_COUNT"))),
+                "30일내교정대상수": round(self._number(row.get("DUE_WITHIN_30_DAYS_COUNT"))),
+            },
+            "최근 불량": {
+                "발생일": self._report_date_key(row.get("LATEST_DEFECT_DATE")) or None,
+                "등록원인": str(row.get("LATEST_DEFECT_REASON_NAME") or "").strip() or None,
+                "불량수량": round(self._number(row.get("LATEST_DEFECT_QTY"))),
+            },
+        }
+
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._QUALITY_MANAGEMENT_POINT_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "V_MES2_QUALITY_INSTRUMENT_MANAGEMENT 품질·계측기 관리 데이터:\n"
+                    f"{json.dumps(quality_context, ensure_ascii=False, default=str)}\n\n"
+                    "응답 규칙: 화면 수치를 단순 나열하지 말고 우선 관리가 필요한 내용을 중심으로 1~2문장만 작성하세요."
+                ),
+            },
+        ])
+        return response.strip() or "품질 경영 포인트를 생성하지 못했습니다."
+
+    # 전체 운영요약
+    async def generate_overall_summary(self, report: dict) -> str:
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._OVERALL_SUMMARY_PROMPT},
+            {
+                "role": "user",
+                "content": (
+                    "영역별 LLM 요약:\n"
+                    f"{json.dumps(self._build_answer_context(report), ensure_ascii=False)}\n\n"
+                    "응답 규칙: 전체 운영 관점의 종합 핵심 요약만 1~3줄로 작성하세요."
+                ),
+            },
+        ])
+        return response.strip() or "전체 운영 요약을 생성하지 못했습니다."
+
+    # 핵심이슈 TOP3
+    async def generate_key_issues(self, report: dict) -> list[dict]:
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._KEY_ISSUES_PROMPT},
+            {
+                "role": "user", 
+                "content": json.dumps(self._build_answer_context(report), ensure_ascii=False)
+            },
+        ])
+        return self._parse_json_items(response, ("title", "description"))[:3]
+
+    # 오늘의경영 Action
+    async def generate_management_actions(self, report: dict) -> list[dict]:
+        context = {
+            "영역별 LLM 요약": self._build_answer_context(report),
+            "핵심 이슈 TOP 3": report["keyIssues"],
+        }
+        response = await self.llm.ainvoke([
+            {"role": "system", "content": self._MANAGEMENT_ACTIONS_PROMPT},
+            {"role": "user", "content": json.dumps(context, ensure_ascii=False)},
+        ])
+        return self._parse_json_items(response, ("priority", "title", "description"))[:4]
+
+#endregion
+
+#checkpoint
 _SECTION_PROMPTS: dict[str, str] = {
      "base": """\
         [GOAL]   
