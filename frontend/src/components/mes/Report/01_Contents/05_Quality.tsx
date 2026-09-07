@@ -60,14 +60,14 @@ export default function QualityHealth({
       className={`${styles.reportSection} ${styles.reportSectionWide} ${styles.qualityHealthSection}`}
       aria-label="품질·계측기 관리"
     >
-      <div className={styles.qualityHealthHeading}>
+      <header className={styles.productionTrendHeading}>
         <h3>품질 · 계측기 관리</h3>
         {row && (
-          <strong>
+          <span>
             검사 7일 누계 {formatNumber(row.INSPECTION_COUNT_7D)}건 · 계측기 {formatNumber(row.CALIBRATION_EQUIPMENT_COUNT)}대
-          </strong>
+          </span>
         )}
-      </div>
+      </header>
 
       {/* Loading  */}
       {isLoading && <p className={styles.reportMessage}>품질·계측기 데이터를 불러오는 중입니다.</p>}
@@ -94,7 +94,7 @@ export default function QualityHealth({
 
           <article
             className={styles.managementPoint}
-            data-tone={toNumber(row.EXPIRED_CALIBRATION_COUNT) > 0 ? "warn" : "good"}
+            data-tone="info"
           >
             <b>경영 포인트</b>
             {isSummaryLoading && <span>품질·계측기 데이터를 분석하는 중입니다.</span>}

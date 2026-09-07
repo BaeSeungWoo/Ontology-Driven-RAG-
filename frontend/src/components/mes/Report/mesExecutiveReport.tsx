@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { type MesKeyIssue, type MesManagementAction, type MesViewRow } from "@/services/mesApi";
-import { exportHtmlSnapshot, printHtmlSnapshot } from "@/utils/exportHtmlSnapshot";
+import { exportHtmlSnapshot, exportPdfSnapshot } from "@/utils/exportHtmlSnapshot";
 import styles from "../mes.module.css";
 import KeyIssuesTop3 from "./00_Summary/keyIssuesTop3";
 import OverallOperationSummary from "./00_Summary/overallOperationSummary";
@@ -80,9 +80,17 @@ export default function MesExecutiveReport({
     );
   };
 
-  const exportPdf = () => {
+  const exportPdf = async () => {
     if (!reportRef.current) return;
-    printHtmlSnapshot(reportRef.current, `MES 데일리 리포트 ${latestReportDate}`);
+    try {
+      await exportPdfSnapshot(
+        reportRef.current,
+        `MES 데일리 리포트 ${latestReportDate}`,
+        `MES_데일리리포트_${latestReportDate || "report"}.pdf`,
+      );
+    } catch {
+      window.alert("MES PDF를 생성하지 못했습니다.");
+    }
   };
 
   return (
@@ -108,7 +116,7 @@ export default function MesExecutiveReport({
             <button
               type="button"
               className={styles.htmlExportButton}
-              onClick={exportPdf}
+              onClick={() => void exportPdf()}
               disabled={isLoading || isSummaryLoading}
             >
               PDF 내보내기
@@ -118,25 +126,6 @@ export default function MesExecutiveReport({
       </header>
 
       <div className={styles.reportSections}>
-        {/* 전체 운영 요약 */}
-        <OverallOperationSummary
-          overallSummary={overallSummary}
-          isSummaryLoading={isSummaryLoading}
-          summaryErrorMessage={summaryErrorMessage}
-        />
-        {/* 핵심이슈 */}
-        <KeyIssuesTop3
-          keyIssues={keyIssues}
-          isSummaryLoading={isSummaryLoading}
-          summaryErrorMessage={summaryErrorMessage}
-        />
-        {/* 오늘의 경영 */}
-        <TodayManagementActions
-          managementActions={managementActions}
-          isSummaryLoading={isSummaryLoading}
-          summaryErrorMessage={summaryErrorMessage}
-        />
-
         {/* 종합 카드 */}
         <SummaryMetrics
           productionResultRows={productionResultRows}
@@ -144,6 +133,12 @@ export default function MesExecutiveReport({
           deliveryRiskRows={deliveryRiskCardRows}
           machineOperationRateWeeklyRows={machineOperationRateWeeklyRows}
           inspectionRows={inspectionRows}
+        />
+        {/* 전체 운영 요약 */}
+        <OverallOperationSummary
+          overallSummary={overallSummary}
+          isSummaryLoading={isSummaryLoading}
+          summaryErrorMessage={summaryErrorMessage}
         />
         {/* 납기 임박 미완료 수주 */}
         <DeliveryRiskOrders
@@ -155,16 +150,6 @@ export default function MesExecutiveReport({
           isSummaryLoading={isSummaryLoading}
           summaryErrorMessage={summaryErrorMessage}
         />
-        {/* 향후 7일 전망 */}
-        <SevenDayForecast
-          deliveryDelayRows={deliveryDelayForecastRows}
-          workDepletionRows={workDepletionForecastRows}
-          productionTrendRows={productionTrendRows}
-          machineOperationRateWeeklyRows={machineOperationRateWeeklyRows}
-          isLoading={isLoading}
-          errorMessage={errorMessage}
-        />
-
         {/* 생산 실적 추이 */}
         <ProductionResultTrend
           rows={productionTrendRows}
@@ -191,6 +176,27 @@ export default function MesExecutiveReport({
           managementPoint={point_quality}
           isSummaryLoading={isSummaryLoading}
           summaryErrorMessage={summaryErrorMessage}
+        />
+        {/* 핵심이슈 */}
+        <KeyIssuesTop3
+          keyIssues={keyIssues}
+          isSummaryLoading={isSummaryLoading}
+          summaryErrorMessage={summaryErrorMessage}
+        />
+        {/* 오늘의 경영 */}
+        <TodayManagementActions
+          managementActions={managementActions}
+          isSummaryLoading={isSummaryLoading}
+          summaryErrorMessage={summaryErrorMessage}
+        />
+        {/* 향후 7일 전망 */}
+        <SevenDayForecast
+          deliveryDelayRows={deliveryDelayForecastRows}
+          workDepletionRows={workDepletionForecastRows}
+          productionTrendRows={productionTrendRows}
+          machineOperationRateWeeklyRows={machineOperationRateWeeklyRows}
+          isLoading={isLoading}
+          errorMessage={errorMessage}
         />
       </div>
     </section>

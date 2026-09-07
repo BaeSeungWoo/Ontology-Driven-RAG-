@@ -298,7 +298,7 @@
 .overviewMetrics {
   display: grid;
   box-sizing: border-box;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
   padding: 10px;
   border: 2px solid color-mix(in srgb, #bdd0e5 72%, var(--chat-pane-border) 28%);
@@ -320,24 +320,11 @@
   box-shadow: 0 1px 2px rgb(23 54 93 / 4%);
 }
 
-.overviewMetricCard:nth-child(-n + 3) {
-  grid-column: span 2;
-}
-
-.overviewMetricCard:nth-child(4) {
-  grid-column: 2 / span 2;
-}
-
-.overviewMetricCard:nth-child(5) {
-  grid-column: 4 / span 2;
-}
-
 .overviewMetricCard.watch { --metric-color: #b87500; }
 .overviewMetricCard.good { --metric-color: #147a58; }
 .overviewMetricCard.warn { --metric-color: #d13c2d; }
 
 .productionResultCard {
-  justify-content: space-between;
   padding: 14px 13px 12px;
 }
 
@@ -424,7 +411,6 @@
 }
 
 .incompleteWorkCard {
-  justify-content: space-between;
   padding: 14px 13px 12px;
 }
 
@@ -481,7 +467,6 @@
 }
 
 .deliveryRiskSummaryCard {
-  justify-content: space-between;
   padding: 14px 13px 12px;
 }
 
@@ -541,7 +526,6 @@
 }
 
 .equipmentBiasCard {
-  justify-content: space-between;
   padding: 14px 13px 12px;
 }
 
@@ -606,16 +590,9 @@
 
 .equipmentRateLegend i[data-tone="good"] { background: #168a68; }
 .equipmentRateLegend i[data-tone="warn"] { background: #d13c2d; }
-
-.equipmentRateNote {
-  margin: 5px 0 0;
-  color: #8a98a8;
-  font-size: 9px;
-  white-space: nowrap;
-}
+.equipmentRateLegend i[data-tone="stop"] { background: #60748a; }
 
 .inspectionCard {
-  justify-content: space-between;
   padding: 14px 13px 12px;
 }
 
@@ -1039,6 +1016,12 @@
   color: #8e392d;
 }
 
+.managementPoint[data-tone="info"] {
+  border-left-color: #3b78e7;
+  background: #eef5ff;
+  color: #315f9a;
+}
+
 .rateDonut {
   display: grid;
   justify-items: center;
@@ -1253,27 +1236,6 @@
 .deliveryRiskMetric small {
   margin-left: 2px;
   font-size: 12px;
-}
-
-.qualityHealthHeading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin: -20px -20px 0;
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--chat-pane-border);
-}
-
-.qualityHealthHeading h3 {
-  color: var(--chat-title-color);
-  font-size: 18px;
-}
-
-.qualityHealthHeading strong {
-  color: var(--chat-muted-text);
-  font-size: 13px;
-  font-weight: 600;
 }
 
 .qualityHealthMetrics {
@@ -2114,12 +2076,6 @@
     grid-template-columns: 1fr;
   }
 
-  .qualityHealthHeading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 5px;
-  }
-
   .qualityHealthMetrics {
     grid-template-columns: 1fr;
   }
@@ -2334,9 +2290,37 @@
   .deliveryRiskSummaryDetails,
   .inspectionDetails
 ) {
+  align-items: flex-start;
+  flex-direction: column;
   flex-wrap: wrap;
   row-gap: 4px;
   white-space: normal;
+}
+
+.executiveReport :is(
+  .productionResultDetails,
+  .incompleteWorkDetails,
+  .deliveryRiskSummaryDetails,
+  .inspectionDetails
+) > i {
+  display: none;
+}
+
+.executiveReport .equipmentRateLegend {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.executiveReport :is(
+  .productionResultValue + .productionResultDetails,
+  .incompleteWorkValue + .incompleteWorkDetails,
+  .deliveryRiskSummaryValue + .deliveryRiskSummaryDetails,
+  .equipmentBiasValue + .equipmentRateLegend,
+  .inspectionValue + .inspectionDetails
+) {
+  margin-top: auto;
+  padding-top: 16px;
 }
 
 .executiveReport :is(

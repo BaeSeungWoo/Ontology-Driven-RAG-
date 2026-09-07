@@ -25,9 +25,10 @@ export default function IncompleteWork({ rows }: { rows: MesViewRow[] }) {
         <span>진행 중 <strong>{formatNumber(row?.IN_PROGRESS_COUNT, 2)}</strong>건</span>
       </p>
       <p className={styles.incompleteWorkDetails}>
-        <span>최다 공정 <strong>{processName}({processSequence})</strong></span>
-        <i aria-hidden="true">·</i>
-        <span><strong>{formatNumber(row?.TOP_PROCESS_COUNT, 2)}</strong>건</span>
+        <span>
+          최다 공정 <strong>({processName}, {processSequence})</strong>
+          {" - "}<strong>{formatNumber(row?.TOP_PROCESS_COUNT, 2)}</strong>건
+        </span>
       </p>
     </article>
   );

@@ -1,3 +1,5 @@
+import api from "@/services/api";
+
 function escapeAttribute(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/"/g, "&quot;");
 }
@@ -47,48 +49,22 @@ export function exportHtmlSnapshot(element: HTMLElement, title: string, fileName
   window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
-export function printHtmlSnapshot(element: HTMLElement, title: string) {
-  const printStyles = `
-@page{size:A4 portrait;margin:10mm}
-@media print{
-  html,body{background:#fff!important}
-  body{padding:0!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  .mes-export-page{max-width:none!important}
-  [class*="executiveReport"]{box-shadow:none!important}
-  [class*="executiveHeader"]{padding:18px!important}
-  [class*="reportSections"]{grid-template-columns:minmax(0,1fr)!important;gap:12px!important;padding:16px!important}
-  [class*="reportSectionWide"],[class*="overviewMetrics"]{grid-column:auto!important}
-  [class*="overviewMetrics"],[class*="sevenDayForecastGrid"]{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  [class*="issueGrid"],[class*="actionGrid"],[class*="salesContent"],[class*="performanceContent"],[class*="deliveryRiskContent"]{grid-template-columns:minmax(0,1fr)!important}
-  [class*="deliveryRiskOrdersTable"]{min-width:0!important;font-size:8px!important}
-  [class*="deliveryRiskOrdersTable"] th,[class*="deliveryRiskOrdersTable"] td{padding-right:4px!important;padding-left:4px!important}
-  section[class*="reportSection"]:not([class*="reportSections"]){break-inside:auto!important}
-  h2,h3,h4,thead{break-after:avoid}
-  thead{display:table-header-group}
-  article,tr{break-inside:avoid}
-}`;
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) {
-    window.alert("PDF 내보내기 창을 열 수 없습니다. 브라우저의 팝업 차단을 해제해 주세요.");
-    return;
-  }
-
-  const openPrintDialog = async () => {
-    await printWindow.document.fonts?.ready;
-    await new Promise<void>((resolve) => {
-      printWindow.requestAnimationFrame(() => printWindow.requestAnimationFrame(() => resolve()));
-    });
-    if (printWindow.closed) return;
-    printWindow.focus();
-    printWindow.print();
-  };
-
-  printWindow.addEventListener("afterprint", () => printWindow.close(), { once: true });
-  printWindow.document.write(buildHtmlSnapshot(element, title, printStyles));
-  printWindow.document.close();
-  if (printWindow.document.readyState === "complete") {
-    void openPrintDialog();
-  } else {
-    printWindow.addEventListener("load", () => void openPrintDialog(), { once: true });
-  }
+export async function exportPdfSnapshot(
+  element: HTMLElement,
+  title: string,
+  fileName: string,
+) {
+  const response = await api.post<Blob>(
+    "/api/mes/export-pdf",
+    { html: buildHtmlSnapshot(element, title) },
+    { responseType: "blob" },
+  );
+  const url = URL.createObjectURL(response.data);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 0);
 }

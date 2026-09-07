@@ -60,15 +60,6 @@ export default function ProductionResult({ rows }: { rows: MesViewRow[] }) {
             </small>
           )}
         </span>
-        <i aria-hidden="true">·</i>
-        <span>
-          가동설비 <strong>{formatNumber(row?.ACTIVE_EQUIPMENT_COUNT, 2)}</strong>대
-          {previousRow && (
-            <small data-direction={getDeltaDirection(row?.ACTIVE_EQUIPMENT_COUNT, previousRow.ACTIVE_EQUIPMENT_COUNT)}>
-              {formatDelta(row?.ACTIVE_EQUIPMENT_COUNT, previousRow.ACTIVE_EQUIPMENT_COUNT)}
-            </small>
-          )}
-        </span>
       </p>
       <p className={styles.productionResultDetails}>
         <span>

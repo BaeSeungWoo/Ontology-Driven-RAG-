@@ -25,6 +25,7 @@ export default function EquipmentRate({ rows }: { rows: MesViewRow[] }) {
   const highCount = operatingRates.filter((rate) => rate >= 70).length;
   const middleCount = operatingRates.filter((rate) => rate >= 30 && rate < 70).length;
   const lowCount = operatingRates.filter((rate) => rate < 30).length;
+  const stoppedCount = latestRows.filter((row) => toNumber(row.OPERATION_RATE) === 0).length;
 
   return (
     <article className={`${styles.overviewMetricCard} ${styles.equipmentBiasCard}`}>
@@ -35,13 +36,13 @@ export default function EquipmentRate({ rows }: { rows: MesViewRow[] }) {
       </div>
       <p
         className={styles.equipmentRateLegend}
-        aria-label={`70% 이상 ${highCount}대, 30~69.9% ${middleCount}대, 0% 초과~30% 미만 ${lowCount}대`}
+        aria-label={`70% 이상 ${highCount}대, 30~69.9% ${middleCount}대, 30% 미만 ${lowCount}대, 정지 ${stoppedCount}대`}
       >
-        <span><i data-tone="good" aria-hidden="true" />70%+ <strong>{highCount}</strong>대</span>
+        <span><i data-tone="good" aria-hidden="true" />70% 이상 <strong>{highCount}</strong>대</span>
         <span><i data-tone="watch" aria-hidden="true" />30~69.9% <strong>{middleCount}</strong>대</span>
-        <span><i data-tone="warn" aria-hidden="true" />0~29.9% <strong>{lowCount}</strong>대</span>
+        <span><i data-tone="warn" aria-hidden="true" />30% 미만 <strong>{lowCount}</strong>대</span>
+        <span><i data-tone="stop" aria-hidden="true" />정지 <strong>{stoppedCount}</strong>대</span>
       </p>
-      <p className={styles.equipmentRateNote}>평균 장비가동률</p>
     </article>
   );
 }

@@ -1,9 +1,10 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Response
 from typing import Any
 
 from pydantic import BaseModel
 
 from app.database import database
+from app.html_to_pdf import render_html_pdf
 from app.providers.mes_report_provider import (
     MES_REPORT_CONFIG_ID,
     get_mes_daily_report_service,
@@ -20,6 +21,10 @@ class MesReportRequest(BaseModel):
     deliveryRiskDetailRows: list[dict[str, Any]]
     equipmentWeeklyRows: list[dict[str, Any]]
     qualityInstrumentRows: list[dict[str, Any]]
+
+
+class MesPdfRequest(BaseModel):
+    html: str
 
 
 @mesRouter.post("/report")
@@ -41,6 +46,18 @@ async def generate_mes_report(req: MesReportRequest):
         raise HTTPException(
             status_code=500,
             detail="MES 리포트를 생성하지 못했습니다.",
+        )
+
+
+@mesRouter.post("/export-pdf")
+def export_mes_pdf(req: MesPdfRequest):
+    try:
+        return Response(content=render_html_pdf(req.html), media_type="application/pdf")
+    except Exception as e:
+        print(f"MES PDF export error: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="MES PDF를 생성하지 못했습니다.",
         )
 
 
