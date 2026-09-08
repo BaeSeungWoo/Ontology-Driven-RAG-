@@ -13,16 +13,51 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: -14px -14px 2px;
-  padding: 10px 12px;
-  height: 44px;
-  border-bottom: 1px solid #96b0cc;
-  border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
+  flex-wrap: wrap;
+  margin-bottom: 2px;
+  min-height: 24px;
+}
+
+.selectionSummary {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.selectionSummary span {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 999px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-muted-text);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.selectionSummary .promptSelectionBadge {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.settingsButton {
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--chat-accent, #1b5e9e);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.settingsButton:hover {
+  background: color-mix(in srgb, var(--chat-accent, #1b5e9e) 88%, #111 12%);
 }
 
 .promptTitle {
@@ -35,14 +70,6 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-  flex: 0 0 auto;
-}
-
-.promptTitleIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
   flex: 0 0 auto;
 }
 
@@ -85,14 +112,6 @@
   font-size: 11px;
   font-weight: 800;
   line-height: 1;
-  flex: 0 0 auto;
-}
-
-.requiredNoticeIcon {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2.2;
-  color: #ea580c;
   flex: 0 0 auto;
 }
 

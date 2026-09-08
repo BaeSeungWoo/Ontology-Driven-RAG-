@@ -6,6 +6,51 @@
    ============================================================ */
 
 /* 위치: 상단 제목 + 탭 영역 */
+.chatPage {
+  --chat-accent: #1b5e9e;
+  --chat-accent-soft: #e8f0f9;
+  font-family: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+}
+
+.chatPage :global(.tw-chat-toolbar) {
+  padding: 12px 18px 8px;
+  flex-wrap: wrap;
+}
+
+.chatPage :global(.tw-chat-title) {
+  font-size: 19px;
+}
+
+.chatToolbarLeft a[aria-current="page"] {
+  color: var(--chat-accent);
+  background: var(--chat-accent-soft);
+  border-color: var(--chat-accent);
+  box-shadow: none;
+}
+
+.chatPage :global(.tw-chat-layout) {
+  grid-template-columns: 320px minmax(0, 1fr) 360px;
+  padding: 8px 18px 18px;
+}
+
+.chatPage :global(.tw-chat-layout-collapsed) {
+  grid-template-columns: 44px minmax(0, 1fr) 360px;
+}
+
+.chatPage :global(.tw-chat-layout-right-collapsed) {
+  grid-template-columns: 320px minmax(0, 1fr) 44px;
+}
+
+.chatPage :global(.tw-chat-layout-both-collapsed) {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+.chatPage :global(.tw-chat-left) {
+  position: relative;
+  z-index: 20;
+  overflow: visible;
+}
+
 .chatToolbarLeft {
   display: inline-flex;
   align-items: center;
@@ -68,7 +113,7 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 280px;
+  grid-template-columns: minmax(0, 1fr) clamp(180px, 16vw, 260px);
   grid-template-rows: auto minmax(0, 1fr);
   gap: 10px;
   transition: grid-template-columns 160ms ease;
@@ -106,13 +151,6 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
-}
-
-.sectionTitleIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
 }
 
 /* 위치: 이미지/표 패널 */
@@ -167,14 +205,6 @@
   );
 }
 
-.chatAssetPanelTitleIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-  flex: 0 0 auto;
-}
-
 .chatAssetPanelLabel {
   margin: 0;
   font-size: 12px;
@@ -208,43 +238,34 @@
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--chat-pane-bg) 82%, #fff 18%);
+  background: transparent;
   color: var(--chat-title-color);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
-    0 1px 2px color-mix(in srgb, var(--chat-shadow) 40%, transparent);
+  box-shadow: none;
   transition:
-    border-color 160ms ease,
     background-color 160ms ease,
-    box-shadow 160ms ease;
+    color 160ms ease;
 }
 
 .chatAssetPanelCollapsed .chatAssetToggle {
   margin-left: 0;
 }
 
-.chatAssetToggleIcon {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.1;
-}
-
 .chatAssetToggle:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 56%, var(--chat-pane-border) 44%);
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
 }
 
 .chatAssetToggle:focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 16%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
 .chatAssetPanelHint {
@@ -274,10 +295,9 @@
 }
 
 .chatAssetFigureActive {
-  border-color: color-mix(in srgb, var(--chat-title-color) 82%, #111 18%);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 55%, transparent),
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 18%, transparent);
+  border-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
+  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
   animation: assetCardPulse 0.7s ease-out;
 }
 
@@ -390,13 +410,6 @@
   font-weight: 700;
 }
 
-.chatAssetTableTextIcon {
-  width: 13px;
-  height: 13px;
-  stroke-width: 2.15;
-  flex: 0 0 auto;
-}
-
 .chatAssetTableLoadingBar {
   position: relative;
   z-index: 1;
@@ -444,8 +457,8 @@
 }
 
 .chatAssetFigureActive figcaption {
-  border-top-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  background: color-mix(in srgb, var(--chat-title-color) 22%, #fff 78%);
+  border-top-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
 }
 
 .chatAssetFigureActive .chatAssetCaptionButton {
@@ -612,13 +625,13 @@
 @keyframes assetCardPulse {
   0% {
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 62%, transparent),
-      0 0 0 0 rgb(212 175 55 / 34%);
+      inset 3px 0 0 var(--chat-accent, #1b5e9e),
+      0 0 0 0 color-mix(in srgb, var(--chat-accent, #1b5e9e) 34%, transparent);
   }
   100% {
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 55%, transparent),
-      0 0 0 2px color-mix(in srgb, var(--chat-title-color) 18%, transparent);
+      inset 3px 0 0 var(--chat-accent, #1b5e9e),
+      0 0 0 2px transparent;
   }
 }
 
@@ -642,6 +655,7 @@
   height: 100%;
   width: 100%;
   flex: 1;
+  overflow: visible;
 }
 
 
@@ -695,14 +709,49 @@
 
 
 /* 위치: 반응형(태블릿 이하) 보정 */
-@media (max-width: 1024px) {
+@media (max-width: 1200px) {
+  .chatPage {
+    height: auto;
+    min-height: 100dvh;
+    overflow: auto;
+  }
+
+  .chatPage :global(.tw-chat-layout) {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 8px 12px 12px;
+  }
+
+  .chatPage :global(.tw-chat-center) {
+    grid-row: 1;
+  }
+
+  .chatAnswerPane {
+    height: min(680px, 80dvh);
+    min-height: 480px;
+  }
+
+  .chatAnswerSplit {
+    min-height: 450px;
+  }
+
   .chatToolbarLeft {
     width: 100%;
     flex-wrap: wrap;
   }
 
-  .chatAnswerSplit {
-    grid-template-columns: 1fr;
+  .chatToolbarLeft nav {
+    flex-wrap: wrap;
+  }
+
+  .chatAnswerSplit,
+  .chatAnswerSplitAssetCollapsed {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(240px, 1fr) auto;
+  }
+
+  .chatAssetPanel {
+    grid-row: 3;
+    max-height: 240px;
   }
 }
 

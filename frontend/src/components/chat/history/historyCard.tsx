@@ -1,5 +1,4 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
-import { X } from "lucide-react";
 
 import styles from "./history.module.css";
 
@@ -76,7 +75,7 @@ export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardPro
         title="대화 삭제"
         onClick={handleDeleteClick}
       >
-        <X className={styles.cardDeleteIcon} />
+        <span aria-hidden="true">×</span>
       </button>
       <p className={styles.cardTitle}>{item.title}</p>
       <p className={styles.cardModelMode}>{modelModePromptText}</p>

@@ -757,3 +757,75 @@ def getCmsDashboardViews() -> dict[str, list[dict]]:
     }
 
 #endregion
+
+#region MES데이터 조회
+
+MES_DASHBOARD_VIEW_TABLES = {
+    "mes2-card-production-result": "dbo.V_MES2_CARD_PRODUCTION_RESULT",
+    "mes2-card-incomplete-work": "dbo.V_MES2_CARD_INCOMPLETE_WORK",
+    "mes2-card-delivery-risk": "dbo.V_MES2_CARD_DELIVERY_RISK",
+    "mes2-delivery-risk-detail": "dbo.V_MES2_DELIVERY_RISK_DETAIL",
+    "mes2-card-inspection": "dbo.V_MES2_CARD_INSPECTION",
+    "mes2-quality-instrument-management": "dbo.V_MES2_QUALITY_INSTRUMENT_MANAGEMENT",
+    "mes2-forecast-delivery-delay": "dbo.V_MES2_FORECAST_DELIVERY_DELAY",
+    "mes2-forecast-work-depletion": "dbo.V_MES2_FORECAST_WORK_DEPLETION",
+    "mes2-production-trend-14d": "dbo.V_MES2_PRODUCTION_TREND_14D",
+    "machine-operation-rate-weekly": "dbo.V_MESREPORT_MACHINE_OPERATION_RATE_WEEKLY",
+}
+
+MES_DASHBOARD_VIEW_ORDER_BY = {
+    "mes2-card-production-result": "REPORT_DATE DESC",
+    "mes2-card-incomplete-work": "",
+    "mes2-card-delivery-risk": "",
+    "mes2-delivery-risk-detail": "REMAINING_DAYS ASC, ORDER_ID ASC, ORDER_SEQ ASC",
+    "mes2-card-inspection": "",
+    "mes2-quality-instrument-management": "",
+    "mes2-forecast-delivery-delay": "",
+    "mes2-forecast-work-depletion": "",
+    "mes2-production-trend-14d": "RESULT_DATE ASC",
+    "machine-operation-rate-weekly": "BASE_DATE ASC, MACHINE_CODE ASC",
+}
+
+def _get_mes_dashboard_view_rows(view_key: str) -> list[dict]:
+    table_name = MES_DASHBOARD_VIEW_TABLES.get(view_key)
+    order_by = MES_DASHBOARD_VIEW_ORDER_BY.get(view_key)
+    if table_name is None or view_key not in MES_DASHBOARD_VIEW_ORDER_BY:
+        raise ValueError(f"Unsupported MES view: {view_key}")
+
+    cursor = None
+
+    try:
+        with get_db_connection(pool_name="forth") as conn:
+            conn.autocommit = True
+            cursor = conn.cursor()
+            query = f"SELECT * FROM {table_name}"
+            if order_by:
+                query += f" ORDER BY {order_by}"
+            cursor.execute(query)
+
+            columns = [column[0] for column in cursor.description]
+            return [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+    except Exception as e:
+        print(e, f"database MES view query error: view_key={view_key}")
+        raise
+
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+
+@with_thread_pool("db")
+def getMesDashboardView(view_key: str) -> list[dict]:
+    return _get_mes_dashboard_view_rows(view_key)
+
+@with_thread_pool("db")
+def getMesDashboardViews() -> dict[str, list[dict]]:
+    return {
+        view_key: _get_mes_dashboard_view_rows(view_key)
+        for view_key in MES_DASHBOARD_VIEW_TABLES
+    }
+
+#endregion

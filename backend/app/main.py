@@ -27,6 +27,7 @@ from app.routers.dailyReportRouter import dailyReportRouter
 from app.routers.checkpointRouter import checkpointRouter
 from app.routers.documentRouter import documentRouter
 from app.routers.cmsRouter import cmsRouter
+from app.routers.mesRouter import mesRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -151,6 +152,7 @@ app.include_router(dailyReportRouter)
 app.include_router(checkpointRouter)
 app.include_router(documentRouter)
 app.include_router(cmsRouter)
+app.include_router(mesRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화

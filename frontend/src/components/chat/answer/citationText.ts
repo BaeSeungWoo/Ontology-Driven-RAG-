@@ -1,5 +1,4 @@
 const CITATION_PATTERN = /\[(?:chunk:)?(\d+)\]/gi;
-const CITATION_LABEL_PREFIX = "참조";
 
 function createCitationLabeler() {
   const labelMap = new Map<number, number>();
@@ -9,7 +8,7 @@ function createCitationLabeler() {
       labelMap.set(chunkIndex, labelMap.size + 1);
     }
 
-    return `[${CITATION_LABEL_PREFIX}${labelMap.get(chunkIndex)}](#chunk-${chunkIndex})`;
+    return `[${labelMap.get(chunkIndex)}](#chunk-${chunkIndex})`;
   };
 }
 

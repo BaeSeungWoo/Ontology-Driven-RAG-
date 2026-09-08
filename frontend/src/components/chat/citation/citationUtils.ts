@@ -53,7 +53,9 @@ export function getSelectedChunk(
   selectedCitation?: SelectedCitation
 ): ChatChunk | undefined {
   const message = getSelectedMessage(messages, selectedCitation);
-  const chunks = message?.metadata?.chunks ?? [];
+  const chunks = message?.metadata?.chunks?.length
+    ? message.metadata.chunks
+    : message?.metadata?.used_chunks ?? [];
   return chunks.find((chunk) => chunk.index === selectedCitation?.chunkIndex);
 }
 

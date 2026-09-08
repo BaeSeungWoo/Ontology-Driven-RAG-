@@ -36,16 +36,14 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, transparent);
-  border-radius: 10px;
   background: var(--chat-pane-bg);
-  padding: 12px;
+  padding: 4px 0 12px;
 }
 
 .messageList {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 
 /* ============================================================
@@ -60,16 +58,14 @@
 
 .dateDivider {
   display: inline-block;
-  min-width: 220px;
   text-align: center;
   padding: 3px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-title-color) 8%);
-  background: color-mix(in srgb, var(--chat-title-color) 82%, var(--chat-pane-bg) 18%);
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-border) 32%);
-  box-shadow: 0 1px 2px var(--chat-shadow);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--chat-muted-text);
+  background: var(--chat-pane-bg);
+  border: 1px solid var(--chat-pane-border);
 }
 
 /* ============================================================
@@ -119,17 +115,10 @@
   pointer-events: none;
 }
 
-.messageSelectBadgeIcon {
-  width: 12px;
-  height: 12px;
-  stroke-width: 2.15;
-  flex: 0 0 auto;
-}
-
 .messageSelectBadgeActive {
-  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%);
-  background: rgb(255 245 184 / 35%);
-  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
+  border-color: var(--chat-accent, #1b5e9e);
+  background: var(--chat-accent-soft, #e8f0f9);
+  color: var(--chat-accent, #1b5e9e);
 }
 
 .messageBodyInteractive {
@@ -147,7 +136,7 @@
 }
 
 .assistantMessage .messageBodyActive {
-  background: color-mix(in srgb, var(--chat-title-color) 14%, var(--chat-pane-bg) 86%);
+  background: var(--chat-pane-bg);
 }
 
 .userMessage .messageBodyActive {
@@ -155,80 +144,28 @@
 }
 
 .userMessage .messageBody {
-  --bubble-bg: color-mix(in srgb, var(--chat-title-color) 78%, var(--chat-pane-bg) 22%);
-  --bubble-border: color-mix(in srgb, var(--chat-title-color) 54%, var(--chat-pane-border) 46%);
+  --bubble-bg: var(--chat-accent, #1b5e9e);
+  --bubble-border: var(--chat-accent, #1b5e9e);
   display: flex;
   flex-direction: column;
   justify-content: center;
-  max-width: 78%;
+  max-width: 82%;
   width: fit-content;
-  min-width: 180px;
+  min-width: 0;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
-  border-radius: 12px 4px 12px 12px;
-  box-shadow: 0 2px 8px var(--chat-shadow);
+  border-radius: 16px 16px 4px 16px;
 }
 
 .assistantMessage .messageBody {
-  --bubble-bg: color-mix(in srgb, var(--chat-pane-bg) 88%, var(--chat-page-bg) 12%);
-  --bubble-border: color-mix(in srgb, var(--chat-pane-border) 88%, var(--chat-title-color) 12%);
+  --bubble-bg: var(--chat-pane-bg);
+  --bubble-border: var(--chat-pane-border);
   width: 100%;
   max-width: 100%;
   min-width: 0;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
-  border-radius: 4px 12px 12px 12px;
-  box-shadow: 0 1px 4px var(--chat-shadow);
-}
-
-/* 위치: 버블 꼬리
-   기능: 질문/답변 말풍선 꼬리(외곽선/내부) 표현 */
-.userMessage .messageBody::before {
-  content: "";
-  position: absolute;
-  right: -9px;
-  top: 7px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-left: 9px solid var(--bubble-border);
-}
-
-.userMessage .messageBody::after {
-  content: "";
-  position: absolute;
-  right: -7px;
-  top: 8px;
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-left: 8px solid var(--bubble-bg);
-}
-
-.assistantMessage .messageBody::before {
-  content: "";
-  position: absolute;
-  left: -9px;
-  top: 7px;
-  width: 0;
-  height: 0;
-  border-top: 8px solid transparent;
-  border-bottom: 8px solid transparent;
-  border-right: 9px solid var(--bubble-border);
-}
-
-.assistantMessage .messageBody::after {
-  content: "";
-  position: absolute;
-  left: -7px;
-  top: 8px;
-  width: 0;
-  height: 0;
-  border-top: 7px solid transparent;
-  border-bottom: 7px solid transparent;
-  border-right: 8px solid var(--bubble-bg);
+  border-radius: 4px 16px 16px 16px;
 }
 
 /* ============================================================
@@ -276,14 +213,6 @@
   color: var(--chat-title-color);
 }
 
-.messageRoleIcon {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2;
-  color: currentColor;
-  flex: 0 0 auto;
-}
-
 .assistantRoleRow {
   display: flex;
   align-items: center;
@@ -307,8 +236,8 @@
 
 .messageText p {
   margin: 0 0 8px;
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.75;
   color: var(--chat-text-color);
   word-break: break-word;
 }
@@ -345,8 +274,8 @@
 .markdownContent p,
 .markdownContent li,
 .markdownContent blockquote {
-  font-size: 14px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.75;
   color: var(--chat-text-color);
   word-break: break-word;
 }
@@ -396,33 +325,36 @@
 .citationLink {
   display: inline-flex;
   align-items: center;
-  margin: 0 2px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
-  border-radius: 999px;
-  padding: 1px 7px;
-  color: var(--chat-title-color);
-  background: #fff;
-  font-size: 12px;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  margin: 0 1px;
+  border: 1px solid color-mix(in srgb, var(--chat-accent, #1b5e9e) 18%, var(--chat-pane-border) 82%);
+  border-radius: 4px;
+  padding: 0 4px;
+  color: var(--chat-accent, #1b5e9e);
+  background: var(--chat-accent-soft, #e8f0f9);
+  font-size: 10px;
   font-weight: 700;
-  line-height: 1.35;
+  line-height: 1;
   text-decoration: none;
+  vertical-align: baseline;
 }
 
 .citationLink:hover {
-  background: color-mix(in srgb, #fff 82%, var(--chat-title-color) 18%);
+  border-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 74%, #fff 26%);
 }
 
 .citationLinkActive {
-  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  background: color-mix(in srgb, var(--chat-title-color) 22%, #fff 78%);
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 26%, transparent),
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+  border-color: var(--chat-accent, #1b5e9e);
+  background: var(--chat-accent, #1b5e9e);
+  color: #fff;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-accent, #1b5e9e) 14%, transparent);
 }
 
 .citationLinkActive:hover {
-  background: color-mix(in srgb, var(--chat-title-color) 28%, #fff 72%);
+  background: color-mix(in srgb, var(--chat-accent, #1b5e9e) 88%, #111 12%);
 }
 
 /* ============================================================
@@ -491,14 +423,7 @@
 /* 위치: 활성 버블 최종 오버라이드
    기능: 기본 버블 배경보다 우선 적용되어 활성 상태를 명확히 표시 */
 .assistantMessage .messageBody.messageBodyActive {
-  background: rgb(255 245 184 / 15%) !important;
-  border-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
-}
-
-.assistantMessage .messageBody.messageBodyActive::after {
-  border-right-color: rgb(255 245 184 / 15%) !important;
-}
-
-.assistantMessage .messageBody.messageBodyActive::before {
-  border-right-color: color-mix(in srgb, #d7b24f 72%, var(--chat-pane-border) 28%) !important;
+  background: var(--chat-pane-bg);
+  border-color: var(--chat-accent, #1b5e9e);
+  box-shadow: 0 0 0 1px var(--chat-accent-soft, #e8f0f9);
 }

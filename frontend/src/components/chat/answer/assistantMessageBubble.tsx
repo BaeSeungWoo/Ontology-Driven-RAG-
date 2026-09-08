@@ -1,5 +1,4 @@
 import { Fragment, type ReactNode } from "react";
-import { MousePointerClick, SquareCheckBig, WandSparkles } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
@@ -117,20 +116,13 @@ export default function AssistantMessageBubble({
           aria-hidden="true"
         >
           {isActive ? (
-            <>
-              <SquareCheckBig className={styles.messageSelectBadgeIcon} />
-              <span>선택됨</span>
-            </>
+            <span>선택됨</span>
           ) : (
-            <>
-              <MousePointerClick className={styles.messageSelectBadgeIcon} />
-              <span>근거 보기</span>
-            </>
+            <span>근거 보기</span>
           )}
         </span>
         <div className={styles.assistantRoleRow}>
           <p className={styles.messageRole}>답변</p>
-          <WandSparkles className={styles.messageRoleIcon} aria-hidden="true" />
           {isThinking ? (
             <span className={styles.assistantThinkingSpinner} aria-hidden="true" />
           ) : null}
@@ -162,6 +154,7 @@ export default function AssistantMessageBubble({
                     <a
                       {...props}
                       href={href}
+                      aria-label={isCitation ? `참조 ${children}` : undefined}
                       className={
                         isCitation
                           ? `${styles.citationLink} ${

@@ -1,6 +1,5 @@
 "use client";
 
-import { ExternalLink, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { ResolvedDocument } from "@/types/chatApi";
 import { findHighlightItemIndexes } from "./pdfHighlightMatcher";
@@ -202,7 +201,7 @@ export default function PdfDocumentViewer({
             aria-label="새 탭에서 열기"
             title="새 탭에서 열기"
           >
-            <ExternalLink aria-hidden="true" />
+            <span aria-hidden="true">↗</span>
           </a>
           <button
             type="button"
@@ -211,7 +210,7 @@ export default function PdfDocumentViewer({
             aria-label="닫기"
             title="닫기"
           >
-            <X aria-hidden="true" />
+            <span aria-hidden="true">×</span>
           </button>
         </div>
       </div>

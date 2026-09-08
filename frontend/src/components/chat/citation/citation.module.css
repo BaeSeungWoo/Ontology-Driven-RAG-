@@ -6,6 +6,7 @@
 
 /* 위치: Citation 루트/헤더 */
 .citationRoot {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -37,22 +38,22 @@
 .citationToggle {
   width: 30px;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--chat-pane-bg) 82%, #fff 18%);
+  background: transparent;
   color: var(--chat-title-color);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
   cursor: pointer;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
-    0 1px 2px color-mix(in srgb, var(--chat-shadow) 40%, transparent);
+  box-shadow: none;
   transition:
-    border-color 160ms ease,
     background-color 160ms ease,
-    box-shadow 160ms ease;
+    color 160ms ease;
 }
 
 .citationHeader :global(.pane-title) {
@@ -66,29 +67,27 @@
   min-width: 0;
 }
 
-.citationTitleIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-}
-
-.citationToggleIcon {
-  width: 18px;
+.citationCount {
+  min-width: 18px;
   height: 18px;
-  stroke-width: 2.1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 999px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-title-color);
+  font-size: 10px;
+  font-weight: 800;
 }
 
 .citationToggle:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 56%, var(--chat-pane-border) 44%);
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
 }
 
 .citationToggle:focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 16%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
 /* 위치: 본문 표시/숨김 애니메이션 */
@@ -116,56 +115,159 @@
   pointer-events: none;
 }
 
-/* 위치: 선택 참조 상세 영역 + 참조 네비게이션 */
-.referenceArea {
+/* 위치: 참조 요약 카드 목록 */
+.referenceCardsArea {
   flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding-bottom: 10px;
-}
-
-.referenceNav {
-  flex-shrink: 0;
-  border-top: 1px solid var(--chat-pane-border);
-  padding-top: 8px;
-}
-
-.referenceNavTitle {
-  margin: 0 0 6px;
-  color: var(--chat-title-color);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.referenceNavList {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  min-height: 0;
 }
 
-.referenceNavButton {
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 999px;
-  background: var(--chat-pane-bg);
-  color: var(--chat-title-color);
-  padding: 5px 9px;
+.referenceCardsTitle {
+  margin: 0 0 7px;
+  color: var(--chat-muted-text);
   font-size: 11px;
   font-weight: 700;
-  line-height: 1.2;
+}
+
+.referenceCardList {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+  padding: 1px 2px 2px;
+}
+
+.referenceCard {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 10px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-text-color);
+  text-align: left;
   cursor: pointer;
+  transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
 }
 
-.referenceNavButton:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
+.referenceCard:hover {
+  border-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 38%, var(--chat-pane-bg) 62%);
 }
 
-.referenceNavButtonActive {
-  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  background: color-mix(in srgb, var(--chat-title-color) 22%, #fff 78%);
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 26%, transparent),
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+.referenceCard:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--chat-accent, #1b5e9e) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.referenceCardActive {
+  border-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
+  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
+}
+
+.referenceCardMeta {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.referenceCardNumber {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  background: var(--chat-accent, #1b5e9e);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.referenceCardScore,
+.referenceCardPage {
+  color: var(--chat-muted-text);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.referenceCardPage {
+  margin-left: auto;
+}
+
+.referenceCardDocument {
+  overflow: hidden;
+  color: var(--chat-title-color);
+  font-size: 12px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.referenceCardSummary {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--chat-muted-text);
+  font-size: 11px;
+  line-height: 1.55;
+  word-break: break-word;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+.referenceCardAction {
+  align-self: flex-end;
+  color: var(--chat-accent, #1b5e9e);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+/* 위치: 선택 참조 상세 오버레이 */
+.referenceOverlay {
+  position: absolute;
+  top: 25px;
+  left: calc(100% + 26px);
+  z-index: 40;
+  width: min(440px, calc(100vw - 390px));
+  max-height: calc(100% - 25px);
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  background: var(--chat-pane-bg);
+  box-shadow: 0 18px 48px rgb(15 23 42 / 24%);
+}
+
+.referenceOverlay::before,
+.referenceOverlay::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 100%;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.referenceOverlay::before {
+  border-right: 11px solid var(--chat-pane-border);
+}
+
+.referenceOverlay::after {
+  top: 19px;
+  border-top-width: 9px;
+  border-bottom-width: 9px;
+  border-right: 10px solid color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-accent-soft) 6%);
 }
 
 .referenceHeader {
@@ -173,7 +275,85 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 8px;
+  margin: 0;
+  padding: 9px 10px;
+  border-bottom: 1px solid var(--chat-pane-border);
+  border-radius: 12px 12px 0 0;
+  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-accent-soft) 6%);
+}
+
+.referenceOverlayBody {
+  min-height: 0;
+  overflow: auto;
+  padding: 12px;
+}
+
+.pdfSideOverlay {
+  position: absolute;
+  top: 66px;
+  left: calc(100% + 478px);
+  z-index: 45;
+  width: min(760px, calc(100vw - 820px));
+  min-width: 360px;
+  height: calc(100% - 66px);
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  background: var(--chat-pane-bg);
+  box-shadow: 0 18px 48px rgb(15 23 42 / 28%);
+}
+
+.pdfSideOverlay::before,
+.pdfSideOverlay::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  right: 100%;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+}
+
+.pdfSideOverlay::before {
+  border-right: 11px solid var(--chat-pane-border);
+}
+
+.pdfSideOverlay::after {
+  top: 19px;
+  border-top-width: 9px;
+  border-bottom-width: 9px;
+  border-right: 10px solid var(--chat-pane-bg);
+}
+
+.referenceHeaderActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.referenceCloseButton {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--chat-title-color);
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.referenceCloseButton:hover {
+  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
+}
+
+.referenceCloseButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
 .referenceHeadingGroup {
@@ -207,14 +387,6 @@
   color: color-mix(in srgb, var(--chat-title-color) 74%, var(--chat-text-color) 26%);
 }
 
-.referenceTitleIcon {
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-  flex: 0 0 auto;
-}
-
 .referenceBadges {
   display: flex;
   align-items: center;
@@ -223,61 +395,19 @@
   min-width: 0;
 }
 
-.referenceBadges > span {
+.referenceBadges > .selectedReferenceNumber {
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 90%, var(--chat-title-color) 10%);
-  border-radius: 999px;
-  padding: 3px 8px;
-  background: #fff;
-  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.2;
-  box-shadow: none;
-}
-
-.metadataBadgeWrap {
-  position: relative;
-  flex-shrink: 0;
-}
-
-.metadataBadge {
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 999px;
-  background: var(--chat-pane-bg);
-  color: var(--chat-muted-text);
-  padding: 3px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.2;
-  cursor: pointer;
-}
-
-.metadataBadge:hover:not(:disabled),
-.metadataBadge[aria-expanded="true"] {
-  border-color: color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
-  color: var(--chat-title-color);
-}
-
-.metadataBadge:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-/* 위치: metadata 팝오버 */
-.metadataPopover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 5;
-  width: min(320px, 78vw);
-  max-height: 340px;
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 8px;
-  background: var(--chat-pane-bg);
-  box-shadow: 0 12px 32px rgb(15 23 42 / 18%);
-  padding: 8px;
+  justify-content: center;
+  flex: 0 0 auto;
+  border-radius: 5px;
+  background: var(--chat-accent, #1b5e9e);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 /* 위치: 선택 청크 카드(문서명/페이지/원문/JSON) */
@@ -360,12 +490,6 @@
 .openDocumentButton:disabled {
   cursor: not-allowed;
   opacity: 0.55;
-}
-
-.openDocumentIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.2;
 }
 
 .documentError {
@@ -674,22 +798,23 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--chat-pane-border);
+  border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--chat-pane-bg) 92%, #fff 8%);
+  background: transparent;
   color: var(--chat-title-color);
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1;
   cursor: pointer;
 }
 
 .pdfModalIconButton:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 50%, var(--chat-pane-border) 50%);
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
 }
 
-.pdfModalIconButton svg {
-  width: 17px;
-  height: 17px;
-  stroke-width: 2.2;
+.pdfModalIconButton:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
 .pdfModalFrame {
@@ -833,6 +958,37 @@
   line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+@media (max-width: 1200px) {
+  .referenceOverlay {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1100;
+    width: min(520px, calc(100vw - 24px));
+    max-height: calc(100dvh - 24px);
+    transform: translate(-50%, -50%);
+  }
+
+  .referenceOverlay::before,
+  .referenceOverlay::after {
+    display: none;
+  }
+
+  .pdfSideOverlay {
+    position: fixed;
+    inset: 12px;
+    z-index: 1200;
+    width: auto;
+    min-width: 0;
+    height: auto;
+  }
+
+  .pdfSideOverlay::before,
+  .pdfSideOverlay::after {
+    display: none;
+  }
 }
 
 
