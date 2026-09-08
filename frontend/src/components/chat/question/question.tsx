@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowUp } from "lucide-react";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
@@ -87,7 +86,7 @@ export default function Question({
           aria-label="질문 전송"
           disabled={!canSend}
         >
-          <ArrowUp className={styles.submitButtonIcon} aria-hidden="true" />
+          <span aria-hidden="true">↑</span>
         </button>
       </div>
     </form>

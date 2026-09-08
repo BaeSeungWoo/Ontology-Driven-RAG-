@@ -1,5 +1,4 @@
 ﻿import Image from "next/image";
-import { Image as ImageIcon, PanelRightClose, PanelRightOpen, Search } from "lucide-react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -445,7 +444,6 @@ export default function AssetPanel({
     <aside className={assetPanelClassName} aria-label={assetPanelLabel}>
       <div className={styles.chatAssetPanelHeader}>
         <span className={styles.chatAssetPanelTitleGroup}>
-          <ImageIcon className={styles.chatAssetPanelTitleIcon} aria-hidden="true" />
           <span className={styles.chatAssetPanelLabel}>{assetPanelLabel}</span>
           <span className={styles.chatAssetPanelInlineCount} aria-label={`자료 ${assetCount}개`}>
             {assetCount}
@@ -464,11 +462,7 @@ export default function AssetPanel({
           aria-expanded={!isCollapsed}
           aria-label={assetToggleLabel}
         >
-          {isCollapsed ? (
-            <PanelRightOpen className={styles.chatAssetToggleIcon} aria-hidden="true" />
-          ) : (
-            <PanelRightClose className={styles.chatAssetToggleIcon} aria-hidden="true" />
-          )}
+          <span aria-hidden="true">{isCollapsed ? "+" : "−"}</span>
         </button>
       </div>
 
@@ -545,10 +539,7 @@ export default function AssetPanel({
                       </span>
                       <span className={styles.chatAssetTableText}>
                         {tableMarkdownByPath[asset.path]?.source === "md" ? (
-                          <>
-                            <span>표 크게 보기</span>
-                            <Search className={styles.chatAssetTableTextIcon} aria-hidden="true" />
-                          </>
+                          <span>표 크게 보기</span>
                         ) : (
                           "표 데이터 로딩 중"
                         )}

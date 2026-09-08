@@ -2384,3 +2384,260 @@
 .table th {
   font-size: 14px;
 }
+
+.reportDesignToolbar {
+  display: flex;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--chat-muted-text);
+  font-size: 13px;
+}
+
+.reportDesignToggle {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 9px;
+  background: var(--chat-pane-bg);
+}
+
+.reportDesignToggle button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 6px;
+  color: var(--chat-muted-text);
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.reportDesignToggle button[aria-pressed="true"] {
+  color: #fff;
+  background: #17253c;
+}
+
+.reportDesignToggle button:focus-visible {
+  outline: 2px solid #5b7898;
+  outline-offset: 2px;
+}
+
+/* Standalone HTML reference. All overrides are scoped to the selected design. */
+.executiveReport.referenceReport {
+  --chat-pane-bg: #fff;
+  --chat-pane-border: #dbe1e9;
+  --chat-title-color: #11213a;
+  --chat-text-color: #3c4a5d;
+  --chat-muted-text: #5d6b7a;
+  --reference-rule: #e5eaf1;
+  --reference-danger: #a8352b;
+  --reference-watch: #9a6b1f;
+  --reference-good: #2f6b52;
+  --reference-accent: #476080;
+  box-sizing: border-box;
+  max-width: 1376px;
+  padding: 36px 28px 48px;
+  border: 0;
+  border-radius: 6px;
+  background: #eff2f6;
+  box-shadow: none;
+  color: #2c3a4c;
+  font-family: "Pretendard Variable", "Pretendard", system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+
+  .executiveHeader {
+    position: relative;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 34px 36px 30px;
+    border-radius: 6px;
+    background: linear-gradient(120deg, #0f1a2b 0%, #17253c 52%, #22314b 100%);
+  }
+
+  .executiveHeader::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, #9fb6cf, #476080 55%, transparent);
+  }
+
+  .executiveHeader p { margin-bottom: 12px; color: #9fb6cf; font-size: 11px; font-weight: 500; letter-spacing: .34em; }
+  .executiveHeader h2 { color: #f7fafd; font-size: 32px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
+  .executiveHeader time { color: #a7b8cb; font-size: 13px; font-weight: 400; }
+  .referenceHeaderCaption { color: #9fb6cf; font-size: 11px; font-weight: 500; letter-spacing: .18em; }
+  .htmlExportButton { font-weight: 500; }
+  .reportSections { gap: 16px; padding: 16px 0; counter-reset: report-section; }
+  .reportSection { min-width: 0; padding: 26px 30px 28px; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: #fff; box-shadow: 0 1px 2px rgb(28 24 18 / 4%); counter-increment: report-section; }
+  .reportSection h3 { display: flex; align-items: baseline; gap: 14px; color: var(--chat-title-color); font-size: 20px; font-weight: 600; letter-spacing: -.01em; }
+  .reportSection h3::before { content: counter(report-section, decimal-leading-zero); flex: 0 0 auto; color: #5b7898; font-size: 11px; font-weight: 600; letter-spacing: .22em; }
+  .reportSection :where(p, span) { font-size: 13px; font-weight: 400; line-height: 1.65; }
+  .reportSection small { font-size: 11px; font-weight: 400; }
+  .reportSection strong { font-weight: 600; }
+  .productionTrendHeading, .insightHeading, .sevenDayForecastHeader { flex-wrap: wrap; align-items: baseline; gap: 12px; }
+  .productionTrendHeading > span, .insightHeading > span, .sevenDayForecastHeader > span { color: var(--chat-muted-text); font-size: 11px; font-weight: 400; }
+  .insightHeading h3 i { display: none; }
+  .insightHeading::after { content: ""; flex: 1; height: 1px; background: var(--reference-rule); }
+  .insightHeading > span { order: 1; letter-spacing: .14em; }
+
+  .overviewMetrics { grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 12px; padding: 0; border: 0; border-radius: 0; background: transparent; }
+  .overviewMetricCard { min-height: 180px; padding: 20px 20px 18px; border-color: var(--chat-pane-border); border-radius: 6px; box-shadow: 0 1px 2px rgb(28 24 18 / 4%); }
+  .overviewMetricCard h3 { color: var(--chat-muted-text); font-size: 12px; font-weight: 600; letter-spacing: .06em; }
+  .overviewMetricCard :where(p, span) { color: var(--chat-muted-text); font-size: 11px; font-weight: 400; line-height: 1.5; }
+  .overviewMetricCard small { font-size: 11px; font-weight: 500; }
+  .overviewMetricCard > div { gap: 5px; margin-top: 14px; }
+  .overviewMetricCard > div > strong { color: #1c2530; font-size: 34px; font-weight: 600; letter-spacing: -.03em; }
+  .overviewMetricCard > div > span { padding-bottom: 3px; font-size: 12px; font-weight: 500; }
+  .overviewMetricCard :is(.incompleteWorkValue, .equipmentBiasValue) > strong { color: var(--reference-watch); }
+  .overviewMetricCard .deliveryRiskSummaryValue > strong { color: var(--reference-danger); }
+  :is(.productionResultDetails, .incompleteWorkDetails, .deliveryRiskSummaryDetails, .inspectionDetails, .equipmentRateLegend) { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 4px 8px; white-space: normal; }
+  .overviewMetricCard > div + p { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--reference-rule); }
+  .overviewMetricCard p strong { color: #1c2530; font-weight: 600; }
+  .overviewMetricCard p > span { white-space: normal; }
+  .overviewMetricCard p > i { display: inline; color: #bcc5d0; }
+  .overviewMetricCard [data-direction="down"], .deliveryRiskSummaryDetails strong { color: var(--reference-danger); }
+  .overviewMetricCard [data-direction="up"] { color: var(--reference-good); }
+  .deliveryRiskSummaryNote, .inspectionNote { margin-top: 6px; white-space: normal; }
+  .equipmentRateLegend i { width: 7px; height: 7px; background: #c39320; }
+  .equipmentRateLegend i[data-tone="good"] { background: var(--reference-good); }
+  .equipmentRateLegend i[data-tone="warn"] { background: var(--reference-danger); }
+  .equipmentRateLegend i[data-tone="stop"] { background: #60748a; }
+
+  .overallSummaryCard { align-items: flex-start; gap: 24px; padding: 28px 32px; }
+  .overallSummaryBadge { width: 48px; height: 48px; flex-basis: 48px; border: 1px solid #b9cadd; border-radius: 50%; background: #eef3f9; color: var(--reference-accent); font-size: 13px; font-weight: 600; letter-spacing: .08em; }
+  .overallSummary { margin-top: 10px; color: var(--chat-text-color); font-size: 15px; font-weight: 400; line-height: 1.85; text-wrap: pretty; }
+  .issueGrid, .actionGrid { gap: 14px; margin-top: 20px; }
+  .issueGrid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 258px), 1fr)); }
+  .actionGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .insightCard { gap: 16px; padding: 16px 18px; border: 1px solid var(--reference-rule); border-radius: 4px; background: #fafbfd; box-shadow: none; }
+  .insightCard strong { font-size: 15px; font-weight: 600; line-height: 1.45; }
+  .insightCard p { margin-top: 6px; color: #586674; font-size: 13px; font-weight: 400; line-height: 1.65; text-wrap: pretty; }
+  .issueGrid .insightCard { display: block; padding: 18px 18px 20px; border-top: 2px solid var(--reference-danger); }
+  .issueGrid .insightCard:nth-child(2) { border-top-color: #c39320; }
+  .issueGrid .insightCard:nth-child(3) { border-top-color: #3c5a7a; }
+  .issueGrid .issueRank { display: block; min-width: 0; margin-bottom: 10px; padding: 0; border-radius: 0; color: var(--reference-danger); background: transparent; text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .2em; }
+  .issueRank::before { content: "ISSUE 0"; }
+  .issueGrid .insightCard:nth-child(2) .issueRank { color: #8a6215; background: transparent; }
+  .issueGrid .insightCard:nth-child(3) .issueRank { color: #3c5a7a; background: transparent; }
+  .actionPriority { min-width: 0; padding: 5px 11px; color: var(--reference-danger); background: #f7ece9; font-size: 11px; font-weight: 600; white-space: nowrap; }
+  .actionPriority[data-priority="P2"] { color: #8a6215; background: #fbf3e2; }
+  .actionPriority[data-priority="P3"] { color: #3c5a7a; background: #eef2f6; }
+
+  .deliveryRiskOrdersSection { padding: 0; }
+  .deliveryRiskOrdersHeader { flex-wrap: wrap; gap: 12px; padding: 22px 30px 18px; border-color: var(--reference-rule); background: #fafbfd; }
+  .deliveryRiskOrdersHeader > span { font-size: 12px; }
+  .deliveryRiskBuckets { padding: 20px 30px 4px; }
+  .deliveryRiskBuckets article { padding: 14px 16px; border: 1px solid var(--reference-rule); border-left: 2px solid #7c8794; border-radius: 4px; background: #fbfaf8; }
+  .deliveryRiskBuckets article[data-tone="danger"] { border-color: var(--reference-rule); border-left-color: #c39320; background: #fdfaf3; }
+  .deliveryRiskBuckets article[data-tone="overdue"] { border-color: var(--reference-rule); border-left-color: var(--reference-danger); background: #fdf7f5; }
+  .deliveryRiskBuckets span { color: #4e5c6b; font-size: 11px; letter-spacing: .08em; }
+  .deliveryRiskBuckets p { margin-top: 8px; font-size: 12px; }
+  .deliveryRiskBuckets strong { font-size: 24px; }
+  .deliveryRiskBuckets article[data-tone="overdue"] strong { color: var(--reference-danger); }
+  .deliveryRiskBuckets article[data-tone="danger"] strong { color: #8a6215; }
+  .deliveryRiskOrdersTableWrap { padding: 16px 30px 8px; }
+  .deliveryRiskOrdersTable { min-width: 940px; font-weight: 400; }
+  .deliveryRiskOrdersTable th { height: 38px; border-top: 1px solid var(--reference-rule); border-bottom-color: #d3dae3; background: #f3f6fa; color: var(--chat-muted-text); font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+  .deliveryRiskOrdersTable td { height: 52px; border-color: #eaeff5; color: var(--chat-text-color); font-size: 12px; font-weight: 400; }
+  .deliveryRiskOrdersTable td:nth-child(2) strong { color: var(--chat-title-color); font-weight: 600; }
+  .deliveryRiskOrdersTable td small { color: #4e5c6b; font-size: 10px; font-weight: 400; }
+  .deliveryRiskDayBadge { border-radius: 3px; font-size: 11px; font-weight: 600; }
+  .deliveryRiskDayBadge[data-tone="overdue"] { color: var(--reference-danger); background: #f7ece9; }
+  .deliveryRiskDayBadge[data-tone="danger"] { color: #8a6215; background: #fbf3e2; }
+  .deliveryRiskProgress i[data-progress-tone="early"] { background: #c39320; }
+  .deliveryRiskProgress i[data-progress-tone="progress"] { background: var(--reference-accent); }
+  .deliveryRiskProgress i[data-progress-tone="near-complete"] { background: var(--reference-good); }
+
+  .productionTrendChart { height: 196px; }
+  .productionTrendBarArea i { width: min(100%, 22px); border-radius: 2px 2px 0 0; background: #2c3f5c; }
+  .productionTrendBarArea i[data-tone="low"] { background: #c39320; }
+  .productionTrendBarArea b { color: var(--chat-muted-text); font-size: 10px; font-weight: 600; }
+  .productionTrendColumn small { color: var(--chat-muted-text); font-size: 9px; font-weight: 500; }
+  .productionTrendSummary { flex-wrap: wrap; gap: 8px; }
+  .productionTrendSummary span { color: var(--chat-muted-text); font-size: 11px; }
+  .equipmentOperationLegend { justify-content: flex-start; margin-top: 16px; }
+  .equipmentOperationLegend span { font-size: 10px; }
+  .equipmentOperationRow { grid-template-columns: minmax(0, 130px) minmax(0, 1fr) 48px; gap: 10px; }
+  .equipmentOperationRow > span { font-size: 11px; }
+  .equipmentOperationRow b { font-size: 11px; font-weight: 600; }
+  .equipmentOperationTrack { height: 12px; border-radius: 2px; }
+  .equipmentOperationTrack i, .equipmentOperationLegend i { background: #c39320; }
+  .equipmentOperationTrack i[data-tone="good"], .equipmentOperationLegend span[data-tone="good"] i { background: var(--reference-good); }
+  .equipmentOperationTrack i[data-tone="warn"], .equipmentOperationLegend span[data-tone="warn"] i { background: var(--reference-danger); }
+  .equipmentOperationTrack i[data-tone="idle"], .equipmentOperationLegend span[data-tone="idle"] i { background: #8a939e; }
+
+  .managementPoint { margin-top: 16px; padding: 12px 14px; border: 1px solid var(--reference-rule); border-left: 2px solid #c39320; border-radius: 4px; background: #fdfaf3; color: #586674; }
+  .managementPoint b { color: #8a6215; font-size: 11px; font-weight: 600; }
+  .managementPoint span { font-size: 12px; font-weight: 400; line-height: 1.7; }
+  .managementPoint[data-tone="warn"] { border-left-color: var(--reference-danger); background: #fdf7f5; color: #586674; }
+  .managementPoint[data-tone="warn"] b { color: var(--reference-danger); }
+  .managementPoint[data-tone="good"] { border-left-color: var(--reference-good); background: #f3f8f5; color: #586674; }
+  .managementPoint[data-tone="good"] b { color: var(--reference-good); }
+  .managementPoint[data-tone="info"] { border-left-color: var(--reference-accent); background: #f3f6fa; color: #586674; }
+  .managementPoint[data-tone="info"] b { color: var(--reference-accent); }
+  .deliveryRiskOrdersSection > .managementPoint { margin: 8px 30px 24px; }
+  .qualityHealthMetrics { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+  .qualityHealthMetrics > div { padding: 16px; border-color: var(--reference-rule); border-radius: 4px; background: #fafbfd; }
+  .qualityHealthMetrics > div[data-tone="danger"] { border-color: #ecd5cf; background: #fdf7f5; }
+  .qualityHealthMetrics span { font-size: 11px; }
+  .qualityHealthMetrics strong { font-size: 27px; }
+  .qualityHealthMetrics > div[data-tone="danger"] strong { color: var(--reference-danger); }
+  .qualityHealthMetrics > div[data-kind="date"] strong { font-size: 17px; }
+  .qualityHealthMetrics > div[data-kind="text"] strong { font-size: 13px; }
+  .qualityHealthMetrics > div:nth-child(3) { order: 5; }
+  .qualityHealthMetrics > div:nth-child(4) { order: 3; }
+  .qualityHealthMetrics > div:nth-child(5) { order: 4; }
+  .qualityHealthMetrics > div:nth-child(6) { order: 6; }
+  .sevenDayForecastSection { background: linear-gradient(120deg, #f7fafd 0%, #f7f4ed 100%); }
+  .sevenDayForecastHeader { padding: 0; border: 0; background: transparent; }
+  .sevenDayForecastGrid { padding: 20px 0 0; }
+  .sevenDayForecastGrid article { padding: 18px 18px 16px; border-color: var(--chat-pane-border); border-radius: 4px; background: #fff; }
+  .sevenDayForecastGrid h4 { color: var(--chat-muted-text); font-weight: 500; }
+  .sevenDayForecastValue strong { font-size: 27px; font-weight: 600; }
+  .sevenDayForecastGrid article[data-kind="production"] .sevenDayForecastValue { color: var(--chat-title-color); }
+  .sevenDayForecastGrid article[data-kind="equipment"] .sevenDayForecastValue { color: #8a6215; }
+  .sevenDayForecastGrid article[data-kind="delivery"] .sevenDayForecastValue { color: var(--reference-danger); }
+  .sevenDayForecastGrid p { flex-wrap: wrap; white-space: normal; font-size: 11px; }
+  .sevenDayForecastGrid small { white-space: normal; font-size: 10px; }
+  .referenceFooter { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; padding: 4px 4px 0; color: var(--chat-muted-text); font-size: 11px; }
+  .referenceFooter > span:last-child { letter-spacing: .16em; }
+}
+
+@media (max-width: 1100px) {
+  .executiveReport.referenceReport {
+    .qualityHealthMetrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  }
+}
+
+@media (max-width: 900px) {
+  .executiveReport.referenceReport {
+    .sevenDayForecastGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+}
+
+@media (max-width: 600px) {
+  .executiveReport.referenceReport {
+    padding: 16px 12px 24px;
+    .executiveHeader { padding: 24px 20px; }
+    .executiveHeader h2 { font-size: 26px; }
+    .executiveHeaderActions { align-items: flex-start; }
+    .reportSection { padding: 20px 16px; }
+    .reportSection h3 { font-size: 18px; gap: 10px; }
+    .overviewMetrics, .qualityHealthMetrics, .sevenDayForecastGrid, .deliveryRiskBuckets { grid-template-columns: minmax(0, 1fr); }
+    .overallSummaryCard { gap: 12px; }
+    .overallSummaryBadge { width: 36px; height: 36px; flex-basis: 36px; }
+    .deliveryRiskOrdersSection { padding: 0; }
+    .deliveryRiskOrdersHeader { padding: 20px 16px; }
+    .deliveryRiskBuckets, .deliveryRiskOrdersTableWrap { padding: 16px; }
+    .deliveryRiskOrdersSection > .managementPoint { margin: 0 16px 20px; }
+    .productionTrendChart { overflow-x: auto; grid-template-columns: repeat(14, minmax(32px, 1fr)); }
+    .equipmentOperationRow { grid-template-columns: minmax(0, 100px) minmax(0, 1fr) 42px; gap: 6px; }
+    .actionGrid { grid-template-columns: minmax(0, 1fr); }
+    .actionGrid .insightCard { flex-direction: column; gap: 10px; }
+  }
+}

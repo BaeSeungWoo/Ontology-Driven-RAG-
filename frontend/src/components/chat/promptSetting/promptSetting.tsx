@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Settings, TriangleAlert } from "lucide-react";
 
-import type { LlmModel, LlmMode } from "@/constants/llmOptions";
-import type { PersonaType } from "@/constants/personaOptions";
+import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS, type LlmModel, type LlmMode } from "@/constants/llmOptions";
+import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
 import type { PromptRow } from "@/types/prompt";
 
 import PromptListModal from "./promptListModal";
@@ -84,7 +83,6 @@ export default function PromptSetting({
       <div className={styles.promptHeader}>
         <div className={styles.promptTitleGroup}>
           <h2 className={`pane-title ${styles.promptTitle}`}>서비스 설정</h2>
-          <Settings className={styles.promptTitleIcon} aria-hidden="true" />
         </div>
         <div
           className={`${styles.headerRightGroup} ${
@@ -94,7 +92,6 @@ export default function PromptSetting({
         >
           <span className={styles.requiredNotice}>
             <span className={styles.requiredBadge}>필수</span>
-            <TriangleAlert className={styles.requiredNoticeIcon} aria-hidden="true" />
             <span className={styles.requiredMessage}>
               [질문자, 프롬프트] 입력을 완료해주세요.
             </span>
@@ -121,9 +118,22 @@ export default function PromptSetting({
         />
       </div>
 
+      <div className={styles.selectionSummary} aria-label="현재 서비스 설정">
+        <span>{LLM_MODEL_OPTIONS.find((option) => option.value === selectedLlmModel)?.label}</span>
+        <span>{LLM_MODE_OPTIONS.find((option) => option.value === selectedLlmMode)?.label}</span>
+        <span>{PERSONA_OPTIONS.find((option) => option.value === selectedPersonaType)?.label}</span>
+        {selectedPrompt && (
+          <span className={styles.promptSelectionBadge} title={selectedPrompt.prompt_name}>
+            {selectedPrompt.prompt_name.length > 8
+              ? `${selectedPrompt.prompt_name.slice(0, 3)}...`
+              : selectedPrompt.prompt_name}
+          </span>
+        )}
+      </div>
+
       <button
         type="button"
-        className="w-full cursor-pointer rounded-[10px] border-0 bg-[color-mix(in_srgb,var(--chat-title-color)_78%,#111_22%)] px-3.5 py-3 text-[20px] leading-[1.2] font-bold text-(--chat-pane-bg) hover:bg-[color-mix(in_srgb,var(--chat-title-color)_64%,var(--chat-pane-bg)_36%)]"
+        className={styles.settingsButton}
         onClick={handleOpenModal}
       >
         설정하기

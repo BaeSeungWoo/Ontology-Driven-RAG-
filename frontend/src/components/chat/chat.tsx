@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { MessageSquareMore } from "lucide-react";
 import Answer from "./answer/answer";
 import AssetPanel from "./assetPanel";
 import Citation from "./citation/citation";
@@ -219,8 +218,6 @@ export default function Chat() {
   const handleDocumentOpen = useCallback(async (documentRequest: CitationDocumentRequest) => {
     lastSyncedDocumentKeyRef.current = documentRequest.documentKey;
     setIsPdfDocumentUpdating(true);
-    setIsCitationCollapsed(true);
-    setIsRightPanelCollapsed(true);
 
     try {
       const document = await resolveDocument(documentRequest.sourceDocName, documentRequest.pageRange);
@@ -234,6 +231,12 @@ export default function Chat() {
     } finally {
       setIsPdfDocumentUpdating(false);
     }
+  }, []);
+
+  const handlePdfDocumentClose = useCallback(() => {
+    setActivePdfDocument(null);
+    setIsPdfDocumentUpdating(false);
+    lastSyncedDocumentKeyRef.current = null;
   }, []);
 
   useEffect(() => {
@@ -316,7 +319,7 @@ export default function Chat() {
 
   // render
   return (
-    <div className="tw-chat-page">
+    <div className={`${styles.chatPage} tw-chat-page`}>
       <div className="tw-chat-toolbar">
         <div className={styles.chatToolbarLeft}>
           <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
@@ -330,7 +333,7 @@ export default function Chat() {
           isCitationCollapsed ? "tw-chat-layout-collapsed" : ""
         } ${isRightPanelCollapsed ? "tw-chat-layout-right-collapsed" : ""} ${
           isCitationCollapsed && isRightPanelCollapsed ? "tw-chat-layout-both-collapsed" : ""
-        } ${activePdfDocument ? "tw-chat-layout-pdf-open" : ""}`}
+        }`}
       >
         <aside className="tw-chat-left">
           <section
@@ -347,27 +350,23 @@ export default function Chat() {
               selectedCitation={selectedCitation}
               onCitationSelect={handleCitationSelect}
               onDocumentOpen={handleDocumentOpen}
+              onDetailClose={handlePdfDocumentClose}
+              documentOverlay={
+                activePdfDocument ? (
+                  <PdfDocumentViewer
+                    document={activePdfDocument.document}
+                    pageLabel={activePdfDocument.pageLabel}
+                    chunkText={activePdfDocument.chunkText}
+                    referenceLabel={activePdfDocument.referenceLabel}
+                    onClose={handlePdfDocumentClose}
+                    variant="panel"
+                    isUpdating={isPdfDocumentUpdating}
+                  />
+                ) : null
+              }
             />
           </section>
         </aside>
-
-        {activePdfDocument ? (
-          <aside className={styles.chatPdfPane}>
-            <PdfDocumentViewer
-              document={activePdfDocument.document}
-              pageLabel={activePdfDocument.pageLabel}
-              chunkText={activePdfDocument.chunkText}
-              referenceLabel={activePdfDocument.referenceLabel}
-              onClose={() => {
-                setActivePdfDocument(null);
-                setIsPdfDocumentUpdating(false);
-                lastSyncedDocumentKeyRef.current = null;
-              }}
-              variant="panel"
-              isUpdating={isPdfDocumentUpdating}
-            />
-          </aside>
-        ) : null}
 
         <main className="tw-chat-center">
           <section className={styles.chatAnswerPane}>
@@ -380,7 +379,6 @@ export default function Chat() {
                 <div className={styles.chatAnswerSplitHeader}>
                   <div className={styles.sectionTitleGroup}>
                     <h2 className="pane-title">답변</h2>
-                    <MessageSquareMore className={styles.sectionTitleIcon} aria-hidden="true" />
                   </div>
                 </div>
                 <div className={styles.chatAnswerMain}>

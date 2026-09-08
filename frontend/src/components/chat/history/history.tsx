@@ -1,17 +1,4 @@
 import { useState } from "react";
-import {
-  ClipboardClock,
-  ChevronDown,
-  ChevronFirst,
-  ChevronLast,
-  ChevronLeft,
-  ChevronRight,
-  PanelRightClose,
-  PanelRightOpen,
-  Search,
-  SquarePen,
-  UsersRound,
-} from "lucide-react";
 
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
 import { deleteHistorySession } from "@/services/historyApi";
@@ -181,16 +168,9 @@ export default function History({
             aria-label={isCollapsed ? "오른쪽 영역 펼치기" : "오른쪽 영역 접기"}
             title={isCollapsed ? "오른쪽 영역 펼치기" : "오른쪽 영역 접기"}
           >
-            {isCollapsed ? (
-              <PanelRightOpen className={styles.panelToggleIcon} aria-hidden="true" />
-            ) : (
-              <PanelRightClose className={styles.panelToggleIcon} aria-hidden="true" />
-            )}
+            <span aria-hidden="true">{isCollapsed ? "+" : "−"}</span>
           </button>
           {!isCollapsed ? <h2 className="pane-title">질문 이력</h2> : null}
-          {!isCollapsed ? (
-            <ClipboardClock className={styles.historyTitleIcon} aria-hidden="true" />
-          ) : null}
         </div>
         {!isCollapsed ? (
           <button
@@ -200,7 +180,6 @@ export default function History({
             aria-label="새 질문 시작"
             title="현재 대화는 확인 후 초기화됩니다."
           >
-            <SquarePen className={styles.newChatIcon} aria-hidden="true" />
             <span>새 질문</span>
           </button>
         ) : null}
@@ -209,10 +188,6 @@ export default function History({
       {!isCollapsed ? (
         <>
           <div className={styles.questionerFilterSection}>
-            <span className={styles.questionerFilterLabel}>
-              <UsersRound className={styles.questionerFilterTitleIcon} aria-hidden="true" />
-              질문자 선택
-            </span>
             {/* 왼쪽: 질문자 셀렉트 / 오른쪽: 검색 입력(Enter 또는 검색 버튼으로 적용) */}
             <div className={styles.questionerFilterRow}>
               <div className={styles.questionerFilterField}>
@@ -229,11 +204,9 @@ export default function History({
                     </option>
                   ))}
                 </select>
-                <ChevronDown className={styles.questionerFilterChevron} aria-hidden="true" />
               </div>
 
               <div className={styles.questionerSearchField}>
-                <Search className={styles.questionerSearchIcon} aria-hidden="true" />
                 <input
                   type="text"
                   className={styles.questionerSearchInput}
@@ -296,7 +269,7 @@ export default function History({
               aria-label="첫 페이지로 이동"
               title="첫 페이지"
             >
-              <ChevronFirst className={styles.pageButtonIcon} aria-hidden="true" />
+              <span aria-hidden="true">«</span>
             </button>
             <button
               type="button"
@@ -306,7 +279,7 @@ export default function History({
               aria-label="이전 페이지로 이동"
               title="이전 페이지"
             >
-              <ChevronLeft className={styles.pageButtonIcon} aria-hidden="true" />
+              <span aria-hidden="true">‹</span>
             </button>
             <div className={styles.pageNumbers}>
               {paginationItems.map((item, index) => {
@@ -339,7 +312,7 @@ export default function History({
               aria-label="다음 페이지로 이동"
               title="다음 페이지"
             >
-              <ChevronRight className={styles.pageButtonIcon} aria-hidden="true" />
+              <span aria-hidden="true">›</span>
             </button>
             <button
               type="button"
@@ -349,7 +322,7 @@ export default function History({
               aria-label="마지막 페이지로 이동"
               title="마지막 페이지"
             >
-              <ChevronLast className={styles.pageButtonIcon} aria-hidden="true" />
+              <span aria-hidden="true">»</span>
             </button>
           </div>
         </>

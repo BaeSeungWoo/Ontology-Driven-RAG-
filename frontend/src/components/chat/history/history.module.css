@@ -81,52 +81,36 @@
   flex: 0 0 auto;
   width: 30px;
   height: 30px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 42%, var(--chat-pane-border) 58%);
+  border: 0;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--chat-pane-bg) 82%, #fff 18%);
+  background: transparent;
   color: var(--chat-title-color);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent),
-    0 1px 2px color-mix(in srgb, var(--chat-shadow) 40%, transparent);
+  box-shadow: none;
   transition:
-    border-color 160ms ease,
     background-color 160ms ease,
-    box-shadow 160ms ease;
+    color 160ms ease;
 }
 
 .panelToggleButton:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 56%, var(--chat-pane-border) 44%);
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
 }
 
 .panelToggleButton:focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 16%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 56%, transparent);
-}
-
-.panelToggleIcon {
-  width: 18px;
-  height: 18px;
-  stroke-width: 2.1;
-}
-
-.historyTitleIcon {
-  width: 15px;
-  height: 15px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
 }
 
 .newChatButton {
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 55%, var(--chat-pane-border) 45%);
-  background: color-mix(in srgb, var(--chat-title-color) 82%, #111 18%);
-  color: #fff;
+  border: 1px solid var(--chat-pane-border);
+  background: var(--chat-pane-bg);
+  color: var(--chat-accent, #1b5e9e);
   border-radius: 8px;
   height: 34px;
   padding: 0 11px;
@@ -141,14 +125,8 @@
   white-space: nowrap;
 }
 
-.newChatIcon {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.1;
-}
-
 .newChatButton:hover:enabled {
-  background: color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-bg) 32%);
+  background: var(--chat-accent-soft, #e8f0f9);
 }
 
 .newChatButton:disabled {
@@ -159,9 +137,6 @@
 
 /* 위치: 질문자 필터 */
 .questionerFilterSection {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
   margin-top: 0;
   margin-bottom: 2px;
 }
@@ -169,35 +144,8 @@
 /* 위치: 질문자 필터 2분할 레이아웃(셀렉트 + 검색) */
 .questionerFilterRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(118px, 0.9fr) minmax(150px, 1.1fr);
   gap: 8px;
-}
-
-.questionerFilterLabel {
-  margin: 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  width: fit-content;
-  padding: 3px 9px;
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, #8aa2bf 12%);
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
-  font-size: 11px;
-  font-weight: 800;
-  line-height: 1;
-  color: color-mix(in srgb, var(--chat-title-color) 74%, var(--chat-text-color) 26%);
-}
-
-.questionerFilterTitleIcon {
-  width: 13px;
-  height: 13px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
 }
 
 .questionerFilterField {
@@ -232,27 +180,12 @@
     inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
 }
 
-.questionerFilterChevron {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  color: color-mix(in srgb, var(--chat-title-color) 84%, var(--chat-text-color) 16%);
-  pointer-events: none;
-}
-
-.questionerFilterChevron {
-  right: 10px;
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.2;
-}
-
 .questionerFilterSelect {
   width: 100%;
   height: 36px;
   border: 0;
   border-radius: 9px;
-  padding: 0 34px 0 10px;
+  padding: 0 10px;
   background: transparent;
   color: var(--chat-text-color);
   font-size: 13px;
@@ -305,22 +238,12 @@
     inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
 }
 
-.questionerSearchIcon {
-  position: absolute;
-  left: 10px;
-  width: 14px;
-  height: 14px;
-  stroke-width: 2.1;
-  color: color-mix(in srgb, var(--chat-title-color) 84%, var(--chat-text-color) 16%);
-  pointer-events: none;
-}
-
 .questionerSearchInput {
   width: 100%;
   height: 36px;
   border: 0;
   border-radius: 9px;
-  padding: 0 88px 0 34px;
+  padding: 0 68px 0 10px;
   background: transparent;
   color: var(--chat-text-color);
   font-size: 13px;
@@ -434,9 +357,9 @@
 }
 
 .historyCardActive {
-  border-color: color-mix(in srgb, var(--chat-title-color) 75%, #111 25%);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--chat-title-color) 35%, transparent);
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
+  border-color: var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
+  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
 }
 
 .cardDeleteButton {
@@ -472,12 +395,6 @@
   color: color-mix(in srgb, #dc2626 94%, #7f1d1d 6%);
   transform: scale(1.04);
   outline: none;
-}
-
-.cardDeleteIcon {
-  width: 16px;
-  height: 16px;
-  stroke-width: 2.55;
 }
 
 .cardTitle {
@@ -582,17 +499,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-}
-
-.pageButtonIcon {
-  width: 13px;
-  height: 13px;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  overflow: visible;
 }
 
 .pageButton:hover:enabled {

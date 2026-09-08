@@ -1,4 +1,3 @@
-import { MessageCircleQuestionMark } from "lucide-react";
 
 import styles from "./answer.module.css";
 import type { AnswerMessage } from "@/types/chat";
@@ -56,7 +55,6 @@ export default function UserMessageBubble({ message }: UserMessageBubbleProps) {
       <div className={styles.messageBody}>
         <div className={styles.messageRoleRow}>
           <p className={styles.messageRole}>질문</p>
-          <MessageCircleQuestionMark className={styles.messageRoleIcon} aria-hidden="true" />
         </div>
         <div className={styles.messageText}>
           {textLines.map((line, textLineIndex) => (
