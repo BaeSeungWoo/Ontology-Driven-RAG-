@@ -297,6 +297,38 @@
   font-size: 12px;
 }
 
+.executiveHeaderActions {
+  display: flex;
+  align-items: flex-end;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exportButtons {
+  display: flex;
+  gap: 8px;
+}
+
+.htmlExportButton {
+  padding: 7px 11px;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 7px;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.htmlExportButton:hover:not(:disabled) {
+  background: rgb(255 255 255 / 22%);
+}
+
+.htmlExportButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
 .executiveSummary {
   border-bottom: 1px solid var(--chat-pane-border);
   background: linear-gradient(180deg, color-mix(in srgb, var(--chat-pane-bg) 92%, #eef5f2 8%), var(--chat-pane-bg));

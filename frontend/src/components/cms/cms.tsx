@@ -108,7 +108,7 @@ export default function CmsPage() {
           {/* 리포트 영역 */}
           {report && (
             <section className={cmsStyles.cmsReportLayout} aria-label="리포트 페이지">
-              <CmsExecutiveReport report={report} />
+              <CmsExecutiveReport report={report} isLoading={isSummaryLoading} />
               <CmsReportChat report={report} />
             </section>
           )}
