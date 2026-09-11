@@ -68,13 +68,19 @@ export default function Chat() {
   const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
+  const [composerEpoch, setComposerEpoch] = useState(0);
+  const [isSending, setIsSending] = useState(false);
+  const sendingRef = useRef(false);
   const isSessionResetPendingRef = useRef(false);
   const isHistorySessionSyncingRef = useRef(false);
   const lastSyncedDocumentKeyRef = useRef<string | null>(null);
 
   const { messages, sendQuestion, loadSessionMessages, resetChatState, isLoading } = useChat({
     selectedSessionId,
-    onSessionId: (id) => setSelectedSessionId(id),
+    onSessionId: (id) => {
+      setSelectedSessionId(id);
+      isSessionResetPendingRef.current = false;
+    },
     onHistoryRefresh: () => setHistoryRefreshKey((prev) => prev + 1),
   });
 
@@ -115,6 +121,8 @@ export default function Chat() {
   // 기능/목적: 새 질문 시작과 질문 전송 시 세션 생성 정책을 한곳에서 처리한다.
   // In: QuestionPayload / Out: 메시지 전송, 세션 상태 초기화 또는 갱신
   const resetToNewSession = () => {
+    if (sendingRef.current) return;
+    setComposerEpoch(previous => previous + 1);
     setSelectedSessionId(null);
     setActiveAssistantMessageId(null);
     setSelectedCitation(null);
@@ -131,14 +139,23 @@ export default function Chat() {
   };
 
   const handleSendQuestion = async (payload: QuestionPayload) => {
-    const shouldForceNewSession = isSessionResetPendingRef.current;
-    const isSuccess = await sendQuestion({
-      ...payload,
-      forceNewSession: shouldForceNewSession,
-    });
+    if (sendingRef.current) return false;
+    sendingRef.current = true;
+    setIsSending(true);
+    try {
+      const shouldForceNewSession = isSessionResetPendingRef.current;
+      const isSuccess = await sendQuestion({
+        ...payload,
+        forceNewSession: shouldForceNewSession,
+      });
 
-    if (isSuccess && shouldForceNewSession) {
-      isSessionResetPendingRef.current = false;
+      if (isSuccess && shouldForceNewSession) {
+        isSessionResetPendingRef.current = false;
+      }
+      return isSuccess;
+    } finally {
+      sendingRef.current = false;
+      setIsSending(false);
     }
   };
 
@@ -146,6 +163,8 @@ export default function Chat() {
   // 기능/목적: 선택한 히스토리의 메시지와 질문 설정을 현재 화면에 동기화한다.
   // In: sessionId, sessionMeta / Out: 세션 메시지 로드 및 설정 state 갱신
   const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
+    if (sendingRef.current) return;
+    setComposerEpoch(previous => previous + 1);
     isHistorySessionSyncingRef.current = true;
     isSessionResetPendingRef.current = false;
     setActiveAssistantMessageId(null);
@@ -416,6 +435,8 @@ export default function Chat() {
 
           <section className={styles.chatQuestionPane}>
             <Question
+              key={composerEpoch}
+              isBusy={isSending || isLoading}
               questioner={questioner}
               selectedPrompt={selectedPrompt}
               selectedLlmModel={selectedLlmModel}
@@ -426,7 +447,7 @@ export default function Chat() {
           </section>
         </main>
 
-        <aside className="tw-chat-right">
+        <aside className="tw-chat-right" inert={isSending}>
           <section
             className={`${styles.chatHistoryPane} ${
               isRightPanelCollapsed ? styles.chatHistoryPaneCollapsed : ""
