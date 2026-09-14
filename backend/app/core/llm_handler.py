@@ -11,6 +11,11 @@ from google.genai import types
 
 from app.factories.config import LLMConfig
 
+# LLM 응답 대기 상한. read 는 스트리밍에서 청크 사이 간격에 적용되므로
+# 토큰이 계속 나오는 한 긴 답변도 끊기지 않는다. 반대로 서버가 응답을
+# 멈추면 무한 대기 대신 예외가 발생해 사용자에게 오류를 표시할 수 있다.
+LLM_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
+
 class BaseLLM:
     # astream(): 토큰 단위 스트리밍, ainvoke(): 전체 답변을 문자열로 반환.
 
@@ -76,7 +81,7 @@ class OllamaLLM(BaseLLM):
     async def astream(self, messages: list):
         prompt = self._to_prompt(messages)
 
-        async with httpx.AsyncClient(timeout=None) as client:
+        async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
             async with client.stream(
                 "POST",
                 f"{self.base_url}/api/generate",
@@ -111,7 +116,7 @@ class OllamaLLM(BaseLLM):
     async def ainvoke(self, messages: list) -> str:
         prompt = self._to_prompt(messages)
 
-        async with httpx.AsyncClient(timeout=None) as client:
+        async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
             response = await client.post(
                 f"{self.base_url}/api/generate",
                 json={
@@ -236,7 +241,7 @@ class AnthropicLLM(BaseLLM):
             "content-type":      "application/json",
         }
 
-        async with httpx.AsyncClient(timeout=None) as client:
+        async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
             async with client.stream("POST", self.url, headers=headers, json=payload) as response:
                 async for line in response.aiter_lines():
                     if not line or not line.startswith("data:"):
@@ -276,7 +281,7 @@ class AnthropicLLM(BaseLLM):
             "content-type": "application/json",
         }
 
-        async with httpx.AsyncClient(timeout=None) as client:
+        async with httpx.AsyncClient(timeout=LLM_TIMEOUT) as client:
             response = await client.post(self.url, headers=headers, json=payload)
             response.raise_for_status()
             data = response.json()

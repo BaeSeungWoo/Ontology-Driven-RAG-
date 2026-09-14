@@ -16,6 +16,7 @@ coverage.xml
 # 환경 변수
 .env
 .env.*
+!**/.env.example
 
 # 가상환경
 venv/

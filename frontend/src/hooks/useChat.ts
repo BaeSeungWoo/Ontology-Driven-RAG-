@@ -254,6 +254,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
             : item
         )
       );
+      return false;
     } finally {
       setIsLoading(false);
     }

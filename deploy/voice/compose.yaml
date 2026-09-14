@@ -1,0 +1,49 @@
+name: ontology-voice
+services:
+  stt:
+    build: ../../services/stt
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8090:8000"
+    environment:
+      STT_MODEL: ${STT_MODEL:-turbo}
+      STT_MAX_SESSIONS: "1"
+      STT_ORIGINS: http://voice-gateway.internal
+      HF_HOME: /models/huggingface
+    volumes:
+      - models:/models
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Linux only: the host network reaches existing localhost:3000 and :8000.
+  # On Windows run native Caddy with the same Caddyfile instead (README).
+  caddy:
+    image: caddy:2.10.2
+    profiles: [https-linux]
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      VOICE_DOMAIN: ${VOICE_DOMAIN:-voice.example.com}
+      VOICE_BASIC_USER: ${VOICE_BASIC_USER:-voice}
+      VOICE_BASIC_HASH: ${VOICE_BASIC_HASH:-}
+      VOICE_GATEWAY_KEY: ${VOICE_GATEWAY_KEY:-}
+      VOICE_FRONTEND: ${VOICE_FRONTEND:-127.0.0.1:3000}
+      VOICE_BACKEND: ${VOICE_BACKEND:-127.0.0.1:8000}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  models:
+  caddy_data:
+  caddy_config:

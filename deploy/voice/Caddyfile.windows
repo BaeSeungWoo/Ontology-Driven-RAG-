@@ -1,0 +1,36 @@
+# Windows + IIS host. IIS owns 80 and 443, so Caddy binds a separate port and
+# never runs ACME: win-acme issues the certificate and exports it as PEM.
+{
+    auto_https off
+}
+
+{$VOICE_DOMAIN}:{$VOICE_HTTPS_PORT} {
+    tls {$VOICE_CERT} {$VOICE_KEY}
+
+    # The existing service has no login. Authenticate before granting GPU access.
+    basic_auth {
+        {$VOICE_BASIC_USER} {$VOICE_BASIC_HASH}
+    }
+    header Permissions-Policy "microphone=(self)"
+    handle /api/voice/* {
+        reverse_proxy {$VOICE_BACKEND} {
+            header_up X-Voice-Gateway-Key {$VOICE_GATEWAY_KEY}
+            header_up -Authorization
+            flush_interval -1
+        }
+    }
+    @backend path /api/* /assets/* /configs
+    handle @backend {
+        reverse_proxy {$VOICE_BACKEND} {
+            header_up -Authorization
+            header_up -X-Voice-Gateway-Key
+            flush_interval -1
+        }
+    }
+    handle {
+        reverse_proxy {$VOICE_FRONTEND} {
+            header_up -Authorization
+            header_up -X-Voice-Gateway-Key
+        }
+    }
+}

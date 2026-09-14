@@ -1,0 +1,28 @@
+{$VOICE_DOMAIN} {
+    # The existing service has no login. Authenticate before granting GPU access.
+    basic_auth {
+        {$VOICE_BASIC_USER} {$VOICE_BASIC_HASH}
+    }
+    header Permissions-Policy "microphone=(self)"
+    handle /api/voice/* {
+        reverse_proxy {$VOICE_BACKEND} {
+            header_up X-Voice-Gateway-Key {$VOICE_GATEWAY_KEY}
+            header_up -Authorization
+            flush_interval -1
+        }
+    }
+    @backend path /api/* /assets/* /configs
+    handle @backend {
+        reverse_proxy {$VOICE_BACKEND} {
+            header_up -Authorization
+            header_up -X-Voice-Gateway-Key
+            flush_interval -1
+        }
+    }
+    handle {
+        reverse_proxy {$VOICE_FRONTEND} {
+            header_up -Authorization
+            header_up -X-Voice-Gateway-Key
+        }
+    }
+}
