@@ -1,0 +1,17 @@
+.root { min-width: 0; margin-top: 14px; }
+.heading { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+.card { margin-top: 8px; overflow: hidden; border: 1px solid var(--chat-pane-border); border-radius: 10px; background: var(--chat-pane-bg); color: var(--chat-text-color); }
+.card > summary { cursor: pointer; padding: 12px 14px; font: 600 13px ui-monospace, monospace; overflow-wrap: anywhere; background: color-mix(in srgb, var(--chat-title-color) 7%, var(--chat-pane-bg)); }
+.body { padding: 12px 14px 14px; }
+.note { margin: 0 0 10px; font-size: 12px; line-height: 1.6; color: var(--chat-muted-text); }
+.viewport { max-width: 100%; overflow: auto; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: var(--chat-pane-bg); }
+.viewport svg { display: block; max-width: none; }
+.wire { stroke: var(--chat-muted-text); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.address { fill: var(--chat-text-color); font: 600 13px ui-monospace, monospace; text-anchor: middle; }
+.label { fill: var(--chat-muted-text); font: 11px ui-monospace, monospace; text-anchor: middle; }
+.instructions { margin-top: 10px; font-size: 12px; }
+.instructions summary { cursor: pointer; padding: 4px 0; }
+.instructions pre { overflow: auto; max-height: 260px; margin: 8px 0; line-height: 1.8; white-space: pre; }
+.source { margin-top: 10px; padding: 7px 10px; border: 1px solid var(--chat-pane-border); border-radius: 6px; color: var(--chat-title-color); background: color-mix(in srgb, var(--chat-title-color) 7%, var(--chat-pane-bg)); cursor: pointer; font-size: 12px; }
+.source:hover { background: color-mix(in srgb, var(--chat-title-color) 14%, var(--chat-pane-bg)); }
+.root :focus-visible { outline: 2px solid var(--chat-title-color); outline-offset: 3px; }

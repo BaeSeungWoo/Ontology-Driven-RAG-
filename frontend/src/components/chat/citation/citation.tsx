@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useState, type ReactNode } from "react";
 import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
 import {
@@ -6,8 +6,7 @@ import {
   getActiveMessage,
   getCitationDocumentRequest,
   getChunkPageLabel,
-  getReferenceItems,
-  getReferenceLabelMap,
+  getMessageReferenceItems,
   getSelectedChunk,
   getSelectedMessage,
   type CitationDocumentRequest,
@@ -48,9 +47,8 @@ export default function Citation({
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
   const selectedChunk = getSelectedChunk(messages, selectedCitation);
-  const labelSourceText = selectedMessage?.content ?? activeMessage?.content ?? "";
-  const referenceLabelMap = getReferenceLabelMap(labelSourceText);
-  const referenceItems = getReferenceItems(activeMessage?.content ?? "");
+  const referenceLabelMap = new Map(getMessageReferenceItems(selectedMessage ?? activeMessage).map((item) => [item.chunkIndex, item.label]));
+  const referenceItems = getMessageReferenceItems(activeMessage);
   const activeChunks = activeMetadata?.chunks?.length
     ? activeMetadata.chunks
     : activeMetadata?.used_chunks ?? [];
@@ -135,7 +133,7 @@ export default function Citation({
       >
         {!isCollapsed ? (
           <div className={styles.citationTitleGroup}>
-            <h2 className="pane-title">인용 근거</h2>
+            <h2 className="pane-title">{activeMessage?.llm_mode === "ladder" ? "참조 근거" : "인용 근거"}</h2>
             {referenceCards.length > 0 ? (
               <span className={styles.citationCount}>{referenceCards.length}</span>
             ) : null}
@@ -160,9 +158,11 @@ export default function Citation({
       >
         {activeMessage && referenceCards.length > 0 ? (
           <section className={styles.referenceCardsArea} aria-label="참조 요약">
-            <p className={styles.referenceCardsTitle}>답변에 사용된 참조</p>
+            {referenceItems[0]?.additional && (
+              <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
+            )}
             <div className={styles.referenceCardList}>
-              {referenceCards.map(({ chunkIndex, label, chunk }) => {
+              {referenceCards.map(({ chunkIndex, label, chunk, additional }, index) => {
                 const isActive = selectedCitation?.chunkIndex === chunkIndex;
                 const sourceDocName =
                   typeof chunk?.metadata?.source_doc_name === "string"
@@ -171,6 +171,10 @@ export default function Citation({
                 const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
 
                 return (
+                  <Fragment key={chunkIndex}>
+                    {additional && index > 0 && !referenceCards[index - 1].additional && (
+                      <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
+                    )}
                   <button
                     key={chunkIndex}
                     type="button"
@@ -203,6 +207,7 @@ export default function Citation({
                       {isActive && isDetailOpen ? "상세 닫기" : "상세 보기"}
                     </span>
                   </button>
+                  </Fragment>
                 );
               })}
             </div>
@@ -256,19 +261,19 @@ export default function Citation({
                   <span>{selectedPageLabel ?? "-"}</span>
                 </p>
               </div>
-              <div className={styles.documentActionBlock}>
+              {selectedDocumentRequest && <div className={styles.documentActionBlock}>
                 <button
                   type="button"
                   className={styles.openDocumentButton}
                   onClick={handleOpenDocument}
-                  disabled={!selectedDocumentRequest || isDocumentLoading}
+                  disabled={isDocumentLoading}
                 >
                   {isDocumentLoading ? "문서 여는 중..." : "참고문서 열기"}
                 </button>
                 {documentError ? (
                   <p className={styles.documentError}>{documentError}</p>
                 ) : null}
-              </div>
+              </div>}
               <div className={styles.chunkBodyBlock}>
                 <p className={styles.chunkBodyTitle}>청크 원문</p>
                 <p className={styles.chunkDocument}>{selectedChunk.document}</p>

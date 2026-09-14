@@ -78,8 +78,8 @@ export default function MesExecutiveReport({
     if (!reportRef.current) return;
     exportHtmlSnapshot(
       reportRef.current,
-      `MES 데일리 리포트 ${latestReportDate}`,
-      `MES_데일리리포트_${latestReportDate || "report"}${designFileSuffix}.html`,
+      `AI 데일리 경영 리포트 ${latestReportDate}`,
+      `AI_데일리_경영_리포트_${latestReportDate || "report"}${designFileSuffix}.html`,
     );
   };
 
@@ -88,8 +88,8 @@ export default function MesExecutiveReport({
     try {
       await exportPdfSnapshot(
         reportRef.current,
-        `MES 데일리 리포트 ${latestReportDate}`,
-        `MES_데일리리포트_${latestReportDate || "report"}${designFileSuffix}.pdf`,
+        `AI 데일리 경영 리포트 ${latestReportDate}`,
+        `AI_데일리_경영_리포트_${latestReportDate || "report"}${designFileSuffix}.pdf`,
       );
     } catch {
       window.alert("MES PDF를 생성하지 못했습니다.");
@@ -128,12 +128,12 @@ export default function MesExecutiveReport({
         ref={reportRef}
         className={`${styles.executiveReport}${isReferenceDesign ? ` ${styles.referenceReport}` : ""}`}
         data-report-design={design}
-        aria-label="MES 데일리 리포트"
+        aria-label="AI 데일리 경영 리포트"
       >
         <header className={styles.executiveHeader}>
           <div>
-            <p>MES DAILY REPORT</p>
-            <h2>MES 데일리 리포트</h2>
+            <p>AI DAILY MANAGEMENT REPORT</p>
+            <h2>AI 데일리 경영 리포트</h2>
           </div>
           <div className={styles.executiveHeaderActions}>
             <time dateTime={latestReportDate}>
@@ -226,7 +226,7 @@ export default function MesExecutiveReport({
         </div>
         {isReferenceDesign && (
           <footer className={styles.referenceFooter}>
-            <span>MES 데일리 리포트 · 생성 기준 {formatReportDate(latestReportDate)}</span>
+            <span>AI 데일리 경영 리포트 · 생성 기준 {formatReportDate(latestReportDate)}</span>
             <span>CONFIDENTIAL</span>
           </footer>
         )}

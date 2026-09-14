@@ -20,15 +20,13 @@
   justify-content: space-between;
   gap: 10px;
   margin: -14px -14px 10px;
-  padding: 10px 12px;
-  height: 44px;
+  padding: 4px 12px;
+  height: 34px;
+  box-sizing: border-box;
+  flex-shrink: 0;
   border-bottom: 1px solid #96b0cc;
   border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
+  background: #f1f5fa;
 }
 
 .citationHeaderCollapsed {
@@ -36,13 +34,13 @@
 }
 
 .citationToggle {
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--chat-title-color);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -56,8 +54,9 @@
     color 160ms ease;
 }
 
-.citationHeader :global(.pane-title) {
-  line-height: 30px;
+.citationHeader .citationTitleGroup :global(.pane-title) {
+  font-size: 12px;
+  line-height: 24px;
 }
 
 .citationTitleGroup {

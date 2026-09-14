@@ -1,5 +1,6 @@
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
+import type { LadderDiagram } from "@/types/ladder";
 
 export type ChatRole = "user" | "assistant";
 
@@ -18,7 +19,7 @@ export type ChatChunk = {
   index: number;
   retrieval_rank?: number;
   document: string;
-  metadata: Record<string, unknown>;
+  metadata: Record<string, unknown> & { ladder_diagram?: LadderDiagram };
   distance: number | null;
   similarity?: number | null;
   bm25_score?: number | null;
@@ -28,6 +29,8 @@ export type ChatChunk = {
 };
 
 export type ChatMetadata = Record<string, unknown> & {
+  elapsed_ms?: number;
+  prompt_name?: string;
   images?: string[];
   tables?: string[];
   chunks?: ChatChunk[];

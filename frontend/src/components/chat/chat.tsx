@@ -201,7 +201,7 @@ export default function Chat() {
       });
     }
 
-    await loadSessionMessages(sessionId);
+    await loadSessionMessages(sessionId, sessionMeta?.promptName);
   };
 
   // 함수: 답변/참조 연동

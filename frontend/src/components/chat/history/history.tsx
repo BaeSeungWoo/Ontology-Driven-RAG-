@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
 import { deleteHistorySession } from "@/services/historyApi";
@@ -53,6 +53,12 @@ export default function History({
   // 내부 state
   // 기능/목적: 새 질문 시작 전 확인 모달의 열림 상태를 관리한다.
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(Date.now()), 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const {
     currentPage,
@@ -180,6 +186,7 @@ export default function History({
             aria-label="새 질문 시작"
             title="현재 대화는 확인 후 초기화됩니다."
           >
+            <span aria-hidden="true">+</span>
             <span>새 질문</span>
           </button>
         ) : null}
@@ -248,6 +255,7 @@ export default function History({
             <div className={styles.historyList}>
               {historyItems.map((item) => (
                 <HistoryCard
+                  now={now}
                   key={item.id}
                   item={item}
                   onSelect={handleSelectChat}

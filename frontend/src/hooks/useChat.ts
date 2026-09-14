@@ -80,11 +80,14 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
    * In: sessionId(number)
    * Out: messages 갱신 또는 error 갱신
    */
-  const loadSessionMessages = async (sessionId: number) => {
+  const loadSessionMessages = async (sessionId: number, promptName?: string | null) => {
     try {
       setError(null);
       const sessionMessages = await getMessages(sessionId);
-      setMessages(sessionMessages);
+      setMessages(sessionMessages.map((message) => ({
+        ...message,
+        prompt_name: message.prompt_name ?? promptName,
+      })));
       setShouldRestoreMemory(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : "세션 메시지 조회 중 오류가 발생했습니다.";
@@ -205,6 +208,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     try {
       let streamedAnswer = "";
 
+      const requestStartedAt = performance.now();
       const result = await askApi({
         sessionId,
         question: normalizedQuestion,
@@ -226,7 +230,11 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       });
 
       const finalAnswer = result.answer || streamedAnswer || "(응답 없음)";
-      const metadataWithUsedChunks = withUsedChunks(result.metadata, finalAnswer);
+      const metadataWithUsedChunks = {
+        ...withUsedChunks(result.metadata, finalAnswer),
+        elapsed_ms: Math.round(performance.now() - requestStartedAt),
+        prompt_name: prompt.prompt_name,
+      };
 
       setMessages((prev) =>
         prev.map((item) =>

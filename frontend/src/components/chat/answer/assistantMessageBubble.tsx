@@ -5,6 +5,9 @@ import remarkGfm from "remark-gfm";
 import styles from "./answer.module.css";
 import { toCitationDisplayText } from "./citationText";
 import type { AnswerMessage } from "@/types/chat";
+import LadderDiagrams from "./ladderDiagram";
+import AssetPanel from "../assetPanel";
+import { getMessageReferenceItems, getReferenceItems } from "../citation/citationUtils";
 
 type AssistantMessageBubbleProps = {
   message: AnswerMessage;
@@ -31,6 +34,19 @@ export default function AssistantMessageBubble({
   const isPlaceholderLoading =
     normalizedText.length === 0 || normalizedText === "(응답 생성 중...)";
   const isThinking = isGenerating || isPlaceholderLoading;
+  const promptName = message.metadata?.prompt_name || message.promptName || "프롬프트 미기록";
+  const elapsedMs = message.metadata?.elapsed_ms;
+  const elapsedLabel = typeof elapsedMs === "number" && Number.isFinite(elapsedMs) && elapsedMs >= 0
+    ? `${(elapsedMs / 1000).toFixed(1)}s`
+    : "시간 미기록";
+  const citedChunkCount = message.metadata?.used_chunks
+    ? new Set(message.metadata.used_chunks.map((chunk) => chunk.index)).size
+    : getReferenceItems(message.text).length;
+  const additionalLadderCount = getMessageReferenceItems({
+    content: message.text,
+    llm_mode: message.llmMode,
+    metadata: message.metadata,
+  }).filter((item) => item.additional).length;
 
   // =========================
   // 함수
@@ -91,13 +107,44 @@ export default function AssistantMessageBubble({
    * Out: Enter/Space 입력 시 onActivate(message.id) 호출
    */
   const handleActivateByKeyboard = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) return;
     if (event.key !== "Enter" && event.key !== " ") return;
     event.preventDefault();
     handleActivate();
   };
 
   return (
-    <article className={`${styles.messageItem} ${styles.assistantMessage}`}>
+    <article className={`${styles.messageItem} ${styles.assistantMessage} ${message.llmMode === "ladder" ? styles.ladderMessage : ""}`}>
+      <div className={styles.assistantMetaRow}>
+        <span className={styles.assistantAiBadge}>AI</span>
+        <span className={styles.assistantPromptName}>{promptName}</span>
+        {isThinking ? (
+          <span className={styles.assistantGenerationStatus} role="status">
+            <span className={styles.assistantThinkingSpinner} aria-hidden="true" />
+            생성 중
+          </span>
+        ) : (
+          <span className={styles.assistantStats}>
+            <span aria-label={`응답 시간 ${elapsedLabel}`}>{elapsedLabel}</span>
+            <span aria-hidden="true"> · </span>
+            <span aria-label={`인용 청크 ${citedChunkCount}개`}>{citedChunkCount} chunks</span>
+            {additionalLadderCount > 0 && (
+              <>
+                <span aria-hidden="true"> · </span>
+                <span>추가 래더 근거 {additionalLadderCount}개</span>
+              </>
+            )}
+          </span>
+        )}
+        <span
+          className={`${styles.messageSelectBadge} ${
+            isActive ? styles.messageSelectBadgeActive : ""
+          }`}
+          aria-hidden="true"
+        >
+          {isActive ? "선택됨" : "근거 보기"}
+        </span>
+      </div>
       <div
         className={`${styles.messageBody} ${styles.messageBodyInteractive} ${
           isActive ? styles.messageBodyActive : ""
@@ -109,24 +156,6 @@ export default function AssistantMessageBubble({
         aria-pressed={isActive}
         aria-label="답변 선택"
       >
-        <span
-          className={`${styles.messageSelectBadge} ${
-            isActive ? styles.messageSelectBadgeActive : ""
-          }`}
-          aria-hidden="true"
-        >
-          {isActive ? (
-            <span>선택됨</span>
-          ) : (
-            <span>근거 보기</span>
-          )}
-        </span>
-        <div className={styles.assistantRoleRow}>
-          <p className={styles.messageRole}>답변</p>
-          {isThinking ? (
-            <span className={styles.assistantThinkingSpinner} aria-hidden="true" />
-          ) : null}
-        </div>
         {isPlaceholderLoading ? (
           <div className={styles.assistantLoading} aria-live="polite">
             <p className={styles.loadingText}>답변 생성중입니다.</p>
@@ -174,7 +203,35 @@ export default function AssistantMessageBubble({
             </ReactMarkdown>
           </div>
         )}
+        {!isThinking && (
+          <AssetPanel
+            inline
+            activeAssistantMessage={{
+              message_id: message.id,
+              content: message.text,
+              metadata: message.metadata,
+            }}
+            selectedCitation={selectedCitationChunkIndex === null ? null : {
+              messageId: message.id,
+              chunkIndex: selectedCitationChunkIndex,
+            }}
+            onCitationSelect={(messageId, chunkIndex) => {
+              handleActivate();
+              onCitationSelect?.(messageId, chunkIndex);
+            }}
+          />
+        )}
       </div>
+      {message.llmMode === "ladder" && !isThinking && (
+        <LadderDiagrams
+          chunks={message.metadata?.chunks ?? []}
+          answerText={message.text}
+          onSource={(index) => {
+            handleActivate();
+            onCitationSelect?.(message.id, index);
+          }}
+        />
+      )}
     </article>
   );
 }

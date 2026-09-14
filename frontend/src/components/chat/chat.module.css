@@ -133,17 +133,14 @@
 .chatAnswerSplitHeader {
   grid-column: 1 / -1;
   margin: -14px -14px 0;
-  padding: 10px 12px;
-  height: 44px;
+  padding: 4px 12px;
+  height: 34px;
+  box-sizing: border-box;
   display: flex;
   align-items: center;
   border-bottom: 1px solid #96b0cc;
   border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
+  background: #e6edf5;
 }
 
 .sectionTitleGroup {
@@ -151,6 +148,20 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+}
+
+.sectionTitleGroup::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--chat-accent);
+}
+
+.chatAnswerSplitHeader .sectionTitleGroup :global(.pane-title) {
+  font-size: 12px;
+  line-height: 24px;
 }
 
 /* 위치: 이미지/표 패널 */
@@ -282,6 +293,84 @@
   margin-top: 10px;
 }
 
+.chatInlineAssets {
+  min-width: 0;
+  margin-top: 14px;
+}
+
+.chatInlineAssets .chatAssetGrid {
+  margin-top: 0;
+}
+
+.chatInlineAssetDetails {
+  min-width: 0;
+}
+
+.chatInlineAssetDetails > summary {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--chat-title-color) 7%, var(--chat-pane-bg));
+  color: var(--chat-text-color);
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.chatInlineAssetDetails > summary:focus-visible {
+  outline: 2px solid var(--chat-accent, #1b5e9e);
+  outline-offset: 2px;
+}
+
+.chatInlineAssetDetails[open] > summary {
+  margin-bottom: 8px;
+}
+
+.chatInlineAssets .chatAssetFigure {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  animation: none;
+}
+
+.chatInlineAssets .chatAssetFigure figcaption {
+  border: 0;
+  background: transparent;
+}
+
+.chatInlineAssets .chatAssetFigure img {
+  height: auto;
+  max-height: 480px;
+}
+
+.chatInlineTable {
+  overflow: auto;
+  max-height: 480px;
+  padding: 0;
+  color: var(--chat-text-color);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.chatInlineTable table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+}
+
+.chatInlineTable th,
+.chatInlineTable td {
+  border: 1px solid var(--chat-pane-border);
+  padding: 8px 10px;
+  vertical-align: top;
+  white-space: nowrap;
+}
+
+.chatInlineTable th {
+  background: var(--chat-page-bg);
+}
+
 .chatAssetFigure {
   margin: 0;
   border: 1px solid var(--chat-pane-border);
@@ -296,9 +385,6 @@
 
 .chatAssetFigureActive {
   border-color: var(--chat-accent, #1b5e9e);
-  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
-  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
-  animation: assetCardPulse 0.7s ease-out;
 }
 
 .chatAssetFigure img {
@@ -318,116 +404,31 @@
   cursor: zoom-in;
 }
 
-.chatAssetTableButton {
-  display: block;
-  width: 100%;
-  border: 0;
-  padding: 10px;
-  background: #fff;
-  color: #111827;
-  cursor: pointer;
-  text-align: center;
-}
-
-.chatAssetTablePreview {
-  position: relative;
-  min-height: 112px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  border: 1px dashed #cbd5e1;
-  border-radius: 8px;
-  background: #f8fafc;
-  overflow: hidden;
-}
-
-.chatAssetTablePreview::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: rgb(248 250 252 / 56%);
-}
-
-.chatAssetTableBlur {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
+.chatAssetTableContent {
+  max-height: 180px;
+  overflow: auto;
   padding: 8px;
-  filter: blur(1.2px);
-  opacity: 0.72;
-  transform: scale(1.03);
-  transform-origin: center;
-  color: #334155;
-  text-align: left;
-  pointer-events: none;
+  color: var(--chat-muted-text);
+  font-size: 10px;
+  line-height: 1.4;
 }
 
-.chatAssetTableBlur :where(p, ul, ol, blockquote, pre, table) {
-  margin: 0 0 6px;
+.chatAssetTableContent :where(p, ul, ol, blockquote, pre, table) {
+  margin: 0;
 }
 
-.chatAssetTableBlur table {
+.chatAssetTableContent table {
   width: max-content;
   min-width: 100%;
   border-collapse: collapse;
 }
 
-.chatAssetTableBlur th,
-.chatAssetTableBlur td {
-  border: 1px solid #cbd5e1;
+.chatAssetTableContent th,
+.chatAssetTableContent td {
+  border: 1px solid var(--chat-pane-border);
   padding: 4px 6px;
-  font-size: 10px;
-  line-height: 1.25;
+  text-align: left;
   white-space: nowrap;
-}
-
-.chatAssetTableIcon {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 28px;
-  border: 1px solid #bfdbfe;
-  border-radius: 6px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.chatAssetTableText {
-  position: relative;
-  z-index: 1;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: #334155;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.chatAssetTableLoadingBar {
-  position: relative;
-  z-index: 1;
-  width: 72px;
-  height: 4px;
-  border-radius: 999px;
-  background: rgb(148 163 184 / 24%);
-  overflow: hidden;
-}
-
-.chatAssetTableLoadingBar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: 42%;
-  border-radius: inherit;
-  background: #94a3b8;
-  animation: assetLoadingSweep 1.1s ease-in-out infinite;
 }
 
 .chatAssetFigure figcaption {
@@ -454,20 +455,6 @@
 .chatAssetCaptionButton:hover {
   color: color-mix(in srgb, var(--chat-title-color) 92%, var(--chat-text-color) 8%);
   background: color-mix(in srgb, #fff 78%, var(--chat-title-color) 22%);
-}
-
-.chatAssetFigureActive figcaption {
-  border-top-color: var(--chat-accent, #1b5e9e);
-  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
-}
-
-.chatAssetFigureActive .chatAssetCaptionButton {
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-}
-
-.chatAssetFigureActive .chatAssetCaptionButton:hover {
-  color: color-mix(in srgb, var(--chat-title-color) 88%, var(--chat-text-color) 12%);
-  background: color-mix(in srgb, var(--chat-title-color) 28%, #fff 72%);
 }
 
 .assetPreviewOverlay {
@@ -620,28 +607,6 @@
 .chatAssetSkeletonCaption {
   height: 34px;
   border-top: 1px solid var(--chat-pane-border);
-}
-
-@keyframes assetCardPulse {
-  0% {
-    box-shadow:
-      inset 3px 0 0 var(--chat-accent, #1b5e9e),
-      0 0 0 0 color-mix(in srgb, var(--chat-accent, #1b5e9e) 34%, transparent);
-  }
-  100% {
-    box-shadow:
-      inset 3px 0 0 var(--chat-accent, #1b5e9e),
-      0 0 0 2px transparent;
-  }
-}
-
-@keyframes assetLoadingSweep {
-  0% {
-    transform: translateX(-120%);
-  }
-  100% {
-    transform: translateX(240%);
-  }
 }
 
 @keyframes assetSkeletonShimmer {

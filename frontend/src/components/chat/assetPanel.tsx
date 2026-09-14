@@ -51,8 +51,57 @@ type TableAssetContent = {
   status?: number;
 };
 
+function CompactTable({ content, onExpand }: {
+  content?: TableAssetContent;
+  onExpand: () => void;
+}) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [hasOverflow, setHasOverflow] = useState(false);
+
+  useEffect(() => {
+    const element = contentRef.current;
+    if (!element || content?.source !== "md") return;
+    const observer = new ResizeObserver(() => {
+      setHasOverflow(
+        element.scrollWidth > element.clientWidth + 1 ||
+        element.scrollHeight > element.clientHeight + 1
+      );
+    });
+    observer.observe(element);
+    if (element.firstElementChild) observer.observe(element.firstElementChild);
+    return () => observer.disconnect();
+  }, [content]);
+
+  return (
+    <>
+      <div ref={contentRef} className={styles.chatAssetTableContent}>
+        {content?.source === "md" ? (
+          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.text}</ReactMarkdown>
+        ) : (
+          <p role="status">
+            {content?.source === "error" ? "표를 불러오지 못했습니다." : "표를 불러오는 중입니다."}
+          </p>
+        )}
+      </div>
+      {content?.source === "md" && hasOverflow && (
+        <button
+          type="button"
+          className={styles.chatAssetCaptionButton}
+          title="표 확대"
+          onClick={(event) => {
+            event.stopPropagation();
+            onExpand();
+          }}
+        >
+          표 크게 보기
+        </button>
+      )}
+    </>
+  );
+}
+
 type AssetPanelProps = {
-  activeAssistantMessage?: MessageItem;
+  activeAssistantMessage?: Pick<MessageItem, "content" | "metadata"> & { message_id: string | number };
   selectedCitation?: {
     messageId: string;
     chunkIndex: number;
@@ -60,8 +109,9 @@ type AssetPanelProps = {
   isLoading?: boolean;
   onCitationSelect: (messageId: string, chunkIndex: number) => void;
   // 부모 grid가 함께 줄어들어야 답변 영역이 넓어지므로 접힘 상태는 Chat에서 내려받는다.
-  isCollapsed: boolean;
-  onToggle: () => void;
+  isCollapsed?: boolean;
+  onToggle?: () => void;
+  inline?: boolean;
 };
 
 type AssetPreviewModalProps = {
@@ -299,8 +349,9 @@ export default function AssetPanel({
   selectedCitation,
   isLoading = false,
   onCitationSelect,
-  isCollapsed,
+  isCollapsed = false,
   onToggle,
+  inline = false,
 }: AssetPanelProps) {
   const [imagePreview, setImagePreview] = useState<ImagePreview>(null);
   const [tablePreview, setTablePreview] = useState<TablePreview>(null);
@@ -404,17 +455,18 @@ export default function AssetPanel({
    * Out: 선택 카드 scrollIntoView
    */
   useEffect(() => {
+    if (inline) return;
     if (!selectedCitation || !activeAssistantMessage) return;
     if (selectedCitation.messageId !== String(activeAssistantMessage.message_id)) return;
     const target = assetFigureRefs.current[selectedCitation.chunkIndex];
     target?.scrollIntoView({ block: "nearest", behavior: "smooth" });
-  }, [selectedCitation, activeAssistantMessage]);
+  }, [selectedCitation, activeAssistantMessage, inline]);
 
   // 접힘 상태에서는 header와 토글 버튼만 남겨 영역 폭을 최소화한다.
-  const assetPanelClassName = `${styles.chatAssetPanel} ${
+  const assetPanelClassName = inline ? styles.chatInlineAssets : `${styles.chatAssetPanel} ${
     isCollapsed ? styles.chatAssetPanelCollapsed : ""
   }`;
-  const assetPanelLabel = "이미지/표 영역";
+  const assetPanelLabel = inline ? "답변 이미지/표" : "이미지/표 영역";
   const assetToggleLabel = isCollapsed
     ? "이미지/표 영역 펼치기"
     : "이미지/표 영역 접기";
@@ -440,9 +492,11 @@ export default function AssetPanel({
   const getSourceLabel = (asset: AssetItem) =>
     [asset.sourceDocName, asset.pageLabel].filter(Boolean).join(" · ") || null;
 
+  if (inline && assetCount === 0) return null;
+
   return (
     <aside className={assetPanelClassName} aria-label={assetPanelLabel}>
-      <div className={styles.chatAssetPanelHeader}>
+      {!inline && <div className={styles.chatAssetPanelHeader}>
         <span className={styles.chatAssetPanelTitleGroup}>
           <span className={styles.chatAssetPanelLabel}>{assetPanelLabel}</span>
           <span className={styles.chatAssetPanelInlineCount} aria-label={`자료 ${assetCount}개`}>
@@ -457,14 +511,14 @@ export default function AssetPanel({
               setImagePreview(null);
               setTablePreview(null);
             }
-            onToggle();
+            onToggle?.();
           }}
           aria-expanded={!isCollapsed}
           aria-label={assetToggleLabel}
         >
           <span aria-hidden="true">{isCollapsed ? "+" : "−"}</span>
         </button>
-      </div>
+      </div>}
 
       {!isCollapsed && (assetItems.length > 0 ? (
         <div className={styles.chatAssetGrid}>
@@ -476,7 +530,7 @@ export default function AssetPanel({
               selectedCitation?.chunkIndex === asset.chunkIndex &&
               selectedCitation.messageId === String(activeAssistantMessage?.message_id);
 
-            return (
+            const assetFigure = (
               <figure
                 className={`${styles.chatAssetFigure} ${
                   asset.chunkIndex !== undefined ? styles.chatAssetFigureClickable : ""
@@ -511,12 +565,24 @@ export default function AssetPanel({
                       unoptimized
                     />
                   </button>
+                ) : inline ? (
+                    <div className={styles.chatInlineTable}>
+                      {tableMarkdownByPath[asset.path]?.source === "md" ? (
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {tableMarkdownByPath[asset.path].text}
+                        </ReactMarkdown>
+                      ) : (
+                        <p role="status">
+                          {tableMarkdownByPath[asset.path]?.source === "error"
+                            ? "표를 불러오지 못했습니다."
+                            : "표를 불러오는 중입니다."}
+                        </p>
+                      )}
+                    </div>
                 ) : (
-                  <button
-                    type="button"
-                    className={styles.chatAssetTableButton}
-                    onClick={(event) => {
-                      event.stopPropagation();
+                  <CompactTable
+                    content={tableMarkdownByPath[asset.path]}
+                    onExpand={() => {
                       selectAssetCitation(asset);
                       setTablePreview({
                         path: asset.path,
@@ -524,31 +590,7 @@ export default function AssetPanel({
                         sourceLabel,
                       });
                     }}
-                    title="표 확대"
-                  >
-                    <div className={styles.chatAssetTablePreview}>
-                      {tableMarkdownByPath[asset.path]?.source === "md" ? (
-                        <div className={styles.chatAssetTableBlur} aria-hidden="true">
-                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                            {tableMarkdownByPath[asset.path].text}
-                          </ReactMarkdown>
-                        </div>
-                      ) : null}
-                      <span className={styles.chatAssetTableIcon} aria-hidden="true">
-                        표
-                      </span>
-                      <span className={styles.chatAssetTableText}>
-                        {tableMarkdownByPath[asset.path]?.source === "md" ? (
-                          <span>표 크게 보기</span>
-                        ) : (
-                          "표 데이터 로딩 중"
-                        )}
-                      </span>
-                      {tableMarkdownByPath[asset.path]?.source !== "md" ? (
-                        <span className={styles.chatAssetTableLoadingBar} aria-hidden="true" />
-                      ) : null}
-                    </div>
-                  </button>
+                  />
                 )}
                 <figcaption>
                   <button
@@ -559,11 +601,24 @@ export default function AssetPanel({
                       selectAssetCitation(asset);
                     }}
                   >
-                    {assetLabel}
+                    {inline && sourceLabel ? `${assetLabel} · ${sourceLabel}` : assetLabel}
                   </button>
                 </figcaption>
               </figure>
             );
+            return inline ? (
+              <details
+                key={`${asset.type}-${asset.path}`}
+                className={styles.chatInlineAssetDetails}
+                open={index === 0}
+              >
+                <summary>
+                  {asset.type === "tables" ? "표" : "이미지"} · {assetLabel}
+                  {sourceLabel ? ` · ${sourceLabel}` : ""}
+                </summary>
+                {assetFigure}
+              </details>
+            ) : assetFigure;
           })}
         </div>
       ) : isLoading && activeAssistantMessage ? (
