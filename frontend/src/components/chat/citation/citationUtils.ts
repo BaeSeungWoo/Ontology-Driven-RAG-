@@ -80,6 +80,19 @@ export function getReferenceItems(answerText = "") {
     .sort((left, right) => left.label - right.label);
 }
 
+export function getMessageReferenceItems(message?: Pick<MessageItem, "content" | "llm_mode" | "metadata">) {
+  const items: { chunkIndex: number; label: number | string; additional: boolean }[] =
+    getReferenceItems(message?.content).map((item) => ({ ...item, additional: false }));
+  if (message?.llm_mode !== "ladder") return items;
+  const chunks = message.metadata?.chunks ?? message.metadata?.used_chunks ?? [];
+  let extra = 0;
+  for (const chunk of chunks) {
+    if (!chunk.metadata.ladder_diagram || items.some((item) => item.chunkIndex === chunk.index)) continue;
+    items.push({ chunkIndex: chunk.index, label: `L${++extra}`, additional: true });
+  }
+  return items;
+}
+
 function toPageLabel(range: unknown): string | null {
   if (typeof range !== "string") return null;
   const normalized = range.trim();
@@ -129,8 +142,11 @@ export function getCitationDocumentRequest(
 
   if (!selectedChunk || !sourceDocName) return null;
 
+  const extension = sourceDocName.trim().match(/\.([a-z0-9]+)$/i)?.[1];
+  if (extension && extension.toLowerCase() !== "pdf") return null;
+
   const pageRange = getChunkPageRange(selectedChunk);
-  const referenceLabelMap = getReferenceLabelMap(selectedMessage?.content ?? activeMessage?.content ?? "");
+  const referenceLabelMap = new Map(getMessageReferenceItems(selectedMessage ?? activeMessage).map((item) => [item.chunkIndex, item.label]));
   const referenceLabel = referenceLabelMap.has(selectedCitation.chunkIndex)
     ? `참조${referenceLabelMap.get(selectedCitation.chunkIndex)}`
     : `참조${selectedCitation.chunkIndex}`;

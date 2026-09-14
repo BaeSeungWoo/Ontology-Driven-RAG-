@@ -24,8 +24,8 @@ export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveRe
     if (!reportRef.current) return;
     exportHtmlSnapshot(
       reportRef.current,
-      `CMS 데일리 리포트 ${reportDate || ""}`,
-      `CMS_데일리리포트_${reportDate || "report"}.html`,
+      `AI 데일리 생산 리포트 ${reportDate || ""}`,
+      `AI_데일리_생산_리포트_${reportDate || "report"}.html`,
     );
   };
 
@@ -34,8 +34,8 @@ export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveRe
     try {
       await exportPdfSnapshot(
         reportRef.current,
-        `CMS 데일리 리포트 ${reportDate || ""}`,
-        `CMS_데일리리포트_${reportDate || "report"}.pdf`,
+        `AI 데일리 생산 리포트 ${reportDate || ""}`,
+        `AI_데일리_생산_리포트_${reportDate || "report"}.pdf`,
       );
     } catch {
       window.alert("CMS PDF를 생성하지 못했습니다.");
@@ -43,11 +43,11 @@ export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveRe
   };
 
   return (
-    <section ref={reportRef} className={styles.executiveReport} aria-label="CMS 데일리 리포트">
+    <section ref={reportRef} className={styles.executiveReport} aria-label="AI 데일리 생산 리포트">
       <header className={styles.executiveHeader}>
         <div>
-          <p>CMS DAILY REPORT</p>
-          <h2>CMS 데일리 리포트</h2>
+          <p>AI DAILY PRODUCTION REPORT</p>
+          <h2>AI 데일리 생산 리포트</h2>
         </div>
         <div className={styles.executiveHeaderActions}>
           <time dateTime={reportDate}>생성 기준: {formatReportDate(reportDate)}</time>

@@ -12,6 +12,7 @@ type Props = {
 };
 
 export default function VoiceInput({ disabled, onComplete, onActiveChange }: Props) {
+  const [isOpen, setIsOpen] = useState(false);
   const [state, setState] = useState<VoiceState | null>(null);
   const [error, setError] = useState("");
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -45,7 +46,7 @@ export default function VoiceInput({ disabled, onComplete, onActiveChange }: Pro
       },
       onComplete: text => {
         if (session.current !== current) return;
-        session.current = null; setState(null); onActiveChange(false); onComplete(text);
+        session.current = null; setState(null); setIsOpen(false); onActiveChange(false); onComplete(text);
       },
       onError: message => {
         if (session.current !== current) return;
@@ -55,9 +56,19 @@ export default function VoiceInput({ disabled, onComplete, onActiveChange }: Pro
     session.current = current;
     void current.start(deviceId);
   };
-  const cancel = () => {
+  const cancel = (closeOverlay: boolean) => {
     const current = session.current; session.current = null; current?.cancel();
     setState(null); setError(""); onActiveChange(false);
+    if (closeOverlay) setIsOpen(false);
+  };
+  const open = () => {
+    if (disabled) return;
+    setIsOpen(true);
+    setError("");
+    if (!navigator.mediaDevices) return;
+    void navigator.mediaDevices.enumerateDevices().then(items => {
+      if (mounted.current) setDevices(items.filter(d => d.kind === "audioinput"));
+    }).catch(() => {});
   };
   const refreshDevices = async () => {
     if (disabled || session.current || scanning.current) return;
@@ -78,30 +89,41 @@ export default function VoiceInput({ disabled, onComplete, onActiveChange }: Pro
 
   return (
     <div className={styles.voiceArea}>
-      <div className={styles.voiceToolbar}>
-        {!state ? <button type="button" className={styles.voiceButton} disabled={disabled || isScanning} onClick={start} aria-label="음성으로 질문 입력">
-          <Mic size={16} aria-hidden="true" /> 음성 입력
-        </button> : <>
-          <span role="status">{state.phase === "connecting" ? "마이크 연결 중…" : state.phase === "recording" ? "듣고 있습니다" : "마지막 음성을 처리하고 있습니다…"}</span>
-          <meter aria-label="마이크 입력 음량" min={0} max={1} value={state.level} />
-          <button type="button" className={styles.voiceButton} disabled={state.phase !== "recording"} onClick={() => void session.current?.stop()}>완료</button>
-          <button type="button" className={styles.voiceButton} onClick={cancel}>취소</button>
-        </>}
-        {!state && <details className={styles.microphoneSettings}>
-          <summary>마이크 선택</summary>
-          <select aria-label="사용할 마이크" value={deviceId} disabled={disabled} onChange={e => setDeviceId(e.target.value)}>
+      <button type="button" className={`${styles.voiceButton} ${styles.voiceIconButton}`} disabled={disabled || isScanning} onClick={open} aria-label="음성으로 질문 입력" aria-expanded={isOpen} aria-controls="voice-input-overlay" title="음성으로 질문 입력">
+        <Mic size={18} aria-hidden="true" />
+      </button>
+      {isOpen && <section id="voice-input-overlay" className={styles.voiceOverlay} role="dialog" aria-label="음성 입력">
+        <header className={styles.voiceOverlayHeader}>
+          <strong>음성으로 질문하기</strong>
+          <button type="button" className={styles.voiceCloseButton} onClick={() => cancel(true)} aria-label="음성 입력 닫기">×</button>
+        </header>
+        <div className={styles.voiceOverlayBody}>
+          <label className={styles.microphoneLabel} htmlFor="voice-microphone-select">사용할 마이크</label>
+          <div className={styles.microphoneControls}>
+            <select id="voice-microphone-select" aria-label="사용할 마이크" value={deviceId} disabled={disabled || Boolean(state) || isScanning} onChange={e => setDeviceId(e.target.value)}>
             <option value="">시스템 기본 마이크</option>
             {devices.filter(d => d.deviceId !== "default").map((d, i) => <option key={d.deviceId || i} value={d.deviceId}>{d.label || `마이크 ${i + 1}`}</option>)}
           </select>
-          <button type="button" className={styles.voiceButton} disabled={disabled || isScanning} onClick={() => void refreshDevices()}>{isScanning ? "마이크 확인 중…" : "목록 새로고침"}</button>
-        </details>}
-      </div>
-      {state && <div className={styles.voicePreview} aria-label="음성 인식 미리보기">
-        <span>{state.committed}</span>{" "}<span className={styles.voicePartial}>{state.partial}</span>
-        {!state.committed && !state.partial && <span className={styles.voicePartial}>말씀하신 내용이 여기에 표시됩니다.</span>}
-        <small>완료 후 질문을 확인하고 전송해 주세요.</small>
-      </div>}
-      {error && <p role="alert" className={styles.voiceError}>{error}</p>}
+            <button type="button" className={styles.voiceButton} disabled={disabled || Boolean(state) || isScanning} onClick={() => void refreshDevices()}>{isScanning ? "확인 중…" : "목록 새로고침"}</button>
+          </div>
+          {!state ? (
+            <button type="button" className={`${styles.voiceButton} ${styles.voiceStartButton}`} disabled={disabled || isScanning} onClick={start}>음성 입력 시작</button>
+          ) : <>
+            <div className={styles.voiceToolbar}>
+              <span role="status">{state.phase === "connecting" ? "마이크 연결 중…" : state.phase === "recording" ? "듣고 있습니다" : "마지막 음성을 처리하고 있습니다…"}</span>
+              <meter aria-label="마이크 입력 음량" min={0} max={1} value={state.level} />
+              <button type="button" className={styles.voiceButton} disabled={state.phase !== "recording"} onClick={() => void session.current?.stop()}>완료</button>
+              <button type="button" className={styles.voiceButton} onClick={() => cancel(false)}>취소</button>
+            </div>
+            <div className={styles.voicePreview} aria-label="음성 인식 미리보기">
+              <span>{state.committed}</span>{" "}<span className={styles.voicePartial}>{state.partial}</span>
+              {!state.committed && !state.partial && <span className={styles.voicePartial}>말씀하신 내용이 여기에 표시됩니다.</span>}
+              <small>완료 후 질문을 확인하고 전송해 주세요.</small>
+            </div>
+          </>}
+          {error && <p role="alert" className={styles.voiceError}>{error}</p>}
+        </div>
+      </section>}
     </div>
   );
 }

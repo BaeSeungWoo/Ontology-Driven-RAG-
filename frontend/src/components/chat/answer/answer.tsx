@@ -92,6 +92,7 @@ export default function Answer({
       llmModel: toLlmModel(message.model),
       llmMode: toLlmMode(message.llm_mode),
       promptName: message.prompt_name ?? null,
+      metadata: message.metadata,
     };
   });
 

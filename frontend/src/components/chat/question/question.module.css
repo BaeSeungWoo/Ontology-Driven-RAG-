@@ -64,16 +64,30 @@
   border: 0;
 }
 
-.voiceArea { margin-bottom: 8px; color: var(--chat-text-color); font-size: 13px; }
-.voiceToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.voiceArea { color: var(--chat-text-color); font-size: 13px; }
+.voiceToolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
 .voiceButton { display: inline-flex; align-items: center; gap: 5px; padding: 6px 10px; border: 1px solid var(--chat-pane-border); border-radius: 9px; background: var(--chat-pane-bg); color: var(--chat-text-color); cursor: pointer; }
 .voiceButton:disabled { opacity: .5; cursor: not-allowed; }
-.voiceButton:focus-visible, .microphoneSettings summary:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 2px; }
+.voiceIconButton { position: absolute; left: 10px; bottom: 9px; width: 34px; height: 34px; z-index: 2; justify-content: center; padding: 0; border: 0; border-radius: 999px; background: var(--chat-accent, #1b5e9e); color: var(--chat-pane-bg); }
+.voiceIconButton:hover:not(:disabled) { background: color-mix(in srgb, var(--chat-accent, #1b5e9e) 88%, #111 12%); }
+.voiceIconButton:disabled { background: #b8bec7; color: #eef1f5; opacity: 1; }
+.voiceButton:focus-visible, .voiceCloseButton:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 2px; }
+.voiceOverlay { position: absolute; left: 0; bottom: calc(100% + 10px); z-index: 50; width: min(440px, 100%); max-height: min(360px, calc(100vh - 140px)); display: flex; flex-direction: column; border: 1px solid var(--chat-pane-border); border-radius: 12px; background: var(--chat-pane-bg); box-shadow: 0 18px 48px rgb(15 23 42 / 24%); }
+.voiceOverlay::before, .voiceOverlay::after { content: ""; position: absolute; top: 100%; left: 18px; border-right: 10px solid transparent; border-left: 10px solid transparent; }
+.voiceOverlay::before { border-top: 11px solid var(--chat-pane-border); }
+.voiceOverlay::after { left: 19px; border-right-width: 9px; border-left-width: 9px; border-top: 10px solid var(--chat-pane-bg); }
+.voiceOverlayHeader { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border-bottom: 1px solid var(--chat-pane-border); border-radius: 12px 12px 0 0; background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-accent-soft) 6%); }
+.voiceCloseButton { width: 28px; height: 28px; display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 8px; background: transparent; color: var(--chat-text-color); font-size: 20px; line-height: 1; cursor: pointer; }
+.voiceCloseButton:hover { background: color-mix(in srgb, var(--chat-accent) 10%, transparent); }
+.voiceOverlayBody { min-height: 0; overflow: auto; padding: 12px; }
+.microphoneLabel { display: block; margin-bottom: 6px; color: var(--chat-muted-text); font-weight: 700; }
+.microphoneControls { display: flex; align-items: center; gap: 8px; }
+.microphoneControls select { min-width: 0; flex: 1; padding: 7px; background: var(--chat-pane-bg); color: var(--chat-text-color); border: 1px solid var(--chat-pane-border); border-radius: 7px; }
+.microphoneControls select:disabled { opacity: .5; cursor: not-allowed; }
+.voiceStartButton { margin-top: 10px; border-color: var(--chat-accent); background: var(--chat-accent); color: var(--chat-pane-bg); font-weight: 700; }
+.voiceStartButton:hover:not(:disabled) { background: color-mix(in srgb, var(--chat-accent) 88%, #111 12%); }
 .voicePreview { margin-top: 7px; padding: 10px 12px; background: var(--chat-pane-bg); border: 1px solid var(--chat-pane-border); border-radius: 10px; line-height: 1.6; overflow-wrap: anywhere; max-height: 150px; overflow-y: auto; }
 .voicePartial { color: var(--chat-muted-text); }
 .voicePreview small { display: block; margin-top: 6px; color: var(--chat-muted-text); }
 .voiceError { color: #a52b26; font-size: 13px; margin: 6px 0; }
-.microphoneSettings { margin-left: auto; }
-.microphoneSettings summary { cursor: pointer; color: var(--chat-muted-text); }
-.microphoneSettings select { max-width: 220px; margin: 5px; padding: 5px; background: var(--chat-pane-bg); color: var(--chat-text-color); border: 1px solid var(--chat-pane-border); border-radius: 6px; }
 .voiceToolbar meter { max-width: 90px; }
