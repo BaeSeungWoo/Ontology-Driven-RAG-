@@ -68,6 +68,7 @@ function toHistoryItem(row: HistoryResponse, selectedSessionId: number | null): 
     llmModeLabel,
     promptName: row.promptName ?? "-",
     recentAt: formatDateTime(row.updatedAt ?? row.createdAt),
+    recentAtTimestamp: Date.parse(row.updatedAt ?? row.createdAt),
     isActive: selectedSessionId === id,
   };
 }

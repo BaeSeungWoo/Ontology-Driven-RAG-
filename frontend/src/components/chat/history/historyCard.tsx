@@ -1,6 +1,7 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
 
 import styles from "./history.module.css";
+import { formatHistoryRelativeTime } from "./historyTime";
 
 export type HistoryItem = {
   id: number;
@@ -13,16 +14,18 @@ export type HistoryItem = {
   llmModeLabel: string;
   promptName: string;
   recentAt: string;
+  recentAtTimestamp: number;
   isActive?: boolean;
 };
 
 type HistoryCardProps = {
   item: HistoryItem;
+  now: number;
   onSelect: (chatId: number) => void;
   onDelete: (chatId: number) => Promise<void>;
 };
 
-export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardProps) {
+export default function HistoryCard({ item, now, onSelect, onDelete }: HistoryCardProps) {
   // 내부 state
   // 기능/목적: 대화 삭제 확인 모달의 열림 상태를 관리한다.
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -80,7 +83,9 @@ export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardPro
       <p className={styles.cardTitle}>{item.title}</p>
       <p className={styles.cardModelMode}>{modelModePromptText}</p>
       <div className={styles.cardBottomRow}>
-        <p className={styles.cardMeta}>· {item.recentAt}</p>
+        <p className={styles.cardMeta} title={item.recentAt}>
+          {formatHistoryRelativeTime(item.recentAtTimestamp, now)}
+        </p>
         <p className={styles.cardQuestioner}>{item.questioner}</p>
       </div>
 

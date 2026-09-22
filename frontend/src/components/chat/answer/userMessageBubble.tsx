@@ -53,9 +53,6 @@ export default function UserMessageBubble({ message }: UserMessageBubbleProps) {
       </ul>
 
       <div className={styles.messageBody}>
-        <div className={styles.messageRoleRow}>
-          <p className={styles.messageRole}>질문</p>
-        </div>
         <div className={styles.messageText}>
           {textLines.map((line, textLineIndex) => (
             <p key={`${message.id}-${textLineIndex}`}>{line || "\u00A0"}</p>

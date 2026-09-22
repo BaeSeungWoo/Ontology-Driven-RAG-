@@ -91,13 +91,13 @@ export default function Question({
 
   // render
   return (
-    <form className="w-full" onSubmit={handleSubmit}>
+    <form className="relative w-full" onSubmit={handleSubmit}>
       <VoiceInput key={voiceContext} disabled={busy} onActiveChange={setVoiceActive} onComplete={text => {
         setQuestion(previous => [previous.trim(), text.trim()].filter(Boolean).join(" "));
         inputRef.current?.focus();
       }} />
       {sendError && <p role="alert" className={styles.voiceError}>{sendError}</p>}
-      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[22px] shadow-[0_1px_0_rgb(255_255_255_/_72%),0_6px_14px_rgb(37_68_104_/_24%)]">
+      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[54px] shadow-[0_1px_0_rgb(255_255_255_/_72%),0_6px_14px_rgb(37_68_104_/_24%)]">
         <input
           id="question-input"
           ref={inputRef}

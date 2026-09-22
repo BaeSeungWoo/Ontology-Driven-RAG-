@@ -6,6 +6,8 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
+from app.core.ladder_diagram import build_ladder_diagram
+
 
 ADDRESS_RE = re.compile(r"\b([A-Za-z])(\d+)(?:\.(\d+))?\b")
 ALARM_RE = re.compile(r"\bAL\d+\b", re.IGNORECASE)
@@ -96,6 +98,7 @@ class LadderLinker:
             reads = {address for value in summary.get("read_operands") or [] if (address := normalize_address(value))}
             writes = {address for value in summary.get("write_operands") or [] if (address := normalize_address(value))}
             self.blocks[nblock] = {
+                "diagram": build_ladder_diagram(block),
                 "reads": reads,
                 "writes": writes,
                 "logic_expression": str(block.get("logic_expression") or "").strip(),

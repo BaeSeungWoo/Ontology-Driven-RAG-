@@ -533,6 +533,10 @@ class LadderRetriever(BaseRetriever):
             for item in grouped_items[group]:
                 index += 1
                 meta = self._to_json_safe(item.metadata)
+                if group == "ladder":
+                    block = self.ladder_linker.blocks.get(str(meta.get("section_title") or "").strip())
+                    if block:
+                        meta["ladder_diagram"] = block["diagram"]
                 source = meta.get("source_doc_name", "unknown")
                 container_type = meta.get("container_type", "texts")
                 asset_path = meta.get("asset_path")

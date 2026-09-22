@@ -28,16 +28,13 @@
   justify-content: space-between;
   gap: 8px;
   margin: -14px -14px 10px;
-  padding: 10px 12px;
-  height: 44px;
+  padding: 4px 12px;
+  height: 34px;
+  flex-shrink: 0;
   box-sizing: border-box;
   border-bottom: 1px solid #96b0cc;
   border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
+  background: #f1f5fa;
 }
 
 .historyRootCollapsed .headerRow {
@@ -45,15 +42,11 @@
   justify-content: center;
   margin: 0;
   padding: 0;
-  height: 44px;
-  min-height: 44px;
+  height: 34px;
+  min-height: 34px;
   border-bottom: 1px solid #96b0cc;
   border-radius: 14px 14px 0 0;
-  background: linear-gradient(
-    180deg,
-    rgb(224 235 247),
-    rgb(187 206 228)
-  );
+  background: #f1f5fa;
 }
 
 .historyRootCollapsed .headerTitleGroup {
@@ -73,19 +66,20 @@
   min-width: 0;
 }
 
-.headerTitleGroup :global(.pane-title) {
-  line-height: 30px;
+.headerRow .headerTitleGroup :global(.pane-title) {
+  font-size: 12px;
+  line-height: 24px;
 }
 
 .panelToggleButton {
   flex: 0 0 auto;
-  width: 30px;
-  height: 30px;
+  width: 24px;
+  height: 24px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--chat-title-color);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 900;
   line-height: 1;
   cursor: pointer;
@@ -108,20 +102,19 @@
 }
 
 .newChatButton {
-  border: 1px solid var(--chat-pane-border);
-  background: var(--chat-pane-bg);
+  border: 0;
+  background: transparent;
   color: var(--chat-accent, #1b5e9e);
   border-radius: 8px;
-  height: 34px;
-  padding: 0 11px;
-  gap: 6px;
-  min-width: 86px;
+  height: 24px;
+  padding: 0 4px;
+  gap: 3px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
@@ -358,8 +351,6 @@
 
 .historyCardActive {
   border-color: var(--chat-accent, #1b5e9e);
-  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
-  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
 }
 
 .cardDeleteButton {

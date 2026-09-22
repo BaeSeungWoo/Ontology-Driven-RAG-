@@ -86,6 +86,14 @@
 
 .assistantMessage {
   justify-content: flex-start;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.ladderMessage {
+  flex-direction: column;
+  align-items: stretch;
+  min-width: 0;
 }
 
 .messageBody {
@@ -96,9 +104,7 @@
 }
 
 .messageSelectBadge {
-  position: absolute;
-  top: 8px;
-  right: 10px;
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -199,25 +205,48 @@
   white-space: nowrap;
 }
 
-.messageRole {
-  margin: 0;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--chat-title-color);
-}
-
-.messageRoleRow {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  color: var(--chat-title-color);
-}
-
-.assistantRoleRow {
+.assistantMetaRow {
   display: flex;
   align-items: center;
   gap: 7px;
+  flex-wrap: wrap;
+  min-width: 0;
+  font-size: 11px;
   color: var(--chat-title-color);
+}
+
+.assistantAiBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 4px;
+  background: var(--chat-accent-soft, #e8f0f9);
+  color: var(--chat-accent, #1b5e9e);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.assistantPromptName {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 700;
+}
+
+.assistantStats {
+  color: var(--chat-muted-text);
+  font-size: 10.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.assistantGenerationStatus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--chat-muted-text);
 }
 
 .assistantThinkingSpinner {
@@ -231,7 +260,7 @@
 }
 
 .messageText {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 .messageText p {
@@ -242,15 +271,11 @@
   word-break: break-word;
 }
 
-.userMessage .messageText p,
-.userMessage .messageRole,
-.userMessage .messageRoleRow {
+.userMessage .messageText p {
   color: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-title-color) 6%);
 }
 
 .assistantMessage .messageText p,
-.assistantMessage .messageRole,
-.assistantMessage .assistantRoleRow,
 .assistantMessage .markdownContent :where(p, li, blockquote, h1, h2, h3, h4, h5, h6) {
   color: var(--chat-text-color);
 }
@@ -264,7 +289,7 @@
    기능: 문단/리스트/코드/테이블 렌더 스타일
    ============================================================ */
 .markdownContent {
-  margin-top: 6px;
+  margin-top: 0;
 }
 
 .markdownContent :where(p, ul, ol, blockquote, pre, table, h1, h2, h3, h4, h5, h6) {
