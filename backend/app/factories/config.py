@@ -1,6 +1,6 @@
 # backend/app/factories/config.py
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Dict, Optional
 import json
 from pathlib import Path
@@ -16,9 +16,12 @@ class LLMConfig:
     model_name: str
     temperature: float = 0
 
-    # Ollama 전용
+    # Ollama / OpenAI 호환 서버(vLLM 등) 공용 — None 이면 각 핸들러의 기본값
     base_url: Optional[str] = None
-    num_ctx: int = 8192
+    num_ctx: int = 8192                     # Ollama 전용
+
+    # OpenAI / Anthropic / Google 전용. None 이면 환경변수에서 읽는다.
+    api_key: Optional[str] = None
 
     # Anthropic / OpenAI 전용
     # max_tokens: int = 4096
@@ -304,3 +307,26 @@ CONFIGS: Dict[str, Config] = {
         machines=machine_info
     ),
 }
+
+
+# ── 로컬 vLLM : A 공장(yunam) 데이터 그대로 두고 LLM 만 교체 ──────────────────
+#   vLLM 이 OpenAI 호환 API 를 제공하므로 provider 는 "openai" 를 쓴다.
+#   서버: python -m vllm.entrypoints.openai.api_server --served-model-name Qwen3-VL
+#   원격(로컬 PC)에서 쓸 때는 SSH 터널을 열고 base_url 을 그대로 두면 된다.
+CONFIGS["vllm_config"] = replace(
+    CONFIGS["ollama_config"],
+    llm=LLMConfig(
+        provider="openai",
+        model_name="Qwen3-VL",
+        base_url="http://127.0.0.1:8000/v1",
+        api_key="EMPTY",                    # vLLM 은 키를 검사하지 않지만 SDK 가 빈 값을 거부한다
+        temperature=0,
+        max_tokens=1024,                    # 서버 max_model_len 8192 = 프롬프트 + 응답
+    ),
+    # 임베딩은 LLM 과 별개다. 명시하지 않으면 llm.base_url(vLLM)을 그대로 물려받아
+    # Ollama 임베딩 요청이 vLLM 으로 가버리므로 반드시 따로 지정한다.
+    embedding=EmbeddingConfig(
+        model="qwen3-embedding:8b",
+        base_url="http://192.168.1.179:11434",
+    ),
+)
