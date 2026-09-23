@@ -34,8 +34,15 @@ class BaseLLM:
 
 class OpenAILLM(BaseLLM):
     def __init__(self, cfg: LLMConfig):
+        # base_url 을 주면 vLLM 같은 OpenAI 호환 서버로 그대로 붙는다.
+        # 그런 서버는 키를 검사하지 않지만 SDK 가 빈 키를 거부하므로 "EMPTY" 를 쓴다.
+        base_url = cfg.base_url or os.getenv("OPENAI_BASE_URL")
+        api_key  = cfg.api_key or os.getenv("OPENAI_API_KEY") or ("EMPTY" if base_url else None)
+
         self.client = AsyncOpenAI(
-            api_key=cfg.api_key or os.getenv("OPENAI_API_KEY")
+            api_key=api_key,
+            base_url=base_url,
+            timeout=LLM_TIMEOUT,
         )
         self.model       = cfg.model_name
         self.temperature = cfg.temperature
@@ -403,7 +410,8 @@ if __name__ == "__main__":
     async def test():
         print("=== TEST START ===")
 
-        config  = CONFIGS["ollama_config"]
+        # 사내망 Ollama 는 이 서버에서 안 닿으므로 기본은 로컬 vLLM 이다.
+        config  = CONFIGS[os.getenv("TEST_CONFIG", "vllm_config")]
         llm_cfg = config.llm
 
         messages = [
