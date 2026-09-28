@@ -312,13 +312,14 @@ CONFIGS: Dict[str, Config] = {
 # ── 로컬 vLLM : A 공장(yunam) 데이터 그대로 두고 LLM 만 교체 ──────────────────
 #   vLLM 이 OpenAI 호환 API 를 제공하므로 provider 는 "openai" 를 쓴다.
 #   서버: python -m vllm.entrypoints.openai.api_server --served-model-name Qwen3-VL
-#   원격(로컬 PC)에서 쓸 때는 SSH 터널을 열고 base_url 을 그대로 두면 된다.
+#   원격(로컬 PC)에서 쓸 때는 SSH 터널을 로컬 8100 으로 연다 (8000 은 백엔드가 사용).
+#     ssh -p 10521 -N -L 8100:127.0.0.1:8000 -L 8101:127.0.0.1:8001 work@max.gntp.or.kr
 CONFIGS["vllm_config"] = replace(
     CONFIGS["ollama_config"],
     llm=LLMConfig(
         provider="openai",
         model_name="Qwen3-VL",
-        base_url="http://127.0.0.1:8000/v1",
+        base_url="http://127.0.0.1:8100/v1",
         api_key="EMPTY",                    # vLLM 은 키를 검사하지 않지만 SDK 가 빈 값을 거부한다
         temperature=0,
         max_tokens=1024,                    # 서버 max_model_len 8192 = 프롬프트 + 응답

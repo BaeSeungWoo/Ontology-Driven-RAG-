@@ -5,7 +5,7 @@
  * Out: LlmModel, LlmMode, LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS
  */
 
-export type LlmModel = "ollama_config" | "openai_config" | "anthropic_config" | "google_config";
+export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
 export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge";
 
@@ -21,6 +21,7 @@ export type LlmModeOption = {
 
 export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
   { value: "ollama_config", label: "Ollama" },
+  { value: "vllm_config", label: "vLLM (Qwen3-VL)" },
   { value: "openai_config", label: "OpenAI" },
   { value: "anthropic_config", label: "Anthropic" },
   { value: "google_config", label: "Gemini" },
