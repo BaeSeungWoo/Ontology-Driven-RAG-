@@ -135,6 +135,7 @@ export function getCitationDocumentRequest(
   const activeMessage = getActiveMessage(messages, activeAssistantMessageId);
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
   const selectedChunk = getSelectedChunk(messages, selectedCitation);
+  if (selectedChunk?.metadata?.source_kind === "cms") return null;
   const sourceDocName =
     typeof selectedChunk?.metadata?.source_doc_name === "string"
       ? selectedChunk.metadata.source_doc_name

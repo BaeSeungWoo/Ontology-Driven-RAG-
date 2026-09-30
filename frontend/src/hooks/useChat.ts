@@ -1,9 +1,8 @@
-﻿import { useState } from "react";
+﻿import { useRef, useState } from "react";
 import { askApi } from "@/services/chatApi";
 import { createMessage, createSession, getMessages, updateMessage } from "@/services/chatApi";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
-import type { PromptRow } from "@/types/prompt";
 import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 
 type UseChatParams = {
@@ -18,7 +17,6 @@ export type SendQuestionParams = {
   llmModel: LlmModel;
   llmMode: LlmMode;
   personaType: PersonaType;
-  prompt: PromptRow;
   forceNewSession?: boolean;
 };
 
@@ -58,6 +56,8 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [shouldRestoreMemory, setShouldRestoreMemory] = useState(false);
+  const [isSessionLoading, setIsSessionLoading] = useState(false);
+  const sessionLoadVersion = useRef(0);
 
   // =========================
   // 함수
@@ -69,6 +69,9 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
    * Out: messages=[], error=null, isLoading=false
    */
   const resetChatState = () => {
+    sessionLoadVersion.current += 1;
+    setIsSessionLoading(false);
+    setShouldRestoreMemory(false);
     setMessages([]);
     setError(null);
     setIsLoading(false);
@@ -81,25 +84,33 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
    * Out: messages 갱신 또는 error 갱신
    */
   const loadSessionMessages = async (sessionId: number, promptName?: string | null) => {
+    const version = ++sessionLoadVersion.current;
+    setIsSessionLoading(true);
     try {
       setError(null);
       const sessionMessages = await getMessages(sessionId);
+      if (version !== sessionLoadVersion.current) return false;
       setMessages(sessionMessages.map((message) => ({
         ...message,
         prompt_name: message.prompt_name ?? promptName,
       })));
       setShouldRestoreMemory(true);
+      return sessionMessages;
     } catch (err) {
+      if (version !== sessionLoadVersion.current) return false;
       const message = err instanceof Error ? err.message : "세션 메시지 조회 중 오류가 발생했습니다.";
       setError(`세션 로드 실패: ${message}`);
       setMessages([]);
+      return false;
+    } finally {
+      if (version === sessionLoadVersion.current) setIsSessionLoading(false);
     }
   };
 
   /**
    * 기능: 질문 전송, 세션 생성, 메시지 저장, 스트리밍 응답 반영을 한 번에 처리한다.
    * 목적: 채팅 전송 플로우를 훅 내부에서 일관되게 수행한다.
-   * In: question/questioner/llmModel/llmMode/prompt/forceNewSession
+   * In: question/questioner/llmModel/llmMode/forceNewSession
    * Out: 성공 여부(boolean), messages/isLoading/error/session 상태 반영
    */
   const sendQuestion = async ({
@@ -108,7 +119,6 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     llmModel,
     llmMode,
     personaType,
-    prompt,
     forceNewSession = false,
   }: SendQuestionParams) => {
     const normalizedQuestion = question.trim();
@@ -129,7 +139,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
           title: normalizedQuestion,
           llm_model: llmModel,
           llm_mode: llmMode,
-          prompt_no: prompt.prompt_no,
+          llm_persona: personaType,
         });
         sessionId = created.session_id;
         onSessionId(sessionId);
@@ -188,7 +198,6 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       questioner: normalizedQuestioner,
       model: llmModel,
       llm_mode: llmMode,
-      prompt_name: prompt.prompt_name,
     };
 
     const assistantPlaceholder: MessageItem = {
@@ -200,23 +209,43 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       questioner: normalizedQuestioner,
       model: llmModel,
       llm_mode: llmMode,
-      prompt_name: prompt.prompt_name,
     };
 
     setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
 
+    return generateAnswer(sessionId, assistantMessageId, {
+      question: normalizedQuestion, llmModel, llmMode, personaType,
+    }, shouldRestoreMemory);
+  };
+
+  const generateAnswer = async (
+    sessionId: number,
+    assistantMessageId: number,
+    { question, llmModel, llmMode, personaType }: Pick<SendQuestionParams, "question" | "llmModel" | "llmMode" | "personaType">,
+    restoreMemory: boolean,
+  ) => {
+    setIsLoading(true);
+    setError(null);
+    setMessages(prev => prev.map(item => item.message_id === assistantMessageId
+      ? { ...item, content: "", metadata: { persona_type: personaType } }
+      : item));
     try {
       let streamedAnswer = "";
 
       const requestStartedAt = performance.now();
       const result = await askApi({
         sessionId,
-        question: normalizedQuestion,
+        question,
         llmModel,
         llmMode,
         personaType,
-        promptNo: prompt.prompt_no,
-        restoreMemory: shouldRestoreMemory,
+        restoreMemory,
+        onRetry: (attempt) => {
+          streamedAnswer = "";
+          setMessages(prev => prev.map(item => item.message_id === assistantMessageId
+            ? { ...item, content: "", metadata: { persona_type: personaType, retry_attempt: attempt } }
+            : item));
+        },
         onChunk: (chunk) => {
           streamedAnswer += chunk;
           setMessages((prev) =>
@@ -233,7 +262,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       const metadataWithUsedChunks = {
         ...withUsedChunks(result.metadata, finalAnswer),
         elapsed_ms: Math.round(performance.now() - requestStartedAt),
-        prompt_name: prompt.prompt_name,
+        persona_type: personaType,
       };
 
       setMessages((prev) =>
@@ -244,21 +273,27 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         )
       );
 
-      await updateMessage(assistantMessageId, {
-        content: finalAnswer,
-        metadata: metadataWithUsedChunks,
-      });
+      try {
+        await updateMessage(assistantMessageId, {
+          content: finalAnswer,
+          metadata: metadataWithUsedChunks,
+        });
+      } catch {
+        setError("답변은 생성되었지만 이력에 저장하지 못했습니다.");
+        return false;
+      }
 
       setShouldRestoreMemory(false);
       onHistoryRefresh?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : "질문 요청 중 오류가 발생했습니다.";
       setError(message);
+      setShouldRestoreMemory(true);
 
       setMessages((prev) =>
         prev.map((item) =>
           item.message_id === assistantMessageId
-            ? { ...item, content: `요청 실패: ${message}` }
+            ? { ...item, content: `요청 실패: ${message}`, metadata: { persona_type: personaType, request_failed: true } }
             : item
         )
       );
@@ -268,6 +303,21 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     }
 
     return true;
+  };
+
+  const retryLastAnswer = async (settings: Pick<SendQuestionParams, "llmModel" | "llmMode" | "personaType">) => {
+    if (isLoading || isSessionLoading) return false;
+    const assistant = messages[messages.length - 1];
+    const user = messages[messages.length - 2];
+    if (!assistant || assistant.role !== "assistant" || !user || user.role !== "user") return false;
+    if (assistant.content.trim() && assistant.content !== "(응답 생성 중...)" && !assistant.metadata?.request_failed) return false;
+    return generateAnswer(assistant.session_id, assistant.message_id, {
+      ...settings,
+      question: user.content,
+      llmModel: (assistant.model as LlmModel) || settings.llmModel,
+      llmMode: (assistant.llm_mode as LlmMode) || settings.llmMode,
+      personaType: (assistant.metadata?.persona_type as PersonaType) || settings.personaType,
+    }, true);
   };
 
   // =========================
@@ -280,9 +330,11 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
   return {
     messages,
     sendQuestion,
+    retryLastAnswer,
     loadSessionMessages,
     resetChatState,
     isLoading,
+    isSessionLoading,
     error,
   };
 };

@@ -1,5 +1,7 @@
 import { useState, type KeyboardEvent, type MouseEvent } from "react";
 
+import { PERSONA_OPTIONS } from "@/constants/personaOptions";
+
 import styles from "./history.module.css";
 import { formatHistoryRelativeTime } from "./historyTime";
 
@@ -13,6 +15,7 @@ export type HistoryItem = {
   llmModelLabel: string;
   llmModeLabel: string;
   promptName: string;
+  personaType?: string | null;
   recentAt: string;
   recentAtTimestamp: number;
   isActive?: boolean;
@@ -31,7 +34,8 @@ export default function HistoryCard({ item, now, onSelect, onDelete }: HistoryCa
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
 
   const cardClassName = `${styles.historyCard} ${item.isActive ? styles.historyCardActive : ""}`;
-  const modelModePromptText = `· ${item.llmModelLabel} | ${item.llmModeLabel} | ${item.promptName}`;
+  const personaLabel = PERSONA_OPTIONS.find(option => option.value === item.personaType)?.label ?? "페르소나 미기록";
+  const modelModeText = `· ${item.llmModelLabel} | ${personaLabel} | ${item.llmModeLabel}`;
 
   // 함수
   // 기능/목적: 카드 선택, 키보드 선택, 삭제 확인 모달 열기/닫기를 처리한다.
@@ -81,7 +85,7 @@ export default function HistoryCard({ item, now, onSelect, onDelete }: HistoryCa
         <span aria-hidden="true">×</span>
       </button>
       <p className={styles.cardTitle}>{item.title}</p>
-      <p className={styles.cardModelMode}>{modelModePromptText}</p>
+      <p className={styles.cardModelMode}>{modelModeText}</p>
       <div className={styles.cardBottomRow}>
         <p className={styles.cardMeta} title={item.recentAt}>
           {formatHistoryRelativeTime(item.recentAtTimestamp, now)}

@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useState, type ReactNode } from "react";
 import type { ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
+import CmsEvidence, { cmsEvidenceSummary, getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
   formatJson,
   getActiveMessage,
@@ -47,6 +48,16 @@ export default function Citation({
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
   const selectedChunk = getSelectedChunk(messages, selectedCitation);
+  const selectedAlarmCode = selectedChunk?.metadata?.source_kind === "cms"
+    ? parseCmsEvidence(selectedChunk.document)?.code : null;
+  const selectedChunks = selectedMessage?.metadata?.chunks?.length
+    ? selectedMessage.metadata.chunks : selectedMessage?.metadata?.used_chunks ?? [];
+  const alarmManual = selectedAlarmCode ? selectedChunks.find(chunk =>
+    chunk.metadata.source_kind === "manual" && (chunk.metadata.matched_alarm_code === selectedAlarmCode
+      || (Array.isArray(chunk.metadata.matched_alarm_codes) && chunk.metadata.matched_alarm_codes.includes(selectedAlarmCode))))
+    ?? selectedChunks.find(chunk => chunk.metadata.source_kind === "manual"
+      && getAlarmManualDescription(chunk.document, selectedAlarmCode)) : undefined;
+  const alarmDescription = alarmManual ? getAlarmManualDescription(alarmManual.document, selectedAlarmCode) : null;
   const referenceLabelMap = new Map(getMessageReferenceItems(selectedMessage ?? activeMessage).map((item) => [item.chunkIndex, item.label]));
   const referenceItems = getMessageReferenceItems(activeMessage);
   const activeChunks = activeMetadata?.chunks?.length
@@ -168,6 +179,7 @@ export default function Citation({
                   typeof chunk?.metadata?.source_doc_name === "string"
                     ? chunk.metadata.source_doc_name
                     : "문서명 없음";
+                const isCms = chunk?.metadata?.source_kind === "cms";
                 const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
 
                 return (
@@ -189,19 +201,19 @@ export default function Citation({
                     <span className={styles.referenceCardMeta}>
                       <span className={styles.referenceCardNumber}>{label}</span>
                       <span className={styles.referenceCardScore}>
-                        {typeof score === "number"
+                        {isCms ? "DB 조회 근거" : typeof score === "number"
                           ? `관련도 ${score.toFixed(3)}`
                           : chunk?.retrieval_rank
                             ? `검색 순위 ${chunk.retrieval_rank}`
                             : "참조 문서"}
                       </span>
-                      <span className={styles.referenceCardPage}>
+                      {!isCms && <span className={styles.referenceCardPage}>
                         {getChunkPageLabel(chunk) ?? "페이지 -"}
-                      </span>
+                      </span>}
                     </span>
                     <strong className={styles.referenceCardDocument}>{sourceDocName}</strong>
                     <span className={styles.referenceCardSummary}>
-                      {chunk?.document ?? "참조 내용을 불러오는 중입니다."}
+                      {isCms ? cmsEvidenceSummary(chunk?.document ?? "") : chunk?.document ?? "참조 내용을 불러오는 중입니다."}
                     </span>
                     <span className={styles.referenceCardAction}>
                       {isActive && isDetailOpen ? "상세 닫기" : "상세 보기"}
@@ -223,7 +235,7 @@ export default function Citation({
           <div className={styles.referenceHeader}>
             <div className={styles.referenceHeadingGroup}>
               <h3 className={styles.referenceTitleWithIcon}>
-                <span>선택한 참조</span>
+                <span>{selectedChunk?.metadata?.source_kind === "cms" ? "DB 조회 근거" : "선택한 참조"}</span>
               </h3>
               <div className={styles.referenceBadges}>
                 {selectedReferenceNumber !== null ? (
@@ -251,6 +263,21 @@ export default function Citation({
           <div className={styles.referenceOverlayBody}>
           {selectedChunk ? (
             <div className={styles.chunkCard}>
+              {selectedChunk.metadata?.source_kind === "cms" ? <>
+                <CmsEvidence text={selectedChunk.document} manualDescription={alarmDescription}
+                  manualDefinition={alarmManual ? getAlarmManualDefinition(alarmManual.document, selectedAlarmCode) : null} />
+                {selectedAlarmCode ? <div className={styles.chunkBodyBlock}>
+                  <p className={styles.chunkBodyTitle}>연결된 장비 매뉴얼</p>
+                  {alarmManual ? <>
+                    <p>{String(alarmManual.metadata.source_doc_name)} · {getChunkPageLabel(alarmManual) ?? "페이지 미기록"}</p>
+                    <p className={styles.chunkDocument}>{alarmManual.document}</p>
+                    <button type="button" className={styles.openDocumentButton}
+                      onClick={() => onCitationSelect?.(selectedCitation.messageId, alarmManual.index)}>
+                      매뉴얼 근거 보기
+                    </button>
+                  </> : <p>이 답변에서 해당 알람 코드와 일치하는 장비 매뉴얼 근거를 찾지 못했습니다.</p>}
+                </div> : null}
+              </> : <>
               <div className={styles.chunkMetaGrid}>
                 <p className={styles.chunkTitle}>
                   <span className={styles.chunkMetaLabel}>문서명</span>
@@ -287,6 +314,7 @@ export default function Citation({
                   referenceLabel={selectedReferenceLabel ?? "선택 참조"}
                 />
               ) : null}
+              </>}
             </div>
           ) : isLoading && activeMessage ? (
             <div className={styles.chunkCardSkeleton} aria-hidden="true">

@@ -30,6 +30,18 @@ def build_ladder_diagram(block: dict[str, Any]) -> dict[str, Any]:
         op = step.get("op", "")
         if coil is not None:
             return result
+        if op == "SUB":
+            sub = step.get("sub_instruction") or {}
+            arguments = sub.get("arguments") or []
+            if current is None or stack or not isinstance(sub.get("code"), int):
+                return result
+            current = {
+                "kind": "function", "name": sub.get("name") or "",
+                "code": sub["code"],
+                "arguments": [str(argument.get("value", "")) for argument in arguments],
+                "input": current,
+            }
+            continue
         if op in {"AND.STK", "OR.STK"}:
             if current is None or not stack:
                 return result

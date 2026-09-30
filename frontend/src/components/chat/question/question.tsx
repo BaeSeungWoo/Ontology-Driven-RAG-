@@ -1,11 +1,10 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import VoiceInput from "./voiceInput";
 
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
-import type { PromptRow } from "@/types/prompt";
 
 import styles from "./question.module.css";
 
@@ -15,7 +14,6 @@ export type QuestionPayload = {
   llmModel: LlmModel;
   llmMode: LlmMode;
   personaType: PersonaType;
-  prompt: PromptRow;
 };
 
 type QuestionProps = {
@@ -23,8 +21,8 @@ type QuestionProps = {
   selectedLlmModel: LlmModel;
   selectedLlmMode: LlmMode;
   selectedPersonaType: PersonaType;
-  selectedPrompt: PromptRow | null;
   isBusy?: boolean;
+  recommendations?: ReactNode;
   onSend: (payload: QuestionPayload) => Promise<boolean>;
 };
 
@@ -33,9 +31,9 @@ export default function Question({
   selectedLlmModel,
   selectedLlmMode,
   selectedPersonaType,
-  selectedPrompt,
   onSend,
   isBusy = false,
+  recommendations,
 }: QuestionProps) {
   // 내부 state
   // 기능/목적: 사용자가 작성 중인 질문 입력값과 전송 가능 여부를 관리한다.
@@ -46,12 +44,11 @@ export default function Question({
   const submitting = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const busy = isBusy || isSubmitting;
-  const voiceContext = JSON.stringify([questioner, selectedPrompt?.prompt_no, selectedLlmModel, selectedLlmMode, selectedPersonaType]);
+  const voiceContext = JSON.stringify([questioner, selectedLlmModel, selectedLlmMode, selectedPersonaType]);
 
   const hasQuestion = question.trim().length > 0;
   const hasQuestioner = questioner.trim().length > 0;
-  const hasPrompt = selectedPrompt !== null;
-  const canSend = hasQuestion && hasQuestioner && hasPrompt && !voiceActive && !busy;
+  const canSend = hasQuestion && hasQuestioner && !voiceActive && !busy;
 
   // 함수
   // 기능/목적: 필수값이 모두 있을 때 질문 payload를 만들고 상위 전송 로직을 호출한다.
@@ -60,7 +57,6 @@ export default function Question({
     if (!canSend || submitting.current) return;
     const normalizedQuestion = question.trim();
     if (!normalizedQuestion) return;
-    if (!selectedPrompt) return;
 
     submitting.current = true;
     setIsSubmitting(true);
@@ -72,7 +68,6 @@ export default function Question({
         llmMode: selectedLlmMode,
         personaType: selectedPersonaType,
         questioner: questioner.trim(),
-        prompt: selectedPrompt,
       });
       if (success) setQuestion("");
       else setSendError("질문을 전송하지 못했습니다. 입력 내용은 유지됩니다.");
@@ -108,6 +103,7 @@ export default function Question({
           readOnly={voiceActive || busy}
           onChange={(event) => setQuestion(event.target.value)}
         />
+        {recommendations}
         <button
           type="submit"
           className={styles.submitButton}

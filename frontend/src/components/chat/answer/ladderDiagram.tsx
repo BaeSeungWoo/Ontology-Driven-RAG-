@@ -8,6 +8,10 @@ type Layout = { node: LadderNode; width: number; height: number; children: Layou
 
 function measure(node: LadderNode): Layout {
   if (node.kind === "contact") return { node, width: 160, height: 112, children: [] };
+  if (node.kind === "function") {
+    const input = measure(node.input);
+    return { node, width: input.width + 200, height: input.height, children: [input] };
+  }
   const children = node.children.map(measure);
   return {
     node, children,
@@ -43,6 +47,24 @@ function symbol(node: LadderContact, x: number, y: number, coil = false) {
 }
 
 function draw(layout: Layout, x: number, y: number): ReactNode {
+  if (layout.node.kind === "function") {
+    const input = layout.children[0];
+    const left = x + input.width;
+    const label = `SUB ${layout.node.code}${layout.node.name ? ` · ${layout.node.name}` : ""}`;
+    const argumentsText = layout.node.arguments.join(", ") || "없음";
+    return <>
+      {draw(input, x, y)}
+      {wire(left, y, left + 20, y)}
+      <g>
+        <title>{`${label} · 원문 인수: ${argumentsText} · 내부 동작 미해석`}</title>
+        <rect x={left + 20} y={y - 24} width={160} height={52} className={styles.wire} />
+        <text x={left + 100} y={y - 5} className={styles.address}>{label.length > 20 ? `${label.slice(0, 19)}…` : label}</text>
+        <text x={left + 100} y={y + 16} className={styles.label}>인수: {argumentsText.length > 22 ? `${argumentsText.slice(0, 21)}…` : argumentsText}</text>
+        <text x={left + 100} y={y + 48} className={styles.label}>기능 블록 · 내부 동작 미해석</text>
+      </g>
+      {wire(left + 180, y, left + 200, y)}
+    </>;
+  }
   if (layout.node.kind === "contact") {
     return <>{wire(x, y, x + 64, y)}{symbol(layout.node, x + 80, y)}{wire(x + 96, y, x + 160, y)}</>;
   }
@@ -107,10 +129,10 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
               <p className={styles.note}>{reference.additional ? "추가 검색된 근거" : "답변에서 인용한 근거"} · 참조 [{reference.label}]</p>
               {layout && diagram.status === "supported" ? (
                 <>
-                  <p className={styles.note}>명령 기반 재구성 · 통전 색상 없음 · 가로 스크롤로 전체 회로를 확인하세요.</p>
+                  <p className={styles.note}>명령 순서 기반 재구성 · SUB는 원문 명령·인수를 표시하며 내부 동작은 해석하지 않습니다. 통전 상태를 나타내지 않으며 자세한 내용은 아래 원본 명령에서 확인하세요.</p>
                   <div className={styles.viewport} tabIndex={0} role="region" aria-label={`${diagram.nblock} 래더 도면 가로 스크롤`}>
                     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${diagram.nblock} 래더 회로, 출력 ${diagram.coil.addr}`}>
-                      <title>{diagram.nblock} 접점과 코일의 논리 연결</title>
+                      <title>{`${diagram.nblock} 접점·기능 블록·출력의 명령 흐름`}</title>
                       {wire(20, 16, 20, height - 16)}
                       {wire(width - 20, 16, width - 20, height - 16)}
                       {wire(20, 48, 40, 48)}

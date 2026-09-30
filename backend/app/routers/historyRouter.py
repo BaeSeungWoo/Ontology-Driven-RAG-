@@ -1,5 +1,6 @@
-﻿from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
+from typing import Literal
 import json
 import traceback
 import os
@@ -34,24 +35,7 @@ def getHistoryList(client_request: Request):
     machine_code = set_history_code(ctx)
     try:
         history_list = database.getHistoryList(machine_code)
-        json_data = []
-
-        for row in history_list:
-            json_data.append(
-                {
-                    "sessionId": row[0],
-                    "questioner": row[1],
-                    "title": row[2],
-                    "llmModel": row[3],
-                    "llmMode": row[4],
-                    "promptNo": row[5],
-                    "createdAt": row[6],
-                    "updatedAt": row[7],
-                    "promptName": row[8],
-                }
-            )
-
-        return json_data
+        return _history_rows_to_json(history_list)
     except Exception as e:
         print(f"get_history_list error: {e}")
         raise HTTPException(
@@ -83,6 +67,11 @@ def _row_to_history_json(row):
         "updatedAt": row[7],
         "promptName": row[8],
     }
+
+
+def _history_rows_to_json(rows):
+    personas = database.getHistoryPersonas([row[0] for row in rows])
+    return [dict(_row_to_history_json(row), personaType=personas.get(row[0])) for row in rows]
 
 
 def _sanitize_page(page: int, page_size: int):
@@ -119,7 +108,7 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
         safe_page_size = max(1, int(result.get("page_size", page_size)))
 
         return {
-            "rows": [_row_to_history_json(row) for row in rows],
+            "rows": _history_rows_to_json(rows),
             "total_count": total_count,
             "total_pages": total_pages,
             "page": safe_page,
@@ -169,7 +158,7 @@ def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request)
         safe_page_size = max(1, int(result.get("page_size", page_size)))
 
         return {
-            "rows": [_row_to_history_json(row) for row in rows],
+            "rows": _history_rows_to_json(rows),
             "total_count": total_count,
             "total_pages": total_pages,
             "page": safe_page,
@@ -191,7 +180,8 @@ class CreateSessionRequest(BaseModel):
     title: str
     llm_model: str
     llm_mode: str
-    prompt_no: int
+    llm_persona: Literal["operator", "maintenance", "engineer", "manager"]
+    prompt_no: int | None = None
 
 
 class CreateSessionResponse(BaseModel):
@@ -239,7 +229,8 @@ def createSession(req: CreateSessionRequest, client_request: Request):
             req.llm_model,
             req.llm_mode,
             req.prompt_no,
-            machine_code
+            machine_code,
+            req.llm_persona,
         )
         return {"result": "success", "session_id": session_id}
     except Exception as e:

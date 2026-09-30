@@ -991,3 +991,16 @@
 }
 
 
+
+.cmsEvidence { color: var(--chat-text-color); font-size: 12px; line-height: 1.6; }
+.cmsNotice { margin: 0 0 12px; color: var(--chat-muted-text); }
+.cmsFields { margin: 0; }
+.cmsFields > div { display: grid; grid-template-columns: minmax(110px, 0.8fr) minmax(0, 1.2fr); gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--chat-pane-border); }
+.cmsFields dt { color: var(--chat-muted-text); }
+.cmsFields dd { margin: 0; overflow-wrap: anywhere; }
+.cmsFields .cmsFields > div { display: block; }
+.cmsEvidence h4 { margin: 18px 0 8px; font-weight: 700; }
+.cmsEvidence table { width: 100%; border-collapse: collapse; }
+.cmsEvidence th, .cmsEvidence td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--chat-pane-border); }
+.cmsEvents { padding-left: 20px; list-style: decimal; }
+.cmsEvents > li { margin-bottom: 12px; }

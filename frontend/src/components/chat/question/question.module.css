@@ -22,6 +22,49 @@
   color: var(--chat-muted-text);
 }
 
+.recommendationButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 50%;
+  background: var(--chat-pane-bg);
+  color: var(--chat-muted-text);
+  cursor: pointer;
+}
+
+.recommendationButton:hover,
+.recommendationButton[aria-expanded="true"] {
+  color: var(--chat-accent);
+  background: var(--chat-accent-soft, var(--chat-pane-bg));
+}
+
+.recommendationButton:focus-visible {
+  outline: 2px solid var(--chat-accent);
+  outline-offset: 2px;
+}
+
+.recommendationPopover {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
+  z-index: 50;
+  width: min(360px, 100%);
+  max-height: min(360px, 55vh);
+  overflow-y: auto;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  background: var(--chat-pane-bg);
+  box-shadow: 0 8px 24px rgb(15 23 42 / 14%);
+}
+
+.recommendationPopover > section {
+  margin: 0;
+  border: 0;
+}
+
 /* 위치: 전송 버튼 기본 상태 */
 .submitButton {
   width: 34px;

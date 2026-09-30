@@ -3,12 +3,32 @@
 import json
 from pathlib import Path
 
+ANSWER_SNIPPET_POLICY = """[답변 스니펫 표현 규칙]
+- 답변 내용과 질문 의도를 판단해 중요한 결론·판단은 SUMMARY, 복사해서 사용할 절차·점검·전달 문구는 ACTION 스니펫으로 표현한다. 제목의 특정 단어로 유형을 결정하지 않는다.
+- 여러 문단의 답변에서는 독자가 먼저 파악하거나 재사용할 핵심 부분 1~3개를 선택한다. 짧은 단답, 인사, 추가 정보 요청에는 스니펫을 억지로 만들지 않는다. 같은 내용을 본문과 스니펫에 중복하지 않는다.
+- 기존 모드의 필수 내용과 섹션 순서, 안전 조건, 근거·불확실성 표기를 유지한다. 스니펫을 채우기 위해 결론이나 조치를 지어내지 않는다. 긴 상세 분석과 전체 답변을 박스 하나에 넣지 않는다.
+- 스니펫은 아래 Markdown 인용 블록 형식으로 쓴다. 첫 줄에는 [!SUMMARY] 또는 [!ACTION]과 내용에 맞는 자유로운 짧은 제목을 쓰고, 본문의 모든 줄(빈 줄 포함)은 >로 시작한다. 스니펫 앞뒤에는 빈 줄을 두고, 일반 본문은 > 없이 이어간다. 중첩하지 않으며 코드 펜스로 감싸지 않는다.
+- SUMMARY 예시(형식만 참고하고 실제 내용은 근거에 따라 작성):
+
+> [!SUMMARY] 이번 점검에서 확인된 내용
+> 확인된 결론과 판단에 필요한 조건을 짧게 설명한다.
+
+- ACTION 예시(실제 절차·조건은 근거에 따라 작성):
+
+> [!ACTION] 담당자에게 전달할 확인 요청
+> 1. 확인 대상과 필요한 확인 내용을 적는다.
+> 2. 근거가 있는 다음 행동을 적는다.
+
+- 스니펫 본문에서도 Markdown 강조, 목록, 표를 사용할 수 있다. 코드 자체는 기존 코드 블록을 사용한다. 인용 번호 [chunk:N]은 기존 인용 규칙대로 모든 스니펫이 끝난 뒤 답변 마지막 별도 줄에 모은다.
+"""
+
 
 class PromptManager:
     def __init__(self, registry_path: str = "prompts/registry.json"):
         path = Path(registry_path)
         if not path.exists():
             raise FileNotFoundError(f"프롬프트 레지스트리를 찾을 수 없습니다: {registry_path}")
+        self.registry_path = path.resolve()
         with path.open(encoding="utf-8") as f:
             self.registry: dict = json.load(f)
 
@@ -45,6 +65,8 @@ class PromptManager:
         #   question
         # ======================================================
 
+        with self.registry_path.open(encoding="utf-8") as f:
+            self.registry = json.load(f)
         cfg = self.registry.get(prompt_id) or self.registry["tech_expert"]
 
         # 방어코드 예시
@@ -157,6 +179,7 @@ class PromptManager:
                 "[출력 형식]\n" + "\n".join(f"- {item}" for item in default_format)
             )
 
+        system_sections.append(ANSWER_SNIPPET_POLICY)
         system_content = "\n\n".join(system_sections)
 
         # history 
@@ -343,6 +366,7 @@ class PromptManager:
             "매뉴얼 전문가입니다. 회수된 도면/이미지의 인접 텍스트로 답하세요. "
             "관련 어드레스/심볼 우선. 'Sources:' 블록 금지."
         )
+        system_content += "\n\n" + ANSWER_SNIPPET_POLICY
 
         history = history or []
         user_content = (

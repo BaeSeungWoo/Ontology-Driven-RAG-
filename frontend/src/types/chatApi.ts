@@ -9,10 +9,10 @@ export type AskRequest = {
   question: string;
   llmModel: LlmModel;
   llmMode: LlmMode;
-  promptNo: number;
   personaType: PersonaType;
   restoreMemory?: boolean;
   onChunk?: (chunk: string) => void;
+  onRetry?: (attempt: number) => void;
 };
 
 export type ChatChunk = {
@@ -53,7 +53,7 @@ export type CreateSessionPayload = {
   title: string;
   llm_model: string;
   llm_mode: string;
-  prompt_no: number;
+  llm_persona: PersonaType;
 };
 
 export type CreateSessionResponse = {

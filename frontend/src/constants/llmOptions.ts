@@ -7,7 +7,7 @@
 
 export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
-export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge";
+export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms";
 
 export type LlmModelOption = {
   value: LlmModel;
@@ -30,11 +30,12 @@ export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
 export const LLM_MODE_OPTIONS: LlmModeOption[] = [
   { value: "base", label: "Base" },
   { value: "rag", label: "RAG" },
-  { value: "graph", label: "Graph" },
-  { value: "chroma", label: "Chroma" },
-  { value: "faiss", label: "FAISS" },
-  { value: "kg", label: "KG" },
+  // { value: "graph", label: "Graph" },
+  // { value: "chroma", label: "Chroma" },
+  // { value: "faiss", label: "FAISS" },
+  // { value: "kg", label: "KG" },
   { value: "ladder", label: "Ladder" },
-  { value: "multimodal", label: "MultiModal" },
-  { value: "judge", label: "Judge" },
+  { value: "cms", label: "CMS" },
+  // { value: "multimodal", label: "MultiModal" },
+  // { value: "judge", label: "Judge" },
 ];
