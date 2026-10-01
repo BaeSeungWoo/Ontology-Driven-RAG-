@@ -46,6 +46,33 @@
   gap: 14px;
 }
 
+.recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 16px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  color: var(--chat-title-color);
+  background: var(--chat-pane-bg);
+  font-size: 13px;
+}
+
+.recommendations h3 { font-weight: 700; }
+.recommendations button {
+  padding: 10px 12px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+.recommendations button:hover:not(:disabled),
+.recommendations button:focus-visible {
+  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg));
+}
+.recommendations button:disabled { opacity: 0.55; cursor: not-allowed; }
+
 /* ============================================================
    위치: 날짜 구분선
    기능: 날짜 변경 지점 배지 스타일
@@ -230,12 +257,6 @@
   font-weight: 700;
 }
 
-.assistantPromptName {
-  min-width: 0;
-  overflow-wrap: anywhere;
-  font-weight: 700;
-}
-
 .assistantStats {
   color: var(--chat-muted-text);
   font-size: 10.5px;
@@ -292,6 +313,62 @@
   margin-top: 0;
 }
 
+.answerCallout {
+  margin: 12px 0;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: text;
+}
+
+.summaryCallout {
+  border-left: 3px solid var(--chat-accent, #1b5e9e);
+  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 55%, var(--chat-pane-bg));
+}
+
+.actionCallout {
+  background: color-mix(in srgb, var(--chat-page-bg) 65%, var(--chat-pane-bg));
+}
+
+.calloutHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  color: var(--chat-accent, #1b5e9e);
+}
+
+.calloutTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.calloutTitle svg { flex-shrink: 0; }
+
+.calloutCopy {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-shrink: 0;
+  padding: 4px 7px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 6px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-muted-text);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.calloutCopy:hover:not(:disabled) { color: var(--chat-accent); }
+.calloutCopy:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 2px; }
+.calloutCopy:disabled { opacity: .5; cursor: not-allowed; }
+.calloutBody { padding: 0 14px 12px; overflow-wrap: anywhere; }
+.calloutBody > :last-child { margin-bottom: 0; }
+
 .markdownContent :where(p, ul, ol, blockquote, pre, table, h1, h2, h3, h4, h5, h6) {
   margin: 0 0 10px;
 }
@@ -308,6 +385,14 @@
 .markdownContent ul,
 .markdownContent ol {
   padding-left: 20px;
+}
+
+.markdownContent ol {
+  list-style-type: decimal;
+}
+
+.markdownContent ul {
+  list-style-type: disc;
 }
 
 .markdownContent code {
@@ -443,6 +528,16 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+.retryButton {
+  align-self: flex-start;
+  padding: 6px 12px;
+  border: 1px solid var(--chat-accent, #1b5e9e);
+  border-radius: 6px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-accent, #1b5e9e);
+  cursor: pointer;
 }
 
 /* 위치: 활성 버블 최종 오버라이드

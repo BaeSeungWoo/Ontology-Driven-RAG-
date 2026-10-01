@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 """
 데이터베이스 처리 모듈 (pyodbc 연결 전용)
 기존 pymssql에서 pyodbc 연결 방식으로 전환
@@ -259,7 +259,7 @@ def getHistoryQuestionerCounts(machine_code):
 
 # 신규 대화 세션 생성
 @with_thread_pool("db")
-def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_code):
+def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_code, llm_persona):
     conn = None
     cursor = None
     try:
@@ -272,12 +272,15 @@ def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_cod
             # 프로시저에서 OUTPUT INSERTED.SESSION_ID로 반환된 값 받기
             row = cursor.fetchone()
 
-            conn.commit()
-
             if row is None:
                 raise Exception("session_id 반환값이 없습니다.")
 
             session_id = int(row[0])
+            cursor.execute(
+                "UPDATE dbo.CHAT_HISTORY SET LLM_PRESONA = ? WHERE SESSION_ID = ?",
+                (llm_persona, session_id),
+            )
+            conn.commit()
             return session_id
 
     except Exception as e:
@@ -319,6 +322,27 @@ def deleteChatSession(session_id):
                 cursor.close()
             except Exception:
                 pass
+
+
+@with_thread_pool("db")
+def getHistoryPersonas(session_ids):
+    personas = {}
+    if not session_ids:
+        return personas
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            for start in range(0, len(session_ids), 500):
+                batch = session_ids[start:start + 500]
+                placeholders = ",".join("?" for _ in batch)
+                cursor.execute(
+                    f"SELECT SESSION_ID, LLM_PRESONA FROM dbo.CHAT_HISTORY WHERE SESSION_ID IN ({placeholders})",
+                    tuple(batch),
+                )
+                personas.update(dict(cursor.fetchall()))
+        finally:
+            cursor.close()
+    return personas
 
 
 # 세션 id 및 소속 장비코드

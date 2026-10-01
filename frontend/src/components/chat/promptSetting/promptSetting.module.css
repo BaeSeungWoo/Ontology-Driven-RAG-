@@ -37,11 +37,6 @@
   white-space: nowrap;
 }
 
-.selectionSummary .promptSelectionBadge {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .settingsButton {
   width: 100%;
@@ -227,11 +222,11 @@
 .modalActions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
+  padding: 4px;
 }
 
-
-.actionButton,
 .closeButton {
   border: 0;
   border-radius: 10px;
@@ -244,15 +239,19 @@
   white-space: nowrap;
 }
 
-.actionButton:hover,
 .closeButton:hover {
   background: color-mix(in srgb, var(--chat-title-color) 88%, #111 12%);
 }
 
-.actionButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.applyButton {
+  background: var(--chat-accent, #1b5e9e);
+  color: #fff;
 }
+
+.applyButton:hover {
+  background: color-mix(in srgb, var(--chat-accent, #1b5e9e) 88%, #111 12%);
+}
+
 
 .closeButton {
   min-width: 76px;
@@ -303,6 +302,19 @@
   color: var(--chat-text-color);
   font-weight: 600;
   cursor: pointer;
+}
+
+.llmRadioItemDisabled {
+  color: var(--chat-muted-text);
+  background: var(--chat-page-bg);
+  border: 1px dashed var(--chat-muted-text);
+  border-radius: 4px;
+  padding: 4px 6px;
+  cursor: not-allowed;
+}
+
+.llmRadioItemDisabled input {
+  cursor: not-allowed;
 }
 
 .llmRadioItem input[type="radio"] {
@@ -386,146 +398,6 @@
 
 
 
-/* 위치: 프롬프트 목록 테이블 */
-.tableWrap {
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 8px;
-  overflow: hidden;
-  margin: 0 4px 4px;
-}
-
-.promptTableGuide {
-  margin: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--chat-pane-border) 80%, var(--chat-text-color) 20%);
-  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-page-bg) 6%);
-  padding: 6px 10px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--chat-muted-text);
-}
-
-.promptTable {
-  width: 100%;
-  border-collapse: collapse;
-  table-layout: fixed;
-  background: var(--chat-pane-bg);
-}
-
-.promptTable th,
-.promptTable td {
-  border-bottom: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
-  border-right: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
-  padding: 6px 10px;
-  font-size: 12px;
-  color: var(--chat-text-color);
-}
-
-.promptTable th:last-child,
-.promptTable td:last-child {
-  border-right: 0;
-}
-
-.promptTable tr:last-child td {
-  border-bottom: 0;
-}
-
-.promptTable th {
-  background: color-mix(in srgb, var(--chat-title-color) 75%, #2f343d 25%);
-  color: var(--chat-pane-bg);
-  font-weight: 700;
-}
-
-
-.promptTable th:nth-child(1),
-.promptTable td:nth-child(1) {
-  width: 20%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-.promptTable th:nth-child(2),
-.promptTable td:nth-child(2) {
-  width: 63%;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-
-.promptTable th:nth-child(3),
-.promptTable td:nth-child(3) {
-  width: 17%;
-  text-align: center;
-  white-space: nowrap;
-}
-
-.promptTable tbody tr {
-  cursor: pointer;
-}
-
-
-.activePromptRow td {
-  background: color-mix(in srgb, var(--chat-title-color) 12%, var(--chat-pane-bg) 88%);
-}
-
-
-.emptyCell {
-  text-align: center;
-  color: var(--chat-muted-text);
-  padding: 16px 12px;
-}
-
-.tableFooter {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  border-top: 1px solid color-mix(in srgb, var(--chat-pane-border) 85%, var(--chat-text-color) 15%);
-  background: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-page-bg) 6%);
-  padding: 6px 10px;
-}
-
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  margin: 0;
-}
-
-.pageButton {
-  min-width: 58px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 28%, var(--chat-pane-border) 72%);
-  border-radius: 8px;
-  background: var(--chat-pane-bg);
-  color: var(--chat-title-color);
-  font-size: 12px;
-  font-weight: 800;
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.pageButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
-}
-
-.pageButton:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.pageStatus {
-  min-width: 52px;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 800;
-  color: var(--chat-muted-text);
-}
-
-
-
 /* 위치: 반응형(태블릿 이하) 모달 보정 */
 @media (max-width: 1024px) {
   .modalBackdrop {
@@ -553,7 +425,6 @@
     flex-wrap: wrap;
   }
 
-  .actionButton,
   .closeButton {
     font-size: 13px;
     padding: 8px 12px;
@@ -580,20 +451,7 @@
     gap: 3px;
   }
 
-  .promptTable th,
-  .promptTable td {
-    font-size: 12px;
-    padding: 6px 10px;
-  }
 
-  .tableFooter {
-    align-items: center;
-    flex-direction: row;
-  }
-
-  .tableFooter .actionButton {
-    width: auto;
-  }
 }
 
 

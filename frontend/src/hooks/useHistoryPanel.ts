@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { HistoryItem } from "@/components/chat/history/historyCard";
 import {
-  getHistory,
   getHistoryPagination,
   getHistoryQuestioner,
   getHistoryQuestionerCounts,
@@ -67,6 +66,7 @@ function toHistoryItem(row: HistoryResponse, selectedSessionId: number | null): 
     llmModelLabel,
     llmModeLabel,
     promptName: row.promptName ?? "-",
+    personaType: row.personaType,
     recentAt: formatDateTime(row.updatedAt ?? row.createdAt),
     recentAtTimestamp: Date.parse(row.updatedAt ?? row.createdAt),
     isActive: selectedSessionId === id,
@@ -96,17 +96,12 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   // =========================
   const [historyItems, setHistoryItems] = useState<HistoryItem[]>([]);
   const [selectedQuestioner, setSelectedQuestioner] = useState<string>(ALL_QUESTIONER_FILTER);
-  // 질문자 검색 입력값(draft): 타이핑 중 즉시 변경되지만 조회에는 바로 반영하지 않는다.
-  const [questionerSearchKeyword, setQuestionerSearchKeyword] = useState<string>("");
-  // 질문자 검색 적용값(applied): Enter/검색 버튼 시점에만 갱신되어 실제 조회 조건으로 사용된다.
-  const [appliedQuestionerSearchKeyword, setAppliedQuestionerSearchKeyword] = useState<string>("");
   const [questionerOptions, setQuestionerOptions] = useState<QuestionerOption[]>([
     { key: ALL_QUESTIONER_FILTER, label: "전체", count: 0 },
   ]);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
-  const [totalCount, setTotalCount] = useState<number>(0);
 
   // =========================
   // 함수
@@ -120,76 +115,15 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
    * Out: selectedQuestioner/currentPage 상태 갱신
    */
   const handleSelectQuestioner = (questionerKey: string) => {
-    if (selectedQuestioner === questionerKey) {
-      if (questionerKey === ALL_QUESTIONER_FILTER) {
-        setQuestionerSearchKeyword("");
-        setAppliedQuestionerSearchKeyword("");
-      }
-      return;
-    }
-
+    if (selectedQuestioner === questionerKey) return;
     setSelectedQuestioner(questionerKey);
-    if (questionerKey === ALL_QUESTIONER_FILTER) {
-      setQuestionerSearchKeyword("");
-      setAppliedQuestionerSearchKeyword("");
-    }
-    setCurrentPage(1);
-  };
-
-  const handleChangeQuestionerSearchKeyword = (keyword: string) => {
-    setQuestionerSearchKeyword(keyword);
-  };
-
-  /**
-   * 기능: 검색 입력값과 적용값을 함께 초기화한다.
-   * 목적: 검색 조건을 완전히 해제하고 기본 목록으로 복귀한다.
-   * Out: questionerSearchKeyword/appliedQuestionerSearchKeyword/currentPage 초기화
-   */
-  const clearQuestionerSearchKeyword = () => {
-    setQuestionerSearchKeyword("");
-    setAppliedQuestionerSearchKeyword("");
-    setCurrentPage(1);
-  };
-
-  /**
-   * 기능: 입력된 질문자 검색어를 실제 조회 조건에 반영한다.
-   * 목적: 타이핑 중 과도한 호출 없이 Enter(또는 명시적 실행) 시점에만 검색을 적용한다.
-   * Out: appliedQuestionerSearchKeyword/currentPage 갱신
-   */
-  const applyQuestionerSearchKeyword = () => {
-    const normalizedKeyword = questionerSearchKeyword.trim();
-    if (appliedQuestionerSearchKeyword === normalizedKeyword) return;
-    setAppliedQuestionerSearchKeyword(normalizedKeyword);
     setCurrentPage(1);
   };
 
   const safeCurrentPage = Math.min(currentPage, totalPages);
   const isHistoryEmpty = historyItems.length === 0;
 
-  const visibleQuestionerOptions = useMemo(() => {
-    const baseOptions =
-      questionerOptions.length === 0
-        ? [{ key: ALL_QUESTIONER_FILTER, label: "전체", count: totalCount }]
-        : questionerOptions;
-
-    const keyword = questionerSearchKeyword.trim().toLowerCase();
-    if (!keyword) return baseOptions;
-
-    const allOption = baseOptions.find((option) => option.key === ALL_QUESTIONER_FILTER);
-    const selectedOption = baseOptions.find((option) => option.key === selectedQuestioner);
-    const filtered = baseOptions.filter((option) => {
-      if (option.key === ALL_QUESTIONER_FILTER) return false;
-      return option.label.toLowerCase().includes(keyword);
-    });
-    const withSelected =
-      selectedOption &&
-      selectedOption.key !== ALL_QUESTIONER_FILTER &&
-      !filtered.some((option) => option.key === selectedOption.key)
-        ? [selectedOption, ...filtered]
-        : filtered;
-
-    return allOption ? [allOption, ...withSelected] : withSelected;
-  }, [questionerOptions, questionerSearchKeyword, selectedQuestioner, totalCount]);
+  const visibleQuestionerOptions = questionerOptions;
 
   /**
    * 기능: 이전 페이지로 이동한다.
@@ -239,7 +173,7 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
    */
   const resetQuestionerFilter = () => {
     setSelectedQuestioner(ALL_QUESTIONER_FILTER);
-    clearQuestionerSearchKeyword();
+    setCurrentPage(1);
   };
 
   // =========================
@@ -287,39 +221,6 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
 
     const fetchHistoryPage = async () => {
       try {
-        const keyword = appliedQuestionerSearchKeyword.trim().toLowerCase();
-
-        // 검색어가 적용된 경우: 전체 이력을 받아 질문자 + 검색어 기준으로 클라이언트 필터링한다.
-        if (keyword.length > 0) {
-          const allRows = await getHistory();
-          if (!isMounted) return;
-
-          const filteredRows = (allRows ?? []).filter((row) => {
-            const rowQuestioner = (row.questioner ?? "-").trim() || "-";
-            const bySelect =
-              effectiveSelectedQuestioner === ALL_QUESTIONER_FILTER
-                ? true
-                : rowQuestioner === effectiveSelectedQuestioner;
-            const byKeyword = rowQuestioner.toLowerCase().includes(keyword);
-            return bySelect && byKeyword;
-          });
-
-          const nextTotalCount = filteredRows.length;
-          const nextTotalPages = Math.max(1, Math.ceil(nextTotalCount / HISTORY_PAGE_SIZE));
-          const safePage = Math.min(currentPage, nextTotalPages);
-          const start = (safePage - 1) * HISTORY_PAGE_SIZE;
-          const pageRows = filteredRows.slice(start, start + HISTORY_PAGE_SIZE);
-
-          setHistoryItems(pageRows.map((row) => toHistoryItem(row, selectedSessionId)));
-          setTotalCount(nextTotalCount);
-          setTotalPages(nextTotalPages);
-
-          if (safePage !== currentPage) {
-            setCurrentPage(safePage);
-          }
-          return;
-        }
-
         const response =
           effectiveSelectedQuestioner === ALL_QUESTIONER_FILTER
             ? await getHistoryPagination({ page: currentPage, page_size: HISTORY_PAGE_SIZE })
@@ -332,11 +233,9 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
         if (!isMounted) return;
 
         const rows = response.rows ?? [];
-        const nextTotalCount = Number(response.total_count) || 0;
         const nextTotalPages = Math.max(1, Number(response.total_pages) || 1);
 
         setHistoryItems(rows.map((row) => toHistoryItem(row, selectedSessionId)));
-        setTotalCount(nextTotalCount);
         setTotalPages(nextTotalPages);
 
         if (currentPage > nextTotalPages) {
@@ -346,7 +245,6 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
         console.error("history fetch failed:", error);
         if (isMounted) {
           setHistoryItems([]);
-          setTotalCount(0);
           setTotalPages(1);
         }
       }
@@ -360,7 +258,6 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
   }, [
     effectiveSelectedQuestioner,
     currentPage,
-    appliedQuestionerSearchKeyword,
     selectedSessionId,
     refreshKey,
   ]);
@@ -376,10 +273,6 @@ export function useHistoryPanel({ selectedSessionId, refreshKey }: UseHistoryPan
     totalPages,
     visibleQuestionerOptions,
     handleSelectQuestioner,
-    questionerSearchKeyword,
-    handleChangeQuestionerSearchKeyword,
-    applyQuestionerSearchKeyword,
-    clearQuestionerSearchKeyword,
     resetQuestionerFilter,
     goFirstPage,
     goPrevPage,

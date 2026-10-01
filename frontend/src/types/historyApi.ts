@@ -6,6 +6,7 @@
   llmMode: string;
   promptNo: number;
   promptName: string;
+  personaType?: string | null;
   createdAt: string;
   updatedAt: string;
 };

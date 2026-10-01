@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "./answer.module.css";
+import type { ReactNode } from "react";
 import type { MessageItem } from "@/types/chatApi";
 import type { AnswerMessage } from "@/types/chat";
 import {
@@ -23,7 +24,9 @@ type AnswerProps = {
   onActiveAssistantChange?: (messageId: string | null) => void;
   onCitationSelect?: (messageId: string, chunkIndex: number) => void;
   isGenerating?: boolean;
+  onRetry?: () => void;
   showHeader?: boolean;
+  recommendations?: ReactNode;
 };
 
 const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option.value));
@@ -36,7 +39,9 @@ export default function Answer({
   onActiveAssistantChange,
   onCitationSelect,
   isGenerating = false,
+  onRetry,
   showHeader = true,
+  recommendations,
 }: AnswerProps) {
   // =========================
   // state
@@ -204,7 +209,7 @@ export default function Answer({
     const container = scrollRef.current;
     if (!container || !shouldAutoScrollRef.current) return;
     container.scrollTop = container.scrollHeight;
-  }, [scrollAnchor]);
+  }, [scrollAnchor, recommendations]);
 
   useEffect(() => {
     onActiveAssistantChange?.(activeAssistantMessageId);
@@ -227,7 +232,7 @@ export default function Answer({
         aria-label="답변 내용"
         onScroll={handleAnswerScroll}
       >
-        {normalizedMessages.length === 0 && (
+        {normalizedMessages.length === 0 && !recommendations && (
           <p className="pane-placeholder">질문을 보내면 답변이 여기에 표시됩니다.</p>
         )}
 
@@ -250,6 +255,7 @@ export default function Answer({
                       message={message}
                       isActive={message.id === activeAssistantMessageId}
                       isGenerating={shouldShowGenerating}
+                      onRetry={!isGenerating && messageIndex === normalizedMessages.length - 1 ? onRetry : undefined}
                       selectedCitationChunkIndex={
                         selectedCitation?.messageId === message.id
                           ? selectedCitation.chunkIndex
@@ -264,6 +270,7 @@ export default function Answer({
             })}
           </div>
         )}
+        {recommendations}
       </section>
     </div>
   );

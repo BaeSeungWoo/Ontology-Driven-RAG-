@@ -4,12 +4,13 @@ import json
 import uvicorn
 import sys
 from pathlib import Path
+from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import dotenv
 import os
@@ -20,6 +21,7 @@ if str(ROOT_DIR) not in sys.path:
 
 from app.factories.config import CONFIGS
 from app.service import JudgeRAGService
+from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import resolve_request_code, validate_code
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
@@ -89,6 +91,62 @@ class ChatRequest(BaseModel):
     prompt_no: int | None = None
     restore_memory: bool = False
 
+
+class RecommendationRequest(BaseModel):
+    source: Literal["manual", "ladder", "cms_engineer", "cms_manager"] = "manual"
+    session_id: str | None = None
+    question: str = Field(default="", max_length=10000)
+    answer: str = Field(default="", max_length=50000)
+
+
+def recommendation_machine_code(request, client_request, service):
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=service.config.machines,
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    if request.session_id is not None:
+        return validate_code(ctx, database.getChatSessionInfo(request.session_id))
+    return ctx.request_machine_code
+
+
+@app.post("/api/recommendations/context")
+def recommendation_context(request: RecommendationRequest, client_request: Request):
+    service = get_service("ollama_config")
+    machine_code = recommendation_machine_code(request, client_request, service)
+    return {"machine_code": machine_code if machine_code != "ALL" else None,
+            "machine_name": service.config.machines.get(machine_code, {}).get("machine_name")}
+
+
+@app.post("/api/recommendations")
+async def recommendation_endpoint(request: RecommendationRequest, client_request: Request):
+    service = get_service("ollama_config")
+    machine_code = recommendation_machine_code(request, client_request, service)
+    if not machine_code or machine_code == "ALL":
+        return {"questions": [], "message": "현재 장비가 지정되지 않아 추천질문을 만들 수 없습니다."}
+    try:
+        asked_questions = []
+        conversation = []
+        if request.session_id is not None:
+            rows = database.getChatMessagesBySession(request.session_id)
+            asked_questions = [row[3] for row in rows if row[2] == "user" and row[3]]
+            conversation = [{"role": row[2], "content": row[3]} for row in rows
+                            if row[2] in ("user", "assistant") and row[3]]
+        if not request.question and not request.answer and not asked_questions:
+            generation = service.initial_question_cache.get(service, machine_code, source=request.source)
+        else:
+            generation = recommend_questions(
+                service, machine_code, request.question, request.answer, asked_questions=asked_questions,
+                conversation=conversation, source=request.source,
+            )
+        questions = await run_until_disconnect(client_request, generation)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail="추천질문을 생성하지 못했습니다. 다시 시도해 주세요.") from exc
+    source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "cms_engineer": "CMS 알람 로그", "cms_manager": "CMS 운영 데이터"}[request.source]
+    return {"questions": questions, "message": "" if questions else f"매칭된 {source_label}에서 새롭게 이어갈 추천질문을 찾지 못했습니다.",
+            "machine_code": machine_code,
+            "machine_name": service.config.machines.get(machine_code, {}).get("machine_name", machine_code)}
+
 @app.post("/api/chat/{factory_id}")
 # /chat은 HTTP 스트리밍 포맷만 담당한다.
 # 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
@@ -106,6 +164,11 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
 
     session_info = database.getChatSessionInfo(request.session_id)
     effective_machine_code = validate_code(ctx, session_info)
+    if request.mode == "cms":
+        if request.persona_type not in {"engineer", "manager"}:
+            raise HTTPException(status_code=400, detail="CMS 모드는 기술엔지니어 또는 관리자 페르소나에서 사용하세요.")
+        if not effective_machine_code or effective_machine_code == "ALL":
+            raise HTTPException(status_code=400, detail="CMS 모드는 현재 장비가 지정되어야 합니다.")
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
     if request.prompt_no is not None:

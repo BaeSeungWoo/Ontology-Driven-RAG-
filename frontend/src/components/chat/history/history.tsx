@@ -20,7 +20,7 @@ type HistoryProps = {
 
 type HistorySessionMeta = Pick<
   HistoryItem,
-  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName"
+  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType"
 >;
 
 type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
@@ -69,10 +69,6 @@ export default function History({
     goPage,
     goPrevPage,
     handleSelectQuestioner,
-    questionerSearchKeyword,
-    handleChangeQuestionerSearchKeyword,
-    applyQuestionerSearchKeyword,
-    clearQuestionerSearchKeyword,
     historyItems,
     isHistoryEmpty,
     totalPages,
@@ -111,6 +107,7 @@ export default function History({
             llmMode: matchedItem.llmMode,
             promptNo: matchedItem.promptNo,
             promptName: matchedItem.promptName,
+            personaType: matchedItem.personaType,
           }
         : undefined
     );
@@ -195,15 +192,16 @@ export default function History({
       {!isCollapsed ? (
         <>
           <div className={styles.questionerFilterSection}>
-            {/* 왼쪽: 질문자 셀렉트 / 오른쪽: 검색 입력(Enter 또는 검색 버튼으로 적용) */}
             <div className={styles.questionerFilterRow}>
+              <label htmlFor="history-questioner-filter" className={styles.questionerFilterLabel}>
+                질문자 선택
+              </label>
               <div className={styles.questionerFilterField}>
                 <select
                   id="history-questioner-filter"
                   className={styles.questionerFilterSelect}
                   value={effectiveSelectedQuestioner}
                   onChange={(event) => handleSelectQuestioner(event.target.value)}
-                  aria-label="질문자 필터"
                 >
                   {visibleQuestionerOptions.map((option) => (
                     <option key={option.key} value={option.key}>
@@ -213,41 +211,6 @@ export default function History({
                 </select>
               </div>
 
-              <div className={styles.questionerSearchField}>
-                <input
-                  type="text"
-                  className={styles.questionerSearchInput}
-                  value={questionerSearchKeyword}
-                  // 타이핑 중에는 draft만 갱신하고, 실제 조회는 Enter/검색 버튼에서 적용한다.
-                  onChange={(event) => handleChangeQuestionerSearchKeyword(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      applyQuestionerSearchKeyword();
-                    }
-                  }}
-                  placeholder="질문자 검색"
-                  aria-label="질문자 검색"
-                />
-                {questionerSearchKeyword.trim().length > 0 ? (
-                  <button
-                    type="button"
-                    className={styles.questionerSearchClearButton}
-                    onClick={clearQuestionerSearchKeyword}
-                    aria-label="검색어 초기화"
-                    title="검색어 초기화"
-                  >
-                    X
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className={styles.questionerSearchButton}
-                  onClick={applyQuestionerSearchKeyword}
-                >
-                  검색
-                </button>
-              </div>
             </div>
           </div>
 
@@ -353,7 +316,7 @@ export default function History({
             <p className={styles.modalText}>
               현재 채팅 메시지는 화면에서 초기화됩니다.
               <br />
-              질문자와 모델, 프롬프트 설정은 유지됩니다.
+              질문자와 모델, 페르소나, 모드 설정은 유지됩니다.
             </p>
             <div className={styles.modalActions}>
               <button

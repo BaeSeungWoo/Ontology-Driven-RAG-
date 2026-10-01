@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 
 import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS, type LlmModel, type LlmMode } from "@/constants/llmOptions";
 import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
-import type { PromptRow } from "@/types/prompt";
 
 import PromptListModal from "./promptListModal";
 import styles from "./promptSetting.module.css";
@@ -12,54 +11,64 @@ import styles from "./promptSetting.module.css";
 type PromptSettingProps = {
   questioner: string;
   onQuestionerChange: (value: string) => void;
-  selectedPrompt: PromptRow | null;
   selectedLlmModel: LlmModel;
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
   onSelectLlmMode: (model: LlmMode) => void;
   selectedPersonaType: PersonaType;
   onSelectPersonaType: (personaType: PersonaType) => void;
-  onSelectPrompt: (prompt: PromptRow) => void;
+  onOpen?: () => void;
+  onClose?: (applied?: { mode: LlmMode; persona: PersonaType }) => void;
 };
 
 export default function PromptSetting({
   questioner,
   onQuestionerChange,
-  selectedPrompt,
   selectedLlmModel,
   onSelectLlmModel,
   selectedLlmMode,
   onSelectLlmMode,
   selectedPersonaType,
   onSelectPersonaType,
-  onSelectPrompt,
+  onOpen,
+  onClose,
 }: PromptSettingProps) {
   // 내부 state
-  // 기능/목적: 프롬프트 목록 모달의 열림 상태와 필수값 누락 여부를 관리한다.
+  // 기능/목적: 서비스 설정 모달의 열림 상태와 필수값 누락 여부를 관리한다.
   const [isOpen, setIsOpen] = useState(false);
+  const [draftModel, setDraftModel] = useState(selectedLlmModel);
+  const [draftMode, setDraftMode] = useState(selectedLlmMode);
+  const [draftPersona, setDraftPersona] = useState(selectedPersonaType);
 
   const isQuestionerMissing = questioner.trim().length === 0;
-  const isPromptMissing = selectedPrompt === null;
-  const isRequiredMissing = isQuestionerMissing || isPromptMissing;
+  const isRequiredMissing = isQuestionerMissing;
 
   // 함수
-  // 기능/목적: 프롬프트 목록 모달과 질문자 입력 변경을 상위 Chat 상태와 연결한다.
-  // In: questioner value, PromptRow / Out: modal open state, parent state 변경
+  // 기능/목적: 서비스 설정 모달과 질문자 입력 변경을 상위 Chat 상태와 연결한다.
+  // In: questioner value / Out: modal open state, parent state 변경
   const handleOpenModal = () => {
+    setDraftModel(selectedLlmModel);
+    setDraftMode(selectedLlmMode);
+    setDraftPersona(selectedPersonaType);
+    onOpen?.();
     setIsOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsOpen(false);
+    onClose?.();
+  };
+
+  const handleApplyModal = () => {
+    onSelectLlmModel(draftModel);
+    onSelectLlmMode(draftMode);
+    onSelectPersonaType(draftPersona);
+    setIsOpen(false);
+    onClose?.({ mode: draftMode, persona: draftPersona });
   };
 
   const handleChangeQuestioner = (value: string) => {
     onQuestionerChange(value);
-  };
-
-  const handleApplyPrompt = (prompt: PromptRow) => {
-    onSelectPrompt(prompt);
-    setIsOpen(false);
   };
 
   // 함수: 키보드 이벤트
@@ -70,12 +79,13 @@ export default function PromptSetting({
     const onEsc = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsOpen(false);
+        onClose?.();
       }
     };
 
     window.addEventListener("keydown", onEsc);
     return () => window.removeEventListener("keydown", onEsc);
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   // render
   return (
@@ -93,7 +103,7 @@ export default function PromptSetting({
           <span className={styles.requiredNotice}>
             <span className={styles.requiredBadge}>필수</span>
             <span className={styles.requiredMessage}>
-              [질문자, 프롬프트] 입력을 완료해주세요.
+              질문자를 입력해주세요.
             </span>
           </span>
         </div>
@@ -122,13 +132,6 @@ export default function PromptSetting({
         <span>{LLM_MODEL_OPTIONS.find((option) => option.value === selectedLlmModel)?.label}</span>
         <span>{LLM_MODE_OPTIONS.find((option) => option.value === selectedLlmMode)?.label}</span>
         <span>{PERSONA_OPTIONS.find((option) => option.value === selectedPersonaType)?.label}</span>
-        {selectedPrompt && (
-          <span className={styles.promptSelectionBadge} title={selectedPrompt.prompt_name}>
-            {selectedPrompt.prompt_name.length > 8
-              ? `${selectedPrompt.prompt_name.slice(0, 3)}...`
-              : selectedPrompt.prompt_name}
-          </span>
-        )}
       </div>
 
       <button
@@ -142,14 +145,13 @@ export default function PromptSetting({
       {isOpen && (
         <PromptListModal
           onClose={handleCloseModal}
-          selectedPrompt={selectedPrompt}
-          selectedLlmModel={selectedLlmModel}
-          onSelectLlmModel={onSelectLlmModel}
-          selectedLlmMode={selectedLlmMode}
-          onSelectLlmMode={onSelectLlmMode}
-          selectedPersonaType={selectedPersonaType}
-          onSelectPersonaType={onSelectPersonaType}
-          onApplyPrompt={handleApplyPrompt}
+          onApply={handleApplyModal}
+          selectedLlmModel={draftModel}
+          onSelectLlmModel={setDraftModel}
+          selectedLlmMode={draftMode}
+          onSelectLlmMode={setDraftMode}
+          selectedPersonaType={draftPersona}
+          onSelectPersonaType={setDraftPersona}
         />
       )}
     </div>

@@ -134,11 +134,19 @@
   margin-bottom: 2px;
 }
 
-/* 위치: 질문자 필터 2분할 레이아웃(셀렉트 + 검색) */
+/* 위치: 질문자 필터 레이아웃 */
 .questionerFilterRow {
   display: grid;
-  grid-template-columns: minmax(118px, 0.9fr) minmax(150px, 1.1fr);
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
   gap: 8px;
+}
+
+.questionerFilterLabel {
+  color: var(--chat-title-color);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .questionerFilterField {
@@ -198,104 +206,6 @@
   outline: none;
   box-shadow: none;
 }
-
-.questionerSearchField {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 86%, transparent);
-  border-radius: 9px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 18%, transparent), transparent),
-    color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-page-bg) 8%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent),
-    0 1px 2px color-mix(in srgb, var(--chat-shadow) 28%, transparent);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
-}
-
-.questionerSearchField:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 34%, var(--chat-pane-border) 66%);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 20%, transparent), transparent),
-    color-mix(in srgb, var(--chat-title-color) 4%, var(--chat-pane-bg) 96%);
-}
-
-.questionerSearchField:focus-within {
-  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
-}
-
-.questionerSearchInput {
-  width: 100%;
-  height: 36px;
-  border: 0;
-  border-radius: 9px;
-  padding: 0 68px 0 10px;
-  background: transparent;
-  color: var(--chat-text-color);
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.questionerSearchInput::placeholder {
-  color: color-mix(in srgb, var(--chat-muted-text) 92%, transparent);
-  font-weight: 600;
-}
-
-.questionerSearchInput:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* 위치: 검색어 초기화(X) - 입력값이 있을 때만 렌더링 */
-.questionerSearchClearButton {
-  position: absolute;
-  right: 52px;
-  top: 50%;
-  transform: translateY(-50%);
-  border: 0;
-  background: transparent;
-  color: color-mix(in srgb, var(--chat-muted-text) 88%, #94a3b8 12%);
-  padding: 0 2px;
-  font-size: 13px;
-  font-weight: 500;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-}
-
-.questionerSearchClearButton:hover {
-  color: color-mix(in srgb, var(--chat-text-color) 72%, var(--chat-muted-text) 28%);
-}
-
-.questionerSearchButton {
-  position: absolute;
-  right: 4px;
-  top: 4px;
-  height: 28px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 45%, var(--chat-pane-border) 55%);
-  border-radius: 7px;
-  padding: 0 10px;
-  background: color-mix(in srgb, var(--chat-title-color) 82%, #111 18%);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.questionerSearchButton:hover {
-  background: color-mix(in srgb, var(--chat-title-color) 68%, var(--chat-pane-bg) 32%);
-}
-
 
 /* 위치: 이력 리스트/카드 */
 .historyListWrap {
@@ -578,10 +488,5 @@
   color: var(--chat-pane-bg);
 }
 
-@media (max-width: 900px) {
-  .questionerFilterRow {
-    grid-template-columns: 1fr;
-  }
-}
 
 

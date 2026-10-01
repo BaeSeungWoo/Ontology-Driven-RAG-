@@ -4,7 +4,6 @@ import json
 import re
 from typing import Any
 from datetime import date, datetime
-from pathlib import Path
 
 from app.factories.config import Config
 from app.core.llm_handler import LLMProvider
@@ -17,6 +16,8 @@ from app.core.retriever import (
     MultimodalRetriever,
 )
 from app.core.prompt_manager import PromptManager
+from app.core.question_recommendations import InitialQuestionCache
+from app.core.cms_context import build_cms_context, cms_answer_policy
 from app.core.memory_manager import MemoryManager
 from app.core.judge import judge_triple
 from app.database import database
@@ -37,23 +38,7 @@ class RAGService:
         self.memory_manager = MemoryManager()
         self.prompt_manager = PromptManager()
         self._retrievers: dict[str, BaseRetriever] = {}
-
-    def _save_search_result_json(
-        self,
-        session_id: str,
-        payload: dict[str, Any],
-        prefix: str = "search",
-    ) -> str:
-        out_dir = Path("logs") / "search_results"
-        out_dir.mkdir(parents=True, exist_ok=True)
-
-        ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-        out_path = out_dir / f"{prefix}_{session_id}_{ts}.json"
-
-        with out_path.open("w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2)
-
-        return str(out_path)
+        self.initial_question_cache = InitialQuestionCache()
 
     # 단발성 프롬프트 조립용 레거시- memory_manager 사용 X
     async def prepare_context(
@@ -109,7 +94,8 @@ class RAGService:
     ) -> tuple[list, list, list, list, dict]:
 
         history = self.memory_manager.get_history(session_id)
-        intent = await self._resolve_intent(question, persona_type)
+        intent = ({"type": "root_cause_analysis" if persona_type == "engineer" else "concept_explanation", "source": "cms"}
+                  if mode == "cms" else await self._resolve_intent(question, persona_type))
 
         if restore_memory and not history:
             restored_history = self._load_recent_history_from_db(session_id, question)
@@ -125,7 +111,11 @@ class RAGService:
         tables = []
         chunks = []
         m_info = {}
-        retriever = self._get_retriever(mode)
+        retriever = self._get_retriever(mode) if mode != "cms" else None
+        if mode == "cms":
+            context, imgs, tables, chunks = await build_cms_context(
+                self, effective_machine_code, question, persona_type)
+            m_info = self.config.machines.get(effective_machine_code, {})
         if retriever:
             if mode == "ladder":
                 context, imgs, tables, chunks = retriever.get_context(
@@ -156,8 +146,11 @@ class RAGService:
             intent_type=intent["type"],
         )
 
+        if mode == "cms":
+            messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy(persona_type)
+
         return messages, imgs, tables, chunks, intent
-    
+
     # Chat에서 실제 사용하는 정식 스트리밍 함수
     # metadata를 먼저 보내고, 이후 LLM 토큰을 순차적으로 yield한다.
     # 전체 답변이 끝난 뒤 현재 턴을 MemoryManager에 저장한다.
@@ -208,23 +201,6 @@ class RAGService:
             }
         
         answer = "".join(answer_parts)
-
-        if mode != "ladder":
-            search_log = {
-                "mode": mode,
-                "question": question,
-                "answer": answer,
-                "machine_code": effective_machine_code,
-                "context": messages[-1]["content"],
-                "images": imgs,
-                "tables": tables,
-                "chunks": chunks,
-            }
-            self._save_search_result_json(
-                session_id=session_id,
-                payload=search_log,
-                prefix=mode,
-            )
 
         self.memory_manager.add_turn(session_id, question, answer)
 
@@ -633,29 +609,6 @@ class JudgeRAGService(RAGService):
                 doc_out.get("triples") or [],
                 mm_out.get("triples") or [],
             )
-
-        judge_log = {
-            "mode": "judge",
-            "question": question,
-            "machine_code": effective_machine_code,
-            "judge": {
-                "choice": verdict.choice,
-                "reason": verdict.reason,
-                "final_answer": verdict.final_answer,
-                "sources": verdict.sources,
-            },
-            "branches": {
-                "kg": graph_out,
-                "rag": doc_out,
-                "multimodal": mm_out,
-            },
-        }
-
-        self._save_search_result_json(
-            session_id="",
-            payload=judge_log,
-            prefix="judge_full",
-        )
 
         return {
             "answer": verdict.final_answer,

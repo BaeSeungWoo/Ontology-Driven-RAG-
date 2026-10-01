@@ -1,9 +1,13 @@
 import { Fragment, type ReactNode } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkAnswerFormatting from "./remarkAnswerFormatting";
+import remarkAnswerCallouts from "./remarkAnswerCallouts";
+import AnswerCallout from "./answerCallout";
 
 import styles from "./answer.module.css";
 import { toCitationDisplayText } from "./citationText";
+import { formatCmsDateTime } from "@/utils/formatCmsDateTime";
 import type { AnswerMessage } from "@/types/chat";
 import LadderDiagrams from "./ladderDiagram";
 import AssetPanel from "../assetPanel";
@@ -13,6 +17,7 @@ type AssistantMessageBubbleProps = {
   message: AnswerMessage;
   isActive?: boolean;
   isGenerating?: boolean;
+  onRetry?: () => void;
   selectedCitationChunkIndex?: number | null;
   onActivate?: (assistantMessageId: string) => void;
   onCitationSelect?: (assistantMessageId: string, chunkIndex: number) => void;
@@ -22,6 +27,7 @@ export default function AssistantMessageBubble({
   message,
   isActive = false,
   isGenerating = false,
+  onRetry,
   selectedCitationChunkIndex = null,
   onActivate,
   onCitationSelect,
@@ -33,8 +39,9 @@ export default function AssistantMessageBubble({
   // 빈 답변 placeholder와 실제 스트리밍 중 상태를 분리해 spinner 유지 시간을 제어한다.
   const isPlaceholderLoading =
     normalizedText.length === 0 || normalizedText === "(응답 생성 중...)";
-  const isThinking = isGenerating || isPlaceholderLoading;
-  const promptName = message.metadata?.prompt_name || message.promptName || "프롬프트 미기록";
+  const isThinking = isGenerating;
+  const isInterrupted = !isThinking && (isPlaceholderLoading || message.metadata?.request_failed === true);
+  const retryAttempt = message.metadata?.retry_attempt;
   const elapsedMs = message.metadata?.elapsed_ms;
   const elapsedLabel = typeof elapsedMs === "number" && Number.isFinite(elapsedMs) && elapsedMs >= 0
     ? `${(elapsedMs / 1000).toFixed(1)}s`
@@ -117,12 +124,13 @@ export default function AssistantMessageBubble({
     <article className={`${styles.messageItem} ${styles.assistantMessage} ${message.llmMode === "ladder" ? styles.ladderMessage : ""}`}>
       <div className={styles.assistantMetaRow}>
         <span className={styles.assistantAiBadge}>AI</span>
-        <span className={styles.assistantPromptName}>{promptName}</span>
         {isThinking ? (
           <span className={styles.assistantGenerationStatus} role="status">
             <span className={styles.assistantThinkingSpinner} aria-hidden="true" />
-            생성 중
+            {typeof retryAttempt === "number" ? `연결 재시도 중 (${retryAttempt}/2)` : "생성 중"}
           </span>
+        ) : isInterrupted ? (
+          <span role="status">답변 생성 중단</span>
         ) : (
           <span className={styles.assistantStats}>
             <span aria-label={`응답 시간 ${elapsedLabel}`}>{elapsedLabel}</span>
@@ -156,7 +164,9 @@ export default function AssistantMessageBubble({
         aria-pressed={isActive}
         aria-label="답변 선택"
       >
-        {isPlaceholderLoading ? (
+        {isPlaceholderLoading && !isThinking ? (
+          <p role="alert">답변 생성이 중단되었습니다. 다시 시도해 주세요.</p>
+        ) : isPlaceholderLoading ? (
           <div className={styles.assistantLoading} aria-live="polite">
             <p className={styles.loadingText}>답변 생성중입니다.</p>
             <span className={styles.loadingDots} aria-hidden="true">
@@ -166,8 +176,15 @@ export default function AssistantMessageBubble({
         ) : (
           <div className={styles.markdownContent}>
             <ReactMarkdown
-              remarkPlugins={[remarkGfm]}
+              remarkPlugins={[remarkGfm, remarkAnswerFormatting, remarkAnswerCallouts]}
               components={{
+                section: ({ node, children }) => (
+                  <AnswerCallout
+                    title={String(node?.properties["data-callout-title"] ?? "")}
+                    kind={node?.properties["data-callout-kind"] === "action" ? "action" : "summary"}
+                    isGenerating={isThinking}
+                  >{children}</AnswerCallout>
+                ),
                 p: ({ children, ...props }) => <p {...props}>{renderWithBreakTags(children)}</p>,
                 li: ({ children, ...props }) => <li {...props}>{renderWithBreakTags(children)}</li>,
                 td: ({ children, ...props }) => <td {...props}>{renderWithBreakTags(children)}</td>,
@@ -199,11 +216,11 @@ export default function AssistantMessageBubble({
                 },
               }}
             >
-              {toCitationDisplayText(message.text)}
+              {toCitationDisplayText(message.llmMode === "cms" ? formatCmsDateTime(message.text) : message.text)}
             </ReactMarkdown>
           </div>
         )}
-        {!isThinking && (
+        {!isThinking && !isInterrupted && (
           <AssetPanel
             inline
             activeAssistantMessage={{
@@ -222,7 +239,10 @@ export default function AssistantMessageBubble({
           />
         )}
       </div>
-      {message.llmMode === "ladder" && !isThinking && (
+      {isInterrupted && onRetry && (
+        <button type="button" className={styles.retryButton} onClick={onRetry}>다시 시도</button>
+      )}
+      {message.llmMode === "ladder" && !isThinking && !isInterrupted && (
         <LadderDiagrams
           chunks={message.metadata?.chunks ?? []}
           answerText={message.text}
