@@ -23,7 +23,7 @@ function ChatHarness() {
   const chat = useChat({ selectedSessionId, onSessionId });
   return <>
     <Question questioner="테스트 작업자" selectedLlmModel="ollama_config" selectedLlmMode="rag"
-      selectedPersonaType="maintenance" selectedPrompt={{ prompt_no: 7, prompt_name: "설비", prompt_txt: "", create_user: "" }}
+      selectedPersonaType="maintenance"
       onSend={chat.sendQuestion} isBusy={chat.isLoading} />
     <output data-testid="messages">{JSON.stringify(chat.messages)}</output>
   </>;
@@ -58,7 +58,7 @@ it("uses real chatApi and useChat to stream the answer and preserve citations an
   await waitFor(() => expect(mock.put).toHaveBeenCalledTimes(1));
   expect(fetchMock.mock.calls[0][0]).toBe("/api/chat/ollama_config");
   expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toMatchObject({ session_id: "42", question: "M08 공구 오류의 원인은 무엇인가요?",
-    mode: "rag", prompt_no: 7, persona_type: "maintenance" });
+    mode: "rag", persona_type: "maintenance" });
   expect(mock.post).toHaveBeenCalledTimes(3);
   expect(mock.put.mock.calls[0][1]).toMatchObject({ content: "공구를 확인하세요. [1]", metadata: { ...metadata, used_chunks: metadata.chunks } });
   expect(screen.getByTestId("messages").textContent).toContain("공구를 확인하세요.");
