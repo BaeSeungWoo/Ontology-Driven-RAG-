@@ -133,10 +133,10 @@ export default function Chat() {
     setRecommendationsEnabled(false);
   };
 
-  const handleSettingsClose = () => {
+  const handleSettingsClose = (applied?: { mode: LlmMode; persona: PersonaType }) => {
     const previous = settingsAtOpenRef.current;
     settingsAtOpenRef.current = null;
-    if (previous && (previous.mode !== selectedLlmMode || previous.persona !== selectedPersonaType)
+    if (previous && applied && (previous.mode !== applied.mode || previous.persona !== applied.persona)
       && (selectedSessionId !== null || messages.length > 0)) {
       window.alert("모드 또는 페르소나가 변경되어 새 질문 화면으로 전환합니다. 기존 대화는 질문 이력에서 다시 확인할 수 있습니다.");
       resetToNewSession();

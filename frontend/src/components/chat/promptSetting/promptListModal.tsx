@@ -11,6 +11,7 @@ import styles from "./promptSetting.module.css";
 
 type PromptListModalProps = {
   onClose: () => void;
+  onApply: () => void;
   selectedLlmModel: LlmModel;
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
@@ -21,6 +22,7 @@ type PromptListModalProps = {
 
 export default function PromptListModal({
   onClose,
+  onApply,
   selectedLlmModel,
   onSelectLlmModel,
   selectedLlmMode,
@@ -71,11 +73,6 @@ export default function PromptListModal({
       >
         <header className={styles.modalHeader}>
           <h3 className={styles.modalTitle}>서비스 설정</h3>
-          <div className={styles.modalActions}>
-            <button type="button" className={styles.closeButton} onClick={onClose}>
-              닫기
-            </button>
-          </div>
         </header>
 
         <section className={styles.llmGuideBox}>
@@ -151,7 +148,14 @@ export default function PromptListModal({
           isMainServer={isMainServer}
         />
 
-
+        <footer className={styles.modalActions}>
+          <button type="button" className={`${styles.closeButton} ${styles.applyButton}`} onClick={onApply}>
+            설정
+          </button>
+          <button type="button" className={styles.closeButton} onClick={onClose}>
+            닫기
+          </button>
+        </footer>
       </section>
     </div>
   );

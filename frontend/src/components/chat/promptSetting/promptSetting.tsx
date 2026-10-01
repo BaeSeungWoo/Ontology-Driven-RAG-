@@ -18,7 +18,7 @@ type PromptSettingProps = {
   selectedPersonaType: PersonaType;
   onSelectPersonaType: (personaType: PersonaType) => void;
   onOpen?: () => void;
-  onClose?: () => void;
+  onClose?: (applied?: { mode: LlmMode; persona: PersonaType }) => void;
 };
 
 export default function PromptSetting({
@@ -36,6 +36,9 @@ export default function PromptSetting({
   // 내부 state
   // 기능/목적: 서비스 설정 모달의 열림 상태와 필수값 누락 여부를 관리한다.
   const [isOpen, setIsOpen] = useState(false);
+  const [draftModel, setDraftModel] = useState(selectedLlmModel);
+  const [draftMode, setDraftMode] = useState(selectedLlmMode);
+  const [draftPersona, setDraftPersona] = useState(selectedPersonaType);
 
   const isQuestionerMissing = questioner.trim().length === 0;
   const isRequiredMissing = isQuestionerMissing;
@@ -44,6 +47,9 @@ export default function PromptSetting({
   // 기능/목적: 서비스 설정 모달과 질문자 입력 변경을 상위 Chat 상태와 연결한다.
   // In: questioner value / Out: modal open state, parent state 변경
   const handleOpenModal = () => {
+    setDraftModel(selectedLlmModel);
+    setDraftMode(selectedLlmMode);
+    setDraftPersona(selectedPersonaType);
     onOpen?.();
     setIsOpen(true);
   };
@@ -51,6 +57,14 @@ export default function PromptSetting({
   const handleCloseModal = () => {
     setIsOpen(false);
     onClose?.();
+  };
+
+  const handleApplyModal = () => {
+    onSelectLlmModel(draftModel);
+    onSelectLlmMode(draftMode);
+    onSelectPersonaType(draftPersona);
+    setIsOpen(false);
+    onClose?.({ mode: draftMode, persona: draftPersona });
   };
 
   const handleChangeQuestioner = (value: string) => {
@@ -131,12 +145,13 @@ export default function PromptSetting({
       {isOpen && (
         <PromptListModal
           onClose={handleCloseModal}
-          selectedLlmModel={selectedLlmModel}
-          onSelectLlmModel={onSelectLlmModel}
-          selectedLlmMode={selectedLlmMode}
-          onSelectLlmMode={onSelectLlmMode}
-          selectedPersonaType={selectedPersonaType}
-          onSelectPersonaType={onSelectPersonaType}
+          onApply={handleApplyModal}
+          selectedLlmModel={draftModel}
+          onSelectLlmModel={setDraftModel}
+          selectedLlmMode={draftMode}
+          onSelectLlmMode={setDraftMode}
+          selectedPersonaType={draftPersona}
+          onSelectPersonaType={setDraftPersona}
         />
       )}
     </div>
