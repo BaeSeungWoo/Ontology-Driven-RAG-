@@ -55,7 +55,7 @@ function fields(data: Record<string, unknown>) {
     if (!labels[key]) return null;
     let display;
     if (key === "definition_registered") display = value ? "등록됨 · TDAA0002_TBL" : data.manual_definition ? "매뉴얼 기준 · 현재 장비" : "설명 없음 · DB 및 연결된 매뉴얼";
-    else if (key === "alarm_name" || key === "alarm_description") display = value || (data.definition_registered === false ? "설명 없음" : "미입력");
+    else if (key === "alarm_name" || key === "alarm_description") display = value ? String(value) : (data.definition_registered === false ? "설명 없음" : "미입력");
     else if (value === null || value === undefined) display = "미확인";
     else if (Array.isArray(value)) display = value.length ? value.join(", ") : "없음";
     else if (typeof value === "object") display = fields(value as Record<string, unknown>);
