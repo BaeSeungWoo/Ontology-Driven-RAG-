@@ -31,7 +31,7 @@ export function formatDelta(value: number | null, unit: "point" | "hours") {
   const sign = value > 0 ? "+" : value < 0 ? "-" : "";
   const totalMinutes = Math.round(Math.abs(value) * 60);
   return unit === "point"
-    ? `${sign}${value.toFixed(1)}%p`
+    ? `${sign}${Math.abs(value).toFixed(1)}%p`
     : `${sign}${Math.floor(totalMinutes / 60).toLocaleString("ko-KR")}시간 ${totalMinutes % 60}분`;
 }
 

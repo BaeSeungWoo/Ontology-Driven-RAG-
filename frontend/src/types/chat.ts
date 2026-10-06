@@ -1,5 +1,5 @@
 ﻿import type { LlmModel, LlmMode } from "@/constants/llmOptions";
-import type { ChatMetadata } from "@/types/chatApi";
+import type { ChatMetadata, MessageFeedback } from "@/types/chatApi";
 
 /**
  * 기능: Answer 화면 전용 메시지 타입
@@ -17,4 +17,5 @@ export type AnswerMessage = {
   llmMode?: LlmMode;
   promptName?: string | null;
   metadata?: ChatMetadata;
+  feedback?: MessageFeedback | null;
 };

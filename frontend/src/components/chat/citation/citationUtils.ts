@@ -1,4 +1,4 @@
-import type { ChatChunk, MessageItem } from "@/types/chatApi";
+import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 
 export type SelectedCitation = {
   messageId: string;
@@ -56,7 +56,8 @@ export function getSelectedChunk(
   const chunks = message?.metadata?.chunks?.length
     ? message.metadata.chunks
     : message?.metadata?.used_chunks ?? [];
-  return chunks.find((chunk) => chunk.index === selectedCitation?.chunkIndex);
+  return chunks.find((chunk) => chunk.index === selectedCitation?.chunkIndex)
+    ?? message?.metadata?.used_chunks?.find((chunk) => chunk.index === selectedCitation?.chunkIndex);
 }
 
 export function getReferenceLabelMap(answerText = "") {
@@ -80,9 +81,29 @@ export function getReferenceItems(answerText = "") {
     .sort((left, right) => left.label - right.label);
 }
 
+// Match the asset panel's used-chunk priority and type/path deduplication.
+export function getDisplayedAssetChunks(metadata?: ChatMetadata): ChatChunk[] {
+  const isAsset = (chunk: ChatChunk) =>
+    typeof chunk.metadata?.asset_path === "string" && chunk.metadata.asset_path.length > 0 &&
+    (chunk.metadata.container_type === "pictures" || chunk.metadata.container_type === "tables");
+  const usedAssets = metadata?.used_chunks?.filter(isAsset) ?? [];
+  const assets = usedAssets.length ? usedAssets : metadata?.chunks?.filter(isAsset) ?? [];
+  const seen = new Set<string>();
+  return assets.filter((chunk) => {
+    const key = `${chunk.metadata.container_type}:${chunk.metadata.asset_path}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 export function getMessageReferenceItems(message?: Pick<MessageItem, "content" | "llm_mode" | "metadata">) {
   const items: { chunkIndex: number; label: number | string; additional: boolean }[] =
     getReferenceItems(message?.content).map((item) => ({ ...item, additional: false }));
+  for (const chunk of getDisplayedAssetChunks(message?.metadata)) {
+    if (items.some((item) => item.chunkIndex === chunk.index)) continue;
+    items.push({ chunkIndex: chunk.index, label: items.length + 1, additional: false });
+  }
   if (message?.llm_mode !== "ladder") return items;
   const chunks = message.metadata?.chunks ?? message.metadata?.used_chunks ?? [];
   let extra = 0;

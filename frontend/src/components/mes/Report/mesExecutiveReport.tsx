@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
+import { Download, FileText } from "lucide-react";
 import { type MesKeyIssue, type MesManagementAction, type MesViewRow } from "@/services/mesApi";
 import { exportHtmlSnapshot, exportPdfSnapshot } from "@/utils/exportHtmlSnapshot";
 import styles from "../mes.module.css";
@@ -67,9 +68,6 @@ export default function MesExecutiveReport({
   point_quality,
 }: MesExecutiveReportProps) {
   const reportRef = useRef<HTMLElement>(null);
-  const [design, setDesign] = useState<"classic" | "reference">("classic");
-  const isReferenceDesign = design === "reference";
-  const designFileSuffix = isReferenceDesign ? "_새디자인" : "";
   const latestReportDate = getReportDateKey(
     deliveryRiskCardRows[0]?.REPORT_DATE ?? productionResultRows[0]?.REPORT_DATE,
   );
@@ -79,7 +77,7 @@ export default function MesExecutiveReport({
     exportHtmlSnapshot(
       reportRef.current,
       `AI 데일리 경영 리포트 ${latestReportDate}`,
-      `AI_데일리_경영_리포트_${latestReportDate || "report"}${designFileSuffix}.html`,
+      `AI_데일리_경영_리포트_${latestReportDate || "report"}_새디자인.html`,
     );
   };
 
@@ -89,7 +87,7 @@ export default function MesExecutiveReport({
       await exportPdfSnapshot(
         reportRef.current,
         `AI 데일리 경영 리포트 ${latestReportDate}`,
-        `AI_데일리_경영_리포트_${latestReportDate || "report"}${designFileSuffix}.pdf`,
+        `AI_데일리_경영_리포트_${latestReportDate || "report"}_새디자인.pdf`,
       );
     } catch {
       window.alert("MES PDF를 생성하지 못했습니다.");
@@ -113,21 +111,11 @@ export default function MesExecutiveReport({
 
   return (
     <>
-      <div className={styles.reportDesignToolbar}>
-        <span>리포트 디자인</span>
-        <div className={styles.reportDesignToggle} role="group" aria-label="리포트 디자인 선택">
-          <button type="button" aria-pressed={!isReferenceDesign} onClick={() => setDesign("classic")}>
-            기존 디자인
-          </button>
-          <button type="button" aria-pressed={isReferenceDesign} onClick={() => setDesign("reference")}>
-            새 디자인
-          </button>
-        </div>
-      </div>
+      <div className={styles.reportLayout}>
       <section
         ref={reportRef}
-        className={`${styles.executiveReport}${isReferenceDesign ? ` ${styles.referenceReport}` : ""}`}
-        data-report-design={design}
+        className={`${styles.executiveReport} ${styles.referenceReport}`}
+        data-report-design="reference"
         aria-label="AI 데일리 경영 리포트"
       >
         <header className={styles.executiveHeader}>
@@ -139,25 +127,8 @@ export default function MesExecutiveReport({
             <time dateTime={latestReportDate}>
               생성 기준: {formatReportDate(latestReportDate)}
             </time>
-            {isReferenceDesign && <span className={styles.referenceHeaderCaption}>EXECUTIVE SUMMARY</span>}
-            <div className={styles.exportButtons} data-export-control>
-              <button
-                type="button"
-                className={styles.htmlExportButton}
-                onClick={exportHtml}
-                disabled={isLoading || isSummaryLoading}
-              >
-                HTML 내보내기
-              </button>
-              <button
-                type="button"
-                className={styles.htmlExportButton}
-                onClick={() => void exportPdf()}
-                disabled={isLoading || isSummaryLoading}
-              >
-                PDF 내보내기
-              </button>
-            </div>
+            <span className={styles.referenceHeaderCaption}>EXECUTIVE SUMMARY</span>
+
           </div>
         </header>
 
@@ -224,13 +195,32 @@ export default function MesExecutiveReport({
             errorMessage={errorMessage}
           />
         </div>
-        {isReferenceDesign && (
-          <footer className={styles.referenceFooter}>
-            <span>AI 데일리 경영 리포트 · 생성 기준 {formatReportDate(latestReportDate)}</span>
-            <span>CONFIDENTIAL</span>
-          </footer>
-        )}
+        <footer className={styles.referenceFooter}>
+          <span>AI 데일리 경영 리포트 · 생성 기준 {formatReportDate(latestReportDate)}</span>
+          <span>CONFIDENTIAL</span>
+        </footer>
       </section>
+      <aside className={styles.reportTools} aria-label="리포트 도구">
+            <div className={styles.exportButtons} data-export-control>
+              <button
+                type="button"
+                className={styles.htmlExportButton}
+                onClick={exportHtml}
+                disabled={isLoading || isSummaryLoading}
+              >
+                <FileText size={15} aria-hidden="true" /> HTML 내보내기
+              </button>
+              <button
+                type="button"
+                className={styles.htmlExportButton}
+                onClick={() => void exportPdf()}
+                disabled={isLoading || isSummaryLoading}
+              >
+                <Download size={15} aria-hidden="true" /> PDF 내보내기
+              </button>
+            </div>
+      </aside>
+      </div>
     </>
   );
 }

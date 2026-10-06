@@ -486,6 +486,31 @@ def updateChatMessage(message_id, content, metadata_json=None):
                 pass
 
 
+@with_thread_pool("db")
+def updateChatMessageFeedback(message_id, feedback):
+    with get_db_connection() as conn:
+        conn.autocommit = False
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE dbo.CHAT_MESSAGE
+                SET FEEDBACK = ?
+                OUTPUT INSERTED.MESSAGE_ID
+                WHERE MESSAGE_ID = ? AND ROLE = 'assistant'
+                """,
+                (feedback, message_id),
+            )
+            updated = cursor.fetchone() is not None
+            conn.commit()
+            return updated
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+
 # 세션별 채팅 메시지 조회
 @with_thread_pool("db")
 def getChatMessagesBySession(session_id):
@@ -507,7 +532,8 @@ def getChatMessagesBySession(session_id):
                     s.QUESTIONER,
                     s.LLM_MODEL,
                     s.LLM_MODE,
-                    m.METADATA
+                    m.METADATA,
+                    m.FEEDBACK
                 FROM dbo.CHAT_MESSAGE m
                 INNER JOIN dbo.CHAT_HISTORY s ON s.SESSION_ID = m.SESSION_ID
                 WHERE m.SESSION_ID = ?

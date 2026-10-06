@@ -209,6 +209,10 @@ class UpdateMessageResponse(BaseModel):
     result: str
 
 
+class UpdateFeedbackRequest(BaseModel):
+    feedback: Literal["도움됨", "틀림", "근거없음"]
+
+
 class GetMessagesRequest(BaseModel):
     session_id: int
 
@@ -296,6 +300,7 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
                     "model": row[6],
                     "llm_mode": row[7],
                     "metadata": metadata,
+                    "feedback": row[9],
                 }
             )
         return json_data
@@ -355,3 +360,26 @@ def updateMessage(message_id: int, req: UpdateMessageRequest, client_request: Re
         print("[history/messages] update error:", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"updateMessage error: {str(e)}")
+
+
+@historyRouter.put("/messages/{message_id}/feedback", response_model=UpdateMessageResponse)
+def updateFeedback(message_id: int, req: UpdateFeedbackRequest, client_request: Request):
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=load_machine_info(),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    session_id = database.getSessionIdByMessageId(message_id)
+    if session_id is None:
+        raise HTTPException(status_code=404, detail="메시지를 찾을 수 없습니다.")
+    validate_code(ctx, database.getChatSessionInfo(session_id))
+
+    try:
+        if not database.updateChatMessageFeedback(message_id, req.feedback):
+            raise HTTPException(status_code=404, detail="답변 메시지를 찾을 수 없습니다.")
+        return {"result": "success"}
+    except HTTPException:
+        raise
+    except Exception:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="피드백 저장 중 오류가 발생했습니다.")

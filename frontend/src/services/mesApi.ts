@@ -1,4 +1,5 @@
 import api from "@/services/api";
+import type { ReportModel } from "@/types/report";
 
 export type MesViewRow = Record<string, unknown>;
 export type MesDashboardViews = Record<string, MesViewRow[]>;
@@ -25,19 +26,25 @@ export type MesReport = {
   point_quality: string;
 };
 
-export async function getMesDashboardViews(): Promise<MesDashboardViews> {
-  const response = await api.get<{ views: MesDashboardViews }>("/api/mes/dashboard");
-  return response.data.views;
+export type MesSavedReport = {
+  factoryId: string;
+  reportDate: string;
+  status: "GENERATING" | "COMPLETED" | "FAILED";
+  config: ReportModel;
+  modelName: string;
+  report: MesReport | null;
+  views: MesDashboardViews | null;
+  startedAt: string;
+  completedAt: string | null;
+  errorMessage: string | null;
+};
+
+export async function getMesSavedReport(reportDate: string): Promise<MesSavedReport | null> {
+  const response = await api.get<{ savedReport: MesSavedReport | null }>("/api/mes/saved-report", { params: { reportDate } });
+  return response.data.savedReport;
 }
 
-export async function generateMesReport(views: MesDashboardViews): Promise<MesReport> {
-  const response = await api.post<{ report: MesReport }>("/api/mes/report", {
-    config: "ollama_config",
-    productionTrendRows: views["mes2-production-trend-14d"] ?? [],
-    deliveryRiskCardRows: views["mes2-card-delivery-risk"] ?? [],
-    deliveryRiskDetailRows: views["mes2-delivery-risk-detail"] ?? [],
-    equipmentWeeklyRows: views["machine-operation-rate-weekly"] ?? [],
-    qualityInstrumentRows: views["mes2-quality-instrument-management"] ?? [],
-  });
-  return response.data.report;
+export async function startMesSavedReport(config: ReportModel, reportDate: string, force = false): Promise<MesSavedReport> {
+  const response = await api.post<{ savedReport: MesSavedReport }>("/api/mes/saved-report", { config, reportDate, force });
+  return response.data.savedReport;
 }

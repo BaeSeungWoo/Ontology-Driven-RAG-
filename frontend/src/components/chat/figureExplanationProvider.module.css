@@ -1,0 +1,39 @@
+.window {
+  position: fixed;
+  right: 24px;
+  bottom: 76px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  width: min(460px, calc(100vw - 32px));
+  height: min(640px, calc(100dvh - 100px));
+  border: 1px solid #bfd0eb;
+  border-radius: 14px;
+  background: #fff;
+  color: #243858;
+  box-shadow: 0 12px 40px #15305b33;
+  overflow: hidden;
+}
+.window[hidden] { display: none; }
+.pdfWindow { width: min(760px, calc(100vw - 48px)); }
+.expanded { width: min(1180px, calc(100vw - 48px)); height: calc(100dvh - 110px); }
+.header { display: flex; align-items: center; gap: 4px; padding: 10px 12px; border-bottom: 1px solid #dce5f0; background: #f5f8ff; }
+.header strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+.header button, .saved button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; padding: 7px; color: #31588e; background: transparent; cursor: pointer; }
+.header button:hover, .saved button:hover { background: #e1edff; }
+.header button:focus-visible, .saved button:focus-visible { outline: 2px solid #1254c4; outline-offset: -2px; }
+.content { flex: 1; min-height: 0; }
+.content > div { height: 100%; }
+.window:not(.expanded):not(.pdfWindow) .content > div { grid-template-columns: 1fr; grid-template-rows: 28% minmax(0, 1fr); }
+.dock { position: fixed; right: 24px; bottom: 16px; z-index: 1201; display: flex; gap: 8px; max-width: calc(100vw - 48px); overflow-x: auto; padding: 4px; }
+.saved { display: flex; flex-shrink: 0; border: 1px solid #bfd0eb; border-radius: 10px; background: #edf4ff; box-shadow: 0 2px 8px #15305b1a; }
+.saved button:first-child { display: inline-flex; gap: 8px; max-width: 290px; font-size: 12px; }
+.savedLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.savedStatus { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; white-space: nowrap; font-size: 11px; font-weight: 600; color: #1254c4; }
+.savedStatus[data-status="complete"] { color: #047857; }
+.savedStatus[data-status="error"] { color: #b42318; }
+@media (max-width: 600px) {
+  .window { right: 16px; }
+  .expanded { width: calc(100vw - 32px); }
+  .dock { right: 12px; max-width: calc(100vw - 24px); }
+}

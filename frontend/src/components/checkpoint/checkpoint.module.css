@@ -5,13 +5,6 @@
    ============================================================ */
 
 /* 위치: 페이지 공통 레이아웃 */
-.reportToolbarLeft {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
 .reportBody {
   flex: 1;
   min-height: 0;
@@ -949,11 +942,6 @@
 }
 
 @media (max-width: 1024px) {
-  .reportToolbarLeft {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
   .sectionHeading {
     flex-wrap: wrap;
     gap: 8px;

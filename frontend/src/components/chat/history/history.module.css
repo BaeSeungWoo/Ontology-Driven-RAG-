@@ -1,429 +1,287 @@
-
-/* ============================================================
-   위치: 우측 질문 이력(History) 패널
-   기능: 헤더/패널 토글, 질문자 필터, 이력 카드, 페이지네이션, 확인 모달
-   목적: 세션 탐색과 복원을 한 패널에서 안정적으로 처리
-   ============================================================ */
-
-/* 위치: History 루트/헤더 */
+/* 왼쪽 질문 이력 패널 */
 .historyRoot {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
   height: 100%;
   min-height: 0;
+  color: #172957;
 }
 
-/* 위치: 우측 컬럼 접힘 상태 */
-.historyRootCollapsed {
+
+.newChatButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 8px;
   width: 100%;
-  align-items: stretch;
-  gap: 0;
+  height: 44px;
+  margin-bottom: 8px;
+  border: 1px solid #2762cc;
+  border-radius: 9px;
+  background: #144db5;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-/* 위치: 패널 헤더 액션(토글/새 질문) */
+.newChatButton:hover {
+  background: #10429e;
+}
+
 .headerRow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
-  margin: -14px -14px 10px;
-  padding: 4px 12px;
-  height: 34px;
   flex-shrink: 0;
-  box-sizing: border-box;
-  border-bottom: 1px solid #96b0cc;
-  border-radius: 14px 14px 0 0;
-  background: #f1f5fa;
+  gap: 12px;
 }
 
-.historyRootCollapsed .headerRow {
-  width: 100%;
-  justify-content: center;
+
+.historyTitle {
   margin: 0;
-  padding: 0;
-  height: 34px;
-  min-height: 34px;
-  border-bottom: 1px solid #96b0cc;
-  border-radius: 14px 14px 0 0;
-  background: #f1f5fa;
-}
-
-.historyRootCollapsed .headerTitleGroup {
-  width: auto;
-  justify-content: center;
-  gap: 0;
-}
-
-.historyRootCollapsed .panelToggleButton {
-  margin-inline: auto;
-}
-
-.headerTitleGroup {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.headerRow .headerTitleGroup :global(.pane-title) {
-  font-size: 12px;
-  line-height: 24px;
-}
-
-.panelToggleButton {
-  flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--chat-title-color);
-  font-size: 16px;
-  font-weight: 900;
-  line-height: 1;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: none;
-  transition:
-    background-color 160ms ease,
-    color 160ms ease;
-}
-
-.panelToggleButton:hover {
-  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
-}
-
-.panelToggleButton:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--chat-title-color) 20%, transparent);
-}
-
-.newChatButton {
-  border: 0;
-  background: transparent;
-  color: var(--chat-accent, #1b5e9e);
-  border-radius: 8px;
-  height: 24px;
-  padding: 0 4px;
-  gap: 3px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.newChatButton:hover:enabled {
-  background: var(--chat-accent-soft, #e8f0f9);
-}
-
-.newChatButton:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-
-/* 위치: 질문자 필터 */
-.questionerFilterSection {
-  margin-top: 0;
-  margin-bottom: 2px;
-}
-
-/* 위치: 질문자 필터 레이아웃 */
-.questionerFilterRow {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-}
-
-.questionerFilterLabel {
-  color: var(--chat-title-color);
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.questionerFilterField {
-  position: relative;
-  display: flex;
-  align-items: center;
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 86%, transparent);
-  border-radius: 9px;
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 18%, transparent), transparent),
-    color-mix(in srgb, var(--chat-pane-bg) 92%, var(--chat-page-bg) 8%);
-  box-shadow:
-    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent),
-    0 1px 2px color-mix(in srgb, var(--chat-shadow) 28%, transparent);
-  transition:
-    border-color 160ms ease,
-    box-shadow 160ms ease,
-    background-color 160ms ease;
-}
-
-.questionerFilterField:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 34%, var(--chat-pane-border) 66%);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, #fff 20%, transparent), transparent),
-    color-mix(in srgb, var(--chat-title-color) 4%, var(--chat-pane-bg) 96%);
-}
-
-.questionerFilterField:focus-within {
-  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 14%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 55%, transparent);
-}
-
-.questionerFilterSelect {
-  width: 100%;
-  height: 36px;
-  border: 0;
-  border-radius: 9px;
-  padding: 0 10px;
-  background: transparent;
-  color: var(--chat-text-color);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  position: relative;
-  z-index: 1;
 }
 
-.questionerFilterSelect:hover {
-  background: transparent;
-}
-
-.questionerFilterSelect:focus {
-  outline: none;
-  box-shadow: none;
-}
-
-/* 위치: 이력 리스트/카드 */
-.historyListWrap {
-  flex: 1;
-  min-height: 0;
+.searchButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
   border: 0;
-  border-radius: 0;
-  padding: 0;
+  border-radius: 6px;
   background: transparent;
+  color: #405581;
+  cursor: pointer;
+}
+
+.searchButton:hover {
+  background: #e5eefb;
 }
 
 .historyList {
-  height: 100%;
-  overflow: auto;
+  flex: 1;
+  min-height: 0;
+  margin-right: -16px;
+  padding-right: 10px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df transparent;
+}
+
+.historyList:hover {
+  scrollbar-color: #aabbd0 transparent;
+}
+
+.dateGroup {
+  margin-top: 10px;
+}
+
+.dateGroup + .dateGroup {
+  margin-top: 20px;
+}
+
+.dateHeading {
+  margin: 0 0 6px;
+  padding: 0 3px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.dateToggle {
   display: flex;
-  flex-direction: column;
-  gap: 9px;
-  padding-right: 0;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.dateToggle:hover,
+.dateToggle:focus-visible {
+  background: #eaf1fc;
+  color: #1659c7;
+}
+
+.dateToggle:focus-visible {
+  outline: 2px solid #1659c7;
+  outline-offset: 2px;
 }
 
 .historyCard {
-  border: 1px solid color-mix(in srgb, var(--chat-pane-border) 88%, transparent);
-  border-radius: 9px;
-  background: var(--chat-pane-bg);
-  padding: 7px 32px 7px 9px;
-  min-height: 82px;
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
   width: 100%;
-  text-align: left;
+  padding: 8px 26px 8px 4px;
+  border-radius: 8px;
   cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease;
 }
 
 .historyCard:hover {
-  border-color: color-mix(in srgb, var(--chat-title-color) 38%, var(--chat-pane-border) 62%);
-  background: color-mix(in srgb, var(--chat-title-color) 6%, var(--chat-pane-bg) 94%);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--chat-shadow) 65%, transparent);
-}
-
-.historyCard:focus-visible {
-  outline: none;
-  border-color: color-mix(in srgb, var(--chat-title-color) 52%, var(--chat-pane-border) 48%);
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--chat-title-color) 14%, transparent),
-    0 2px 8px color-mix(in srgb, var(--chat-shadow) 50%, transparent);
+  background: #eaf1fc;
 }
 
 .historyCardActive {
-  border-color: var(--chat-accent, #1b5e9e);
+  padding-left: 14px;
+  background: #e0ebfb;
+  color: #124db5;
 }
 
-.cardDeleteButton {
+.historyCardActive::before {
   position: absolute;
-  top: 9px;
-  right: 8px;
-  border: 0;
-  background: transparent;
-  padding: 0;
-  width: 18px;
-  height: 18px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: color-mix(in srgb, #c52222 88%, #7f1d1d 12%);
-  opacity: 0;
+  top: 8px;
+  bottom: 8px;
+  left: 4px;
+  width: 3px;
+  border-radius: 2px;
+  background: #124db5;
+  content: "";
   pointer-events: none;
-  cursor: pointer;
-  transition:
-    opacity 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.historyCard:hover .cardDeleteButton,
-.historyCard:focus-within .cardDeleteButton {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.cardDeleteButton:hover,
-.cardDeleteButton:focus-visible {
-  color: color-mix(in srgb, #dc2626 94%, #7f1d1d 6%);
-  transform: scale(1.04);
-  outline: none;
 }
 
 .cardTitle {
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: 13px;
-  line-height: 1.2;
-  font-weight: 700;
-  color: var(--chat-title-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  line-height: 1.6;
+  font-weight: 500;
+  color: #344b7e;
 }
 
-.cardModelMode {
-  margin: 4px 0 0;
-  font-size: 10.5px;
+.historyCard:hover .cardTitle[data-overflowing="true"] {
+  text-overflow: clip;
+}
+
+.historyCard:hover .cardTitle[data-overflowing="true"] > span {
+  display: inline-block;
+  animation: revealHistoryTitle var(--title-duration) linear 600ms forwards;
+}
+
+@keyframes revealHistoryTitle {
+  to { transform: translateX(var(--title-travel)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .historyCard:hover .cardTitle[data-overflowing="true"] { text-overflow: ellipsis; }
+  .historyCard:hover .cardTitle[data-overflowing="true"] > span { display: inline; animation: none; }
+}
+
+.historyCardActive .cardTitle {
+  color: #124db5;
   font-weight: 600;
-  font-style: italic;
-  color: color-mix(in srgb, var(--chat-title-color) 86%, var(--chat-text-color) 14%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.cardBottomRow {
-  margin-top: 3px;
+.historyTooltip {
+  position: fixed;
+  z-index: 1400;
+  width: min(360px, calc(100vw - 16px));
+  max-height: calc(100dvh - 16px);
+  overflow: hidden;
+  padding: 14px 16px;
+  border: 1px solid #d3dff0;
+  border-radius: 12px;
+  background: #fff;
+  color: #172957;
+  box-shadow: 0 8px 28px rgb(30 60 100 / 14%);
+  font-family: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+
+.tooltipTitle {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.tooltipTags {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 6px;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
-.cardMeta {
-  margin: 0;
-  font-size: 10.5px;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--chat-text-color) 78%, var(--chat-muted-text) 22%);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.cardQuestioner {
-  margin: 0;
-  flex: 0 0 auto;
+.tooltipTags span {
+  padding: 3px 7px;
+  border-radius: 5px;
+  background: #edf4ff;
+  color: #385b91;
   font-size: 11px;
-  font-weight: 800;
-  color: color-mix(in srgb, var(--chat-title-color) 92%, var(--chat-text-color) 8%);
-  white-space: nowrap;
+}
+
+.tooltipTags span[data-persona] {
+  background: var(--persona-bg);
+  color: var(--persona-color);
+  box-shadow: inset 0 0 0 1px var(--persona-border);
+  font-weight: 600;
+}
+
+.tooltipMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid #e9eff7;
+  color: #7181a1;
+  font-size: 11px;
+}
+
+.cardDeleteButton {
+  position: absolute;
+  top: 7px;
+  right: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: #8a4350;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.historyCard:hover .cardDeleteButton, .historyCard:focus-within .cardDeleteButton {
+  opacity: 1;
+}
+
+.cardDeleteButton:hover {
+  background: #fbe7eb;
+}
+
+.newChatButton:focus-visible, .searchButton:focus-visible,
+.historyCard:focus-visible, .cardDeleteButton:focus-visible {
+  outline: 2px solid #1659c7;
+  outline-offset: -2px;
 }
 
 .emptyHistoryText {
-  margin: 8px 0;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--chat-muted-text);
-  text-align: center;
+  margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #7181a1;
 }
-
-
-/* 위치: 페이지네이션 */
-.paginationRow {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  min-width: 0;
-  margin-top: 2px;
-  padding-top: 2px;
-  flex-shrink: 0;
+@media (hover: none) {
+  .cardDeleteButton {
+    opacity: 1;
+  }
 }
-
-.pageNumbers {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2px;
-}
-
-
-.pageEllipsis {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 18px;
-  height: 28px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--chat-muted-text);
-}
-
-.pageButton {
-  border: 0;
-  border-radius: 999px;
-  height: 28px;
-  min-width: 28px;
-  padding: 0 6px;
-  font-size: 12px;
-  color: color-mix(in srgb, var(--chat-text-color) 72%, var(--chat-muted-text) 28%);
-  background: transparent;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pageButton:hover:enabled {
-  background: color-mix(in srgb, var(--chat-title-color) 10%, transparent);
-  color: var(--chat-title-color);
-}
-
-.pageButton:disabled {
-  opacity: 0.34;
-  cursor: not-allowed;
-  background: transparent;
-  color: color-mix(in srgb, var(--chat-muted-text) 74%, transparent);
-}
-
-.pageButtonActive {
-  background: color-mix(in srgb, var(--chat-title-color) 80%, #111 20%);
-  color: #fff;
-  font-weight: 700;
-}
-
-.pageButtonActive:hover:enabled {
-  background: color-mix(in srgb, var(--chat-title-color) 66%, var(--chat-pane-bg) 34%);
-}
-
 
 /* 위치: 공통 확인 모달(새 질문/삭제 확인에서 공용) */
 .modalBackdrop {
@@ -490,3 +348,120 @@
 
 
 
+
+.loadMore {
+  padding: 16px 0;
+  text-align: center;
+  font-size: 11px;
+  color: #7181a1;
+}
+
+.loadMore button {
+  display: block;
+  margin: 6px auto;
+  color: #1659c7;
+  cursor: pointer;
+}
+
+.searchDialog {
+  width: min(560px, calc(100vw - 32px));
+  height: min(800px, calc(100dvh - 48px));
+  max-height: calc(100dvh - 48px);
+  box-sizing: border-box;
+  overflow: hidden;
+  margin: auto;
+  padding: 0;
+  border: 1px solid #dce4f0;
+  border-radius: 16px;
+  background: #fff;
+  color: #172957;
+  box-shadow: 0 24px 70px #14254733;
+}
+
+.searchDialog::backdrop {
+  background: #13233e55;
+}
+
+.searchContent {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 16px;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.searchField {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #cbd8eb;
+  border-radius: 9px;
+}
+
+.searchField:focus-within {
+  outline: 2px solid #1659c7;
+}
+
+.searchField input {
+  width: 100%;
+  min-width: 0;
+  font-size: 14px;
+  outline: none;
+}
+
+.searchResults {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  font-size: 13px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df transparent;
+}
+
+.searchCount {
+  margin: 0 0 10px;
+  color: #7181a1;
+  font-size: 12px;
+}
+
+.searchResult {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 12px 8px;
+  border-radius: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.searchResult:hover {
+  background: #edf4ff;
+}
+
+.searchResult strong {
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.searchResult span {
+  color: #7181a1;
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
+.searchResult:focus-visible {
+  outline: 2px solid #1659c7;
+  outline-offset: -2px;
+}
+
+@media (max-width: 1200px) {
+  .historyList {
+    max-height: 480px;
+    flex: auto;
+  }
+}

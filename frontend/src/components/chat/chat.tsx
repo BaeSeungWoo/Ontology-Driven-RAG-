@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { ChartNoAxesCombined, Check, Cpu, HardHat, Info, Wrench } from "lucide-react";
 import Answer from "./answer/answer";
 import RecommendedQuestions from "./answer/recommendedQuestions";
 import RecommendationPopover from "./question/recommendationPopover";
 import Citation from "./citation/citation";
-import PdfDocumentViewer from "./citation/pdfDocumentViewer";
+import { usePdfDocument } from "./figureExplanationProvider";
 import History from "./history/history";
 import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
@@ -17,43 +19,33 @@ import {
 } from "@/constants/llmOptions";
 import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
 import Question, { type QuestionPayload } from "./question/question";
-import ThemeSwitcher, { type ThemeKey } from "./themeSwitcher/themeSwitcher";
 import { useChat } from "@/hooks/useChat";
-import PageTabs from "@/components/navigation/pageTabs";
-import { resolveDocument } from "@/services/documentApi";
-import type { ResolvedDocument } from "@/types/chatApi";
+import AppHeader from "@/components/navigation/appHeader";
 import {
-  getCitationDocumentRequest,
-  type CitationDocumentRequest,
   type SelectedCitation,
 } from "./citation/citationUtils";
 import styles from "./chat.module.css";
+import personaStyles from "./persona.module.css";
 
 type HistorySessionMeta = Pick<
   HistoryItem,
   "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType"
 >;
 
-type ActivePdfDocument = {
-  documentKey: string;
-  document: ResolvedDocument;
-  pageLabel: string | null;
-  chunkText: string;
-  referenceLabel: string;
-} | null;
+const PERSONA_CARDS = {
+  operator: { icon: HardHat, description: "장비 조작과 안전 점검을 매뉴얼로 확인하세요.", mode: "rag" },
+  maintenance: { icon: Wrench, description: "래더와 신호를 살펴 고장 원인을 찾아보세요.", mode: "ladder" },
+  engineer: { icon: Cpu, description: "설비 알람과 기술 자료를 함께 분석하세요.", mode: "cms" },
+  manager: { icon: ChartNoAxesCombined, description: "가동 현황과 운영 지표를 한눈에 확인하세요.", mode: "cms" },
+} satisfies Record<PersonaType, { icon: typeof HardHat; description: string; mode: LlmMode }>;
 
 export default function Chat() {
-  const themeKey =
-    (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
-
   // 내부 state: 화면 접힘/선택 상태
   // 기능/목적: 좌/우 패널, 활성 답변과 선택 참조를 화면 전체에서 공유한다.
   const [isCitationCollapsed, setIsCitationCollapsed] = useState(false);
-  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
   const [activeAssistantMessageId, setActiveAssistantMessageId] = useState<string | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<SelectedCitation>(null);
-  const [activePdfDocument, setActivePdfDocument] = useState<ActivePdfDocument>(null);
-  const [isPdfDocumentUpdating, setIsPdfDocumentUpdating] = useState(false);
+  const handleDocumentOpen = usePdfDocument();
 
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
@@ -72,7 +64,6 @@ export default function Chat() {
   const sendingRef = useRef(false);
   const isSessionResetPendingRef = useRef(false);
   const isHistorySessionSyncingRef = useRef(false);
-  const lastSyncedDocumentKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const today = new Intl.DateTimeFormat("sv-SE", {
@@ -89,11 +80,6 @@ export default function Chat() {
     },
     onHistoryRefresh: () => setHistoryRefreshKey((prev) => prev + 1),
   });
-
-  const selectedDocumentRequest = useMemo(
-    () => getCitationDocumentRequest(messages, selectedCitation, activeAssistantMessageId),
-    [activeAssistantMessageId, messages, selectedCitation]
-  );
 
   const previousSettingsRef = useRef<{
     questioner: string;
@@ -120,9 +106,6 @@ export default function Chat() {
     setSelectedSessionId(null);
     setActiveAssistantMessageId(null);
     setSelectedCitation(null);
-    setActivePdfDocument(null);
-    setIsPdfDocumentUpdating(false);
-    lastSyncedDocumentKeyRef.current = null;
     isSessionResetPendingRef.current = false;
     resetChatState();
   };
@@ -199,9 +182,6 @@ export default function Chat() {
     isSessionResetPendingRef.current = false;
     setActiveAssistantMessageId(null);
     setSelectedCitation(null);
-    setActivePdfDocument(null);
-    setIsPdfDocumentUpdating(false);
-    lastSyncedDocumentKeyRef.current = null;
     setSelectedSessionId(sessionId);
 
     if (sessionMeta?.questioner && sessionMeta.questioner.trim().length > 0) {
@@ -265,73 +245,8 @@ export default function Chat() {
     setSelectedCitation({ messageId, chunkIndex });
   }, []);
 
-  const handleDocumentOpen = useCallback(async (documentRequest: CitationDocumentRequest) => {
-    lastSyncedDocumentKeyRef.current = documentRequest.documentKey;
-    setIsPdfDocumentUpdating(true);
-
-    try {
-      const document = await resolveDocument(documentRequest.sourceDocName, documentRequest.pageRange);
-      setActivePdfDocument({
-        documentKey: documentRequest.documentKey,
-        document,
-        pageLabel: documentRequest.pageLabel,
-        chunkText: documentRequest.chunkText,
-        referenceLabel: documentRequest.referenceLabel,
-      });
-    } finally {
-      setIsPdfDocumentUpdating(false);
-    }
-  }, []);
-
-  const handlePdfDocumentClose = useCallback(() => {
-    setActivePdfDocument(null);
-    setIsPdfDocumentUpdating(false);
-    lastSyncedDocumentKeyRef.current = null;
-  }, []);
-
-  useEffect(() => {
-    if (!activePdfDocument || !selectedDocumentRequest) return;
-    if (lastSyncedDocumentKeyRef.current === selectedDocumentRequest.documentKey) return;
-
-    let isCurrent = true;
-    lastSyncedDocumentKeyRef.current = selectedDocumentRequest.documentKey;
-    setIsPdfDocumentUpdating(true);
-
-    resolveDocument(selectedDocumentRequest.sourceDocName, selectedDocumentRequest.pageRange)
-      .then((document) => {
-        if (!isCurrent) return;
-        setActivePdfDocument({
-          documentKey: selectedDocumentRequest.documentKey,
-          document,
-          pageLabel: selectedDocumentRequest.pageLabel,
-          chunkText: selectedDocumentRequest.chunkText,
-          referenceLabel: selectedDocumentRequest.referenceLabel,
-        });
-      })
-      .catch(() => {
-        if (isCurrent) setIsPdfDocumentUpdating(false);
-      })
-      .finally(() => {
-        if (isCurrent) setIsPdfDocumentUpdating(false);
-      });
-
-    return () => {
-      isCurrent = false;
-    };
-  }, [activePdfDocument, selectedDocumentRequest]);
-
   const handleCitationToggle = useCallback(() => {
-    setActivePdfDocument(null);
-    setIsPdfDocumentUpdating(false);
-    lastSyncedDocumentKeyRef.current = null;
     setIsCitationCollapsed((prev) => !prev);
-  }, []);
-
-  const handleRightPanelToggle = useCallback(() => {
-    setActivePdfDocument(null);
-    setIsPdfDocumentUpdating(false);
-    lastSyncedDocumentKeyRef.current = null;
-    setIsRightPanelCollapsed((prev) => !prev);
   }, []);
 
   // 함수: 설정 변경 감지
@@ -366,6 +281,7 @@ export default function Chat() {
     previousSettingsRef.current = nextSettings;
   }, [questioner, selectedLlmModel, selectedLlmMode, selectedPersonaType, selectedSessionId, isSettingsOpen]);
 
+  const isWelcome = messages.length === 0 && selectedSessionId === null && !isSessionLoading;
   const lastUserMessage = messages.findLast(message => message.role === "user");
   const lastAnswerMessage = messages.findLast(message => message.role === "assistant");
   const recommendationSource = selectedLlmMode === "ladder" && selectedPersonaType === "maintenance"
@@ -374,10 +290,12 @@ export default function Chat() {
     : selectedLlmMode === "cms" && selectedPersonaType === "manager" ? "cms_manager" : null;
   const prepareRecommendations = (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
     !isSending && !isLoading && !isSessionLoading && !error &&
-    selectedLlmModel === "ollama_config" && recommendationSource !== null;
+    (selectedLlmModel === "ollama_config" || selectedLlmModel === "vllm_config") && recommendationSource !== null;
   const recommendations = prepareRecommendations && recommendationSource ? (
     <RecommendedQuestions
-      key={`${recommendationSource}:${selectedSessionId}:${lastAnswerMessage?.message_id ?? "initial"}`}
+      key={`${selectedLlmModel}:${recommendationSource}:${selectedSessionId}:${lastAnswerMessage?.message_id ?? "initial"}`}
+      llmModel={selectedLlmModel}
+      welcome={isWelcome}
       source={recommendationSource}
       visible={recommendationsEnabled}
       sessionId={selectedSessionId}
@@ -398,64 +316,83 @@ export default function Chat() {
   // render
   return (
     <div className={`${styles.chatPage} tw-chat-page`}>
-      <div className="tw-chat-toolbar">
-        <div className={styles.chatToolbarLeft}>
-          <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
-          <PageTabs />
+      <AppHeader>
+        <div className={styles.headerSettings} inert={isSending}>
+          <PromptSetting
+            onOpen={handleSettingsOpen}
+            onClose={handleSettingsClose}
+            questioner={questioner}
+            onQuestionerChange={setQuestioner}
+            selectedLlmModel={selectedLlmModel}
+            onSelectLlmModel={setSelectedLlmModel}
+            selectedLlmMode={selectedLlmMode}
+            onSelectLlmMode={setSelectedLlmMode}
+            selectedPersonaType={selectedPersonaType}
+            onSelectPersonaType={setSelectedPersonaType}
+          />
         </div>
-        <ThemeSwitcher initialTheme={themeKey} />
-      </div>
+      </AppHeader>
 
       <div
-        className={`${styles.chatTypographyScope} tw-chat-layout ${
-          isCitationCollapsed ? "tw-chat-layout-collapsed" : ""
-        } ${isRightPanelCollapsed ? "tw-chat-layout-right-collapsed" : ""} ${
-          isCitationCollapsed && isRightPanelCollapsed ? "tw-chat-layout-both-collapsed" : ""
-        }`}
+        className={`${styles.chatTypographyScope} tw-chat-layout ${isCitationCollapsed ? "tw-chat-layout-right-collapsed" : ""}`}
       >
-        <aside className="tw-chat-left">
+        <aside className="tw-chat-left" inert={isSending}>
           <section
-            className={`${styles.chatCitationPane} ${
-              isCitationCollapsed ? styles.chatCitationPaneCollapsed : ""
-            }`}
+            className={styles.chatHistoryPane}
           >
-            <Citation
-              isCollapsed={isCitationCollapsed}
-              onToggle={handleCitationToggle}
-              messages={messages}
-              isLoading={isLoading}
-              activeAssistantMessageId={activeAssistantMessageId}
-              selectedCitation={selectedCitation}
-              onCitationSelect={handleCitationSelect}
-              onDocumentOpen={handleDocumentOpen}
-              onDetailClose={handlePdfDocumentClose}
-              documentOverlay={
-                activePdfDocument ? (
-                  <PdfDocumentViewer
-                    document={activePdfDocument.document}
-                    pageLabel={activePdfDocument.pageLabel}
-                    chunkText={activePdfDocument.chunkText}
-                    referenceLabel={activePdfDocument.referenceLabel}
-                    onClose={handlePdfDocumentClose}
-                    variant="panel"
-                    isUpdating={isPdfDocumentUpdating}
-                  />
-                ) : null
-              }
+            <History
+              selectedSessionId={selectedSessionId}
+              onSelectSession={handleSelectSession}
+              onStartNewChat={resetToNewSession}
+              onDeleteSession={handleDeleteSession}
+              onHistoryRefresh={() => setHistoryRefreshKey((prev) => prev + 1)}
+              refreshKey={historyRefreshKey}
             />
           </section>
+
         </aside>
 
-        <main className="tw-chat-center">
-          <section className={styles.chatAnswerPane}>
-            <div className={styles.chatAnswerSplit}>
-              <div className={styles.chatAnswerSplitHeader}>
-                <div className={styles.sectionTitleGroup}>
-                  <h2 className="pane-title">답변</h2>
-                </div>
+        <main className={`tw-chat-center ${isWelcome ? styles.welcomeCenter : ""}`}>
+          {isWelcome ? (
+            <>
+            <div className={styles.welcomeHero}>
+              <Image src="/logo3.png" alt="" width={112} height={112} loading="eager" />
+              <p className={styles.welcomeEyebrow}>YOUR KNOWLEDGE, CONNECTED</p>
+              <h2>현장의 질문에,<br />근거 있는 답을.</h2>
+              <p className={styles.welcomeDescription}>복잡한 매뉴얼부터 설비 문제까지.<br />질문하고, 답변의 근거까지 함께 확인하세요.</p>
+            </div>
+            <section className={styles.personaPicker} aria-label="페르소나 선택">
+              <p className={styles.personaGuide}>질문하기 전에 업무에 맞는 역할을 선택해 주세요. 선택한 역할에 맞춰 답변과 추천질문을 제공합니다.</p>
+              <div className={styles.personaCards}>
+                {PERSONA_OPTIONS.map(persona => {
+                  const card = PERSONA_CARDS[persona.value];
+                  const Icon = card.icon;
+                  return (
+                    <button key={persona.value} type="button" className={`${styles.personaCard} ${personaStyles.theme}`} data-persona={persona.value}
+                      aria-pressed={selectedPersonaType === persona.value}
+                      disabled={isSending || isLoading}
+                      onClick={() => {
+                        setSelectedPersonaType(persona.value);
+                        setSelectedLlmMode(card.mode);
+                        setRecommendationsEnabled(true);
+                      }}
+                    >
+                      <span className={styles.personaCardTop}><Icon size={23} aria-hidden="true" />
+                        {selectedPersonaType === persona.value && <Check size={15} aria-hidden="true" />}
+                      </span>
+                      <strong>{persona.label}</strong>
+                      <span className={styles.personaDescription}>{card.description}</span>
+                    </button>
+                  );
+                })}
               </div>
+            </section>
+            </>
+          ) : <section className={styles.chatAnswerPane}>
+            <div className={styles.chatAnswerSplit}>
               <div className={styles.chatAnswerMain}>
                 <Answer
+                  canExplainFigure={selectedLlmModel === "vllm_config"}
                   recommendations={messages.length === 0 ? recommendations : null}
                   messages={messages}
                   selectedCitation={selectedCitation}
@@ -468,13 +405,15 @@ export default function Chat() {
                 />
               </div>
             </div>
-          </section>
+          </section>}
 
+          {isWelcome && recommendations}
           <section className={styles.chatQuestionPane}>
             {error && <p role="alert">{error}</p>}
             {recommendationSendError && <p role="alert">{recommendationSendError}</p>}
             <Question
               key={composerEpoch}
+              welcome={isWelcome}
               isBusy={isSending || isLoading || isSessionLoading}
               questioner={questioner}
               selectedLlmModel={selectedLlmModel}
@@ -488,47 +427,33 @@ export default function Chat() {
               ) : null}
             />
           </section>
+          {isWelcome && <>
+            <p className={styles.welcomeNotice}><Info size={17} aria-hidden="true" />AI 답변은 참고 자료와 함께 확인해 주세요.</p>
+          </>}
         </main>
 
-        <aside className="tw-chat-right" inert={isSending}>
+        <aside className="tw-chat-right">
           <section
-            className={`${styles.chatHistoryPane} ${
-              isRightPanelCollapsed ? styles.chatHistoryPaneCollapsed : ""
+            className={`${styles.chatCitationPane} ${
+              isCitationCollapsed ? styles.chatCitationPaneCollapsed : ""
             }`}
           >
-            <History
-              selectedSessionId={selectedSessionId}
-              onSelectSession={handleSelectSession}
-              onStartNewChat={resetToNewSession}
-              onDeleteSession={handleDeleteSession}
-              onHistoryRefresh={() => setHistoryRefreshKey((prev) => prev + 1)}
-              refreshKey={historyRefreshKey}
-              isCollapsed={isRightPanelCollapsed}
-              onToggleCollapse={handleRightPanelToggle}
+            <Citation
+              canExplainFigure={selectedLlmModel === "vllm_config"}
+              isNewQuestion={isWelcome}
+              isCollapsed={isCitationCollapsed}
+              onToggle={handleCitationToggle}
+              messages={messages}
+              isLoading={isLoading}
+              activeAssistantMessageId={activeAssistantMessageId}
+              selectedCitation={selectedCitation}
+              onCitationSelect={handleCitationSelect}
+              onDocumentOpen={handleDocumentOpen}
             />
           </section>
-
-          {!isRightPanelCollapsed ? (
-            <section
-              className={`${styles.chatPromptSettingPane} ${
-                isPromptRequiredMissing ? styles.chatPromptSettingPaneRequired : ""
-              }`}
-            >
-              <PromptSetting
-                onOpen={handleSettingsOpen}
-                onClose={handleSettingsClose}
-                questioner={questioner}
-                onQuestionerChange={setQuestioner}
-                selectedLlmModel={selectedLlmModel}
-                onSelectLlmModel={setSelectedLlmModel}
-                selectedLlmMode={selectedLlmMode}
-                onSelectLlmMode={setSelectedLlmMode}
-                selectedPersonaType={selectedPersonaType}
-                onSelectPersonaType={setSelectedPersonaType}
-              />
-            </section>
-          ) : null}
         </aside>
+
+
       </div>
     </div>
   );

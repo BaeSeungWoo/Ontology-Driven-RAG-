@@ -7,10 +7,15 @@ import type {
   CreateSessionPayload,
   CreateSessionResponse,
   MessageItem,
+  MessageFeedback,
   UpdateMessagePayload,
   UpdateMessageResponse,
 } from "@/types/chatApi";
 import type { ChatMetadata } from "@/types/chatApi";
+
+export async function updateMessageFeedback(messageId: number, feedback: MessageFeedback): Promise<void> {
+  await api.put(`/api/history/messages/${messageId}/feedback`, { feedback }, { timeout: 15_000 });
+}
 
 /**
  * 기능: 스트리밍 응답 선두의 METADATA 프레임을 JSON으로 파싱한다.

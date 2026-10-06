@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import PageTabs from "@/components/navigation/pageTabs";
-import ThemeSwitcher, { type ThemeKey } from "@/components/chat/themeSwitcher/themeSwitcher";
+import AppHeader from "@/components/navigation/appHeader";
 import { getReportSections } from "@/services/dailyReportApi";
 import type { DailyReportSectionsApi, DailyReportSectionsRequest } from "@/types/dailyReport";
 import styles from "./dailyReport.module.css";
@@ -18,8 +17,6 @@ const REPORT_SECTIONS_REQUEST: DailyReportSectionsRequest = {
 };
 
 export default function DailyReport() {
-  const themeKey =
-    (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
   const [sections, setSections] = useState<DailyReportSectionsApi | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -56,13 +53,7 @@ export default function DailyReport() {
 
   return (
     <div className="tw-chat-page">
-      <div className="tw-chat-toolbar">
-        <div className={styles.reportToolbarLeft}>
-          <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
-          <PageTabs />
-        </div>
-        <ThemeSwitcher initialTheme={themeKey} />
-      </div>
+      <AppHeader />
 
       <main className={styles.reportBody}>
         <section className={styles.reportStack}>

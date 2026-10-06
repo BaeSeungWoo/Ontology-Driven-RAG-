@@ -28,6 +28,7 @@ from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
 from app.routers.checkpointRouter import checkpointRouter
 from app.routers.documentRouter import documentRouter
+from app.routers.figureRouter import figureRouter
 from app.routers.cmsRouter import cmsRouter
 from app.routers.mesRouter import mesRouter
 from app.routers.voiceRouter import voiceRouter
@@ -93,6 +94,7 @@ class ChatRequest(BaseModel):
 
 
 class RecommendationRequest(BaseModel):
+    llm_model: Literal["ollama_config", "vllm_config"] = "ollama_config"
     source: Literal["manual", "ladder", "cms_engineer", "cms_manager"] = "manual"
     session_id: str | None = None
     question: str = Field(default="", max_length=10000)
@@ -112,7 +114,7 @@ def recommendation_machine_code(request, client_request, service):
 
 @app.post("/api/recommendations/context")
 def recommendation_context(request: RecommendationRequest, client_request: Request):
-    service = get_service("ollama_config")
+    service = get_service(request.llm_model)
     machine_code = recommendation_machine_code(request, client_request, service)
     return {"machine_code": machine_code if machine_code != "ALL" else None,
             "machine_name": service.config.machines.get(machine_code, {}).get("machine_name")}
@@ -120,7 +122,7 @@ def recommendation_context(request: RecommendationRequest, client_request: Reque
 
 @app.post("/api/recommendations")
 async def recommendation_endpoint(request: RecommendationRequest, client_request: Request):
-    service = get_service("ollama_config")
+    service = get_service(request.llm_model)
     machine_code = recommendation_machine_code(request, client_request, service)
     if not machine_code or machine_code == "ALL":
         return {"questions": [], "message": "현재 장비가 지정되지 않아 추천질문을 만들 수 없습니다."}
@@ -215,6 +217,7 @@ app.include_router(historyRouter)
 app.include_router(dailyReportRouter)
 app.include_router(checkpointRouter)
 app.include_router(documentRouter)
+app.include_router(figureRouter)
 app.include_router(cmsRouter)
 app.include_router(mesRouter)
 app.include_router(voiceRouter)

@@ -1,11 +1,15 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { API_BASE_URL } from "@/services/api";
 import styles from "./citation.module.css";
+import { useFigureExplanation } from "../figureExplanationProvider";
+import figureStyles from "../figureExplanation.module.css";
 
 type ChunkAssetProps = {
+  figureMessageId?: number;
   assetPath: string;
   assetType?: string | null;
   referenceLabel: string;
@@ -47,11 +51,20 @@ export default function ChunkAsset({
   assetPath,
   assetType,
   referenceLabel,
+  figureMessageId,
 }: ChunkAssetProps) {
   const [tableMarkdown, setTableMarkdown] = useState<string | null>(null);
   const [tableLoadError, setTableLoadError] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const assetUrl = toAssetUrl(assetPath);
+  const openFigureExplanation = useFigureExplanation();
+
+  useEffect(() => {
+    if (!previewImageUrl) return;
+    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setPreviewImageUrl(null); };
+    window.addEventListener("keydown", close);
+    return () => window.removeEventListener("keydown", close);
+  }, [previewImageUrl]);
 
   /**
    * 기능: 표 asset의 MD 파일을 /assets 정적 URL에서 fetch한다.
@@ -89,7 +102,7 @@ export default function ChunkAsset({
         <button
           type="button"
           className={styles.chunkAssetImageButton}
-          onClick={() => setPreviewImageUrl(assetUrl)}
+          onClick={() => { setPreviewImageUrl(assetUrl); }}
           title="이미지 확대"
         >
           <Image
@@ -113,7 +126,10 @@ export default function ChunkAsset({
         </div>
       ) : null}
 
-      {previewImageUrl ? (
+      {assetType === "pictures" && figureMessageId !== undefined && (
+        <button type="button" className={figureStyles.explainButton} onClick={() => { openFigureExplanation({ messageId: figureMessageId, assetPath, imageUrl: assetUrl, label: referenceLabel }); }}><span className={figureStyles.aiBadge} aria-hidden="true">AI</span> 이 그림 풀어서 설명받기</button>
+      )}
+      {previewImageUrl ? createPortal(
         <div
           className={styles.imagePreviewOverlay}
           role="dialog"
@@ -124,7 +140,7 @@ export default function ChunkAsset({
           <div className={styles.imagePreviewDialog} onClick={(event) => event.stopPropagation()}>
             <div className={styles.imagePreviewHeader}>
               <strong>{referenceLabel}</strong>
-              <button type="button" onClick={() => setPreviewImageUrl(null)} aria-label="이미지 닫기">
+              <button autoFocus type="button" onClick={() => setPreviewImageUrl(null)} aria-label="이미지 닫기">
                 닫기
               </button>
             </div>
@@ -137,7 +153,7 @@ export default function ChunkAsset({
             />
           </div>
         </div>
-      ) : null}
+      , document.body) : null}
     </div>
   );
 }

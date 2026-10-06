@@ -1,5 +1,6 @@
+import CmsHourlyChart from "./cmsHourlyChart";
 import type { CmsReport } from "@/services/cmsApi";
-import { evaluateRate, formatHours } from "../cmsReportFormatting";
+import { evaluateDelta, formatDelta, formatHours } from "../cmsReportFormatting";
 import styles from "../../cms.module.css";
 
 export default function CmsReportOperations({ report }: { report: CmsReport }) {
@@ -38,7 +39,11 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
     ? `${chartPoints[0].x},${chartBaseline} ${chartLine} ${chartPoints[chartPoints.length - 1].x},${chartBaseline}`
     : "";
   const latestChartPoint = chartPoints.at(-1);
-  const hourlyRateColumns = [report.hourlyRates.slice(0, 12), report.hourlyRates.slice(12, 24)];
+  const previousChartPoint = chartPoints.at(-2);
+  const weeklyDelta = latestChartPoint && previousChartPoint ? latestChartPoint.value - previousChartPoint.value : null;
+  const highest = chartPoints.reduce<(typeof chartPoints)[number] | undefined>((best, point) => !best || point.value > best.value ? point : best, undefined);
+  const lowest = chartPoints.reduce<(typeof chartPoints)[number] | undefined>((best, point) => !best || point.value < best.value ? point : best, undefined);
+  const totalMinutes = Math.round(totalStatusSeconds / 60);
 
   return (
     <section className={styles.reportGrid}>
@@ -50,6 +55,15 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
           </div>
           <span>단위: %</span>
         </div>
+        {latestChartPoint && (
+          <div className={styles.weeklyHeadline}>
+            <strong>{latestChartPoint.value.toFixed(1)}%</strong>
+            <span>{latestChartPoint.label} 기준</span>
+            <span className={`${styles.weeklyDelta} ${styles[`delta_${evaluateDelta(weeklyDelta, true)}`]}`}>
+              {weeklyDelta === null ? "전일 데이터 없음" : `전일 대비 ${formatDelta(weeklyDelta, "point")}`}
+            </span>
+          </div>
+        )}
         <div className={styles.lineChartWrap}>
           <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} role="img" aria-label="최근 7일 계획가동률 추이">
             {chartGuideRates.map((value) => {
@@ -61,11 +75,15 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
                 </g>
               );
             })}
+            {chartPoints.map(point => (
+              <line key={`guide-${point.workDate}`} x1={point.x} x2={point.x} y1={chartPadding.top} y2={chartBaseline} className={styles.chartGuide} />
+            ))}
             <polygon points={chartArea} className={styles.chartArea} />
             <polyline points={chartLine} className={styles.chartLine} />
             {chartPoints.map((point) => (
               <g key={point.workDate}>
                 <title>{`${point.workDate}: ${point.value.toFixed(2)}%`}</title>
+                {point === latestChartPoint && <circle cx={point.x} cy={point.y} r={11} className={styles.chartLatestBand} />}
                 <circle cx={point.x} cy={point.y} r={point.workDate === latestChartPoint?.workDate ? "6" : "5"} className={`${styles.chartPoint} ${point.workDate === latestChartPoint?.workDate ? styles.chartPointLatest : ""}`} />
                 <text x={point.x} y={point.y < chartPadding.top + 22 ? point.y + 20 : point.y - 14} className={`${styles.chartValue} ${point.workDate === latestChartPoint?.workDate ? styles.chartValueLatest : ""}`} textAnchor="middle">{point.value.toFixed(1)}%</text>
                 <text x={point.x} y={chartBaseline + 24} className={`${styles.chartDate} ${point.workDate === latestChartPoint?.workDate ? styles.chartDateLatest : ""}`} textAnchor="middle">{point.label}</text>
@@ -73,6 +91,12 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
             ))}
           </svg>
         </div>
+        {highest && lowest && (
+          <div className={styles.weeklyExtremes}>
+            <div><span>7일 최고</span><strong>{highest.value.toFixed(1)}%</strong><small> · {highest.label}</small></div>
+            <div><span>7일 최저</span><strong>{lowest.value.toFixed(1)}%</strong><small> · {lowest.label}</small></div>
+          </div>
+        )}
       </article>
 
       <article className={`${styles.reportPanel} ${styles.statusReportPanel}`}>
@@ -80,6 +104,7 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
           <div><p className={styles.sectionLabel}>Equipment status</p><h3>가동현황</h3></div>
           <span>단위: 시간</span>
         </div>
+        <p className={styles.statusCaption}>상태별 누적 시간</p>
         <div className={styles.statusOverview}>
           <div className={styles.statusDonutWrap}>
             <svg viewBox="0 0 200 200" role="img" aria-label="설비 상태별 시간 비율">
@@ -88,32 +113,39 @@ export default function CmsReportOperations({ report }: { report: CmsReport }) {
                   <title>{`${segment.label}: ${(segment.ratio * 100).toFixed(1)}%, ${formatHours(segment.seconds)}`}</title>
                 </circle>
               ))}
-              <text x="100" y="94" className={styles.statusDonutLabel} textAnchor="middle">합계</text>
-              <text x="100" y="116" className={styles.statusDonutTotal} textAnchor="middle">{formatHours(totalStatusSeconds)}</text>
+              {statusSegments.filter(segment => segment.ratio > 0).map(segment => {
+                const angle = (segment.offset + segment.ratio / 2) * Math.PI * 2 - Math.PI / 2;
+                return (
+                  <text key={`${segment.label}-share`} x={100 + Math.cos(angle) * 72} y={100 + Math.sin(angle) * 72}
+                    textAnchor="middle" dominantBaseline="central" className={styles.statusSegmentShare}
+                    fill="#fff">
+                    {(segment.ratio * 100).toFixed(1)}%
+                  </text>
+                );
+              })}
+              <text x="100" y="85" className={styles.statusDonutLabel} textAnchor="middle">총 집계 시간</text>
+              <text x="100" y="108" className={styles.statusDonutTotal} textAnchor="middle">{Math.floor(totalMinutes / 60).toLocaleString("ko-KR")}시간</text>
+              <text x="100" y="127" className={styles.statusDonutLabel} textAnchor="middle">{totalMinutes % 60}분</text>
             </svg>
           </div>
-          <div className={styles.statusLegend}>
-            {statusSegments.map((segment) => (
-              <div key={segment.label}><span><i style={{ backgroundColor: segment.color }} />{segment.label}</span><strong>{formatHours(segment.seconds)} ({(segment.ratio * 100).toFixed(1)}%)</strong></div>
-            ))}
-          </div>
+          <table className={styles.statusTable} aria-label="상태별 누적 시간과 비중">
+            <thead><tr><th scope="col">상태</th><th scope="col">누적 시간</th><th scope="col">비중</th></tr></thead>
+            <tbody>{statusSegments.map((segment) => (
+              <tr key={segment.label}>
+                <th scope="row"><span><i style={{ backgroundColor: segment.color }} />{segment.label}</span></th>
+                <td>{formatHours(segment.seconds)}</td>
+                <td><b style={{ backgroundColor: `${segment.color}18`, color: segment.label === "전원 OFF" ? "#586977" : segment.label === "정지" ? "#946000" : segment.color }}>{(segment.ratio * 100).toFixed(1)}%</b></td>
+              </tr>
+            ))}</tbody>
+          </table>
         </div>
+        <p className={styles.statusFootnote}>비중은 상태별 집계 시간의 합계를 기준으로 계산합니다.</p>
       </article>
 
       <article className={`${styles.reportPanel} ${styles.hourlyReportPanel}`}>
         <p className={styles.sectionLabel}>Hourly operation rate</p>
         <h3>시간대별 가동률</h3>
-        <div className={styles.hourlyRates}>
-          {hourlyRateColumns.map((rates, columnIndex) => (
-            <div key={columnIndex} className={styles.hourlyRateColumn}>
-              {rates.map((rate) => (
-                <div key={rate.label} className={styles.rateRow}>
-                  <span>{rate.label}</span><div><i className={styles[`rate_${evaluateRate(rate.value)}`]} style={{ width: `${rate.value}%` }} /></div><b>{rate.value.toFixed(1)}%</b>
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
+        <CmsHourlyChart report={report} />
       </article>
     </section>
   );

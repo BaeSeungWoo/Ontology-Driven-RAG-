@@ -1,17 +1,8 @@
-export function formatHistoryRelativeTime(timestamp: number, now: number): string {
-  if (!Number.isFinite(timestamp)) return "-";
-
-  const elapsed = Math.max(0, now - timestamp);
-  const date = new Date(timestamp);
-  const today = new Date(now);
-  const days = Math.round((
-    Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()) -
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
-  ) / 86_400_000);
-
-  if (days === 1) return "어제";
-  if (days > 1) return `${days}일 전`;
-  if (elapsed < 60_000) return "방금 전";
-  if (elapsed < 3_600_000) return `${Math.floor(elapsed / 60_000)}분 전`;
-  return `${Math.floor(elapsed / 3_600_000)}시간 전`;
+export function formatHistoryDateGroup(timestamp: number, now: number): string {
+  if (!Number.isFinite(timestamp)) return "날짜 없음";
+  const formatter = new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" });
+  const date = formatter.format(timestamp);
+  if (date === formatter.format(now)) return "오늘";
+  if (date === formatter.format(now - 86_400_000)) return "어제";
+  return date.replaceAll("-", ".");
 }
