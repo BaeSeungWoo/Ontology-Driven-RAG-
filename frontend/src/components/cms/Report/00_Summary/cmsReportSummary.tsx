@@ -1,4 +1,4 @@
-import { BellRing, ChartNoAxesCombined, Clock3, Gauge } from "lucide-react";
+import { BellRing, ChartNoAxesCombined, Clock3, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { CmsReport } from "@/services/cmsApi";
 import styles from "../../cms.module.css";
@@ -24,18 +24,21 @@ function buildSummaryItems(summary: string) {
     : null;
 }
 
-export default function CmsReportSummary({ report }: { report: CmsReport }) {
+export default function CmsReportSummary({ report, isLoading, errorMessage }: { report: CmsReport; isLoading: boolean; errorMessage: string }) {
   const summaryItems = buildSummaryItems(report.executiveSummary);
 
   return (
     <section className={styles.executiveSummary}>
-      <p className={styles.sectionLabel}>Operational Summary</p>
       <div className={styles.summaryTitle}>
-        <span className={styles.summaryLeadIcon}><Gauge aria-hidden="true" /></span>
+        <span className={styles.summaryLeadIcon}><Sparkles aria-hidden="true" /></span>
         <h3>운영 상황 요약</h3>
         <span className={styles[`evaluation_${report.evaluation.status}`]}>{report.evaluation.label}</span>
       </div>
-      {summaryItems ? (
+      {isLoading ? (
+        <p role="status">AI 운영 요약을 생성하고 있습니다. 아래 데이터는 먼저 확인할 수 있습니다.</p>
+      ) : errorMessage ? (
+        <p role="alert">{errorMessage}</p>
+      ) : summaryItems ? (
         <ul className={styles.summaryInsightList}>
           {summaryItems.map(({ label, icon: Icon, text }) => (
             <li key={label}>

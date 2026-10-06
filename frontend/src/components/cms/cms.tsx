@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import PageTabs from "@/components/navigation/pageTabs";
-import ThemeSwitcher, { type ThemeKey } from "@/components/chat/themeSwitcher/themeSwitcher";
+import AppHeader from "@/components/navigation/appHeader";
 import styles from "@/components/dailyReport/dailyReport.module.css";
+import theme from "@/components/dailyReport/reportTheme.module.css";
+import ReportModelSelector from "@/components/dailyReport/reportModelSelector";
+import ReportDatePicker, { TEST_REPORT_DATE } from "@/components/dailyReport/reportDatePicker";
+import type { ReportModel } from "@/types/report";
 import {
-  generateCmsReport,
-  getCmsDashboardViews,
-  type CmsDashboardViews,
-  type CmsReport,
+  getCmsSavedReport,
+  startCmsSavedReport,
+  type CmsSavedReport,
 } from "@/services/cmsApi";
 import cmsStyles from "./cms.module.css";
 import CmsExecutiveReport from "./Report/cmsExecutiveReport";
-import CmsReportChat from "./Report/cmsReportChat";
 import CmsViewTable from "./ViewDataTable/cmsViewTable";
 
 const CMS_VIEWS = [
@@ -24,27 +25,37 @@ const CMS_VIEWS = [
 ] as const;
 
 export default function CmsPage() {
-  const themeKey =
-    (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
-  const [views, setViews] = useState<CmsDashboardViews | null>(null);
+  const [reportDate, setReportDate] = useState(TEST_REPORT_DATE);
+  return <CmsReportPage key={reportDate} reportDate={reportDate} onDateChange={setReportDate} />;
+}
+
+function CmsReportPage({ reportDate, onDateChange }: { reportDate: string; onDateChange: (value: string) => void }) {
+  const [model, setModel] = useState<ReportModel>("vllm_config");
+  const [saved, setSaved] = useState<CmsSavedReport | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [isDashboardExpanded, setIsDashboardExpanded] = useState(true);
-  const [report, setReport] = useState<CmsReport | null>(null);
-  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
-  const [summaryErrorMessage, setSummaryErrorMessage] = useState("");
+  const [isDashboardExpanded, setIsDashboardExpanded] = useState(false);
+  const [isStarting, setIsStarting] = useState(false);
+  const views = saved?.views ?? null;
+  const report = saved?.report ?? null;
+  const isSummaryLoading = isStarting || (saved?.status === "GENERATING" && !errorMessage);
+  const summaryErrorMessage = errorMessage || saved?.errorMessage || "";
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadDashboardViews = async () => {
+    const loadSavedReport = async () => {
       try {
-        const result = await getCmsDashboardViews();
-        if (isMounted) setViews(result);
+        let result = await getCmsSavedReport(reportDate);
+        if (!isMounted) return;
+        if (!result && reportDate === TEST_REPORT_DATE) result = await startCmsSavedReport("vllm_config", reportDate);
+        if (isMounted) {
+          setSaved(result);
+        }
       } catch (error) {
         if (isMounted) {
           setErrorMessage(
-            error instanceof Error ? error.message : "CMS 데이터를 불러오지 못했습니다.",
+            error instanceof Error ? error.message : "저장된 CMS 리포트를 불러오지 못했습니다.",
           );
         }
       } finally {
@@ -52,69 +63,94 @@ export default function CmsPage() {
       }
     };
 
-    loadDashboardViews();
+    loadSavedReport();
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [reportDate]);
+
+  useEffect(() => {
+    if (saved?.status !== "GENERATING" || errorMessage) return;
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const poll = async () => {
+      try {
+        const result = await getCmsSavedReport(reportDate);
+        if (stopped) return;
+        if (!result) throw new Error("저장된 리포트를 찾을 수 없습니다.");
+        setSaved(result);
+        if (result.status === "GENERATING") timer = setTimeout(poll, 1500);
+      } catch (error) {
+        if (!stopped) setErrorMessage(error instanceof Error ? error.message : "리포트 상태를 확인하지 못했습니다.");
+      }
+    };
+    timer = setTimeout(poll, 1500);
+    return () => { stopped = true; clearTimeout(timer); };
+  }, [saved?.status, errorMessage, reportDate]);
 
   const generateSummary = async () => {
-    setIsSummaryLoading(true);
-    setSummaryErrorMessage("");
+    setIsStarting(true);
+    setErrorMessage("");
 
     try {
-      setReport(await generateCmsReport());
+      const result = await startCmsSavedReport(model, reportDate, true);
+      setSaved(result);
     } catch (error) {
-      setSummaryErrorMessage(
+      setErrorMessage(
         error instanceof Error ? error.message : "CMS 요약을 생성하지 못했습니다.",
       );
     } finally {
-      setIsSummaryLoading(false);
+      setIsStarting(false);
     }
   };
 
   const dashboardViewCount = views ? Object.keys(views).length : null;
 
   return (
-    <div className="tw-chat-page">
+    <div className={`tw-chat-page ${theme.page} ${cmsStyles.productionPage}`}>
       {/* 상단 탭 */}
-      <div className="tw-chat-toolbar">
-        <div className={styles.reportToolbarLeft}>
-          <h1 className="tw-chat-title">CMS</h1>
-          <PageTabs />
+      <AppHeader>
+        <div className={theme.headerActions}>
+          <ReportDatePicker value={reportDate} onChange={onDateChange} />
+          <ReportModelSelector value={model} onChange={setModel} disabled={isLoading || isSummaryLoading} />
+          <button
+            type="button"
+            className={theme.reportButton}
+            onClick={generateSummary}
+            disabled={isSummaryLoading || isLoading || reportDate !== TEST_REPORT_DATE}
+            title={reportDate !== TEST_REPORT_DATE ? "테스트 데이터는 2026-08-20 기준으로만 생성할 수 있습니다." : undefined}
+          >
+            {isLoading ? "확인 중" : isSummaryLoading ? "생성 중" : saved?.status === "COMPLETED" ? "리포트 다시 생성" : saved?.status === "FAILED" || errorMessage ? "리포트 생성 재시도" : "리포트 생성"}
+          </button>
         </div>
-        {/* 테마 스위치 */}
-        <ThemeSwitcher initialTheme={themeKey} />
-      </div>
+      </AppHeader>
 
-      <main className={styles.reportBody}>
+      <main className={`${styles.reportBody} ${cmsStyles.productionBody}`}>
         <div className={cmsStyles.cmsContentStack}>
-          {/* 리포트 생성 버튼 */}
-          <section aria-label="전일 운영 요약 생성">
-            <button
-              type="button"
-              className={cmsStyles.reportButton}
-              onClick={generateSummary}
-              disabled={isSummaryLoading}
-            >
-              {isSummaryLoading ? "전일 운영 요약 생성 중" : "전일 운영 요약 생성"}
-              <span>{isSummaryLoading ? "잠시만 기다려주세요" : "ollama_config"}</span>
-            </button>
+          <section aria-label="리포트 저장 정보">
+            {saved && (
+              <p className={theme.reportMetadata}>
+                {saved.factoryId} · 기준일 {saved.reportDate} · {saved.modelName}
+                {saved.status === "COMPLETED" && saved.completedAt && ` · 저장 완료 ${new Date(saved.completedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}`}
+              </p>
+            )}
 
             {summaryErrorMessage && <p className={cmsStyles.summaryError}>{summaryErrorMessage}</p>}
+            {!isLoading && !saved && !errorMessage && (
+              <p className={theme.reportMetadata} role="status">{reportDate}에 저장된 리포트가 없습니다. 현재 테스트 데이터는 2026-08-20 기준입니다.</p>
+            )}
           </section>
 
           {/* 리포트 영역 */}
           {report && (
             <section className={cmsStyles.cmsReportLayout} aria-label="리포트 페이지">
-              <CmsExecutiveReport report={report} isLoading={isSummaryLoading} />
-              <CmsReportChat report={report} />
+              <CmsExecutiveReport report={report} isLoading={isSummaryLoading} summaryError={summaryErrorMessage} config={model} />
             </section>
           )}
 
           {/* CMS 데이터 영역 */}
-          <section className={cmsStyles.dashboardGroup}>
+          {(views || isLoading || isSummaryLoading) && <section className={cmsStyles.dashboardGroup}>
             <button
               type="button"
               className={cmsStyles.dashboardToggle}
@@ -123,16 +159,15 @@ export default function CmsPage() {
               onClick={() => setIsDashboardExpanded((expanded) => !expanded)}
             >
               <span>
-                <small>CMS Data</small>
-                <strong>CMS 데이터</strong>
+                <strong>상세 데이터</strong>
               </span>
 
               <span className={cmsStyles.dashboardMeta}>
-                {isLoading
+                {isLoading || (isSummaryLoading && !views)
                   ? "뷰를 불러오는 중"
                   : errorMessage
                     ? "뷰를 불러오지 못함"
-                    : `${dashboardViewCount ?? 0}개 뷰`}
+                    : `${dashboardViewCount ?? 0}개 데이터 항목`}
                 <b aria-hidden="true">{isDashboardExpanded ? "−" : "+"}</b>
               </span>
             </button>
@@ -145,13 +180,13 @@ export default function CmsPage() {
                     key={view.viewKey}
                     {...view}
                     rows={views?.[view.viewKey] ?? null}
-                    isLoading={isLoading}
+                    isLoading={isLoading || (isSummaryLoading && !views)}
                     errorMessage={errorMessage}
                   />
                 ))}
               </div>
             )}
-          </section>
+          </section>}
         </div>
       </main>
     </div>

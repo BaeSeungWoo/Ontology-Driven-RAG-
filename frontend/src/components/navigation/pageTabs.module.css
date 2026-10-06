@@ -6,10 +6,15 @@
 
 /* 위치: 탭 컨테이너 */
 .tabs {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
   margin-left: 14px;
+}
+
+.indicator {
+  display: none;
 }
 
 .tab {

@@ -19,14 +19,13 @@
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  margin: -14px -14px 10px;
-  padding: 4px 12px;
-  height: 34px;
+  margin: 0 0 8px;
+  padding: 0 4px;
+  height: 44px;
   box-sizing: border-box;
   flex-shrink: 0;
-  border-bottom: 1px solid #96b0cc;
-  border-radius: 14px 14px 0 0;
-  background: #f1f5fa;
+  border: 0;
+  background: transparent;
 }
 
 .citationHeaderCollapsed {
@@ -39,7 +38,7 @@
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--chat-title-color);
+  color: #425d90;
   font-size: 16px;
   font-weight: 900;
   line-height: 1;
@@ -55,7 +54,9 @@
 }
 
 .citationHeader .citationTitleGroup :global(.pane-title) {
-  font-size: 12px;
+  color: #142957;
+  font-size: 20px;
+  font-weight: 700;
   line-height: 24px;
 }
 
@@ -141,6 +142,7 @@
 
 .referenceCard {
   position: relative;
+  flex-shrink: 0;
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -167,9 +169,9 @@
 }
 
 .referenceCardActive {
-  border-color: var(--chat-accent, #1b5e9e);
-  background: color-mix(in srgb, var(--chat-accent-soft, #e8f0f9) 62%, var(--chat-pane-bg) 38%);
-  box-shadow: inset 3px 0 0 var(--chat-accent, #1b5e9e);
+  border-color: #1455ff;
+  background: #fff;
+  box-shadow: 0 0 0 1px #1455ff;
 }
 
 .referenceCardMeta {
@@ -235,7 +237,7 @@
 .referenceOverlay {
   position: absolute;
   top: 25px;
-  left: calc(100% + 26px);
+  right: calc(100% + 26px);
   z-index: 40;
   width: min(440px, calc(100vw - 390px));
   max-height: calc(100% - 25px);
@@ -253,20 +255,20 @@
   content: "";
   position: absolute;
   top: 18px;
-  right: 100%;
+  left: 100%;
   border-top: 10px solid transparent;
   border-bottom: 10px solid transparent;
 }
 
 .referenceOverlay::before {
-  border-right: 11px solid var(--chat-pane-border);
+  border-left: 11px solid var(--chat-pane-border);
 }
 
 .referenceOverlay::after {
   top: 19px;
   border-top-width: 9px;
   border-bottom-width: 9px;
-  border-right: 10px solid color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-accent-soft) 6%);
+  border-left: 10px solid color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-accent-soft) 6%);
 }
 
 .referenceHeader {
@@ -285,41 +287,6 @@
   min-height: 0;
   overflow: auto;
   padding: 12px;
-}
-
-.pdfSideOverlay {
-  position: absolute;
-  top: 66px;
-  left: calc(100% + 478px);
-  z-index: 45;
-  width: min(760px, calc(100vw - 820px));
-  min-width: 360px;
-  height: calc(100% - 66px);
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 12px;
-  background: var(--chat-pane-bg);
-  box-shadow: 0 18px 48px rgb(15 23 42 / 28%);
-}
-
-.pdfSideOverlay::before,
-.pdfSideOverlay::after {
-  content: "";
-  position: absolute;
-  top: 18px;
-  right: 100%;
-  border-top: 10px solid transparent;
-  border-bottom: 10px solid transparent;
-}
-
-.pdfSideOverlay::before {
-  border-right: 11px solid var(--chat-pane-border);
-}
-
-.pdfSideOverlay::after {
-  top: 19px;
-  border-top-width: 9px;
-  border-bottom-width: 9px;
-  border-right: 10px solid var(--chat-pane-bg);
 }
 
 .referenceHeaderActions {
@@ -467,10 +434,10 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  border: 1px solid color-mix(in srgb, var(--chat-title-color) 46%, var(--chat-pane-border) 54%);
+  border: 1px solid #bfd0eb;
   border-radius: 8px;
-  background: color-mix(in srgb, var(--chat-title-color) 10%, var(--chat-pane-bg) 90%);
-  color: var(--chat-title-color);
+  background: #edf4ff;
+  color: #1254c4;
   padding: 7px 10px;
   font-size: 12px;
   font-weight: 800;
@@ -482,8 +449,8 @@
 }
 
 .openDocumentButton:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--chat-title-color) 62%, var(--chat-pane-border) 38%);
-  background: color-mix(in srgb, var(--chat-title-color) 16%, var(--chat-pane-bg) 84%);
+  border-color: #8eafe2;
+  background: #e1edff;
 }
 
 .openDocumentButton:disabled {
@@ -964,6 +931,7 @@
     position: fixed;
     top: 50%;
     left: 50%;
+    right: auto;
     z-index: 1100;
     width: min(520px, calc(100vw - 24px));
     max-height: calc(100dvh - 24px);
@@ -975,19 +943,6 @@
     display: none;
   }
 
-  .pdfSideOverlay {
-    position: fixed;
-    inset: 12px;
-    z-index: 1200;
-    width: auto;
-    min-width: 0;
-    height: auto;
-  }
-
-  .pdfSideOverlay::before,
-  .pdfSideOverlay::after {
-    display: none;
-  }
 }
 
 
@@ -1004,3 +959,104 @@
 .cmsEvidence th, .cmsEvidence td { padding: 6px 8px; text-align: left; border-bottom: 1px solid var(--chat-pane-border); }
 .cmsEvents { padding-left: 20px; list-style: decimal; }
 .cmsEvents > li { margin-bottom: 12px; }
+.emptyTabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  flex-shrink: 0;
+  border-bottom: 1px solid #e1e8f3;
+}
+
+.emptyTabs button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 42px;
+  padding: 8px 2px;
+  border-bottom: 3px solid transparent;
+  border-radius: 8px 8px 0 0;
+  color: #3a4f7c;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.emptyTabs button[aria-pressed="true"] {
+  border-bottom-color: #1455c5;
+  background: #f0f5fc;
+  color: #1455c5;
+}
+
+.emptyTabs button:focus-visible { outline: 2px solid #1455c5; outline-offset: -2px; }
+
+@media (hover: hover) {
+  .emptyTabs button:hover {
+    background: #f0f5fc;
+    color: #1455c5;
+  }
+}
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .emptyTabs button:hover {
+    animation: evidenceTabLift 520ms ease-in-out;
+  }
+}
+
+@keyframes evidenceTabLift {
+  0%, 100% {
+    transform: perspective(700px) translateY(0) rotateX(0deg);
+    box-shadow: 0 0 0 transparent;
+  }
+  40% {
+    transform: perspective(700px) translateY(-3px) rotateX(2deg);
+    box-shadow: 0 8px 12px -7px rgb(34 55 94 / 24%);
+  }
+}
+
+.emptyTabs .citationCount {
+  min-width: 21px;
+  height: 21px;
+  border: 0;
+  background: #e3e9f2;
+  color: #142957;
+  font-size: 12px;
+}
+
+.emptyTabs button[aria-pressed="true"] .citationCount { background: #1455ff; color: #fff; }
+
+.referenceCardToggle {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.referenceCardToggle:focus-visible { outline: 2px solid #1455ff; outline-offset: 3px; }
+.referenceCardActive .referenceCardNumber { background: #1455ff; }
+.referenceCardActive .referenceCardDocument { white-space: normal; }
+.inlineReferenceDetail .chunkCard { border: 0; padding: 0; background: transparent; }
+.inlineReferenceDetail .chunkDocument {
+  max-height: none;
+  overflow: visible;
+  border: 0;
+  background: #edf5ff;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.emptyEvidence {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  padding: 24px 0 60px;
+  text-align: center;
+}
+
+.emptyEvidence > svg { color: #acb6ca; margin-bottom: 24px; }
+.emptyEvidence h3 { margin: 0 0 12px; color: #162956; font-size: 18px; font-weight: 700; }
+.emptyEvidence p { margin: 0; color: #8898ba; font-size: 14px; line-height: 1.8; }

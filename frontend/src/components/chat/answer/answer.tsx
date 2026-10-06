@@ -15,6 +15,7 @@ import UserMessageBubble from "./userMessageBubble";
 import AssistantMessageBubble from "./assistantMessageBubble";
 
 type AnswerProps = {
+  canExplainFigure?: boolean;
   messages: MessageItem[];
   selectedCitation?: {
     messageId: string;
@@ -42,6 +43,7 @@ export default function Answer({
   onRetry,
   showHeader = true,
   recommendations,
+  canExplainFigure = false,
 }: AnswerProps) {
   // =========================
   // state
@@ -98,6 +100,7 @@ export default function Answer({
       llmMode: toLlmMode(message.llm_mode),
       promptName: message.prompt_name ?? null,
       metadata: message.metadata,
+      feedback: message.feedback,
     };
   });
 
@@ -183,7 +186,7 @@ export default function Answer({
     previousMessage: AnswerMessage | undefined,
     messageIndex: number
   ) => {
-    if (messageIndex === 0) return true;
+    if (messageIndex === 0) return false;
     if (!previousMessage) return true;
     return getDateKey(currentMessage.createdAt) !== getDateKey(previousMessage.createdAt);
   };
@@ -252,6 +255,7 @@ export default function Answer({
                     <UserMessageBubble message={message} />
                   ) : (
                     <AssistantMessageBubble
+                      canExplainFigure={canExplainFigure}
                       message={message}
                       isActive={message.id === activeAssistantMessageId}
                       isGenerating={shouldShowGenerating}

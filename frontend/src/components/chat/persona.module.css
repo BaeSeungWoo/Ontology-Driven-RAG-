@@ -1,0 +1,29 @@
+.theme {
+  --persona-color: #4b5563;
+  --persona-bg: #f3f4f6;
+  --persona-border: #cbd0d8;
+}
+
+.theme[data-persona="operator"] {
+  --persona-color: #1d4ed8;
+  --persona-bg: #eff6ff;
+  --persona-border: #93b8f5;
+}
+
+.theme[data-persona="maintenance"] {
+  --persona-color: #9a450c;
+  --persona-bg: #fff7ed;
+  --persona-border: #f3bb7a;
+}
+
+.theme[data-persona="engineer"] {
+  --persona-color: #7e22ce;
+  --persona-bg: #faf5ff;
+  --persona-border: #d5adf5;
+}
+
+.theme[data-persona="manager"] {
+  --persona-color: #047857;
+  --persona-bg: #ecfdf5;
+  --persona-border: #7dceb0;
+}

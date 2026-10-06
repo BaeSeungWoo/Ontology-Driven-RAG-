@@ -1,4 +1,5 @@
 import api from "@/services/api";
+import type { ReportModel } from "@/types/report";
 
 export type CmsViewRow = Record<string, unknown>;
 
@@ -68,28 +69,40 @@ export type CmsChatMessage = {
   content: string;
 };
 
-export async function getCmsDashboardViews(): Promise<CmsDashboardViews> {
-  const response = await api.get<{ views: CmsDashboardViews }>("/api/cms/dashboard");
-  return response.data.views;
+export type CmsSavedReport = {
+  factoryId: string;
+  reportDate: string;
+  status: "GENERATING" | "COMPLETED" | "FAILED";
+  config: ReportModel;
+  modelName: string;
+  report: CmsReport | null;
+  views: CmsDashboardViews | null;
+  startedAt: string;
+  completedAt: string | null;
+  errorMessage: string | null;
+};
+
+export async function getCmsSavedReport(reportDate: string): Promise<CmsSavedReport | null> {
+  const response = await api.get<{ savedReport: CmsSavedReport | null }>("/api/cms/saved-report", { params: { reportDate } });
+  return response.data.savedReport;
 }
 
-export async function generateCmsReport(): Promise<CmsReport> {
-  const response = await api.post<{ report: CmsReport }>("/api/cms/report", {
-    config: "ollama_config",
-  });
-  return response.data.report;
+export async function startCmsSavedReport(config: ReportModel, reportDate: string, force = false): Promise<CmsSavedReport> {
+  const response = await api.post<{ savedReport: CmsSavedReport }>("/api/cms/saved-report", { config, reportDate, force });
+  return response.data.savedReport;
 }
 
 export async function askCmsReport(
   question: string,
   history: CmsChatMessage[],
   report: CmsReport,
+  config: ReportModel,
 ): Promise<string> {
   const response = await api.post<{ answer: string }>("/api/cms/chat", {
     question,
     history,
     report,
-    config: "ollama_config",
+    config,
   });
   return response.data.answer;
 }

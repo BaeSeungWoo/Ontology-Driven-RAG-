@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import ThemeSwitcher, { type ThemeKey } from "@/components/chat/themeSwitcher/themeSwitcher";
 import styles from "@/components/dailyReport/dailyReport.module.css";
-import PageTabs from "@/components/navigation/pageTabs";
+import theme from "@/components/dailyReport/reportTheme.module.css";
+import ReportModelSelector from "@/components/dailyReport/reportModelSelector";
+import ReportDatePicker, { TEST_REPORT_DATE } from "@/components/dailyReport/reportDatePicker";
+import type { ReportModel } from "@/types/report";
+import AppHeader from "@/components/navigation/appHeader";
 import MesExecutiveReport from "./Report/mesExecutiveReport";
 import MesViewTable from "./ViewDataTable/mesViewTable";
-import { useMesDashboard } from "./hooks/useMesDashboard";
 import { useMesReport } from "./hooks/useMesReport";
 import {
   DEFAULT_MES_TAB,
@@ -16,50 +18,57 @@ import {
 } from "./mes.constants";
 import mesStyles from "./mes.module.css";
 
-const FACTORY_THEME_KEY =
-  (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
-
 export default function MesPage() {
+  const [reportDate, setReportDate] = useState(TEST_REPORT_DATE);
+  return <MesReportPage key={reportDate} reportDate={reportDate} onDateChange={setReportDate} />;
+}
+
+function MesReportPage({ reportDate, onDateChange }: { reportDate: string; onDateChange: (value: string) => void }) {
+  const [model, setModel] = useState<ReportModel>("vllm_config");
   const [activeTab, setActiveTab] = useState<MesTabKey>(DEFAULT_MES_TAB);
-  const { views, isLoading, errorMessage } = useMesDashboard();
+  const [isDashboardExpanded, setIsDashboardExpanded] = useState(false);
   const {
+    saved,
+    views,
     report,
-    hasRequested,
-    isLoading: isReportLoading,
-    errorMessage: reportErrorMessage,
+    isLoading,
+    isReportLoading,
+    errorMessage,
     generateReport,
-  } = useMesReport();
+  } = useMesReport(reportDate);
   const activeTabConfig = MES_TABS.find((tab) => tab.key === activeTab)!;
-  const activeRows = activeTabConfig.views.reduce(
-    (count, view) => count + (views?.[view.viewKey]?.length ?? 0),
-    0,
-  );
 
   return (
-    <div className="tw-chat-page">
-      <div className="tw-chat-toolbar">
-        <div className={styles.reportToolbarLeft}>
-          <h1 className="tw-chat-title">MES</h1>
-          <PageTabs />
+    <div className={`tw-chat-page ${theme.page}`}>
+      <AppHeader>
+        <div className={theme.headerActions}>
+          <ReportDatePicker value={reportDate} onChange={onDateChange} />
+          <ReportModelSelector value={model} onChange={setModel} disabled={isLoading || isReportLoading} />
+          <button
+            type="button"
+            className={theme.reportButton}
+            onClick={() => generateReport(model)}
+            disabled={isReportLoading || isLoading || reportDate !== TEST_REPORT_DATE}
+            title={reportDate !== TEST_REPORT_DATE ? "테스트 데이터는 2026-08-20 기준으로만 생성할 수 있습니다." : undefined}
+          >
+            {isLoading ? "확인 중" : isReportLoading ? "생성 중" : saved?.status === "COMPLETED" ? "리포트 다시 생성" : saved?.status === "FAILED" || errorMessage ? "리포트 생성 재시도" : "리포트 생성"}
+          </button>
         </div>
-        <ThemeSwitcher initialTheme={FACTORY_THEME_KEY} />
-      </div>
+      </AppHeader>
 
       <main className={styles.reportBody}>
         <div className={mesStyles.contentStack}>
-          <section aria-label="MES 리포트 생성">
-            <button
-              type="button"
-              className={mesStyles.reportButton}
-              onClick={() => generateReport(views)}
-              disabled={isReportLoading || isLoading || !views}
-            >
-              {isReportLoading ? "MES 리포트 생성 중" : "MES 리포트 생성"}
-              <span>{isReportLoading ? "잠시만 기다려주세요" : "수주상세 및 생산·출하 경영 포인트"}</span>
-            </button>
+          <section aria-label="리포트 저장 정보">
+            {saved && <p className={theme.reportMetadata}>
+              {saved.factoryId} · 기준일 {saved.reportDate} · {saved.modelName}
+              {saved.status === "COMPLETED" && saved.completedAt && ` · 저장 완료 ${new Date(saved.completedAt).toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}`}
+            </p>}
+            {errorMessage && <p role="alert">{errorMessage}</p>}
+            {!isLoading && !saved && !errorMessage && <p className={theme.reportMetadata} role="status">
+              {reportDate}에 저장된 리포트가 없습니다. 현재 테스트 데이터는 2026-08-20 기준입니다.
+            </p>}
           </section>
-
-          {hasRequested && (
+          {views && (
             <MesExecutiveReport
               productionResultRows={views?.["mes2-card-production-result"] ?? []}
               incompleteWorkRows={views?.["mes2-card-incomplete-work"] ?? []}
@@ -77,7 +86,7 @@ export default function MesPage() {
               keyIssues={report?.keyIssues ?? []}
               managementActions={report?.managementActions ?? []}
               isSummaryLoading={isReportLoading}
-              summaryErrorMessage={reportErrorMessage}
+              summaryErrorMessage={errorMessage}
               point_prodTrend={report?.point_prodTrend ?? ""}
               point_deliveryRisk={report?.point_deliveryRisk ?? ""}
               point_equipRate={report?.point_equipRate ?? ""}
@@ -85,21 +94,28 @@ export default function MesPage() {
             />
           )}
 
-          <section className={mesStyles.viewDataGroup}>
-            <div className={mesStyles.dashboardHeader}>
+          {(views || isLoading || isReportLoading) && <section className={mesStyles.viewDataGroup}>
+            <button
+              type="button"
+              className={mesStyles.dashboardHeader}
+              aria-expanded={isDashboardExpanded}
+              aria-controls="mes-dashboard-views"
+              onClick={() => setIsDashboardExpanded((expanded) => !expanded)}
+            >
               <span>
-                <small>MES View Data</small>
-                <strong>리포트 사용 뷰 데이터</strong>
+                <strong>상세 데이터</strong>
               </span>
-              <span className={mesStyles.toggleMeta}>
-                {isLoading
-                  ? "뷰를 불러오는 중"
+              <span className={mesStyles.dashboardMeta}>
+                {isLoading || (isReportLoading && !views)
+                  ? "데이터를 불러오는 중"
                   : errorMessage
-                  ? "뷰를 불러오지 못함"
-                    : `${activeTabConfig.views.length}개 뷰 · ${activeRows}건`}
+                  ? "데이터를 불러오지 못함"
+                    : `${Object.keys(views ?? {}).length}개 데이터 항목`}
+                <b aria-hidden="true">{isDashboardExpanded ? "−" : "+"}</b>
               </span>
-            </div>
+            </button>
 
+            <div id="mes-dashboard-views" hidden={!isDashboardExpanded}>
             <div className={mesStyles.tabs} role="tablist" aria-label="MES 업무 영역">
               {MES_TABS.map((tab) => (
                 <button
@@ -128,13 +144,14 @@ export default function MesPage() {
                   key={view.viewKey}
                   {...view}
                   rows={views?.[view.viewKey] ?? null}
-                  isLoading={isLoading}
+                  isLoading={isLoading || (isReportLoading && !views)}
                   errorMessage={errorMessage}
                   columnLabels={MES_VIEW_COLUMN_LABELS[view.viewKey]}
                 />
               ))}
             </div>
-          </section>
+            </div>
+          </section>}
         </div>
       </main>
     </div>

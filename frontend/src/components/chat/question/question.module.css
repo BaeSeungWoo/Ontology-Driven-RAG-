@@ -134,3 +134,45 @@
 .voicePreview small { display: block; margin-top: 6px; color: var(--chat-muted-text); }
 .voiceError { color: #a52b26; font-size: 13px; margin: 6px 0; }
 .voiceToolbar meter { max-width: 90px; }
+.welcomeComposer {
+  position: relative;
+  min-height: 146px;
+  padding: 18px 18px 62px;
+  border: 1px solid #dfe7f2;
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 4px 20px rgb(45 75 120 / 4%);
+}
+
+.welcomeComposer:focus-within {
+  border-color: #89ade7;
+}
+
+.welcomeInput {
+  width: 100%;
+  min-height: 58px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: #172957;
+  font: inherit;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.welcomeInput::placeholder { color: #7c8bb0; }
+
+.welcomeComposer .submitButton {
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #1455c5;
+  color: #fff;
+  font-size: 20px;
+}
+
+.welcomeComposer .submitButton:disabled { opacity: 0.5; }

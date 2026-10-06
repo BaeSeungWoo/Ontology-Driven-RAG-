@@ -36,14 +36,17 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
-  background: var(--chat-pane-bg);
-  padding: 4px 0 12px;
+  background: transparent;
+  padding: 4px 8px 24px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df transparent;
 }
 
 .messageList {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 28px;
+  width: 100%;
 }
 
 .recommendations {
@@ -177,8 +180,8 @@
 }
 
 .userMessage .messageBody {
-  --bubble-bg: var(--chat-accent, #1b5e9e);
-  --bubble-border: var(--chat-accent, #1b5e9e);
+  --bubble-bg: #e5edf7;
+  --bubble-border: transparent;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -187,18 +190,26 @@
   min-width: 0;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
-  border-radius: 16px 16px 4px 16px;
+  border-radius: 16px;
+  padding: 12px 18px;
 }
 
 .assistantMessage .messageBody {
-  --bubble-bg: var(--chat-pane-bg);
-  --bubble-border: var(--chat-pane-border);
+  --bubble-bg: transparent;
+  --bubble-border: transparent;
   width: 100%;
   max-width: 100%;
   min-width: 0;
   background: var(--bubble-bg);
   border-color: var(--bubble-border);
-  border-radius: 4px 16px 16px 16px;
+  border-radius: 8px;
+  padding: 12px 0 8px 40px;
+  box-shadow: none;
+}
+
+.assistantMessage .messageBody:focus-visible {
+  outline: 2px solid #1455c5;
+  outline-offset: 2px;
 }
 
 /* ============================================================
@@ -242,18 +253,14 @@
   color: var(--chat-title-color);
 }
 
-.assistantAiBadge {
+.assistantBrand {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border: 1px solid var(--chat-pane-border);
-  border-radius: 4px;
-  background: var(--chat-accent-soft, #e8f0f9);
-  color: var(--chat-accent, #1b5e9e);
-  font-size: 10px;
+  gap: 8px;
+  color: #102452;
+  font-size: 16px;
   font-weight: 700;
 }
 
@@ -293,12 +300,13 @@
 }
 
 .userMessage .messageText p {
-  color: color-mix(in srgb, var(--chat-pane-bg) 94%, var(--chat-title-color) 6%);
+  color: #263e6b;
+  font-size: 14px;
 }
 
 .assistantMessage .messageText p,
 .assistantMessage .markdownContent :where(p, li, blockquote, h1, h2, h3, h4, h5, h6) {
-  color: var(--chat-text-color);
+  color: #263e6b;
 }
 
 .messageText p:last-child {
@@ -311,6 +319,18 @@
    ============================================================ */
 .markdownContent {
   margin-top: 0;
+}
+
+.markdownContent :where(h1, h2) {
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.markdownContent :where(h3, h4, h5, h6) {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
 }
 
 .answerCallout {
@@ -376,7 +396,7 @@
 .markdownContent p,
 .markdownContent li,
 .markdownContent blockquote {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.75;
   color: var(--chat-text-color);
   word-break: break-word;
@@ -540,10 +560,118 @@
   cursor: pointer;
 }
 
-/* 위치: 활성 버블 최종 오버라이드
-   기능: 기본 버블 배경보다 우선 적용되어 활성 상태를 명확히 표시 */
-.assistantMessage .messageBody.messageBodyActive {
-  background: var(--chat-pane-bg);
-  border-color: var(--chat-accent, #1b5e9e);
-  box-shadow: 0 0 0 1px var(--chat-accent-soft, #e8f0f9);
+.welcomeRecommendations {
+  color: #7181a1;
+  font-size: 12px;
+}
+
+.welcomeCards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 8px;
+}
+
+.welcomeCards button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 54px;
+  padding: 12px 16px;
+  border: 1px solid #dfe7f2;
+  border-radius: 12px;
+  background: #fff;
+  color: #263e6b;
+  text-align: left;
+  font-size: 13px;
+  line-height: 1.6;
+  cursor: pointer;
+}
+
+.welcomeCards button:hover:not(:disabled) { background: #edf4ff; border-color: #94b4e9; }
+.welcomeCards button:focus-visible { outline: 2px solid #1455c5; outline-offset: 2px; }
+.welcomeCards button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.recommendationNumber {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #1b5e9e;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .assistantMessage .messageBody { padding-left: 0; }
+}
+.recommendationList { display: contents; }
+.feedback {
+  margin-top: 16px;
+  color: var(--chat-muted-text, #64748b);
+  font-size: 12px;
+}
+
+.feedbackOptions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.feedbackOptions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 1px solid var(--chat-pane-border, #dce5f0);
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.feedbackOptions button[data-feedback="도움됨"] {
+  --feedback-bg: #edf4ff;
+  --feedback-border: #a8c7f5;
+  --feedback-color: #1254c4;
+}
+
+.feedbackOptions button[data-feedback="틀림"] {
+  --feedback-bg: #fff1f2;
+  --feedback-border: #fda4af;
+  --feedback-color: #b42318;
+}
+
+.feedbackOptions button[data-feedback="근거없음"] {
+  --feedback-bg: #f1f2f4;
+  --feedback-border: #b8bec8;
+  --feedback-color: #4b5563;
+}
+
+.feedbackOptions button:hover,
+.feedbackOptions button[aria-pressed="true"] {
+  background: var(--feedback-bg);
+  border-color: var(--feedback-border);
+  color: var(--feedback-color);
+}
+
+.feedbackOptions button:focus-visible {
+  outline: 2px solid var(--feedback-color);
+  outline-offset: 2px;
+}
+
+.feedbackOptions button:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}
+
+.feedbackError {
+  margin: 8px 0 0;
+  color: #b42318;
 }

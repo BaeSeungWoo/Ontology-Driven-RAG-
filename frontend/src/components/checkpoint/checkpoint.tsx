@@ -1,8 +1,7 @@
 ﻿"use client";
 
 import { useEffect, useState } from "react";
-import PageTabs from "@/components/navigation/pageTabs";
-import ThemeSwitcher, { type ThemeKey } from "@/components/chat/themeSwitcher/themeSwitcher";
+import AppHeader from "@/components/navigation/appHeader";
 import { getCheckPointSections } from "@/services/checkpointApi";
 import type { CheckPointSectionsResponse , CheckPointSectionsRequest } from "@/types/checkpoint";
 import styles from "./checkpoint.module.css";
@@ -23,8 +22,6 @@ const REPORT_SECTIONS_REQUEST: CheckPointSectionsRequest = {
 };
 
 export default function CheckPoint() {
-  const themeKey =
-    (process.env.NEXT_PUBLIC_FACTORY_THEME as ThemeKey) || "default";
   const [data, setData] = useState<CheckPointSectionsResponse | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStartedAt, setLoadingStartedAt] = useState<number | null>(null);
@@ -99,13 +96,7 @@ export default function CheckPoint() {
 
   return (
     <div className="tw-chat-page">
-      <div className="tw-chat-toolbar">
-        <div className={styles.reportToolbarLeft}>
-          <h1 className="tw-chat-title">Ontology-Driven-RAG</h1>
-          <PageTabs />
-        </div>
-        <ThemeSwitcher initialTheme={themeKey} />
-      </div>
+      <AppHeader />
 
       <main className={styles.reportBody}>
         <section className={styles.reportStack}>

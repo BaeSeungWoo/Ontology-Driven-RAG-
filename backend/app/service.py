@@ -1376,7 +1376,14 @@ Markdown과 추가 설명은 사용하지 마세요."""
                 if not observation["주말 여부"]
             ]
             machine_trends.append({
-                **machine,
+                "설비명": machine["설비명"],
+                "일별 가동률": {
+                    "열": ["기준일", "가동률"],
+                    "행": [
+                        [observation["기준일"], observation["가동률"]]
+                        for observation in machine["일별 가동률"]
+                    ],
+                },
                 "평일 관측일수": len(weekday_rates),
                 "평일 평균 가동률": round(sum(weekday_rates) / len(weekday_rates), 1) if weekday_rates else None,
                 "평일 최초 가동률": weekday_rates[0] if weekday_rates else None,
@@ -1431,21 +1438,21 @@ Markdown과 추가 설명은 사용하지 마세요."""
             "point_equipRate": "",
             "point_quality": "",
         }
-        report["point_prodTrend"] = await self.generate_point_prod_trend(
-            production_trend_rows,
+        (
+            report["point_prodTrend"],
+            report["point_deliveryRisk"],
+            report["point_equipRate"],
+            report["point_quality"],
+        ) = await asyncio.gather(
+            self.generate_point_prod_trend(production_trend_rows),
+            self.generate_delivery_risk_management_point(delivery_risk_card_rows, delivery_risk_detail_rows),
+            self.generate_equipment_management_point(equipment_weekly_rows),
+            self.generate_quality_management_point(quality_instrument_rows),
         )
-        report["point_deliveryRisk"] = await self.generate_delivery_risk_management_point(
-            delivery_risk_card_rows,
-            delivery_risk_detail_rows,
+        report["overallSummary"], report["keyIssues"] = await asyncio.gather(
+            self.generate_overall_summary(report),
+            self.generate_key_issues(report),
         )
-        report["point_equipRate"] = await self.generate_equipment_management_point(
-            equipment_weekly_rows,
-        )
-        report["point_quality"] = await self.generate_quality_management_point(
-            quality_instrument_rows,
-        )
-        report["overallSummary"] = await self.generate_overall_summary(report)
-        report["keyIssues"] = await self.generate_key_issues(report)
         report["managementActions"] = await self.generate_management_actions(report)
         return report
 

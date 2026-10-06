@@ -1,11 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Settings } from "lucide-react";
 
-import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS, type LlmModel, type LlmMode } from "@/constants/llmOptions";
-import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
+import { type LlmModel, type LlmMode } from "@/constants/llmOptions";
+import { type PersonaType } from "@/constants/personaOptions";
 
 import PromptListModal from "./promptListModal";
+import MachineSelect from "./machineSelect";
 import styles from "./promptSetting.module.css";
 
 type PromptSettingProps = {
@@ -41,7 +43,7 @@ export default function PromptSetting({
   const [draftPersona, setDraftPersona] = useState(selectedPersonaType);
 
   const isQuestionerMissing = questioner.trim().length === 0;
-  const isRequiredMissing = isQuestionerMissing;
+
 
   // 함수
   // 기능/목적: 서비스 설정 모달과 질문자 입력 변경을 상위 Chat 상태와 연결한다.
@@ -89,57 +91,34 @@ export default function PromptSetting({
 
   // render
   return (
-    <div className="flex flex-col gap-2.5">
-      <div className={styles.promptHeader}>
-        <div className={styles.promptTitleGroup}>
-          <h2 className={`pane-title ${styles.promptTitle}`}>서비스 설정</h2>
-        </div>
-        <div
-          className={`${styles.headerRightGroup} ${
-            !isRequiredMissing ? styles.headerRightGroupHidden : ""
-          }`}
-          aria-hidden={!isRequiredMissing}
-        >
-          <span className={styles.requiredNotice}>
-            <span className={styles.requiredBadge}>필수</span>
-            <span className={styles.requiredMessage}>
-              질문자를 입력해주세요.
-            </span>
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2">
-        <label
-          htmlFor="questioner-input"
-          className="text-[13px] font-semibold text-(--chat-title-color)"
-        >
-          질문자
-        </label>
+    <div className={styles.headerControls}>
+      <MachineSelect />
+      <div className={styles.questionerField}>
+        <label htmlFor="questioner-input" className={styles.questionerLabel}>질문자</label>
         <input
           id="questioner-input"
           type="text"
+          aria-required="true"
+          aria-invalid={isQuestionerMissing}
           value={questioner}
           onChange={(event) => handleChangeQuestioner(event.target.value)}
-          className={`${styles.questionerInput} ${
-            isQuestionerMissing ? styles.questionerInputMissing : ""
-          }`}
-          placeholder="질문자를 입력하세요."
+          className={[styles.questionerInput, isQuestionerMissing ? styles.questionerInputMissing : ""].join(" ")}
+          placeholder="질문자명 입력"
         />
+        <fieldset className={styles.questionerBorder} aria-hidden="true">
+          <legend>질문자</legend>
+        </fieldset>
       </div>
-
-      <div className={styles.selectionSummary} aria-label="현재 서비스 설정">
-        <span>{LLM_MODEL_OPTIONS.find((option) => option.value === selectedLlmModel)?.label}</span>
-        <span>{LLM_MODE_OPTIONS.find((option) => option.value === selectedLlmMode)?.label}</span>
-        <span>{PERSONA_OPTIONS.find((option) => option.value === selectedPersonaType)?.label}</span>
-      </div>
-
       <button
         type="button"
         className={styles.settingsButton}
         onClick={handleOpenModal}
+        aria-label="서비스 설정"
+        aria-haspopup="dialog"
+        aria-expanded={isOpen}
+        title="서비스 설정"
       >
-        설정하기
+        <Settings size={25} aria-hidden="true" />
       </button>
 
       {isOpen && (

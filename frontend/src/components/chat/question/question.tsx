@@ -23,6 +23,7 @@ type QuestionProps = {
   selectedPersonaType: PersonaType;
   isBusy?: boolean;
   recommendations?: ReactNode;
+  welcome?: boolean;
   onSend: (payload: QuestionPayload) => Promise<boolean>;
 };
 
@@ -34,6 +35,7 @@ export default function Question({
   onSend,
   isBusy = false,
   recommendations,
+  welcome = false,
 }: QuestionProps) {
   // 내부 state
   // 기능/목적: 사용자가 작성 중인 질문 입력값과 전송 가능 여부를 관리한다.
@@ -43,6 +45,7 @@ export default function Question({
   const [sendError, setSendError] = useState("");
   const submitting = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const busy = isBusy || isSubmitting;
   const voiceContext = JSON.stringify([questioner, selectedLlmModel, selectedLlmMode, selectedPersonaType]);
 
@@ -89,11 +92,34 @@ export default function Question({
     <form className="relative w-full" onSubmit={handleSubmit}>
       <VoiceInput key={voiceContext} disabled={busy} onActiveChange={setVoiceActive} onComplete={text => {
         setQuestion(previous => [previous.trim(), text.trim()].filter(Boolean).join(" "));
-        inputRef.current?.focus();
+        if (welcome) textareaRef.current?.focus();
+        else inputRef.current?.focus();
       }} />
       {sendError && <p role="alert" className={styles.voiceError}>{sendError}</p>}
-      <div className="flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[54px] shadow-[0_1px_0_rgb(255_255_255_/_72%),0_6px_14px_rgb(37_68_104_/_24%)]">
-        <input
+      <div className={welcome ? styles.welcomeComposer : "flex w-full items-center gap-2.5 rounded-full border border-(--chat-pane-border) bg-(--chat-pane-bg) px-[10px] py-2 pl-[54px] shadow-[0_1px_0_rgb(255_255_255_/_72%),0_6px_14px_rgb(37_68_104_/_24%)]"}>
+        {welcome ? <textarea
+          id="question-input"
+          ref={textareaRef}
+          className={styles.welcomeInput}
+          aria-label="질문 입력"
+          placeholder="장비, 매뉴얼, 현장 업무에 대해 질문해 보세요"
+          value={question}
+          readOnly={voiceActive || busy}
+          onChange={event => setQuestion(event.target.value)}
+          onKeyDown={event => {
+            if (event.key !== "Enter" || event.nativeEvent.isComposing || event.nativeEvent.keyCode === 229) return;
+            if (event.shiftKey) return;
+            event.preventDefault();
+            if (voiceActive || busy) return;
+            if (event.ctrlKey) {
+              const { selectionStart, selectionEnd } = event.currentTarget;
+              setQuestion(previous => `${previous.slice(0, selectionStart)}\n${previous.slice(selectionEnd)}`);
+              requestAnimationFrame(() => textareaRef.current?.setSelectionRange(selectionStart + 1, selectionStart + 1));
+            } else {
+              void handleSend();
+            }
+          }}
+        /> : <input
           id="question-input"
           ref={inputRef}
           type="text"
@@ -102,7 +128,7 @@ export default function Question({
           value={question}
           readOnly={voiceActive || busy}
           onChange={(event) => setQuestion(event.target.value)}
-        />
+        />}
         {recommendations}
         <button
           type="submit"

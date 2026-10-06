@@ -5,6 +5,8 @@ import remarkGfm from "remark-gfm";
 import { API_BASE_URL } from "@/services/api";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import styles from "./chat.module.css";
+import { useFigureExplanation } from "./figureExplanationProvider";
+import figureStyles from "./figureExplanation.module.css";
 
 type AssetItem = {
   path: string;
@@ -101,6 +103,7 @@ function CompactTable({ content, onExpand }: {
 }
 
 type AssetPanelProps = {
+  canExplainFigure?: boolean;
   activeAssistantMessage?: Pick<MessageItem, "content" | "metadata"> & { message_id: string | number };
   selectedCitation?: {
     messageId: string;
@@ -352,7 +355,9 @@ export default function AssetPanel({
   isCollapsed = false,
   onToggle,
   inline = false,
+  canExplainFigure = false,
 }: AssetPanelProps) {
+  const openFigureExplanation = useFigureExplanation();
   const [imagePreview, setImagePreview] = useState<ImagePreview>(null);
   const [tablePreview, setTablePreview] = useState<TablePreview>(null);
   const [tableMarkdownByPath, setTableMarkdownByPath] = useState<Record<string, TableAssetContent>>({});
@@ -543,6 +548,7 @@ export default function AssetPanel({
                 onClick={() => selectAssetCitation(asset)}
               >
                 {asset.type === "pictures" ? (
+                  <div className={figureStyles.imageActions}>
                   <button
                     type="button"
                     className={styles.chatAssetImageButton}
@@ -565,6 +571,13 @@ export default function AssetPanel({
                       unoptimized
                     />
                   </button>
+                  {canExplainFigure && activeAssistantMessage && (
+                    <button type="button" className={`${figureStyles.explainButton} ${figureStyles.overlayButton}`} onClick={event => {
+                      event.stopPropagation();
+                      openFigureExplanation({ messageId: Number(activeAssistantMessage.message_id), assetPath: asset.path, imageUrl: toAssetUrl(asset.path), label: sourceLabel ? `${assetLabel} · ${sourceLabel}` : assetLabel });
+                    }}><span className={figureStyles.aiBadge} aria-hidden="true">AI</span> 이 그림 풀어서 설명받기</button>
+                  )}
+                  </div>
                 ) : inline ? (
                     <div className={styles.chatInlineTable}>
                       {tableMarkdownByPath[asset.path]?.source === "md" ? (

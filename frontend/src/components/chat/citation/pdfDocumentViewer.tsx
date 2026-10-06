@@ -10,8 +10,8 @@ type PdfDocumentViewerProps = {
   pageLabel: string | null;
   chunkText: string;
   referenceLabel: string;
-  onClose: () => void;
-  variant?: "modal" | "panel";
+  onClose?: () => void;
+  variant?: "modal" | "panel" | "embedded";
   isUpdating?: boolean;
 };
 
@@ -183,7 +183,7 @@ export default function PdfDocumentViewer({
   const content = (
     <div
       className={`${styles.pdfModalDialog} ${
-        variant === "panel" ? styles.pdfPanelDialog : ""
+        variant !== "modal" ? styles.pdfPanelDialog : ""
       }`}
       onClick={(event) => event.stopPropagation()}
     >
@@ -203,7 +203,7 @@ export default function PdfDocumentViewer({
           >
             <span aria-hidden="true">↗</span>
           </a>
-          <button
+          {variant !== "embedded" && <button
             type="button"
             className={styles.pdfModalIconButton}
             onClick={onClose}
@@ -211,7 +211,7 @@ export default function PdfDocumentViewer({
             title="닫기"
           >
             <span aria-hidden="true">×</span>
-          </button>
+          </button>}
         </div>
       </div>
 
@@ -263,7 +263,7 @@ export default function PdfDocumentViewer({
     </div>
   );
 
-  if (variant === "panel") {
+  if (variant !== "modal") {
     return content;
   }
 

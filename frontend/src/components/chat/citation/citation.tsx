@@ -1,9 +1,9 @@
-import { Fragment, useEffect, useState, type ReactNode } from "react";
-import type { ChatMetadata, MessageItem } from "@/types/chatApi";
+import { Fragment, useEffect, useState } from "react";
+import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-react";
+import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
-import CmsEvidence, { cmsEvidenceSummary, getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
+import CmsEvidence, { getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
-  formatJson,
   getActiveMessage,
   getCitationDocumentRequest,
   getChunkPageLabel,
@@ -15,7 +15,15 @@ import {
 } from "./citationUtils";
 import styles from "./citation.module.css";
 
+const evidenceTabs = ["문서 근거", "도면·래더", "지식그래프"] as const;
+function getEvidenceTab(chunk?: ChatChunk) {
+  return chunk?.metadata.ladder_diagram || chunk?.metadata.container_type === "ladder"
+    ? "도면·래더" : "문서 근거";
+}
+
 type CitationProps = {
+  canExplainFigure?: boolean;
+  isNewQuestion?: boolean;
   isCollapsed: boolean;
   onToggle: () => void;
   messages: MessageItem[];
@@ -24,11 +32,11 @@ type CitationProps = {
   selectedCitation?: SelectedCitation;
   onCitationSelect?: (messageId: string, chunkIndex: number) => void;
   onDocumentOpen?: (documentRequest: CitationDocumentRequest) => Promise<void> | void;
-  onDetailClose?: () => void;
-  documentOverlay?: ReactNode;
 };
 
 export default function Citation({
+  canExplainFigure = false,
+  isNewQuestion = false,
   isCollapsed,
   onToggle,
   messages,
@@ -37,12 +45,11 @@ export default function Citation({
   selectedCitation,
   onCitationSelect,
   onDocumentOpen,
-  onDetailClose,
-  documentOverlay,
 }: CitationProps) {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
   const [documentError, setDocumentError] = useState<string | null>(null);
   const [isDocumentLoading, setIsDocumentLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>("문서 근거");
 
   const activeMessage = getActiveMessage(messages, activeAssistantMessageId);
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
@@ -67,6 +74,8 @@ export default function Citation({
     ...item,
     chunk: activeChunks.find((chunk) => chunk.index === item.chunkIndex),
   }));
+  const visibleCards = referenceCards.filter(card => getEvidenceTab(card.chunk) === activeTab);
+  const EmptyIcon = activeTab === "도면·래더" ? Workflow : activeTab === "지식그래프" ? Network : FileText;
   const selectedReferenceNumber = selectedCitation
     ? (referenceLabelMap.get(selectedCitation.chunkIndex) ?? selectedCitation.chunkIndex)
     : null;
@@ -82,11 +91,6 @@ export default function Citation({
     typeof selectedChunk?.metadata?.container_type === "string"
       ? selectedChunk.metadata.container_type
       : undefined;
-  const selectedSourceDocName =
-    typeof selectedChunk?.metadata?.source_doc_name === "string"
-      ? selectedChunk.metadata.source_doc_name
-      : undefined;
-  const selectedPageLabel = getChunkPageLabel(selectedChunk);
   const selectedDocumentRequest = getCitationDocumentRequest(
     messages,
     selectedCitation,
@@ -96,6 +100,14 @@ export default function Citation({
   useEffect(() => {
     setDocumentError(null);
   }, [selectedCitation?.messageId, selectedCitation?.chunkIndex]);
+
+  useEffect(() => {
+    setActiveTab("문서 근거");
+  }, [activeMessage?.message_id, isNewQuestion]);
+
+  useEffect(() => {
+    if (selectedChunk) setActiveTab(getEvidenceTab(selectedChunk));
+  }, [selectedChunk]);
 
   useEffect(() => {
     if (isCollapsed || !selectedCitation) {
@@ -112,7 +124,6 @@ export default function Citation({
       selectedCitation.chunkIndex === chunkIndex;
 
     if (isSelected) {
-      if (isDetailOpen) onDetailClose?.();
       setIsDetailOpen((prev) => !prev);
       return;
     }
@@ -135,132 +146,8 @@ export default function Citation({
     }
   };
 
-  return (
-    <div className={styles.citationRoot}>
-      <div
-        className={`${styles.citationHeader} ${
-          isCollapsed ? styles.citationHeaderCollapsed : ""
-        }`}
-      >
-        {!isCollapsed ? (
-          <div className={styles.citationTitleGroup}>
-            <h2 className="pane-title">{activeMessage?.llm_mode === "ladder" ? "참조 근거" : "인용 근거"}</h2>
-            {referenceCards.length > 0 ? (
-              <span className={styles.citationCount}>{referenceCards.length}</span>
-            ) : null}
-          </div>
-        ) : null}
-        <button
-          type="button"
-          className={styles.citationToggle}
-          onClick={onToggle}
-          aria-expanded={!isCollapsed}
-          aria-label={isCollapsed ? "인용 근거 펼치기" : "인용 근거 접기"}
-        >
-          <span aria-hidden="true">{isCollapsed ? "+" : "−"}</span>
-        </button>
-      </div>
-
-      <div
-        className={`${styles.citationBody} ${
-          isCollapsed ? styles.citationBodyHidden : styles.citationBodyVisible
-        }`}
-        aria-hidden={isCollapsed}
-      >
-        {activeMessage && referenceCards.length > 0 ? (
-          <section className={styles.referenceCardsArea} aria-label="참조 요약">
-            {referenceItems[0]?.additional && (
-              <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
-            )}
-            <div className={styles.referenceCardList}>
-              {referenceCards.map(({ chunkIndex, label, chunk, additional }, index) => {
-                const isActive = selectedCitation?.chunkIndex === chunkIndex;
-                const sourceDocName =
-                  typeof chunk?.metadata?.source_doc_name === "string"
-                    ? chunk.metadata.source_doc_name
-                    : "문서명 없음";
-                const isCms = chunk?.metadata?.source_kind === "cms";
-                const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
-
-                return (
-                  <Fragment key={chunkIndex}>
-                    {additional && index > 0 && !referenceCards[index - 1].additional && (
-                      <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
-                    )}
-                  <button
-                    key={chunkIndex}
-                    type="button"
-                    className={`${styles.referenceCard} ${
-                      isActive ? styles.referenceCardActive : ""
-                    }`}
-                    onClick={() =>
-                      handleReferenceCardClick(String(activeMessage.message_id), chunkIndex)
-                    }
-                    aria-pressed={isActive}
-                  >
-                    <span className={styles.referenceCardMeta}>
-                      <span className={styles.referenceCardNumber}>{label}</span>
-                      <span className={styles.referenceCardScore}>
-                        {isCms ? "DB 조회 근거" : typeof score === "number"
-                          ? `관련도 ${score.toFixed(3)}`
-                          : chunk?.retrieval_rank
-                            ? `검색 순위 ${chunk.retrieval_rank}`
-                            : "참조 문서"}
-                      </span>
-                      {!isCms && <span className={styles.referenceCardPage}>
-                        {getChunkPageLabel(chunk) ?? "페이지 -"}
-                      </span>}
-                    </span>
-                    <strong className={styles.referenceCardDocument}>{sourceDocName}</strong>
-                    <span className={styles.referenceCardSummary}>
-                      {isCms ? cmsEvidenceSummary(chunk?.document ?? "") : chunk?.document ?? "참조 내용을 불러오는 중입니다."}
-                    </span>
-                    <span className={styles.referenceCardAction}>
-                      {isActive && isDetailOpen ? "상세 닫기" : "상세 보기"}
-                    </span>
-                  </button>
-                  </Fragment>
-                );
-              })}
-            </div>
-          </section>
-        ) : null}
-
-        {!isCollapsed && isDetailOpen && selectedCitation ? (
-          <section
-            className={styles.referenceOverlay}
-            role="dialog"
-            aria-label="선택한 참조 상세"
-          >
-          <div className={styles.referenceHeader}>
-            <div className={styles.referenceHeadingGroup}>
-              <h3 className={styles.referenceTitleWithIcon}>
-                <span>{selectedChunk?.metadata?.source_kind === "cms" ? "DB 조회 근거" : "선택한 참조"}</span>
-              </h3>
-              <div className={styles.referenceBadges}>
-                {selectedReferenceNumber !== null ? (
-                  <span className={styles.selectedReferenceNumber}>
-                    {selectedReferenceNumber}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-            <div className={styles.referenceHeaderActions}>
-              <button
-                type="button"
-                className={styles.referenceCloseButton}
-                onClick={() => {
-                  setIsDetailOpen(false);
-                  onDetailClose?.();
-                }}
-                aria-label="선택한 참조 닫기"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-
-          <div className={styles.referenceOverlayBody}>
+  const referenceDetail = selectedCitation ? (
+    <div className={styles.inlineReferenceDetail}>
           {selectedChunk ? (
             <div className={styles.chunkCard}>
               {selectedChunk.metadata?.source_kind === "cms" ? <>
@@ -278,16 +165,6 @@ export default function Citation({
                   </> : <p>이 답변에서 해당 알람 코드와 일치하는 장비 매뉴얼 근거를 찾지 못했습니다.</p>}
                 </div> : null}
               </> : <>
-              <div className={styles.chunkMetaGrid}>
-                <p className={styles.chunkTitle}>
-                  <span className={styles.chunkMetaLabel}>문서명</span>
-                  <span>{selectedSourceDocName ?? "unknown"}</span>
-                </p>
-                <p className={styles.chunkPageRange}>
-                  <span className={styles.chunkMetaLabel}>페이지</span>
-                  <span>{selectedPageLabel ?? "-"}</span>
-                </p>
-              </div>
               {selectedDocumentRequest && <div className={styles.documentActionBlock}>
                 <button
                   type="button"
@@ -302,12 +179,12 @@ export default function Citation({
                 ) : null}
               </div>}
               <div className={styles.chunkBodyBlock}>
-                <p className={styles.chunkBodyTitle}>청크 원문</p>
+                <p className={styles.chunkBodyTitle}>근거 원문</p>
                 <p className={styles.chunkDocument}>{selectedChunk.document}</p>
               </div>
-              <pre className={styles.chunkPre}>{formatJson(selectedChunk)}</pre>
               {selectedAssetPath ? (
                 <ChunkAsset
+                  figureMessageId={canExplainFigure ? Number(selectedCitation.messageId) : undefined}
                   key={`${selectedChunk.index}-${selectedAssetPath}`}
                   assetPath={selectedAssetPath}
                   assetType={selectedContainerType}
@@ -328,17 +205,116 @@ export default function Citation({
               답변의 [참조]를 클릭하면 해당 청크가 표시됩니다.
             </p>
           )}
+
+    </div>
+  ) : null;
+
+  return (
+    <div className={styles.citationRoot}>
+      <div
+        className={`${styles.citationHeader} ${
+          isCollapsed ? styles.citationHeaderCollapsed : ""
+        }`}
+      >
+        {!isCollapsed ? (
+          <div className={styles.citationTitleGroup}>
+            <h2 className="pane-title">인용 근거</h2>
           </div>
+        ) : null}
+        <button
+          type="button"
+          className={styles.citationToggle}
+          onClick={onToggle}
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? "인용 근거 펼치기" : "인용 근거 접기"}
+        >
+          {isCollapsed ? <ChevronDown size={19} aria-hidden="true" /> : <ChevronUp size={19} aria-hidden="true" />}
+        </button>
+      </div>
+
+      <div
+        className={`${styles.citationBody} ${
+          isCollapsed ? styles.citationBodyHidden : styles.citationBodyVisible
+        }`}
+        aria-hidden={isCollapsed}
+      >
+        {!isCollapsed && <>
+          <div className={styles.emptyTabs} aria-label="근거 유형">
+            {evidenceTabs.map(tab => {
+              const count = referenceCards.filter(card => getEvidenceTab(card.chunk) === tab).length;
+              return <button key={tab} type="button" aria-pressed={activeTab === tab}
+                onClick={() => { setActiveTab(tab); setIsDetailOpen(false); }}>
+                {tab}{count > 0 && <span className={styles.citationCount}>{count}</span>}
+              </button>;
+            })}
+          </div>
+          {visibleCards.length === 0 && <div className={styles.emptyEvidence} role="status">
+            <EmptyIcon size={50} strokeWidth={1.6} aria-hidden="true" />
+            <h3>{isNewQuestion ? "답변의 근거가 모이는 곳" : `${activeTab}가 없습니다`}</h3>
+            <p>{isLoading ? "답변과 관련된 근거를 확인하고 있어요." : isNewQuestion ? <>
+              질문하면 관련 문서와 도면,<br />지식 연결을 여기에서 확인할 수 있어요.
+            </> : "이 답변에 연결된 근거가 있으면 여기에 표시됩니다."}</p>
+          </div>}
+        </>}
+        {activeMessage && visibleCards.length > 0 ? (
+          <section className={styles.referenceCardsArea} aria-label="참조 요약">
+            {visibleCards[0]?.additional && (
+              <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
+            )}
+            <div className={styles.referenceCardList}>
+              {visibleCards.map(({ chunkIndex, label, chunk, additional }, index) => {
+                const isActive = selectedCitation?.messageId === String(activeMessage.message_id) && selectedCitation.chunkIndex === chunkIndex;
+                const isExpanded = isActive && isDetailOpen;
+                const sourceDocName =
+                  typeof chunk?.metadata?.source_doc_name === "string"
+                    ? chunk.metadata.source_doc_name
+                    : "문서명 없음";
+                const isCms = chunk?.metadata?.source_kind === "cms";
+                const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
+
+                return (
+                  <Fragment key={chunkIndex}>
+                    {additional && index > 0 && !visibleCards[index - 1].additional && (
+                      <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
+                    )}
+                  <article className={`${styles.referenceCard} ${isExpanded ? styles.referenceCardActive : ""}`}>
+                  <button
+                    type="button"
+                    className={styles.referenceCardToggle}
+                    onClick={() =>
+                      handleReferenceCardClick(String(activeMessage.message_id), chunkIndex)
+                    }
+                    aria-expanded={isExpanded}
+                  >
+                    <span className={styles.referenceCardMeta}>
+                      <span className={styles.referenceCardNumber}>{label}</span>
+                      <span className={styles.referenceCardScore}>
+                        {isCms ? "DB 조회 근거" : typeof score === "number"
+                          ? `관련도 ${score.toFixed(3)}`
+                          : chunk?.retrieval_rank
+                            ? `검색 순위 ${chunk.retrieval_rank}`
+                            : "참조 문서"}
+                      </span>
+                      {!isCms && <span className={styles.referenceCardPage}>
+                        {getChunkPageLabel(chunk) ?? "페이지 -"}
+                      </span>}
+                      {isExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
+                    </span>
+                    <strong className={styles.referenceCardDocument}>{sourceDocName}</strong>
+                  </button>
+                  {isExpanded && referenceDetail}
+                  </article>
+                  </Fragment>
+                );
+              })}
+            </div>
           </section>
         ) : null}
 
+
+
       </div>
 
-      {documentOverlay ? (
-        <section className={styles.pdfSideOverlay} aria-label="참고문서 PDF">
-          {documentOverlay}
-        </section>
-      ) : null}
 
     </div>
   );

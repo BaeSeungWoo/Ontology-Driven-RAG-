@@ -1,0 +1,110 @@
+.layout { display: grid; grid-template-columns: 1fr 1fr; min-height: 0; height: min(720px, 80vh); background: #fff; color: #243858; }
+.image { min-width: 0; min-height: 0; overflow: auto; display: flex; align-items: center; justify-content: center; padding: 16px; background: #f5f8fc; }
+.image img { height: auto; width: auto; max-width: 100%; max-height: 100%; object-fit: contain; }
+.panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; border-left: 1px solid #dce5f0; }
+.title { padding: 14px 16px; border-bottom: 1px solid #dce5f0; font-size: 14px; color: #1254c4; }
+.messages { flex: 1; overflow: auto; padding: 16px; font-size: 14px; line-height: 1.75; overflow-wrap: anywhere; }
+.messages p { margin: 0 0 12px; }
+.messages table { display: block; overflow-x: auto; }
+.question { background: #edf4ff; padding: 10px 12px; border-radius: 10px; margin: 16px 0; }
+.question p { margin: 0; }
+.answer { margin-bottom: 16px; }
+.answer h1, .answer h2, .answer h3 { margin: 16px 0 8px; font-size: 16px; font-weight: 700; }
+.answer ul { list-style: disc; padding-left: 22px; margin: 8px 0 14px; }
+.answer ol { list-style: decimal; padding-left: 22px; margin: 8px 0 14px; }
+.form { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #dce5f0; }
+.form input { flex: 1; min-width: 0; border: 1px solid #c9d8eb; border-radius: 8px; padding: 10px; font: inherit; }
+.panel button { border: 1px solid #bfd0eb; border-radius: 8px; background: #edf4ff; color: #1254c4; padding: 6px 12px; cursor: pointer; }
+.panel button:disabled { opacity: 0.5; cursor: default; }
+.note { padding: 0 12px 10px; color: #64748b; }
+.loading { padding: 16px; margin: 12px 0; border: 1px solid #d8e6fb; border-radius: 12px; background: #f5f8ff; }
+.loadingLabel { display: flex; align-items: center; gap: 9px; color: #1254c4; font-size: 13px; }
+.loadingHint { display: block; margin-top: 8px; font-size: 12px; color: #607397; }
+.spinner { display: inline-block; flex-shrink: 0; width: 16px; height: 16px; border: 2px solid #c9daf5; border-top-color: #1254c4; border-radius: 50%; animation: figureSpin 800ms linear infinite; }
+.skeleton { display: grid; gap: 8px; margin-top: 16px; }
+.skeleton span { height: 8px; border-radius: 4px; background: #dce8f9; animation: figurePulse 1.4s ease-in-out infinite; }
+.skeleton span:nth-child(2) { width: 88%; animation-delay: 150ms; }
+.skeleton span:nth-child(3) { width: 64%; animation-delay: 300ms; }
+.sendButton { display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+@keyframes figureSpin { to { transform: rotate(360deg); } }
+@keyframes figurePulse { 50% { opacity: 0.35; } }
+@media (prefers-reduced-motion: reduce) {
+  .spinner, .skeleton span { animation: none; }
+}
+@media (max-width: 700px) {
+  .layout { grid-template-columns: 1fr; grid-template-rows: 30% 70%; }
+  .panel { border-left: 0; border-top: 1px solid #dce5f0; }
+  .image { justify-content: center; }
+  .image img { height: 100%; width: auto; max-width: 100%; }
+}
+.explainButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #bfd0eb;
+  border-radius: 8px;
+  background: #edf4ff;
+  color: #1254c4;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms;
+}
+
+.explainButton:hover {
+  border-color: #8eafe2;
+  background: #e1edff;
+}
+
+.explainButton:focus-visible {
+  outline: 2px solid #1254c4;
+  outline-offset: 2px;
+}
+
+.imageActions {
+  position: relative;
+}
+
+.explainButton.overlayButton {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: auto;
+  max-width: calc(100% - 20px);
+  padding: 6px 9px;
+  box-shadow: 0 2px 8px #1254c41a;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.imageActions:hover .overlayButton,
+.imageActions:focus-within .overlayButton {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .explainButton.overlayButton {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.aiBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  vertical-align: middle;
+  border: 1px solid #1254c4;
+  border-radius: 4px;
+  background: #1254c4;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+}

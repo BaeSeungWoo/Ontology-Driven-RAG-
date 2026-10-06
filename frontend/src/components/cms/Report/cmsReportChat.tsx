@@ -1,9 +1,10 @@
 "use client";
 
 import { FormEvent, useId, useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { ArrowUp, ArrowUpRight, MessageCircle, Sparkles, X } from "lucide-react";
 import { askCmsReport, type CmsChatMessage, type CmsReport } from "@/services/cmsApi";
 import styles from "../cms.module.css";
+import type { ReportModel } from "@/types/report";
 
 const WELCOME_MESSAGE: CmsChatMessage = {
   role: "assistant",
@@ -20,9 +21,10 @@ const RECOMMENDED_QUESTIONS = [
 
 type CmsReportChatProps = {
   report: CmsReport;
+  config: ReportModel;
 };
 
-export default function CmsReportChat({ report }: CmsReportChatProps) {
+export default function CmsReportChat({ report, config }: CmsReportChatProps) {
   const chatPanelId = useId();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<CmsChatMessage[]>([WELCOME_MESSAGE]);
@@ -40,7 +42,7 @@ export default function CmsReportChat({ report }: CmsReportChatProps) {
     setIsLoading(true);
 
     try {
-      const answer = await askCmsReport(trimmedQuestion, history, report);
+      const answer = await askCmsReport(trimmedQuestion, history, report, config);
       setMessages((current) => [...current, { role: "assistant", content: answer }]);
     } catch (error) {
       setMessages((current) => [
@@ -77,9 +79,9 @@ export default function CmsReportChat({ report }: CmsReportChatProps) {
       {isOpen && (
         <aside id={chatPanelId} className={styles.reportChatPanel} aria-label="CMS 데이터 질의">
           <header>
-            <p>CMS DATA CHAT</p>
+            <p><Sparkles size={15} aria-hidden="true" /> REPORT ASSISTANT</p>
             <h2>리포트 질의</h2>
-            <span>현재 리포트 데이터만 답변합니다.</span>
+            <span>리포트 속 숫자와 현황을 물어보세요.</span>
           </header>
           <div className={styles.reportChatMessages}>
             {messages.length === 1 && (
@@ -93,6 +95,7 @@ export default function CmsReportChat({ report }: CmsReportChatProps) {
                     disabled={isLoading}
                   >
                     {recommendedQuestion}
+                    <ArrowUpRight size={14} aria-hidden="true" />
                   </button>
                 ))}
               </div>
@@ -109,9 +112,10 @@ export default function CmsReportChat({ report }: CmsReportChatProps) {
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               placeholder="리포트 데이터를 질문하세요"
+              aria-label="리포트 질문"
               disabled={isLoading}
             />
-            <button type="submit" disabled={isLoading || !question.trim()}>전송</button>
+            <button type="submit" aria-label="질문 전송" disabled={isLoading || !question.trim()}><ArrowUp size={18} aria-hidden="true" /></button>
           </form>
         </aside>
       )}

@@ -16,6 +16,26 @@ def load_machine_info() -> dict:
         return json.load(f)
 
 
+@promptRouter.get("/machines")
+def get_machines(client_request: Request):
+    machines = load_machine_info()
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=machines,
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    return [
+        {
+            "machine_code": code,
+            "machine_name": info["machine_name"],
+            "machine_controller": info.get("machine_controller", ""),
+            "machine_ver": info.get("machine_ver", ""),
+            "is_assigned": code == ctx.request_machine_code,
+        }
+        for code, info in machines.items()
+    ]
+
+
 @promptRouter.post("/getPromptList")
 def getPromptList(client_request: Request):
     machine_info = load_machine_info()

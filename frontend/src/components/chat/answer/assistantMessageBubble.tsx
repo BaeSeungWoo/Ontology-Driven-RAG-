@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from "react";
+import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import remarkAnswerFormatting from "./remarkAnswerFormatting";
@@ -10,10 +11,12 @@ import { toCitationDisplayText } from "./citationText";
 import { formatCmsDateTime } from "@/utils/formatCmsDateTime";
 import type { AnswerMessage } from "@/types/chat";
 import LadderDiagrams from "./ladderDiagram";
+import AnswerFeedback from "./answerFeedback";
 import AssetPanel from "../assetPanel";
 import { getMessageReferenceItems, getReferenceItems } from "../citation/citationUtils";
 
 type AssistantMessageBubbleProps = {
+  canExplainFigure?: boolean;
   message: AnswerMessage;
   isActive?: boolean;
   isGenerating?: boolean;
@@ -31,6 +34,7 @@ export default function AssistantMessageBubble({
   selectedCitationChunkIndex = null,
   onActivate,
   onCitationSelect,
+  canExplainFigure = false,
 }: AssistantMessageBubbleProps) {
   // =========================
   // state
@@ -123,7 +127,10 @@ export default function AssistantMessageBubble({
   return (
     <article className={`${styles.messageItem} ${styles.assistantMessage} ${message.llmMode === "ladder" ? styles.ladderMessage : ""}`}>
       <div className={styles.assistantMetaRow}>
-        <span className={styles.assistantAiBadge}>AI</span>
+        <span className={styles.assistantBrand}>
+          <Image src="/logo3.png" alt="" width={32} height={32} />
+          Ontology-RAG
+        </span>
         {isThinking ? (
           <span className={styles.assistantGenerationStatus} role="status">
             <span className={styles.assistantThinkingSpinner} aria-hidden="true" />
@@ -222,6 +229,7 @@ export default function AssistantMessageBubble({
         )}
         {!isThinking && !isInterrupted && (
           <AssetPanel
+            canExplainFigure={canExplainFigure}
             inline
             activeAssistantMessage={{
               message_id: message.id,
@@ -251,6 +259,9 @@ export default function AssistantMessageBubble({
             onCitationSelect?.(message.id, index);
           }}
         />
+      )}
+      {!isThinking && !isInterrupted && (
+        <AnswerFeedback key={message.id} messageId={Number(message.id)} initialFeedback={message.feedback} />
       )}
     </article>
   );

@@ -81,6 +81,8 @@ export type UpdateMessageResponse = {
   result: string;
 };
 
+export type MessageFeedback = "도움됨" | "틀림" | "근거없음";
+
 export type MessageItem = {
   message_id: number;
   session_id: number;
@@ -92,4 +94,5 @@ export type MessageItem = {
   llm_mode?: string | null;
   prompt_name?: string | null;
   metadata?: ChatMetadata;
+  feedback?: MessageFeedback | null;
 };

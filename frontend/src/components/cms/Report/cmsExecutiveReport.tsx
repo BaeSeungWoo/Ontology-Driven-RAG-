@@ -1,6 +1,9 @@
 "use client";
 
 import { useRef } from "react";
+import { Download, FileText } from "lucide-react";
+import CmsReportChat from "./cmsReportChat";
+import type { ReportModel } from "@/types/report";
 import type { CmsReport } from "@/services/cmsApi";
 import { exportHtmlSnapshot, exportPdfSnapshot } from "@/utils/exportHtmlSnapshot";
 import CmsReportAlarmHistory from "./03_Alarm/cmsReportAlarmHistory";
@@ -14,9 +17,11 @@ import styles from "../cms.module.css";
 type CmsExecutiveReportProps = {
   report: CmsReport;
   isLoading: boolean;
+  summaryError: string;
+  config: ReportModel;
 };
 
-export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveReportProps) {
+export default function CmsExecutiveReport({ report, isLoading, summaryError, config }: CmsExecutiveReportProps) {
   const reportRef = useRef<HTMLElement>(null);
   const reportDate = report.weeklyPlannedRates.at(-1)?.workDate;
 
@@ -43,22 +48,36 @@ export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveRe
   };
 
   return (
-    <section ref={reportRef} className={styles.executiveReport} aria-label="AI 데일리 생산 리포트">
+    <>
+    <section ref={reportRef} className={`${styles.executiveReport} ${styles.managementReport}`} aria-label="AI 데일리 생산 리포트">
       <header className={styles.executiveHeader}>
         <div>
-          <p>AI DAILY PRODUCTION REPORT</p>
+          <span className={styles.reportEyebrow}>AI DAILY PRODUCTION REPORT</span>
           <h2>AI 데일리 생산 리포트</h2>
+          <p className={styles.reportSubtitle}>생산 현황과 설비 운영 분석</p>
         </div>
-        <div className={styles.executiveHeaderActions}>
+        <div className={styles.reportHeaderMeta}>
           <time dateTime={reportDate}>생성 기준: {formatReportDate(reportDate)}</time>
-          <div className={styles.exportButtons} data-export-control>
+          <span>PRODUCTION SUMMARY</span>
+        </div>
+      </header>
+
+      <CmsReportMetrics report={report} />
+      <CmsReportSummary report={report} isLoading={isLoading} errorMessage={summaryError} />
+      <CmsReportOperations report={report} />
+      <CmsReportAlarmHistory report={report} />
+      <CmsReportAlarmInsights report={report} />
+    </section>
+    <div className={styles.reportTools}>
+        <div className={styles.exportButtons}>
+
             <button
               type="button"
               className={styles.htmlExportButton}
               onClick={exportHtml}
               disabled={isLoading}
             >
-              HTML 내보내기
+              <FileText size={15} aria-hidden="true" /> HTML 내보내기
             </button>
             <button
               type="button"
@@ -66,17 +85,12 @@ export default function CmsExecutiveReport({ report, isLoading }: CmsExecutiveRe
               onClick={() => void exportPdf()}
               disabled={isLoading}
             >
-              PDF 내보내기
+              <Download size={15} aria-hidden="true" /> PDF 내보내기
             </button>
-          </div>
-        </div>
-      </header>
 
-      <CmsReportSummary report={report} />
-      <CmsReportMetrics report={report} />
-      <CmsReportOperations report={report} />
-      <CmsReportAlarmHistory report={report} />
-      <CmsReportAlarmInsights report={report} />
-    </section>
+        </div>
+      <CmsReportChat report={report} config={config} />
+    </div>
+    </>
   );
 }

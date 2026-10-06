@@ -1,342 +1,116 @@
-import { useEffect, useState } from "react";
-
+import { useEffect, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
+import { formatHistoryDateGroup } from "./historyTime";
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
 import { deleteHistorySession } from "@/services/historyApi";
-
-import HistoryCard from "./historyCard";
-import type { HistoryItem } from "./historyCard";
+import HistoryCard, { type HistoryItem } from "./historyCard";
+import HistorySearch from "./historySearch";
 import styles from "./history.module.css";
 
 type HistoryProps = {
   selectedSessionId: number | null;
-  onSelectSession: (sessionId: number, sessionMeta?: HistorySessionMeta) => void;
+  onSelectSession: (sessionId: number, sessionMeta?: HistoryItem) => void;
   onStartNewChat?: () => void;
   onDeleteSession?: (sessionId: number) => void;
   onHistoryRefresh?: () => void;
   refreshKey?: number;
-  isCollapsed?: boolean;
-  onToggleCollapse?: () => void;
 };
 
-type HistorySessionMeta = Pick<
-  HistoryItem,
-  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType"
->;
-
-type PaginationItem = number | "ellipsis-left" | "ellipsis-right";
-
-const OPTION_TEXT_MAX = 18;
-
-function formatQuestionerOptionLabel(label: string, count: number): string {
-  const countToken = `[${count}]`;
-  const reservedLength = countToken.length + 1; // 공백 1칸 포함
-  const availableLabelLength = Math.max(4, OPTION_TEXT_MAX - reservedLength);
-  const normalized = label.trim();
-  const shortLabel =
-    normalized.length > availableLabelLength
-      ? `${normalized.slice(0, Math.max(1, availableLabelLength - 1))}…`
-      : normalized;
-
-  return `${shortLabel} ${countToken}`;
-}
-
-export default function History({
-  selectedSessionId,
-  onSelectSession,
-  onStartNewChat,
-  onDeleteSession,
-  onHistoryRefresh,
-  refreshKey = 0,
-  isCollapsed = false,
-  onToggleCollapse,
-}: HistoryProps) {
-  // 내부 state
-  // 기능/목적: 새 질문 시작 전 확인 모달의 열림 상태를 관리한다.
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+export default function History({ selectedSessionId, onSelectSession, onStartNewChat,
+  onDeleteSession, onHistoryRefresh, refreshKey = 0 }: HistoryProps) {
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(() => new Set());
   const [now, setNow] = useState(() => Date.now());
+  const listRef = useRef<HTMLDivElement>(null);
+  const moreRef = useRef<HTMLDivElement>(null);
+  const searchButtonRef = useRef<HTMLButtonElement>(null);
+  const { historyItems, isLoading, hasMore, error, loadMore } = useHistoryPanel({ selectedSessionId, refreshKey });
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => window.clearInterval(timer);
   }, []);
 
-  const {
-    currentPage,
-    effectiveSelectedQuestioner,
-    goFirstPage,
-    goNextPage,
-    goLastPage,
-    goPage,
-    goPrevPage,
-    handleSelectQuestioner,
-    historyItems,
-    isHistoryEmpty,
-    totalPages,
-    visibleQuestionerOptions,
-    resetQuestionerFilter,
-  } = useHistoryPanel({
-    selectedSessionId,
-    refreshKey,
-  });
+  useEffect(() => {
+    if (!hasMore || isLoading || error) return;
+    const observer = new IntersectionObserver(entries => {
+      if (entries.some(entry => entry.isIntersecting)) void loadMore();
+    }, { root: listRef.current, rootMargin: "100px" });
+    if (moreRef.current) observer.observe(moreRef.current);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, error, loadMore]);
 
-  // 함수: 새 질문
-  // 기능/목적: 현재 화면의 대화 상태를 비우기 전 확인 과정을 거친다.
-  // Out: 질문자 필터 초기화, 상위 Chat의 새 세션 초기화 호출
-  const handleOpenConfirm = () => {
-    setIsConfirmOpen(true);
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    requestAnimationFrame(() => searchButtonRef.current?.focus());
   };
-
-  const handleConfirmNewChat = () => {
-    setIsConfirmOpen(false);
-    resetQuestionerFilter();
-    onStartNewChat?.();
-  };
-
-  // 함수: 세션 선택
-  // 기능/목적: 선택한 이력 카드의 세션 id와 설정 메타를 상위 Chat에 전달한다.
-  // In: sessionId / Out: onSelectSession 호출
-  const handleSelectChat = (sessionId: number) => {
-    const matchedItem = historyItems.find((item) => item.id === sessionId);
-
-    onSelectSession(
-      sessionId,
-      matchedItem
-        ? {
-            questioner: matchedItem.questioner,
-            llmModel: matchedItem.llmModel,
-            llmMode: matchedItem.llmMode,
-            promptNo: matchedItem.promptNo,
-            promptName: matchedItem.promptName,
-            personaType: matchedItem.personaType,
-          }
-        : undefined
-    );
-  };
-
   const handleDeleteChat = async (sessionId: number) => {
     await deleteHistorySession(sessionId);
     onDeleteSession?.(sessionId);
     onHistoryRefresh?.();
   };
+  const historyGroups = new Map<string, HistoryItem[]>();
+  for (const item of historyItems) {
+    const label = formatHistoryDateGroup(item.recentAtTimestamp, now);
+    const group = historyGroups.get(label) ?? [];
+    group.push(item);
+    historyGroups.set(label, group);
+  }
 
-  // 함수: 페이지네이션
-  // 기능/목적: 전체 페이지 수와 현재 페이지를 기반으로 표시할 페이지 버튼을 계산한다.
-  // Out: 숫자 페이지와 말줄임 토큰 배열
-  const getPaginationItems = (): PaginationItem[] => {
-    if (totalPages <= 7) {
-      return Array.from({ length: totalPages }, (_, index) => index + 1);
-    }
-
-    if (currentPage <= 4) {
-      return [1, 2, 3, 4, 5, "ellipsis-right", totalPages];
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [
-        1,
-        "ellipsis-left",
-        totalPages - 4,
-        totalPages - 3,
-        totalPages - 2,
-        totalPages - 1,
-        totalPages,
-      ];
-    }
-
-    return [
-      1,
-      "ellipsis-left",
-      currentPage - 1,
-      currentPage,
-      currentPage + 1,
-      "ellipsis-right",
-      totalPages,
-    ];
-  };
-
-  const paginationItems = getPaginationItems();
-  const rootClassName = `${styles.historyRoot} ${
-    isCollapsed ? styles.historyRootCollapsed : ""
-  }`;
-
-  // render
   return (
-    <div className={rootClassName}>
+    <div className={styles.historyRoot}>
+      <button type="button" className={styles.newChatButton} onClick={onStartNewChat} aria-label="새 질문 시작">
+        <Plus size={18} aria-hidden="true" /><span>새 질문</span>
+      </button>
       <div className={styles.headerRow}>
-        <div className={styles.headerTitleGroup}>
-          <button
-            type="button"
-            className={styles.panelToggleButton}
-            onClick={onToggleCollapse}
-            aria-label={isCollapsed ? "오른쪽 영역 펼치기" : "오른쪽 영역 접기"}
-            title={isCollapsed ? "오른쪽 영역 펼치기" : "오른쪽 영역 접기"}
-          >
-            <span aria-hidden="true">{isCollapsed ? "+" : "−"}</span>
-          </button>
-          {!isCollapsed ? <h2 className="pane-title">질문 이력</h2> : null}
-        </div>
-        {!isCollapsed ? (
-          <button
-            type="button"
-            className={styles.newChatButton}
-            onClick={handleOpenConfirm}
-            aria-label="새 질문 시작"
-            title="현재 대화는 확인 후 초기화됩니다."
-          >
-            <span aria-hidden="true">+</span>
-            <span>새 질문</span>
-          </button>
-        ) : null}
+        <h2 className={styles.historyTitle}>질문 이력</h2>
+        <button ref={searchButtonRef} type="button" className={styles.searchButton} onClick={() => setIsSearchOpen(true)} aria-label="질문 이력 검색" aria-haspopup="dialog">
+          <Search size={18} aria-hidden="true" />
+        </button>
       </div>
-
-      {!isCollapsed ? (
-        <>
-          <div className={styles.questionerFilterSection}>
-            <div className={styles.questionerFilterRow}>
-              <label htmlFor="history-questioner-filter" className={styles.questionerFilterLabel}>
-                질문자 선택
-              </label>
-              <div className={styles.questionerFilterField}>
-                <select
-                  id="history-questioner-filter"
-                  className={styles.questionerFilterSelect}
-                  value={effectiveSelectedQuestioner}
-                  onChange={(event) => handleSelectQuestioner(event.target.value)}
-                >
-                  {visibleQuestionerOptions.map((option) => (
-                    <option key={option.key} value={option.key}>
-                      {formatQuestionerOptionLabel(option.label, option.count)}
-                    </option>
-                  ))}
-                </select>
+      <div ref={listRef} className={styles.historyList} aria-label="질문 이력 목록" tabIndex={0}>
+        {Array.from(historyGroups, ([label, items]) => {
+          const timestamp = items[0].recentAtTimestamp;
+          const dateKey = Number.isFinite(timestamp)
+            ? new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(timestamp)
+            : "unknown";
+          const isCollapsed = collapsedDates.has(dateKey);
+          const listId = `history-date-${dateKey}`;
+          return (
+            <section key={dateKey} className={styles.dateGroup} aria-label={label}>
+              <h3 className={styles.dateHeading}>
+                <button type="button" className={styles.dateToggle} aria-expanded={!isCollapsed} aria-controls={listId}
+                  tabIndex={-1}
+                  onKeyDown={event => {
+                    if (event.key === "Enter" || event.key === " ") event.preventDefault();
+                  }}
+                  onClick={() => setCollapsedDates(previous => {
+                    const next = new Set(previous);
+                    if (next.has(dateKey)) next.delete(dateKey);
+                    else next.add(dateKey);
+                    return next;
+                  })}>
+                  <span>{label}</span>
+                  {isCollapsed ? <ChevronRight size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+                </button>
+              </h3>
+              <div id={listId} hidden={isCollapsed}>
+                {items.map(item => (
+                  <HistoryCard key={item.id} item={item} onSelect={() => onSelectSession(item.id, item)} onDelete={handleDeleteChat} />
+                ))}
               </div>
-
-            </div>
-          </div>
-
-          <div className={styles.historyListWrap}>
-            <div className={styles.historyList}>
-              {historyItems.map((item) => (
-                <HistoryCard
-                  now={now}
-                  key={item.id}
-                  item={item}
-                  onSelect={handleSelectChat}
-                  onDelete={handleDeleteChat}
-                />
-              ))}
-              {isHistoryEmpty && (
-                <p className={styles.emptyHistoryText}>선택한 질문자의 이력이 없습니다.</p>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.paginationRow}>
-            <button
-              type="button"
-              className={styles.pageButton}
-              onClick={goFirstPage}
-              disabled={currentPage <= 1}
-              aria-label="첫 페이지로 이동"
-              title="첫 페이지"
-            >
-              <span aria-hidden="true">«</span>
-            </button>
-            <button
-              type="button"
-              className={styles.pageButton}
-              onClick={goPrevPage}
-              disabled={currentPage <= 1}
-              aria-label="이전 페이지로 이동"
-              title="이전 페이지"
-            >
-              <span aria-hidden="true">‹</span>
-            </button>
-            <div className={styles.pageNumbers}>
-              {paginationItems.map((item, index) => {
-                if (typeof item !== "number") {
-                  return (
-                    <span key={`${item}-${index}`} className={styles.pageEllipsis} aria-hidden="true">
-                      ...
-                    </span>
-                  );
-                }
-
-                const isActive = item === currentPage;
-                return (
-                  <button
-                    key={item}
-                    type="button"
-                    className={`${styles.pageButton} ${isActive ? styles.pageButtonActive : ""}`}
-                    onClick={() => goPage(item)}
-                  >
-                    {item}
-                  </button>
-                );
-              })}
-            </div>
-            <button
-              type="button"
-              className={styles.pageButton}
-              onClick={goNextPage}
-              disabled={currentPage >= totalPages}
-              aria-label="다음 페이지로 이동"
-              title="다음 페이지"
-            >
-              <span aria-hidden="true">›</span>
-            </button>
-            <button
-              type="button"
-              className={styles.pageButton}
-              onClick={goLastPage}
-              disabled={currentPage >= totalPages}
-              aria-label="마지막 페이지로 이동"
-              title="마지막 페이지"
-            >
-              <span aria-hidden="true">»</span>
-            </button>
-          </div>
-        </>
-      ) : null}
-
-      {!isCollapsed && isConfirmOpen ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setIsConfirmOpen(false)}
-        >
-          <section
-            className={styles.modalCard}
-            role="dialog"
-            aria-modal="true"
-            aria-label="새 질문 확인"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p className={styles.modalTitle}>새 질문을 시작할까요?</p>
-            <p className={styles.modalText}>
-              현재 채팅 메시지는 화면에서 초기화됩니다.
-              <br />
-              질문자와 모델, 페르소나, 모드 설정은 유지됩니다.
-            </p>
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.cancelButton}
-                onClick={() => setIsConfirmOpen(false)}
-              >
-                취소
-              </button>
-              <button
-                type="button"
-                className={styles.confirmButton}
-                onClick={handleConfirmNewChat}
-              >
-                새 질문
-              </button>
-            </div>
-          </section>
+            </section>
+          );
+        })}
+        {!isLoading && !error && historyItems.length === 0 && <p className={styles.emptyHistoryText}>질문 이력이 없습니다.</p>}
+        <div ref={moreRef} className={styles.loadMore}>
+          {isLoading ? <span role="status">불러오는 중…</span> : error ? (
+            <div role="alert">{error}<button type="button" onClick={() => void loadMore()}>다시 시도</button></div>
+          ) : hasMore ? <button type="button" onClick={() => void loadMore()}>더 보기</button>
+            : historyItems.length > 0 ? <span>모든 이력을 확인했습니다.</span> : null}
         </div>
-      ) : null}
+      </div>
+      {isSearchOpen && <HistorySearch onClose={closeSearch} onSelect={item => { onSelectSession(item.id, item); closeSearch(); }} />}
     </div>
   );
 }
