@@ -7,6 +7,7 @@ import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import styles from "./chat.module.css";
 import { useFigureExplanation } from "./figureExplanationProvider";
 import figureStyles from "./figureExplanation.module.css";
+import { getDisplayedAssetChunks, getMessageReferenceItems } from "./citation/citationUtils";
 
 type AssetItem = {
   path: string;
@@ -174,16 +175,6 @@ function dedupeAssets(assets: AssetItem[]) {
   });
 }
 
-/**
- * 기능: metadata container_type이 화면 렌더링 가능한 asset 타입인지 판별한다.
- * 목적: 텍스트 chunk 등 렌더링 대상이 아닌 타입을 이미지/표 목록에서 제외한다.
- * In: value(unknown)
- * Out: pictures | tables 여부 결과
- */
-function isSupportedAssetType(value: unknown): value is "pictures" | "tables" {
-  return value === "pictures" || value === "tables";
-}
-
 function toPageLabel(range: unknown): string | null {
   if (typeof range !== "string") return null;
   const normalized = range.trim();
@@ -230,33 +221,8 @@ function toAssetItem(chunk: ChatChunk): AssetItem {
  * Out: AssetItem[]
  */
 function getChunkAssets(metadata?: ChatMetadata): AssetItem[] {
-  const usedChunkAssets =
-    metadata?.used_chunks
-      ?.filter(
-        (chunk) =>
-          typeof getChunkAssetPath(chunk) === "string" &&
-          (getChunkAssetPath(chunk)?.length ?? 0) > 0 &&
-          isSupportedAssetType(getChunkContainerType(chunk))
-      )
-      .map(toAssetItem) ?? [];
-
-  if (usedChunkAssets.length > 0) {
-    return dedupeAssets(usedChunkAssets);
-  }
-
-  const chunkAssets =
-    metadata?.chunks
-      ?.filter(
-        (chunk) =>
-          typeof getChunkAssetPath(chunk) === "string" &&
-          (getChunkAssetPath(chunk)?.length ?? 0) > 0 &&
-          isSupportedAssetType(getChunkContainerType(chunk))
-      )
-      .map(toAssetItem) ?? [];
-
-  if (chunkAssets.length > 0) {
-    return dedupeAssets(chunkAssets);
-  }
+  const chunkAssets = getDisplayedAssetChunks(metadata).map(toAssetItem);
+  if (chunkAssets.length > 0) return chunkAssets;
 
   const imageAssets = Array.isArray(metadata?.images)
     ? metadata.images
@@ -273,33 +239,12 @@ function getChunkAssets(metadata?: ChatMetadata): AssetItem[] {
 }
 
 /**
- * 기능: 답변 본문에 등장한 chunk 번호를 참조 표시 번호로 매핑한다.
- * 목적: 답변의 [참조N], 이미지/표 caption, 인용근거 배지가 같은 번호 체계를 쓰게 한다.
- * In: answerText(string)
- * Out: Map<chunkIndex, referenceLabelNumber>
- */
-function getReferenceLabelMap(answerText = "") {
-  const labelMap = new Map<number, number>();
-  const citationPattern = /\[(?:chunk:)?(\d+)\]/gi;
-  let match: RegExpExecArray | null;
-
-  while ((match = citationPattern.exec(answerText)) !== null) {
-    const chunkIndex = Number(match[1]);
-    if (!labelMap.has(chunkIndex)) {
-      labelMap.set(chunkIndex, labelMap.size + 1);
-    }
-  }
-
-  return labelMap;
-}
-
-/**
  * 기능: 이미지/표 asset을 답변의 참조 등장 순서대로 정렬한다.
  * 목적: 오른쪽 이미지/표 영역이 답변의 참조 흐름과 같은 순서로 보이게 한다.
  * In: assets, referenceLabelMap
  * Out: 참조 순서가 적용된 AssetItem[]
  */
-function sortAssetsByReferenceOrder(assets: AssetItem[], referenceLabelMap: Map<number, number>) {
+function sortAssetsByReferenceOrder(assets: AssetItem[], referenceLabelMap: Map<number, number | string>) {
   return [...assets].sort((left, right) => {
     const leftOrder =
       left.chunkIndex !== undefined ? referenceLabelMap.get(left.chunkIndex) : undefined;
@@ -307,7 +252,7 @@ function sortAssetsByReferenceOrder(assets: AssetItem[], referenceLabelMap: Map<
       right.chunkIndex !== undefined ? referenceLabelMap.get(right.chunkIndex) : undefined;
 
     if (leftOrder !== undefined && rightOrder !== undefined) {
-      return leftOrder - rightOrder;
+      return Number(leftOrder) - Number(rightOrder);
     }
     if (leftOrder !== undefined) return -1;
     if (rightOrder !== undefined) return 1;
@@ -363,8 +308,8 @@ export default function AssetPanel({
   const [tableMarkdownByPath, setTableMarkdownByPath] = useState<Record<string, TableAssetContent>>({});
   const assetFigureRefs = useRef<Record<number, HTMLElement | null>>({});
   const referenceLabelMap = useMemo(
-    () => getReferenceLabelMap(activeAssistantMessage?.content ?? ""),
-    [activeAssistantMessage?.content]
+    () => new Map(getMessageReferenceItems(activeAssistantMessage).map((item) => [item.chunkIndex, item.label])),
+    [activeAssistantMessage]
   );
   const assetItems = useMemo(
     () =>

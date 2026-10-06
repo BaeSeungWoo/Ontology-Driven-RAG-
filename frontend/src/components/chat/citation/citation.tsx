@@ -72,7 +72,8 @@ export default function Citation({
     : activeMetadata?.used_chunks ?? [];
   const referenceCards = referenceItems.map((item) => ({
     ...item,
-    chunk: activeChunks.find((chunk) => chunk.index === item.chunkIndex),
+    chunk: activeChunks.find((chunk) => chunk.index === item.chunkIndex)
+      ?? activeMetadata?.used_chunks?.find((chunk) => chunk.index === item.chunkIndex),
   }));
   const visibleCards = referenceCards.filter(card => getEvidenceTab(card.chunk) === activeTab);
   const EmptyIcon = activeTab === "도면·래더" ? Workflow : activeTab === "지식그래프" ? Network : FileText;
