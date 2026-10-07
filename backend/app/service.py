@@ -58,7 +58,9 @@ class RAGService:
         chunks = []
         
         if retriever:
-            if mode == "ladder":
+            if mode == "repairHistory":
+                context, imgs, tables, chunks = await retriever.get_context(question, intent_type=intent["type"])
+            elif mode == "ladder":
                 context, imgs, tables, chunks = retriever.get_context(
                     question,
                     intent_type=intent["type"],
@@ -117,7 +119,10 @@ class RAGService:
                 self, effective_machine_code, question, persona_type)
             m_info = self.config.machines.get(effective_machine_code, {})
         if retriever:
-            if mode == "ladder":
+            if mode == "repairHistory":
+                context, imgs, tables, chunks = await retriever.get_context(
+                    query=question, machine_code=effective_machine_code, intent_type=intent["type"])
+            elif mode == "ladder":
                 context, imgs, tables, chunks = retriever.get_context(
                     query=question,
                     machine_code=effective_machine_code,
@@ -208,6 +213,9 @@ class RAGService:
         if mode not in self._retrievers:
             if mode in {"rag", "chroma"}:
                 self._retrievers[mode] = ChromaRetriever(self.config, use_bm25=True)
+            elif mode == "repairHistory":
+                from app.core.maintenance_retriever import MaintenanceRetriever
+                self._retrievers[mode] = MaintenanceRetriever(self.config, self._get_retriever("rag"), self.llm)
             elif mode == "faiss":
                 self._retrievers[mode] = FAISSRetriever(self.config, use_bm25=True)
             elif mode == "kg":
@@ -423,7 +431,11 @@ class JudgeRAGService(RAGService):
 
         retriever = self._get_retriever(mode)
         if retriever:
-            if mode == "ladder":
+            if mode == "repairHistory":
+                intent = await self._resolve_intent(question, "operator")
+                context, imgs, tables, chunks = await retriever.get_context(
+                    query=question, machine_code=effective_machine_code, intent_type=intent["type"])
+            elif mode == "ladder":
                 intent = await self._resolve_intent(question, "operator")
                 context, imgs, tables, chunks = retriever.get_context(
                     query=question,

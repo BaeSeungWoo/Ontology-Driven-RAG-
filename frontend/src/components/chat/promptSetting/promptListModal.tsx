@@ -137,6 +137,13 @@ export default function PromptListModal({
           <p className={styles.llmGuideDesc}>
             페르소나 선택 시 현장 작업자는 RAG, 정비·보전은 Ladder, 기술 엔지니어·관리자는 CMS로 자동 지정됩니다. 이후 모드를 직접 변경할 수 있습니다.
           </p>
+          {selectedLlmMode === "repairHistory" && (
+            <p className={styles.llmGuideDesc}>
+              매뉴얼로 원인과 조치를 설명하고, 증상·고장 질문에는 관련 수리 이력과 암묵지를 추가합니다.
+              동일 장비 이력과 다른 장비의 유사 사례를 구분하며, 관련 사례가 없으면 매뉴얼 답변만 제공합니다.
+              질문 예: “절삭유 모터가 동작하지 않고 과부하 알람이 떠. 원인과 조치가 뭐야?”
+            </p>
+          )}
           <p className={styles.llmGuideDesc}>
             추천질문은 Ollama 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 기술 엔지니어 또는 관리자·CMS 조합에서만 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. CMS는 현재 장비의 테스트 데이터를 조회합니다. 기술 엔지니어는 2026-08-04~08-11 작업일의 알람 이력과 매뉴얼, 관리자는 2026-08-11 작업일 집계를 사용합니다.
           </p>

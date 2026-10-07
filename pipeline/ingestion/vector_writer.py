@@ -27,34 +27,35 @@ BATCH_SIZE = 500
 # ──────────────────────────────────────────────────────────────────────────────
 #  Chroma 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def create_vector_collection(config: Config) -> chromadb.Collection:
+def create_vector_collection(config: Config, collection_name: str | None = None) -> chromadb.Collection:
     vectordb_client = chromadb.PersistentClient(
         path=config.vector_db.get_db_path("chroma")
     )
     embedding = load_embeddings(config)
 
     return vectordb_client.get_or_create_collection(
-        name=config.id,
+        name=collection_name or config.id,
         embedding_function=embedding,
         metadata={"hnsw:space": "cosine"}
     )
 
-def write_chroma(collection, chunks: list[dict[str, Any]], id: str, db_path: str):
+def write_chroma(collection, chunks: list[dict[str, Any]], id: str, db_path: str,
+                 *, upsert: bool = False, batch_size: int = BATCH_SIZE):
     if not chunks:
         print(f"[{id}] 저장할 청크 데이터가 없습니다")
         return
-    for i in range(0, len(chunks), BATCH_SIZE):
-        batch = chunks[i: i+BATCH_SIZE]
+    for i in range(0, len(chunks), batch_size):
+        batch = chunks[i: i+batch_size]
 
         # 핵심 수정: documents 리스트를 만들 때 "passage: " 접두사를 추가합니다.
         processed_documents = [f"passage: {doc['page_content']}" for doc in batch]
 
-        collection.add(
+        (collection.upsert if upsert else collection.add)(
             ids=[doc["id"] for doc in batch],
             documents=processed_documents,  # 접두사가 붙은 텍스트 전달
             metadatas=[doc["metadata"] for doc in batch]
         )
-        print(f"  - 진행률: {min(i + BATCH_SIZE, len(chunks))}/{len(chunks)}")
+        print(f"  - 진행률: {min(i + batch_size, len(chunks))}/{len(chunks)}", flush=True)
     # ids = [c.metadata["chunk_id"] for c in chunks]
     # db.add_documents(documents=chunks, ids=ids)
     print(f"[{id}] 저장 완료 → {db_path}")
@@ -62,10 +63,11 @@ def write_chroma(collection, chunks: list[dict[str, Any]], id: str, db_path: str
 # ──────────────────────────────────────────────────────────────────────────────
 #  BM25 관련
 # ──────────────────────────────────────────────────────────────────────────────
-def write_bm25(config: Config, chunks: list[dict[str, Any]], output: str | None = None):
+def write_bm25(config: Config, chunks: list[dict[str, Any]], output: str | None = None,
+               *, extra_meta: dict | None = None):
     documents = [f"passage: {chunk['page_content']}" for chunk in chunks]
     tokenized = [tokenize_for_bm25(chunk["page_content"]) for chunk in chunks]
-    bm25 = BM25Okapi(tokenized)
+    bm25 = BM25Okapi(tokenized) if tokenized else None
 
     out_path = Path(output) if output else Path(config.vector_db.get_db_path("bm25")) / "bm25_bundle.pkl"
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -76,6 +78,7 @@ def write_bm25(config: Config, chunks: list[dict[str, Any]], output: str | None 
         "embedding_model": config.embedding.model,
         "tokenizer": TOKENIZER_VERSION,
         "created_at": datetime.now(timezone.utc).isoformat(),
+        **(extra_meta or {}),
     }
     bundle = {
         "bm25": bm25,
