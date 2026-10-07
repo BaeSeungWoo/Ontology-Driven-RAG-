@@ -2,6 +2,14 @@
 from pathlib import Path
 import argparse
 import shutil
+import sys
+
+# Support both `python -m pipeline.build_db` and the original pipeline working directory.
+PIPELINE_ROOT = Path(__file__).resolve().parent
+for import_root in (PIPELINE_ROOT.parent, PIPELINE_ROOT.parent / "backend", PIPELINE_ROOT / "parsers",
+                    PIPELINE_ROOT / "parsers/doclings", PIPELINE_ROOT / "parsers/upstage"):
+    if str(import_root) not in sys.path:
+        sys.path.insert(0, str(import_root))
 
 from typing import Any
 from dotenv import load_dotenv
@@ -12,13 +20,12 @@ from backend.app.embeddings import save_embedding_meta, ColpaliEmbedder
 from backend.app.core.llm_handler import LLMProvider
 from pipeline.ingestion.data_loader import DataLoader
 from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg, write_multimodal
-from pipeline.adapters.site_a import SiteAParser
-from pipeline.adapters.site_b import SiteBParser
+from pipeline.maintenance_index import build_sources, store_config
 
 load_dotenv()
 
 def _build_sources(factory_id: str) -> dict[str, Any]:
-    return {
+    sources = {
         "drawing": {
             "input": f"./data/{factory_id}/drawings/inputs",
             "extract": f"./data/{factory_id}/drawings/extract",
@@ -46,8 +53,13 @@ def _build_sources(factory_id: str) -> dict[str, Any]:
             "struct": f"./data/{factory_id}/ladder/struct",
         }
     }
+    return {kind: {key: str(PIPELINE_ROOT / path) for key, path in paths.items()}
+            for kind, paths in sources.items()}
 
 def _build_site_settings(factory_id: str) -> dict[str, Any]:
+    from pipeline.adapters.site_a import SiteAParser
+    from pipeline.adapters.site_b import SiteBParser
+
     adapter_map = {
         "yunam": SiteAParser,
         "yulkok": SiteBParser,
@@ -61,7 +73,8 @@ def _build_site_settings(factory_id: str) -> dict[str, Any]:
         "sources": _build_sources(factory_id),
     }
 
-def build(site_id: str, reset: bool = False) -> None:
+def build(site_id: str, reset: bool = False, *, maintenance_only: bool = False,
+          workbook: str | None = None, tacit: str | None = None) -> None:
     """메인 실행 부.
     각 site_id에 따라 정해진 폴더 경로에서 vectorDB를 생성
 
@@ -75,7 +88,10 @@ def build(site_id: str, reset: bool = False) -> None:
     """
     config = CONFIGS.get(site_id)
     if not config:
-        print(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
+        raise ValueError(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
+    config = store_config(config)
+    if maintenance_only:
+        build_sources(config, workbook, tacit, reset=reset)
         return
     settings = _build_site_settings(config.id)
 
@@ -155,15 +171,20 @@ def build(site_id: str, reset: bool = False) -> None:
         finally:
             embedder.unload()
 
+    build_sources(config, workbook, tacit)
     save_embedding_meta(config=config)
     print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--id", type=str, default=None)
+    parser.add_argument("--id", type=str, required=True, choices=CONFIGS)
     parser.add_argument("--reset", action="store_true")
+    parser.add_argument("--maintenance-only", action="store_true", help="매뉴얼을 유지하고 수리 사례만 갱신")
+    parser.add_argument("--workbook", help="공장 수리 이력 XLS (생략 시 공장 repairHistory/inputs 폴더)")
+    parser.add_argument("--tacit", help="업체 암묵지 TXT (생략 시 shared/knowledge/inputs 폴더)")
     args = parser.parse_args()
 
-    build(site_id=args.id, reset=args.reset)
+    build(site_id=args.id, reset=args.reset, maintenance_only=args.maintenance_only,
+          workbook=args.workbook, tacit=args.tacit)
     # for sid in ([args.id] if args.id else list(SITE_SETTINGS.keys())):

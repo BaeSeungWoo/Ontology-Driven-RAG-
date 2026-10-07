@@ -194,7 +194,9 @@ export default function Chat() {
     }
 
     if (sessionMeta?.llmMode) {
-      const matchedMode = LLM_MODE_OPTIONS.find((option) => option.value === sessionMeta.llmMode);
+      // Restore sessions saved before the repair-history mode was renamed.
+      const savedMode = sessionMeta.llmMode === "maintenance" ? "repairHistory" : sessionMeta.llmMode;
+      const matchedMode = LLM_MODE_OPTIONS.find((option) => option.value === savedMode);
       if (matchedMode) setSelectedLlmMode(matchedMode.value);
     }
 

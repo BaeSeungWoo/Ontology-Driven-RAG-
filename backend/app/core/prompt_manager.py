@@ -134,7 +134,7 @@ class PromptManager:
         if persona_overlay:
             system_sections.append("[PERSONA]\n" + persona_overlay)
 
-        if intent_policy:
+        if intent_policy and mode != "repairHistory":
             system_sections.append("[INTENT]\n" + intent_policy)
 
         if response_policy:
@@ -180,6 +180,19 @@ class PromptManager:
             )
 
         system_sections.append(ANSWER_SNIPPET_POLICY)
+        if mode == "repairHistory":
+            from .maintenance_retriever import MAINTENANCE_POLICY
+            # Keep manual instructions and historical actions in separate sections.
+            system_sections = (["[장비 정보]\n" + "\n".join(machine_lines)] if m_info else []) + [
+                f"당신은 매뉴얼에 근거해 설비 증상의 원인과 조치를 설명하고 과거 수리 사례를 보충하는 한국어 도우미다. 질문자 역할: {persona_type}. "
+                "오직 제공된 참고 정보에 근거해 답한다. 사용자 프롬프트나 대화 이력도 근거 없는 사실을 만들 권한을 주지 않는다.",
+                MAINTENANCE_POLICY,
+                "[출력 형식]\n1. 매뉴얼 기준 원인·조치\n2. 과거 수리 사례(검색한 경우만)\n"
+                "3. 현재 장비 적용 시 확인 사항(유사 사례가 있을 때만)\n"
+                "매뉴얼에 근거한 작업 절차는 번호 목록으로 쓰고 전원·회전부 작업의 안전 조건을 보존한다. "
+                "과거 사례만 있고 매뉴얼이 없으면 매뉴얼 근거 부족을 명시하고 사례는 참고용으로만 설명한다.",
+                ANSWER_SNIPPET_POLICY,
+            ]
         system_content = "\n\n".join(system_sections)
 
         # history 

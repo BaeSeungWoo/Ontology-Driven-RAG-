@@ -7,7 +7,7 @@
 
 export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
-export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms";
+export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms" | "repairHistory";
 
 export type LlmModelOption = {
   value: LlmModel;
@@ -30,6 +30,7 @@ export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
 export const LLM_MODE_OPTIONS: LlmModeOption[] = [
   { value: "base", label: "Base" },
   { value: "rag", label: "RAG" },
+  { value: "repairHistory", label: "RAG + 수리 사례" },
   // { value: "graph", label: "Graph" },
   // { value: "chroma", label: "Chroma" },
   // { value: "faiss", label: "FAISS" },
