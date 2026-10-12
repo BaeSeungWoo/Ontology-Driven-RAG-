@@ -1,6 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 import type { ChatChunk } from "@/types/chatApi";
-import type { LadderContact, LadderNode } from "@/types/ladder";
+import type { LadderContact, LadderDiagram, LadderNode } from "@/types/ladder";
 import styles from "./ladderDiagram.module.css";
 import { getMessageReferenceItems } from "../citation/citationUtils";
 
@@ -98,6 +98,26 @@ function draw(layout: Layout, x: number, y: number): ReactNode {
   );
 }
 
+// 답변의 원본 근거 회로를 그린다. 실시간 신호 색상은 적용하지 않는다.
+function LadderCircuit({ diagram }: { diagram: LadderDiagram }) {
+  if (diagram.status !== "supported") return <p className={styles.note}>이 근거는 회로 미리보기를 지원하지 않습니다.</p>;
+  const layout = measure(diagram.logic);
+  const width = layout.width + 240;
+  const height = layout.height + 16;
+  return (
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${diagram.nblock} 래더 회로, 출력 ${diagram.coil.addr}`}>
+      <title>{`${diagram.nblock} 접점·기능 블록·출력의 명령 흐름`}</title>
+      {wire(20, 16, 20, height - 16)}
+      {wire(width - 20, 16, width - 20, height - 16)}
+      {wire(20, 48, 40, 48)}
+      {draw(layout, 40, 48)}
+      {wire(40 + layout.width, 48, width - 120, 48)}
+      {symbol(diagram.coil, width - 100, 48, true)}
+      {wire(width - 80, 48, width - 20, 48)}
+    </svg>
+  );
+}
+
 export default function LadderDiagrams({ chunks, answerText, onSource }: {
   chunks: ChatChunk[];
   answerText: string;
@@ -120,8 +140,6 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
         const diagram = chunk.metadata.ladder_diagram!;
         const reference = references.find((item) => item.chunkIndex === chunk.index)!;
         const layout = diagram.status === "supported" ? measure(diagram.logic) : null;
-        const width = layout ? layout.width + 240 : 0;
-        const height = layout ? layout.height + 16 : 0;
         return (
           <details key={diagram.nblock} className={styles.card} open={index === 0}>
             <summary>{diagram.nblock} · {diagram.status === "supported" ? `${diagram.coil.addr} ${diagram.coil.label}` : "원본 명령"}</summary>
@@ -131,16 +149,7 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
                 <>
                   <p className={styles.note}>명령 순서 기반 재구성 · SUB는 원문 명령·인수를 표시하며 내부 동작은 해석하지 않습니다. 통전 상태를 나타내지 않으며 자세한 내용은 아래 원본 명령에서 확인하세요.</p>
                   <div className={styles.viewport} tabIndex={0} role="region" aria-label={`${diagram.nblock} 래더 도면 가로 스크롤`}>
-                    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${diagram.nblock} 래더 회로, 출력 ${diagram.coil.addr}`}>
-                      <title>{`${diagram.nblock} 접점·기능 블록·출력의 명령 흐름`}</title>
-                      {wire(20, 16, 20, height - 16)}
-                      {wire(width - 20, 16, width - 20, height - 16)}
-                      {wire(20, 48, 40, 48)}
-                      {draw(layout, 40, 48)}
-                      {wire(40 + layout.width, 48, width - 120, 48)}
-                      {symbol(diagram.coil, width - 100, 48, true)}
-                      {wire(width - 80, 48, width - 20, 48)}
-                    </svg>
+                    <LadderCircuit diagram={diagram} />
                   </div>
                 </>
               ) : <p className={styles.note}>특수 명령 또는 지원하지 않는 구조가 포함되어 원본 명령을 표시합니다.</p>}

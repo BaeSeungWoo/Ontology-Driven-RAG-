@@ -216,6 +216,9 @@ class RAGService:
             elif mode == "repairHistory":
                 from app.core.maintenance_retriever import MaintenanceRetriever
                 self._retrievers[mode] = MaintenanceRetriever(self.config, self._get_retriever("rag"), self.llm)
+            elif mode == "paddleocr":
+                from app.core.paddleocr_retriever import PaddleOCRRetriever
+                self._retrievers[mode] = PaddleOCRRetriever(self.config)
             elif mode == "faiss":
                 self._retrievers[mode] = FAISSRetriever(self.config, use_bm25=True)
             elif mode == "kg":

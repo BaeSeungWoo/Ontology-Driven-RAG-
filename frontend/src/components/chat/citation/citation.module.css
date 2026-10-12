@@ -1060,3 +1060,151 @@
 .emptyEvidence > svg { color: #acb6ca; margin-bottom: 24px; }
 .emptyEvidence h3 { margin: 0 0 12px; color: #162956; font-size: 18px; font-weight: 700; }
 .emptyEvidence p { margin: 0; color: #8898ba; font-size: 14px; line-height: 1.8; }
+
+.ladderSignalButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 100%;
+  margin: 12px 0;
+  padding: 12px 8px;
+  border: 1px solid #c8d9f2;
+  border-radius: 8px;
+  background: #f0f5fc;
+  color: #1455c5;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ladderSignalButton:hover { background: #e3edfc; }
+.ladderSignalButton:focus-visible { outline: 2px solid #1455c5; outline-offset: 2px; }
+
+.ladderSignalDialog {
+  width: calc(100vw - 32px);
+  height: min(900px, calc(100dvh - 48px));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 14px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-text-color);
+  box-shadow: 0 18px 60px rgb(0 0 0 / 35%);
+}
+
+.ladderSignalDialog::backdrop { background: rgb(8 16 28 / 65%); }
+.ladderSignalContent { display: flex; flex-direction: column; height: 100%; }
+.ladderSignalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--chat-pane-border);
+}
+
+.ladderSignalHeader h2 { margin: 0; color: var(--chat-title-color); font-size: 18px; font-weight: 700; }
+
+.ladderWorkspace { display: grid; grid-template-columns: 220px minmax(0, 1fr); flex: 1; min-height: 0; }
+.ladderEvidenceList { overflow: auto; padding: 14px; border-right: 1px solid var(--chat-pane-border); }
+.ladderEvidenceList button { display: flex; gap: 8px; width: 100%; padding: 12px; margin-bottom: 8px; border: 1px solid var(--chat-pane-border); border-radius: 8px; text-align: left; font-size: 12px; cursor: pointer; }
+.ladderEvidenceList button[aria-pressed="true"] { background: #edf5ff; border-color: #1455c5; color: #1455c5; }
+.ladderEvidenceList strong, .ladderEvidenceList small { display: block; margin-top: 6px; overflow-wrap: anywhere; }
+.ladderEvidenceList button:focus-visible { outline: 2px solid #1455c5; outline-offset: 2px; }
+.ladderLiveToolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ladderLiveToolbar strong { font-size: 15px; }
+.ladderLiveToolbar p, .ladderLiveNote { color: var(--chat-muted-text); font-size: 12px; line-height: 1.7; margin: 8px 0; }
+.ladderSignalTableWrap { overflow: auto; margin-top: 12px; }
+.ladderSignalTable { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+.ladderSignalTable th, .ladderSignalTable td { padding: 10px 12px; border-bottom: 1px solid var(--chat-pane-border); }
+.ladderSignalTable th { background: #f0f5fc; color: #142957; white-space: nowrap; }
+.ladderSignalTable small { display: block; margin-top: 4px; color: var(--chat-muted-text); font-size: 11px; }
+.ladderSource { margin-top: 16px; font-size: 12px; }
+.ladderSource summary { cursor: pointer; }
+.ladderSource p { white-space: pre-wrap; line-height: 1.7; }
+@media (max-width: 760px) {
+  .ladderWorkspace { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  .ladderEvidenceList { display: flex; gap: 8px; border-right: 0; border-bottom: 1px solid var(--chat-pane-border); }
+  .ladderEvidenceList button { flex: 0 0 170px; margin: 0; }
+}
+
+/* 왼쪽 근거 목록을 제외한 영역: 중앙 회로와 오른쪽 탐색 패널. */
+.machineLadderView { display: grid; grid-template-columns: minmax(0, 1fr) 280px; min-width: 0; min-height: 0; overflow: hidden; }
+.ladderCircuitPanel { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 8px; padding: 16px; overflow: auto; }
+.ladderNavigatorPanel { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 16px 12px; border-left: 1px solid var(--chat-pane-border); overflow: auto; }
+.ladderNavigatorPanel .ladderFileToolbar strong { flex-basis: 100%; }
+.ladderNavigatorPanel .ladderNavigation { align-items: stretch; flex-direction: column; }
+.ladderNavigatorPanel .ladderNavigation button { text-align: left; overflow-wrap: anywhere; }
+.ladderFileToolbar, .ladderCanvasActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; }
+.ladderFileToolbar { padding-bottom: 10px; border-bottom: 1px solid var(--chat-pane-border); }
+.ladderFileToolbar strong { margin-right: auto; }
+.ladderFileToolbar button, .ladderFileToolbar select, .ladderCanvasActions select { padding: 5px 8px; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: var(--chat-pane-bg); color: var(--chat-text-color); }
+.ladderFileToolbar button { cursor: pointer; }
+.ladderFileToolbar button:disabled { opacity: .4; cursor: default; }
+.ladderOnLegend { color: #14833b; }
+.ladderSelectedSignal { margin: 0; padding: 8px 12px; background: #edf5ff; border-radius: 6px; font-size: 12px; }
+.ladderEvidenceList > p { margin: 0 0 12px; color: var(--chat-muted-text); font-size: 12px; }
+.ladderEvidenceDetail { font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.ladderEvidenceDetail p { white-space: pre-wrap; }
+.ladderEvidenceDetail summary { cursor: pointer; }
+.ladderCircuitPanel > .ladderSource { flex-shrink: 0; max-height: 25%; overflow: auto; margin-top: 0; }
+.machineCanvas {
+  --ladder-wire: #728299;
+  --ladder-rail: #506580;
+  --ladder-symbol-stroke: #54677f;
+  --ladder-on: #16803b;
+  --ladder-on-pad: #dcfce7;
+  --ladder-coil-off: #fff;
+  --ladder-select: #1455c5;
+  --ladder-select-fill: #e4efff;
+  display: block; flex: 1; min-height: 200px; overflow: auto;
+  border: 1px solid var(--chat-pane-border); border-radius: 8px; background: #fff; padding: 8px;
+}
+.machineCanvas :global(.ladder-net-svg) { display: block; font-family: Consolas, monospace; user-select: none; -webkit-user-select: none; }
+.machineCanvas :global(.ladder-addr-label) { fill: #20334f; font-weight: 600; }
+.machineCanvas :global(.ladder-symbol-label), .machineCanvas :global(.ladder-comment-label), .machineCanvas :global(.ladder-net-no) { fill: #60728e; }
+.machineCanvas :global(.ladder-func-label) { fill: #20334f; }
+.machineCanvas :global(.ladder-contact), .machineCanvas :global(.ladder-coil) { cursor: pointer; }
+/* 근거 일치 NET의 파란 배경은 선택 주소의 주황 테두리와 독립적으로 유지한다. */
+.machineCanvas :global(.is-highlighted) { background: #edf5ff; }
+.machineCanvas :global(.ladder-contact:focus-visible), .machineCanvas :global(.ladder-coil:focus-visible) { outline: 2px solid #1455c5; }
+@media (max-width: 760px) {
+  .machineLadderView { grid-template-columns: minmax(0, 1fr); overflow: auto; }
+  .ladderCircuitPanel { grid-column: 1; grid-row: 1; min-height: 420px; padding: 12px; }
+  .ladderNavigatorPanel { grid-column: 1; grid-row: 2; border-left: 0; border-top: 1px solid var(--chat-pane-border); overflow: visible; }
+  .ladderEvidenceList > p, .ladderEvidenceDetail { flex: 0 0 170px; }
+}
+
+.ladderNavigation { flex-shrink: 0; padding: 8px 10px; border: 1px solid #d5dfed; border-radius: 6px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ladderNavigation button { padding: 4px 8px; border: 1px solid #c5d2e5; border-radius: 4px; background: white; color: #243853; cursor: pointer; }
+.ladderNavigation button[aria-pressed="true"] { border-color: #b75b00; background: #fff4e6; }
+.ladderUsageList { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.machineCanvas :global(.is-selected) > rect { stroke: #cf7100 !important; stroke-width: 2; fill: #ffad321a !important; }
+
+/* 헤더에 상태/조작을 모아 회로 위의 세로 여백을 줄인다. */
+.ladderHeaderStatus { flex: 1; min-width: 0; margin: 0 20px; }
+.ladderHeaderStatus .ladderLiveToolbar { gap: 16px; }
+.ladderHeaderStatus .ladderLiveToolbar > div:first-child { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+.ladderHeaderStatus .ladderLiveToolbar strong { font-size: 12px; }
+.ladderHeaderStatus .ladderLiveToolbar p,
+.ladderHeaderStatus .ladderLiveNote,
+.ladderHeaderStatus .documentError { margin: 2px 0 0; font-size: 11px; line-height: 1.5; }
+.ladderHeaderStatus .ladderCanvasActions { flex-shrink: 0; font-size: 11px; }
+@media (max-width: 1000px) {
+  .ladderSignalHeader { flex-wrap: wrap; }
+  .ladderHeaderStatus { order: 3; flex-basis: 100%; margin: 0; }
+}
+
+.ladderEvidenceSummary { min-width: 0; line-height: 1.5; overflow-wrap: anywhere; }
+.ladderEvidenceSummary > span { display: block; margin-top: 6px; font-size: 11px; }
+.ladderEvidenceList button > svg { flex-shrink: 0; }
+
+/* 동일 주소 전체 표시와 실제 탐색 위치를 구분한다. 파란 근거 배경은 유지한다. */
+.ladderNetFrame { position: relative; }
+.ladderFocusBadge { position: absolute; top: 0; right: 8px; z-index: 1; padding: 2px 6px; border-radius: 4px; background: #a65000; color: white; font-size: 11px; pointer-events: none; }
+.machineCanvas .ladderNetFrame[data-focused="false"] :global(.is-selected) > rect { stroke: #c6af91 !important; stroke-width: 1; stroke-dasharray: 3 3; fill: transparent !important; }
+.machineCanvas .ladderNetFrame[data-focused="true"] :global(.is-selected) > rect { stroke: #bd5700 !important; stroke-width: 3; fill: #ffad3226 !important; }

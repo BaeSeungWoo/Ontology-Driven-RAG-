@@ -41,8 +41,13 @@ def load_figure(req: FigureRequest, request: Request):
         raise HTTPException(404, "답변을 찾을 수 없습니다.")
     metadata = json.loads(row[8]) if isinstance(row[8], str) else (row[8] or {})
     chunks = metadata.get("chunks") or metadata.get("used_chunks") or []
-    chunk = next((item for item in chunks if item.get("metadata", {}).get("asset_path") == req.asset_path
-                  and item.get("metadata", {}).get("container_type") == "pictures"), None)
+    chunk = next((item for item in chunks if (
+        item.get("metadata", {}).get("asset_path") == req.asset_path
+        and item.get("metadata", {}).get("container_type") == "pictures"
+    ) or (
+        item.get("metadata", {}).get("source_kind") == "paddleocr"
+        and req.asset_path in (item.get("metadata", {}).get("page_image_paths") or [])
+    )), None)
     if chunk is None and req.asset_path not in (metadata.get("images") or []):
         raise HTTPException(404, "이 답변에 연결된 그림이 아닙니다.")
 

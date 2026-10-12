@@ -83,6 +83,20 @@ export function getReferenceItems(answerText = "") {
 
 // Match the asset panel's used-chunk priority and type/path deduplication.
 export function getDisplayedAssetChunks(metadata?: ChatMetadata): ChatChunk[] {
+  if (metadata?.chunks?.some(chunk => chunk.metadata.source_kind === "paddleocr")) {
+    const seen = new Set<string>();
+    return (metadata.used_chunks ?? []).flatMap(chunk => {
+      const paths = chunk.metadata.page_image_paths;
+      if (chunk.metadata.source_kind !== "paddleocr" || !Array.isArray(paths)) return [];
+      return paths.filter((path): path is string => {
+        if (typeof path !== "string" || !path || seen.has(path)) return false;
+        seen.add(path);
+        return true;
+      }).map(path => ({ ...chunk, metadata: {
+        ...chunk.metadata, container_type: "pictures", asset_path: path,
+      } }));
+    });
+  }
   const isAsset = (chunk: ChatChunk) =>
     typeof chunk.metadata?.asset_path === "string" && chunk.metadata.asset_path.length > 0 &&
     (chunk.metadata.container_type === "pictures" || chunk.metadata.container_type === "tables");

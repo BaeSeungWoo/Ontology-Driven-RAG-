@@ -180,6 +180,9 @@ class PromptManager:
             )
 
         system_sections.append(ANSWER_SNIPPET_POLICY)
+        if mode == "paddleocr":
+            from pipeline.paddleocr_standalone import MD_IMAGE_POLICY
+            system_sections.append(MD_IMAGE_POLICY)
         if mode == "repairHistory":
             from .maintenance_retriever import MAINTENANCE_POLICY
             # Keep manual instructions and historical actions in separate sections.

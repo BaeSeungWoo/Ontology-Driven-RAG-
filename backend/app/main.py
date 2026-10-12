@@ -8,7 +8,7 @@ from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -32,6 +32,7 @@ from app.routers.figureRouter import figureRouter
 from app.routers.cmsRouter import cmsRouter
 from app.routers.mesRouter import mesRouter
 from app.routers.voiceRouter import voiceRouter
+from app.routers.ladderRouter import ladderRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -144,6 +145,8 @@ async def recommendation_endpoint(request: RecommendationRequest, client_request
         questions = await run_until_disconnect(client_request, generation)
     except Exception as exc:
         raise HTTPException(status_code=502, detail="추천질문을 생성하지 못했습니다. 다시 시도해 주세요.") from exc
+    if questions is None:
+        return Response(status_code=204)
     source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "cms_engineer": "CMS 알람 로그", "cms_manager": "CMS 운영 데이터"}[request.source]
     return {"questions": questions, "message": "" if questions else f"매칭된 {source_label}에서 새롭게 이어갈 추천질문을 찾지 못했습니다.",
             "machine_code": machine_code,
@@ -221,6 +224,7 @@ app.include_router(figureRouter)
 app.include_router(cmsRouter)
 app.include_router(mesRouter)
 app.include_router(voiceRouter)
+app.include_router(ladderRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화

@@ -133,7 +133,8 @@ def merge_one_pdf_json(
 
                 combined_elements.append(merged_element)
 
-        current_page_offset += max_page_in_file
+            # usage.pages includes blank trailing pages with no elements.
+            current_page_offset += int(data.get("usage", {}).get("pages", max_page_in_file))
 
     result_data = {
         "total_elements": len(combined_elements),

@@ -2,11 +2,13 @@ import { Fragment, useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-react";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
+import LadderSignalOverlay from "./ladderSignalOverlay";
 import CmsEvidence, { getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
   getActiveMessage,
   getCitationDocumentRequest,
   getChunkPageLabel,
+  getDisplayedAssetChunks,
   getMessageReferenceItems,
   getSelectedChunk,
   getSelectedMessage,
@@ -50,6 +52,7 @@ export default function Citation({
   const [documentError, setDocumentError] = useState<string | null>(null);
   const [isDocumentLoading, setIsDocumentLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("문서 근거");
+  const [ladderSignalMessageId, setLadderSignalMessageId] = useState<number | null>(null);
 
   const activeMessage = getActiveMessage(messages, activeAssistantMessageId);
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
@@ -92,6 +95,9 @@ export default function Citation({
     typeof selectedChunk?.metadata?.container_type === "string"
       ? selectedChunk.metadata.container_type
       : undefined;
+  const selectedMdImages = selectedChunk?.metadata.source_kind === "paddleocr"
+    ? getDisplayedAssetChunks(selectedMessage?.metadata).filter(chunk => chunk.index === selectedChunk.index)
+    : [];
   const selectedDocumentRequest = getCitationDocumentRequest(
     messages,
     selectedCitation,
@@ -192,6 +198,18 @@ export default function Citation({
                   referenceLabel={selectedReferenceLabel ?? "선택 참조"}
                 />
               ) : null}
+              {selectedMdImages.length > 0 && <div className={styles.chunkBodyBlock}>
+                <p className={styles.chunkBodyTitle}>연결된 MD 이미지 ({selectedMdImages.length})</p>
+                {selectedMdImages.map(chunk => (
+                  <ChunkAsset
+                    key={String(chunk.metadata.asset_path)}
+                    figureMessageId={canExplainFigure ? Number(selectedCitation.messageId) : undefined}
+                    assetPath={String(chunk.metadata.asset_path)}
+                    assetType="pictures"
+                    referenceLabel={selectedReferenceLabel ?? "선택 참조"}
+                  />
+                ))}
+              </div>}
               </>}
             </div>
           ) : isLoading && activeMessage ? (
@@ -244,11 +262,22 @@ export default function Citation({
             {evidenceTabs.map(tab => {
               const count = referenceCards.filter(card => getEvidenceTab(card.chunk) === tab).length;
               return <button key={tab} type="button" aria-pressed={activeTab === tab}
-                onClick={() => { setActiveTab(tab); setIsDetailOpen(false); }}>
+                onClick={() => { setActiveTab(tab); setIsDetailOpen(false); setLadderSignalMessageId(null); }}>
                 {tab}{count > 0 && <span className={styles.citationCount}>{count}</span>}
               </button>;
             })}
           </div>
+          {activeMessage && activeTab === "도면·래더" && visibleCards.length > 0 && <>
+            <button type="button" className={styles.ladderSignalButton} aria-haspopup="dialog"
+              onClick={() => setLadderSignalMessageId(activeMessage.message_id)}>
+              <Workflow size={17} aria-hidden="true" />
+              연결 장비 래더 신호 확인
+            </button>
+            {ladderSignalMessageId === activeMessage.message_id && <LadderSignalOverlay
+              chunks={visibleCards.flatMap(card => card.chunk ? [card.chunk] : [])}
+              onClose={() => setLadderSignalMessageId(null)}
+            />}
+          </>}
           {visibleCards.length === 0 && <div className={styles.emptyEvidence} role="status">
             <EmptyIcon size={50} strokeWidth={1.6} aria-hidden="true" />
             <h3>{isNewQuestion ? "답변의 근거가 모이는 곳" : `${activeTab}가 없습니다`}</h3>

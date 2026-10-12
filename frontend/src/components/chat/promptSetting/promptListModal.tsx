@@ -144,6 +144,12 @@ export default function PromptListModal({
               질문 예: “절삭유 모터가 동작하지 않고 과부하 알람이 떠. 원인과 조치가 뭐야?”
             </p>
           )}
+          {selectedLlmMode === "paddleocr" && (
+            <p className={styles.llmGuideDesc}>
+              새 OCR은 LCV-6700 #1·#2의 신규 OCR 문서 5개 전체를 벡터·키워드로 검색하고, 답변에서 인용한 MD의 그림을 표시합니다.
+              기존 RAG와 비교할 때 같은 모델·페르소나를 선택하고 새 질문으로 실행하세요.
+            </p>
+          )}
           <p className={styles.llmGuideDesc}>
             추천질문은 Ollama 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 기술 엔지니어 또는 관리자·CMS 조합에서만 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. CMS는 현재 장비의 테스트 데이터를 조회합니다. 기술 엔지니어는 2026-08-04~08-11 작업일의 알람 이력과 매뉴얼, 관리자는 2026-08-11 작업일 집계를 사용합니다.
           </p>

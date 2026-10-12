@@ -87,6 +87,7 @@ def initial_engineer_questions(snapshot, manual_codes=()):
 
 
 async def run_until_disconnect(request, generation):
+    """Return generated questions, or None when the client disconnects."""
     async def watch_disconnect():
         while not await request.is_disconnected():
             await asyncio.sleep(0.1)
@@ -96,7 +97,7 @@ async def run_until_disconnect(request, generation):
     try:
         done, _ = await asyncio.wait({task, disconnected}, return_when=asyncio.FIRST_COMPLETED)
         if disconnected in done:
-            raise asyncio.CancelledError()
+            return None
         return await task
     finally:
         for pending in (task, disconnected):
