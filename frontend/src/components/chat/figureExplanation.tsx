@@ -73,7 +73,7 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
     <div className={styles.layout}>
       <div className={styles.image}><Image src={imageUrl} alt={label} width={920} height={700} unoptimized /></div>
       <section className={styles.panel} aria-label="그림 설명 대화">
-        <strong className={styles.title}>그림 풀어서 설명 · Qwen3-VL</strong>
+        <strong className={styles.title}>그림 풀어서 설명</strong>
         <div className={styles.messages} ref={scrollRef} aria-live="polite">
           {turns.map((turn, index) => index === 0 && turn.content === INITIAL_QUESTION ? null : (
             <div key={index} className={turn.role === "user" ? styles.question : styles.answer}>

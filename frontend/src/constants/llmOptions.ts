@@ -7,7 +7,7 @@
 
 export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
-export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms";
+export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms" | "paddleocr" | "repairHistory";
 
 export type LlmModelOption = {
   value: LlmModel;
@@ -21,7 +21,7 @@ export type LlmModeOption = {
 
 export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
   { value: "ollama_config", label: "Ollama" },
-  { value: "vllm_config", label: "vLLM (Qwen3-VL)" },
+  { value: "vllm_config", label: "vLLM" },
   { value: "openai_config", label: "OpenAI" },
   { value: "anthropic_config", label: "Anthropic" },
   { value: "google_config", label: "Gemini" },
@@ -30,6 +30,8 @@ export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
 export const LLM_MODE_OPTIONS: LlmModeOption[] = [
   { value: "base", label: "Base" },
   { value: "rag", label: "RAG" },
+  { value: "repairHistory", label: "RAG + 수리 사례" },
+  { value: "paddleocr", label: "OCR 비교 · 새 OCR" },
   // { value: "graph", label: "Graph" },
   // { value: "chroma", label: "Chroma" },
   // { value: "faiss", label: "FAISS" },
