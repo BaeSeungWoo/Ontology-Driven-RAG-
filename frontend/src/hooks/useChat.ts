@@ -32,7 +32,7 @@ function withUsedChunks(metadata: ChatMetadata | undefined, answer: string): Cha
   if (chunks.length === 0) return metadata;
 
   const usedIndexes = new Set<number>();
-  const citationPattern = /\[(?:chunk:)?(\d+)\]/gi;
+  const citationPattern = /\[chunk:(\d+)\]/gi;
   let match: RegExpExecArray | null;
 
   while ((match = citationPattern.exec(answer)) !== null) {
