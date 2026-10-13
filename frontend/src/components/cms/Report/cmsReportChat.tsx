@@ -8,11 +8,11 @@ import type { ReportModel } from "@/types/report";
 
 const WELCOME_MESSAGE: CmsChatMessage = {
   role: "assistant",
-  content: "현재 전일 리포트의 가동률, 알람 요약, 최다 알람 장비와 최장 알람 이력을 기준으로 답변합니다.",
+  content: "현재 리포트의 가동률, 알람, 시간대별 수치를 물어보세요. 리포트에 포함된 데이터를 바탕으로 답변합니다.",
 };
 
 const RECOMMENDED_QUESTIONS = [
-  "기준일 계획가동률은 얼마야?",
+  "리포트의 계획가동률은 얼마야?",
   "가장 낮은 시간대 가동률은?",
   "총 알람 발생 건수는?",
   "알람이 가장 많이 발생한 장비는?",

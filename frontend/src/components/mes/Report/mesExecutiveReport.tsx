@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import { Download, FileText } from "lucide-react";
-import { type MesKeyIssue, type MesManagementAction, type MesViewRow } from "@/services/mesApi";
+import { type MesDashboardViews, type MesKeyIssue, type MesManagementAction, type MesViewRow } from "@/services/mesApi";
 import { exportHtmlSnapshot, exportPdfSnapshot } from "@/utils/exportHtmlSnapshot";
 import styles from "../mes.module.css";
 import KeyIssuesTop3 from "./00_Summary/keyIssuesTop3";
@@ -14,9 +14,9 @@ import SevenDayForecast from "./01_Contents/02_SevenDayForecast";
 import ProductionResultTrend from "./01_Contents/03_ProductionResultTrend";
 import Quality from "./01_Contents/05_Quality";
 import EquipmentOperationRate from "./01_Contents/04_EquipmentOperationRate";
-import { getReportDateKey } from "./reportUtils";
 
 type MesExecutiveReportProps = {
+  forecastViews: MesDashboardViews;
   productionResultRows: MesViewRow[];
   incompleteWorkRows: MesViewRow[];
   deliveryRiskCardRows: MesViewRow[];
@@ -40,11 +40,8 @@ type MesExecutiveReportProps = {
   point_quality: string;
 };
 
-function formatReportDate(value: string): string {
-  return value ? value.replace(/-/g, ". ") : "-";
-}
-
 export default function MesExecutiveReport({
+  forecastViews,
   productionResultRows,
   incompleteWorkRows,
   deliveryRiskCardRows,
@@ -68,16 +65,13 @@ export default function MesExecutiveReport({
   point_quality,
 }: MesExecutiveReportProps) {
   const reportRef = useRef<HTMLElement>(null);
-  const latestReportDate = getReportDateKey(
-    deliveryRiskCardRows[0]?.REPORT_DATE ?? productionResultRows[0]?.REPORT_DATE,
-  );
 
   const exportHtml = () => {
     if (!reportRef.current) return;
     exportHtmlSnapshot(
       reportRef.current,
-      `AI 데일리 경영 리포트 ${latestReportDate}`,
-      `AI_데일리_경영_리포트_${latestReportDate || "report"}_새디자인.html`,
+      "AI 데일리 경영 리포트",
+      "AI_데일리_경영_리포트_새디자인.html",
     );
   };
 
@@ -86,8 +80,8 @@ export default function MesExecutiveReport({
     try {
       await exportPdfSnapshot(
         reportRef.current,
-        `AI 데일리 경영 리포트 ${latestReportDate}`,
-        `AI_데일리_경영_리포트_${latestReportDate || "report"}_새디자인.pdf`,
+        "AI 데일리 경영 리포트",
+        "AI_데일리_경영_리포트_새디자인.pdf",
       );
     } catch {
       window.alert("MES PDF를 생성하지 못했습니다.");
@@ -124,9 +118,6 @@ export default function MesExecutiveReport({
             <h2>AI 데일리 경영 리포트</h2>
           </div>
           <div className={styles.executiveHeaderActions}>
-            <time dateTime={latestReportDate}>
-              생성 기준: {formatReportDate(latestReportDate)}
-            </time>
             <span className={styles.referenceHeaderCaption}>EXECUTIVE SUMMARY</span>
 
           </div>
@@ -189,14 +180,14 @@ export default function MesExecutiveReport({
           <SevenDayForecast
             deliveryDelayRows={deliveryDelayForecastRows}
             workDepletionRows={workDepletionForecastRows}
-            productionTrendRows={productionTrendRows}
-            machineOperationRateWeeklyRows={machineOperationRateWeeklyRows}
+            productionTrendRows={forecastViews["mes2-production-trend-14d"] ?? []}
+            machineOperationRateWeeklyRows={forecastViews["machine-operation-rate-weekly"] ?? []}
             isLoading={isLoading}
             errorMessage={errorMessage}
           />
         </div>
         <footer className={styles.referenceFooter}>
-          <span>AI 데일리 경영 리포트 · 생성 기준 {formatReportDate(latestReportDate)}</span>
+          <span>AI 데일리 경영 리포트</span>
           <span>CONFIDENTIAL</span>
         </footer>
       </section>

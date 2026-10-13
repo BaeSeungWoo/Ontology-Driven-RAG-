@@ -18,6 +18,7 @@ from app.core.retriever import (
 from app.core.prompt_manager import PromptManager
 from app.core.question_recommendations import InitialQuestionCache
 from app.core.cms_context import build_cms_context, cms_answer_policy
+from app.core.cms_report_chat import answer_demo_report_question
 from app.core.memory_manager import MemoryManager
 from app.core.judge import judge_triple
 from app.database import database
@@ -1096,24 +1097,9 @@ class CmsDailyReportService:
         history: list[dict[str, str]],
         report: dict,
     ) -> str:
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "당신은 CMS 전일 리포트 질의 도우미입니다. 제공된 리포트 집계 데이터만 "
-                    "근거로 한국어로 답하세요. 데이터에 없는 내용·원인·조치는 추측하지 말고 "
-                    "'현재 리포트 데이터로는 확인할 수 없습니다.'라고 답하세요. 답변은 3문장 이내로 간결하게 작성하세요."
-                ),
-            },
-            {
-                "role": "user",
-                "content": f"리포트 집계 데이터:\n{json.dumps(self._build_llm_context(report), ensure_ascii=False)}",
-            },
-        ]
-        messages.extend(history[-6:])
-        messages.append({"role": "user", "content": question})
-        response = await self.llm.ainvoke(messages)
-        return response.strip() or "답변을 생성하지 못했습니다."
+        return await answer_demo_report_question(
+            self.llm, question, history, self._build_llm_context(report),
+        )
 
 
 class MesDailyReportService:

@@ -22,10 +22,6 @@ export function formatDateTime(value: string) {
   return value.replace("T", " ").replace(/\.\d+$/, "");
 }
 
-export function formatReportDate(workDate: string | undefined) {
-  return workDate ? workDate.replaceAll("-", ". ") : "-";
-}
-
 export function formatDelta(value: number | null, unit: "point" | "hours") {
   if (value === null) return "전일 데이터 없음";
   const sign = value > 0 ? "+" : value < 0 ? "-" : "";

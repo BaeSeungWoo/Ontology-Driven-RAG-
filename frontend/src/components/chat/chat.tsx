@@ -9,6 +9,7 @@ import RecommendationPopover from "./question/recommendationPopover";
 import Citation from "./citation/citation";
 import { usePdfDocument } from "./figureExplanationProvider";
 import History from "./history/history";
+import ResizableChatLayout from "./resizableChatLayout";
 import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
 import {
@@ -42,7 +43,7 @@ const PERSONA_CARDS = {
 export default function Chat() {
   // 내부 state: 화면 접힘/선택 상태
   // 기능/목적: 좌/우 패널, 활성 답변과 선택 참조를 화면 전체에서 공유한다.
-  const [isCitationCollapsed, setIsCitationCollapsed] = useState(false);
+  const [isCitationCollapsed, setIsCitationCollapsed] = useState(true);
   const [activeAssistantMessageId, setActiveAssistantMessageId] = useState<string | null>(null);
   const [selectedCitation, setSelectedCitation] = useState<SelectedCitation>(null);
   const handleDocumentOpen = usePdfDocument();
@@ -50,7 +51,7 @@ export default function Chat() {
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
   const [questioner, setQuestioner] = useState("");
-  const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("ollama_config");
+  const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("vllm_config");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
@@ -101,6 +102,7 @@ export default function Chat() {
   // In: QuestionPayload / Out: 메시지 전송, 세션 상태 초기화 또는 갱신
   const resetToNewSession = () => {
     if (sendingRef.current) return;
+    setIsCitationCollapsed(true);
     setRecommendationSendError("");
     setComposerEpoch(previous => previous + 1);
     setSelectedSessionId(null);
@@ -135,6 +137,7 @@ export default function Chat() {
 
   const handleSendQuestion = async (payload: QuestionPayload) => {
     if (sendingRef.current || isSessionLoading) return false;
+    setIsCitationCollapsed(false);
     setRecommendationSendError("");
     sendingRef.current = true;
     setIsSending(true);
@@ -175,6 +178,7 @@ export default function Chat() {
   // In: sessionId, sessionMeta / Out: 세션 메시지 로드 및 설정 state 갱신
   const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
     if (sendingRef.current) return;
+    setIsCitationCollapsed(false);
     setRecommendationsEnabled(false);
     setRecommendationSendError("");
     setComposerEpoch(previous => previous + 1);
@@ -286,11 +290,12 @@ export default function Chat() {
   const isWelcome = messages.length === 0 && selectedSessionId === null && !isSessionLoading;
   const lastUserMessage = messages.findLast(message => message.role === "user");
   const lastAnswerMessage = messages.findLast(message => message.role === "assistant");
-  const recommendationSource = selectedLlmMode === "ladder" && selectedPersonaType === "maintenance"
+  const recommendationSource = isWelcome ? ({ operator: "manual", maintenance: "ladder", engineer: "cms_engineer", manager: "cms_manager" } as const)[selectedPersonaType]
+    : selectedLlmMode === "ladder" && selectedPersonaType === "maintenance"
     ? "ladder" : selectedLlmMode === "rag" && selectedPersonaType === "operator" ? "manual"
     : selectedLlmMode === "cms" && selectedPersonaType === "engineer" ? "cms_engineer"
     : selectedLlmMode === "cms" && selectedPersonaType === "manager" ? "cms_manager" : null;
-  const prepareRecommendations = (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
+  const prepareRecommendations = isWelcome || (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
     !isSending && !isLoading && !isSessionLoading && !error &&
     (selectedLlmModel === "ollama_config" || selectedLlmModel === "vllm_config") && recommendationSource !== null;
   const recommendations = prepareRecommendations && recommendationSource ? (
@@ -299,11 +304,11 @@ export default function Chat() {
       llmModel={selectedLlmModel}
       welcome={isWelcome}
       source={recommendationSource}
-      visible={recommendationsEnabled}
+      visible={isWelcome || recommendationsEnabled}
       sessionId={selectedSessionId}
       question={lastUserMessage?.content ?? ""}
       answer={lastAnswerMessage?.content ?? ""}
-      canSend={!isPromptRequiredMissing}
+      canSend={!isPromptRequiredMissing && !isSending && !isLoading && !isSessionLoading}
       onSelect={async question => {
         if (isPromptRequiredMissing) return;
         const success = await handleSendQuestion({
@@ -335,9 +340,7 @@ export default function Chat() {
         </div>
       </AppHeader>
 
-      <div
-        className={`${styles.chatTypographyScope} tw-chat-layout ${isCitationCollapsed ? "tw-chat-layout-right-collapsed" : ""}`}
-      >
+      <ResizableChatLayout isCitationCollapsed={isCitationCollapsed} isWelcome={isWelcome}>
         <aside className="tw-chat-left" inert={isSending}>
           <section
             className={styles.chatHistoryPane}
@@ -356,12 +359,12 @@ export default function Chat() {
 
         <main className={`tw-chat-center ${isWelcome ? styles.welcomeCenter : ""}`}>
           {isWelcome ? (
-            <>
+            <div className={styles.welcomeScroll}>
             <div className={styles.welcomeHero}>
               <Image src="/logo3.png" alt="" width={112} height={112} loading="eager" />
               <p className={styles.welcomeEyebrow}>YOUR KNOWLEDGE, CONNECTED</p>
-              <h2>현장의 질문에,<br />근거 있는 답을.</h2>
-              <p className={styles.welcomeDescription}>복잡한 매뉴얼부터 설비 문제까지.<br />질문하고, 답변의 근거까지 함께 확인하세요.</p>
+              <h2>현장의 질문에,<br /> 근거 있는 답을.</h2>
+              <p className={styles.welcomeDescription}>복잡한 매뉴얼부터 설비 문제까지.<br /> 질문하고, 답변의 근거까지 함께 확인하세요.</p>
             </div>
             <section className={styles.personaPicker} aria-label="페르소나 선택">
               <p className={styles.personaGuide}>질문하기 전에 업무에 맞는 역할을 선택해 주세요. 선택한 역할에 맞춰 답변과 추천질문을 제공합니다.</p>
@@ -389,7 +392,8 @@ export default function Chat() {
                 })}
               </div>
             </section>
-            </>
+            {recommendations}
+            </div>
           ) : <section className={styles.chatAnswerPane}>
             <div className={styles.chatAnswerSplit}>
               <div className={styles.chatAnswerMain}>
@@ -409,7 +413,6 @@ export default function Chat() {
             </div>
           </section>}
 
-          {isWelcome && recommendations}
           <section className={styles.chatQuestionPane}>
             {error && <p role="alert">{error}</p>}
             {recommendationSendError && <p role="alert">{recommendationSendError}</p>}
@@ -434,7 +437,7 @@ export default function Chat() {
           </>}
         </main>
 
-        <aside className="tw-chat-right">
+        {!isWelcome && <aside className="tw-chat-right">
           <section
             className={`${styles.chatCitationPane} ${
               isCitationCollapsed ? styles.chatCitationPaneCollapsed : ""
@@ -453,10 +456,10 @@ export default function Chat() {
               onDocumentOpen={handleDocumentOpen}
             />
           </section>
-        </aside>
+        </aside>}
 
 
-      </div>
+      </ResizableChatLayout>
     </div>
   );
 }

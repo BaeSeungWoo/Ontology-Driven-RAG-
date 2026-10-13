@@ -66,8 +66,7 @@
 .historyList {
   flex: 1;
   min-height: 0;
-  margin-right: -16px;
-  padding-right: 10px;
+  padding-right: 4px;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: #c5d1df transparent;

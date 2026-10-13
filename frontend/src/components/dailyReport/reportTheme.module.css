@@ -48,39 +48,6 @@
   opacity: 0.6;
 }
 
-.modelSelector {
-  display: grid;
-  grid-template-columns: auto auto;
-  align-items: center;
-  gap: 4px 16px;
-  max-width: 100%;
-  margin: 0 0 0 auto;
-  padding: 6px 0;
-  border: 0;
-  font-size: 13px;
-}
-
-.modelLabel {
-  grid-row: span 2;
-  color: var(--chat-title-color);
-  font-weight: 600;
-}
-
-.modelSelector label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-}
-
-.modelSelector input {
-  accent-color: var(--chat-accent);
-}
-
-.modelSelector:disabled {
-  opacity: 0.6;
-}
-
 .reportMetadata {
   max-width: 1280px;
   margin: 8px auto 0;
@@ -110,6 +77,13 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+
+.dateTrigger:disabled {
+  border-color: #d1d5db;
+  background: #f3f4f6;
+  color: #6b7280;
+  cursor: not-allowed;
 }
 
 .calendar {

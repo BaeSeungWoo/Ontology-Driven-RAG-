@@ -2,16 +2,16 @@ import { useEffect, useId, useRef, useState } from "react";
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./reportTheme.module.css";
 
+// 전시 화면의 작성일과 별개로 기존 저장본을 조회하는 날짜입니다.
 export const TEST_REPORT_DATE = "2026-08-20";
 
-export function yesterdayInKorea(now = new Date()) {
+export function todayInKorea(now = new Date()) {
   const koreaDate = new Date(now.getTime() + 9 * 60 * 60 * 1000);
-  koreaDate.setUTCDate(koreaDate.getUTCDate() - 1);
   return koreaDate.toISOString().slice(0, 10);
 }
 
-export default function ReportDatePicker({ value, onChange }: { value: string; onChange: (value: string) => void }) {
-  const max = yesterdayInKorea();
+export default function ReportDatePicker({ value, onChange, disabled = false }: { value: string; onChange: (value: string) => void; disabled?: boolean }) {
+  const max = todayInKorea();
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(value.slice(0, 7));
   const root = useRef<HTMLDivElement>(null);
@@ -48,12 +48,13 @@ export default function ReportDatePicker({ value, onChange }: { value: string; o
         if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
-      <span>기준일</span>
+      <span>리포트 작성일</span>
       <button
         ref={trigger}
         type="button"
+        disabled={disabled}
         className={styles.dateTrigger}
-        aria-label={`기준일 ${value}, 달력 열기`}
+        aria-label={`리포트 작성일 ${value}, 달력 열기`}
         aria-expanded={open}
         aria-controls={id}
         aria-haspopup="dialog"
@@ -64,8 +65,8 @@ export default function ReportDatePicker({ value, onChange }: { value: string; o
       >
         {value}<CalendarDays size={16} aria-hidden="true" />
       </button>
-      {open && (
-        <div id={id} className={styles.calendar} role="dialog" aria-label="리포트 기준일 선택">
+      {open && !disabled && (
+        <div id={id} className={styles.calendar} role="dialog" aria-label="리포트 작성일 선택">
           <div className={styles.calendarHeading}>
             <button type="button" aria-label="이전 달" onClick={() => moveMonth(-1)}><ChevronLeft size={18} /></button>
             <strong aria-live="polite">{year}년 {monthNumber}월</strong>
