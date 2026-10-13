@@ -430,5 +430,13 @@
     "machine_maker": "APEC",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC640"
+  },
+    "M053": {
+    "machine_name": "DHF8000",
+    "machine_ip": "192.168.1.12",
+    "document": [],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5"
   }
 }

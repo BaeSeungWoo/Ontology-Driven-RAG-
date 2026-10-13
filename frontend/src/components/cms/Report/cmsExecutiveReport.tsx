@@ -11,7 +11,6 @@ import CmsReportAlarmInsights from "./03_Alarm/cmsReportAlarmInsights";
 import CmsReportMetrics from "./01_DayChangeMetrics/cmsReportMetrics";
 import CmsReportOperations from "./02_Operation/cmsReportOperations";
 import CmsReportSummary from "./00_Summary/cmsReportSummary";
-import { formatReportDate } from "./cmsReportFormatting";
 import styles from "../cms.module.css";
 
 type CmsExecutiveReportProps = {
@@ -23,14 +22,13 @@ type CmsExecutiveReportProps = {
 
 export default function CmsExecutiveReport({ report, isLoading, summaryError, config }: CmsExecutiveReportProps) {
   const reportRef = useRef<HTMLElement>(null);
-  const reportDate = report.weeklyPlannedRates.at(-1)?.workDate;
 
   const exportHtml = () => {
     if (!reportRef.current) return;
     exportHtmlSnapshot(
       reportRef.current,
-      `AI 데일리 생산 리포트 ${reportDate || ""}`,
-      `AI_데일리_생산_리포트_${reportDate || "report"}.html`,
+      "AI 데일리 생산 리포트",
+      "AI_데일리_생산_리포트.html",
     );
   };
 
@@ -39,8 +37,8 @@ export default function CmsExecutiveReport({ report, isLoading, summaryError, co
     try {
       await exportPdfSnapshot(
         reportRef.current,
-        `AI 데일리 생산 리포트 ${reportDate || ""}`,
-        `AI_데일리_생산_리포트_${reportDate || "report"}.pdf`,
+        "AI 데일리 생산 리포트",
+        "AI_데일리_생산_리포트.pdf",
       );
     } catch {
       window.alert("CMS PDF를 생성하지 못했습니다.");
@@ -57,7 +55,6 @@ export default function CmsExecutiveReport({ report, isLoading, summaryError, co
           <p className={styles.reportSubtitle}>생산 현황과 설비 운영 분석</p>
         </div>
         <div className={styles.reportHeaderMeta}>
-          <time dateTime={reportDate}>생성 기준: {formatReportDate(reportDate)}</time>
           <span>PRODUCTION SUMMARY</span>
         </div>
       </header>

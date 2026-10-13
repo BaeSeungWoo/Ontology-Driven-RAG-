@@ -3,6 +3,29 @@ import { API_BASE_URL } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import styles from "./answer.module.css";
 
+const WELCOME_QUESTIONS = {
+  manual: [
+    "작업 시작 전에 확인해야 할 안전 점검 항목을 알려주세요.",
+    "장비를 가동하고 정지할 때 지켜야 할 기본 절차를 알려주세요.",
+    "장비 사용 중 이상이 발견되면 어떻게 조치해야 하나요?",
+  ],
+  ladder: [
+    "장비가 동작하지 않을 때 어떤 조건과 신호부터 확인해야 하나요?",
+    "인터록 때문에 동작이 제한되는지 확인하는 방법을 알려주세요.",
+    "센서 입력과 출력 신호를 점검하는 기본 순서를 알려주세요.",
+  ],
+  cms_engineer: [
+    "현재 장비에서 확인할 수 있는 알람과 상태 정보를 정리해 주세요.",
+    "반복되는 알람의 원인을 분석하려면 어떤 정보를 확인해야 하나요?",
+    "장비 이상 원인을 좁히기 위한 점검 순서를 알려주세요.",
+  ],
+  cms_manager: [
+    "현재 확인 가능한 장비 가동 현황을 요약해 주세요.",
+    "장비의 비가동 원인을 파악하려면 어떤 지표를 확인해야 하나요?",
+    "생산 현황을 점검할 때 우선 확인해야 할 항목을 알려주세요.",
+  ],
+};
+
 type Props = {
   llmModel?: LlmModel;
   source?: "manual" | "ladder" | "cms_engineer" | "cms_manager";
@@ -15,7 +38,7 @@ type Props = {
   onSelect: (question: string) => void;
 };
 
-export default function RecommendedQuestions({ llmModel = "ollama_config", source = "manual", sessionId, question, answer, canSend, visible = true, welcome = false, onSelect }: Props) {
+export default function RecommendedQuestions({ llmModel = "vllm_config", source = "manual", sessionId, question, answer, canSend, visible = true, welcome = false, onSelect }: Props) {
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -24,6 +47,7 @@ export default function RecommendedQuestions({ llmModel = "ollama_config", sourc
   const [machineLabel, setMachineLabel] = useState("");
 
   useEffect(() => {
+    if (welcome) return;
     const controller = new AbortController();
     setMachineLabel("");
     if (source.startsWith("cms_")) {
@@ -41,9 +65,10 @@ export default function RecommendedQuestions({ llmModel = "ollama_config", sourc
       }).catch(() => {});
     }
     return () => controller.abort();
-  }, [sessionId, source, llmModel]);
+  }, [sessionId, source, llmModel, welcome]);
 
   useEffect(() => {
+    if (welcome) return;
     const controller = new AbortController();
     async function load() {
       setLoading(true);
@@ -79,17 +104,28 @@ export default function RecommendedQuestions({ llmModel = "ollama_config", sourc
     }
     void load();
     return () => controller.abort();
-  }, [sessionId, question, answer, source, attempt, llmModel]);
+  }, [sessionId, question, answer, source, attempt, llmModel, welcome]);
 
   if (!visible) return null;
-  if (welcome && !loading && !failed && questions.length === 0 && !message) return null;
+  if (welcome) return (
+    <section className={styles.welcomeRecommendations} aria-label="추천질문">
+      <div className={styles.welcomeCards}>
+        {WELCOME_QUESTIONS[source].map((text, index) => (
+          <button key={text} type="button" disabled={!canSend} onClick={() => onSelect(text)}>
+            <span className={styles.recommendationNumber} aria-hidden="true">{index + 1}</span>
+            <span>{text}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
 
   return (
-    <section className={welcome ? styles.welcomeRecommendations : styles.recommendations} aria-label="추천질문" aria-busy={loading}>
-      {!welcome && <h3>{question ? "추천 질문" : {
+    <section className={styles.recommendations} aria-label="추천질문" aria-busy={loading}>
+      <h3>{question ? "추천 질문" : {
         manual: "장비 매뉴얼에 물어보세요", ladder: "래더 정보에 물어보세요",
         cms_engineer: "현재 장비의 CMS 알람에 물어보세요", cms_manager: "현재 장비의 CMS 현황에 물어보세요",
-      }[source]}</h3>}
+      }[source]}</h3>
       {source.startsWith("cms_") && <p>테스트 기준일: 2026-08-11{machineLabel ? ` · ${machineLabel}` : ""}</p>}
       {loading && (
         <p className={styles.assistantGenerationStatus} role="status">
@@ -98,10 +134,9 @@ export default function RecommendedQuestions({ llmModel = "ollama_config", sourc
         </p>
       )}
       {message && <p role={failed ? "alert" : "status"}>{message}</p>}
-      {questions.length > 0 && <div className={welcome ? styles.welcomeCards : styles.recommendationList}>
-        {questions.map((text, index) => (
+      {questions.length > 0 && <div className={styles.recommendationList}>
+        {questions.map(text => (
           <button key={text} type="button" disabled={!canSend} onClick={() => onSelect(text)}>
-            {welcome && <span className={styles.recommendationNumber} aria-hidden="true">{index + 1}</span>}
             <span>{text}</span>
           </button>
         ))}

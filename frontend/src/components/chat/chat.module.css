@@ -20,13 +20,132 @@
 }
 
 .chatPage :global(.tw-chat-layout) {
-  grid-template-columns: var(--history-width) minmax(0, 1fr) 420px;
+  position: relative;
+  grid-template-columns: var(--history-width) minmax(0, 1fr) var(--citation-width, 420px);
   padding: 0 18px 0 0;
   background: #fff;
+  transition: none;
 }
+
+.resizeHandle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 12px;
+  z-index: 21;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.resizeGrip {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 56px;
+  border: 1px solid #ccd9ea;
+  border-left: 0;
+  border-radius: 0 8px 8px 0;
+  background: linear-gradient(90deg, #f5faff, #e8f0fb);
+  color: #91a7c7;
+  box-shadow: 2px 2px 4px rgb(27 55 89 / 8%);
+}
+
+.resizeGrip::after {
+  content: "";
+  position: absolute;
+  top: 18px;
+  left: 6px;
+  width: 5px;
+  height: 18px;
+  border-inline: 1px solid currentColor;
+}
+
+.citationResizeHandle .resizeGrip {
+  left: auto;
+  right: -1px;
+  border-color: var(--chat-pane-border);
+  border-left: 1px solid var(--chat-pane-border);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
+  background: var(--chat-pane-bg);
+  box-shadow: -2px 2px 4px rgb(27 55 89 / 8%);
+}
+
+.resizeHandle:hover .resizeGrip,
+.resizeHandle:focus-visible .resizeGrip,
+.resizing .resizeGrip {
+  background: #144db5;
+  border-color: #144db5;
+  color: #fff;
+}
+
+.historyResizeHandle .resizeGrip {
+  left: -1px;
+  background: #f5faff;
+  border-color: #dfe7f1;
+}
+
+.historyResizeHandle:hover .resizeGrip,
+.historyResizeHandle:focus-visible .resizeGrip,
+.resizing .historyResizeHandle .resizeGrip {
+  background: #f5faff;
+  border-color: #94b4e9;
+  color: #144db5;
+}
+
+.citationResizeHandle:hover .resizeGrip,
+.citationResizeHandle:focus-visible .resizeGrip,
+.resizing .citationResizeHandle .resizeGrip {
+  background: var(--chat-pane-bg);
+  border-color: #94b4e9;
+  color: #144db5;
+}
+
+.resizeHandle:focus-visible { outline: none; }
+.resizeHandle:focus-visible .resizeGrip {
+  outline: 2px solid #144db5;
+  outline-offset: 3px;
+}
+
+.historyResizeHandle { left: var(--history-width); }
+.citationResizeHandle { right: calc(var(--citation-width) + 18px); }
+.resizeHint {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 14px);
+  transform: translateY(-50%);
+  visibility: hidden;
+  pointer-events: none;
+  padding: 10px 14px;
+  border: 1px solid #dce5f2;
+  border-radius: 10px;
+  background: #f5faff;
+  box-shadow: 0 6px 18px rgb(27 55 89 / 12%);
+  color: #344b7e;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.citationResizeHandle .resizeHint {
+  left: auto;
+  right: calc(100% + 14px);
+}
+
+.resizeHandle:hover .resizeHint,
+.resizeHandle:focus-visible .resizeHint { visibility: visible; }
+.resizing .resizeHandle .resizeHint { visibility: hidden; }
+.resizing, .resizing * { cursor: col-resize !important; user-select: none !important; }
 
 .chatPage :global(.tw-chat-layout-right-collapsed) {
   grid-template-columns: var(--history-width) minmax(0, 1fr) 44px;
+}
+
+.chatPage :global(.tw-chat-layout).welcomeLayout {
+  grid-template-columns: var(--history-width) minmax(0, 1fr);
 }
 
 .chatPage :global(.tw-chat-right) {
@@ -605,7 +724,9 @@
 
 
 /* 위치: 반응형(태블릿 이하) 보정 */
-@media (max-width: 1200px) {
+@media (max-width: 1024px) {
+  .resizeHandle { display: none; }
+
   .chatPage {
     height: auto;
     min-height: 100dvh;
@@ -615,6 +736,10 @@
   .chatPage :global(.tw-chat-layout) {
     grid-template-columns: minmax(0, 1fr);
     padding: 8px 12px 12px;
+  }
+
+  .chatPage :global(.tw-chat-layout).welcomeLayout {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .chatPage :global(.tw-chat-center) {
@@ -647,31 +772,50 @@
   }
 }
 .chatPage .welcomeCenter {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 clamp(18px, 3vw, 44px) 16px;
+  background: #fff;
+}
+
+.welcomeScroll {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 22px;
+  justify-content: safe center;
+  gap: clamp(12px, 1.8vh, 20px);
+  width: 100%;
+  max-width: 1100px;
+  justify-self: center;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
-  margin: 0;
-  padding: clamp(24px, 5vh, 56px) clamp(18px, 3vw, 44px) 24px;
-  background: #fff;
+  padding: clamp(12px, 2vh, 24px) 8px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #c5d1df transparent;
 }
 
 .welcomeHero {
   position: relative;
   isolation: isolate;
-  margin-top: auto;
+  margin-top: 0;
   text-align: center;
   color: #112450;
 }
 
-.welcomeHero img { margin: 0 auto 4px; }
+.welcomeHero img {
+  margin: 0 auto 4px;
+  width: clamp(60px, 8vh, 96px);
+  height: auto;
+}
 
 .welcomeHero::before {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -12px 0;
+  inset: -12px 12%;
   border-radius: 50%;
   pointer-events: none;
   background: radial-gradient(ellipse at center, rgb(126 181 255 / 18%), rgb(183 215 255 / 8%) 40%, transparent 68%);
@@ -700,7 +844,7 @@
 }
 
 .welcomeEyebrow {
-  margin: 0 0 24px;
+  margin: 0 0 clamp(8px, 1.4vh, 16px);
   color: #8590b0;
   font-size: 11px;
   font-weight: 700;
@@ -709,17 +853,31 @@
 
 .welcomeHero h2 {
   margin: 0;
-  font-size: clamp(28px, 2.8vw, 44px);
+  font-size: clamp(28px, 4vh, 40px);
   font-weight: 750;
   letter-spacing: -1.5px;
-  line-height: 1.35;
+  line-height: 1.2;
 }
 
 .welcomeDescription {
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   color: #52648e;
-  font-size: 15px;
-  line-height: 1.8;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (min-width: 1025px) and (max-height: 800px) {
+  .welcomeHero {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    column-gap: 20px;
+    text-align: left;
+  }
+
+  .welcomeHero img { grid-row: 1 / 4; align-self: center; margin: 0; }
+  .welcomeEyebrow { margin-bottom: 6px; }
+  .welcomeHero h2 br,
+  .welcomeDescription br { display: none; }
 }
 
 .welcomeEyebrow,
@@ -757,11 +915,18 @@
   }
 }
 
-.welcomeCenter > * {
+.welcomeScroll > * {
   flex-shrink: 0;
   align-self: center;
   width: 100%;
-  max-width: 820px;
+  max-width: 1080px;
+}
+
+.welcomeCenter > .chatQuestionPane,
+.welcomeCenter > .welcomeNotice {
+  width: 100%;
+  max-width: 1080px;
+  justify-self: center;
 }
 
 .welcomeNotice {
@@ -769,7 +934,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin: 8px 0 auto;
+  margin: 0;
   color: #8392b2;
   font-size: 12px;
 }
@@ -779,8 +944,8 @@
 .personaCard {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 16px 12px;
+  gap: 6px;
+  padding: 12px;
   border: 1px solid #dce5f2;
   border-radius: 12px;
   background: #fff;
