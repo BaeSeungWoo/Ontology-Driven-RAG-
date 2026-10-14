@@ -20,4 +20,4 @@ export type LadderNode = LadderContact | {
 export type LadderDiagram = {
   nblock: string;
   instructions: string[];
-} & ({ status: "supported"; logic: LadderNode; coil: LadderContact } | { status: "unsupported" });
+} & ({ status: "supported"; logic: LadderNode; coil: LadderContact; coils?: LadderContact[] } | { status: "unsupported" });

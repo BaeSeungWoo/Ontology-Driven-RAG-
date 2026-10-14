@@ -129,6 +129,28 @@ npm run start
 
 로컬 개발만 먼저 할 때는 백엔드의 `VOICE_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000`, `VOICE_GATEWAY_KEY=`로 설정할 수 있다. 키 없는 접속은 허용 Origin이 모두 localhost인 설정에서만 작동한다. 원격 사용자 접속에는 다음 HTTPS 구성이 필요하다.
 
+## 전시회: 로컬 프런트 + 원격 음성 서버
+
+`frontend`에서 `npm run dev`를 실행하면 Next.js(3000)와 로컬 음성 중계(127.0.0.1:3002)가 함께 시작된다. Ctrl+C로 함께 종료한다. 기존 dev 서버는 먼저 종료한다.
+
+`frontend/.env.local`에 다음을 입력한다. 아이디와 비밀번호는 `https://rag.waff.co.kr:9443`의 Basic 인증 로그인 정보이며, 백엔드의 `VOICE_GATEWAY_KEY`가 아니다.
+
+```dotenv
+VOICE_PROXY_URL=https://rag.waff.co.kr:9443
+VOICE_PROXY_USERNAME=로그인아이디
+VOICE_PROXY_PASSWORD="로그인비밀번호"
+```
+
+비밀번호에 `$`가 있으면 Next 환경파일 규칙에 따라 `\$`로 적는다. 이 파일은 Git에서 제외되며, 인증 변수에는 `NEXT_PUBLIC_` 접두사를 붙이지 않는다. 아이디에는 `:`을 사용하지 않는다.
+
+전시회 노트북에 변경사항을 복사한 뒤 최초 한 번 `npm ci`, 이후 `npm run dev`를 실행하고 `http://localhost:3000/chat`을 연다. 인증정보 변경 후에는 dev 서버를 다시 실행한다. 인증정보가 비어 있으면 일반 채팅은 실행되고 음성 입력 시 설정 안내가 표시된다.
+
+일반 채팅은 기존 `NEXT_PUBLIC_API_URL`을 사용한다(사내: `http://192.168.1.57:8081`, 전시회: `http://183.104.61.81:8081`). dev 실행기가 음성 전용 `NEXT_PUBLIC_VOICE_API_URL`만 로컬 중계 주소로 지정한다. `npm run build/start`의 기존 음성 연결 방식은 유지된다.
+
+중계는 세션 POST와 WebSocket을 원격 HTTPS 프록시로 보내며 Basic 인증을 서버에서만 추가한다. 프록시가 기존 게이트웨이 키를 백엔드에 추가한다. 원격 서버는 `http://localhost:3000,http://127.0.0.1:3000`을 `VOICE_ALLOWED_ORIGINS`에 유지해야 한다. 핫스팟 IP가 바뀌어도 이 Origin은 변하지 않는다. 장비 IP 매칭은 별도 설정이다.
+
+401 로그인 오류는 로컬 인증정보를 확인하고, 403 음성 접속 주소 오류는 원격 허용 Origin을, 403 음성 접근 권한 오류는 원격 프록시와 백엔드의 게이트웨이 키 일치를 확인한다. 원격 인식 서버 오류는 사내 서버의 `VOICE_STT_URL` 서비스 상태를 확인한다.
+
 ## 6. 운영 HTTPS 연결
 
 현재 공개 주소 `http://183.104.61.81:3000/chat`은 브라우저 마이크를 사용할 수 있는 안전한 출처가 아니다. 실제 도메인과 신뢰할 수 있는 TLS 인증서를 연결하고 사용자는 `https://실제도메인/chat`으로 접속해야 한다. 브라우저의 보안 예외 옵션에 의존하지 않는다.

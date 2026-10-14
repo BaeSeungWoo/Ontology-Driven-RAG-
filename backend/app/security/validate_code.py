@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import logging
 from fastapi import Request, HTTPException
 
 @dataclass
@@ -6,6 +7,19 @@ class RequestCode:
     user_ip: str
     request_machine_code: str | None
     is_main_server: bool
+
+
+def cms_machine_code(machine_code, requested_code, ctx, machines):
+    requested_code = (requested_code or "").strip()
+    if requested_code and not ctx.is_main_server and requested_code != ctx.request_machine_code:
+        raise HTTPException(status_code=403, detail="다른 장비의 CMS에는 접근이 불가능합니다.")
+    if machine_code and machine_code != "ALL":
+        return machine_code
+    if requested_code:
+        if requested_code == "ALL" or requested_code not in machines:
+            raise HTTPException(status_code=400, detail="등록되지 않은 CMS 장비코드입니다.")
+        return requested_code
+    return machine_code
 
 # 요청자 ip 추출
 def get_client_ip(request: Request) -> str:
@@ -23,6 +37,16 @@ def resolve_request_code(request: Request, machines: dict, main_server_ips: set[
         if m_info.get("machine_ip") == user_ip:
             request_machine_code = code
             break
+
+    logging.getLogger("uvicorn.error").info(
+        "[machine_assignment] %s %s connection_ip=%r x_forwarded_for=%r resolved_ip=%r machine_code=%r",
+        request.method,
+        request.url.path,
+        request.client.host if request.client else None,
+        request.headers.get("X-Forwarded-For"),
+        user_ip,
+        request_machine_code,
+    )
 
     return RequestCode(
         user_ip=user_ip,

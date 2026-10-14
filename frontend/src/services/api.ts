@@ -4,6 +4,8 @@ import axios from "axios";
 export const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "";
 
+export const CMS_MACHINE_CODE = process.env.MCODE?.trim() || undefined;
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   // timeout: 15000,

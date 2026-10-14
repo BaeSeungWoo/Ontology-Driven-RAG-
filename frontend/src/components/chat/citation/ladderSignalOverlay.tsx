@@ -47,7 +47,6 @@ export default function LadderSignalOverlay({ chunks, onClose }: {
       </header>
       <div className={styles.ladderWorkspace}>
         <aside className={styles.ladderEvidenceList} aria-label="질문의 래더 근거">
-          <p>질문의 래더 근거 · M050</p>
           {chunks.map((chunk, index) => {
             const diagram = chunk.metadata.ladder_diagram;
             const isSelected = selected?.index === chunk.index;
@@ -57,7 +56,7 @@ export default function LadderSignalOverlay({ chunks, onClose }: {
               <span className={styles.ladderEvidenceSummary}>래더 근거 {index + 1} · {diagram?.nblock ?? "원문"}
                 {diagram?.status === "supported" ? <>
                   <span>입력: {[...new Set(inputAddresses(diagram.logic))].join(", ") || "없음"}</span>
-                  <span>출력: {diagram.coil.addr}</span>
+                  <span>출력: {(diagram.coils ?? [diagram.coil]).map(coil => coil.addr).join(", ")}</span>
                 </> : <span>입출력: 원문 확인</span>}
                 <small>{String(chunk.metadata.source_doc_name ?? "문서명 없음")}</small>
               </span>

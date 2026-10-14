@@ -22,13 +22,14 @@ if str(ROOT_DIR) not in sys.path:
 from app.factories.config import CONFIGS
 from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
-from app.security.validate_code import resolve_request_code, validate_code
+from app.security.validate_code import cms_machine_code, resolve_request_code, validate_code
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
 from app.routers.checkpointRouter import checkpointRouter
 from app.routers.documentRouter import documentRouter
 from app.routers.figureRouter import figureRouter
+from app.routers.alarmRouter import alarmRouter
 from app.routers.cmsRouter import cmsRouter
 from app.routers.mesRouter import mesRouter
 from app.routers.voiceRouter import voiceRouter
@@ -85,6 +86,7 @@ def get_client_ip_nginx(request: Request) -> str:
     return request.client.host if request.client else "Unknown IP"
 
 class ChatRequest(BaseModel):
+    machine_code: str | None = None
     session_id: str
     question: str
     mode: str = "base"          # base | rag | graph
@@ -95,6 +97,7 @@ class ChatRequest(BaseModel):
 
 
 class RecommendationRequest(BaseModel):
+    machine_code: str | None = None
     llm_model: Literal["ollama_config", "vllm_config"] = "ollama_config"
     source: Literal["manual", "ladder", "cms_engineer", "cms_manager"] = "manual"
     session_id: str | None = None
@@ -109,8 +112,16 @@ def recommendation_machine_code(request, client_request, service):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     if request.session_id is not None:
-        return validate_code(ctx, database.getChatSessionInfo(request.session_id))
-    return ctx.request_machine_code
+        machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
+    else:
+        machine_code = ctx.request_machine_code
+    if request.source in {"cms_engineer", "cms_manager"}:
+        if request.session_id is None and ctx.is_main_server:
+            machine_code = "ALL"
+        machine_code = cms_machine_code(machine_code, request.machine_code, ctx, service.config.machines)
+    if machine_code == "ALL" and ctx.request_machine_code:
+        machine_code = ctx.request_machine_code
+    return machine_code
 
 
 @app.post("/api/recommendations/context")
@@ -170,6 +181,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     session_info = database.getChatSessionInfo(request.session_id)
     effective_machine_code = validate_code(ctx, session_info)
     if request.mode == "cms":
+        effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
         if request.persona_type not in {"engineer", "manager"}:
             raise HTTPException(status_code=400, detail="CMS 모드는 기술엔지니어 또는 관리자 페르소나에서 사용하세요.")
         if not effective_machine_code or effective_machine_code == "ALL":
@@ -221,6 +233,7 @@ app.include_router(dailyReportRouter)
 app.include_router(checkpointRouter)
 app.include_router(documentRouter)
 app.include_router(figureRouter)
+app.include_router(alarmRouter)
 app.include_router(cmsRouter)
 app.include_router(mesRouter)
 app.include_router(voiceRouter)
