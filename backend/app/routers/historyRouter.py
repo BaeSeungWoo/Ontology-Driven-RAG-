@@ -6,7 +6,7 @@ import traceback
 import os
 from pathlib import Path
 from app.database import database
-from app.security.validate_code import resolve_request_code, validate_code
+from app.security.validate_code import cms_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
 
 historyRouter = APIRouter(prefix="/api/history", tags=["history"])
@@ -176,6 +176,7 @@ def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request)
 
 
 class CreateSessionRequest(BaseModel):
+    machine_code: str | None = None
     questioner: str
     title: str
     llm_model: str
@@ -226,6 +227,10 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
+    if req.llm_mode == "cms":
+        machine_code = cms_machine_code(machine_code, req.machine_code, ctx, machine_info)
+    if machine_code == "ALL" and ctx.request_machine_code:
+        machine_code = ctx.request_machine_code
     try:
         session_id = database.createSession(
             req.questioner,

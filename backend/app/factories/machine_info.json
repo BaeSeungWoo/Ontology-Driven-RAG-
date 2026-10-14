@@ -19,8 +19,18 @@
   },
   "M005": {
     "machine_name": "DHF8000",
-    "machine_ip": "172.16.10.5",
-    "document": [],
+    "machine_ip": "192.168.1.31",
+    "document": [
+      "31i-B PMC.LST", 
+      "취급설명서(선반)_B-64484EN-1_05_FS30i31i32i-B Lathe_OP", 
+      "취급설명서(MCT)_B-64484EN-2_05_FS30i31i32i-B Machining Center_OP", 
+      "사양설명서_B-64482EN_05_FS30i31i32i-B Descriptions", 
+      "결합설명서(HARDWARE)_B-64483EN_02_FS30i31i32i-B Connection(Hardware)", 
+      "파라미터설명서_B-64490EN_05_FS30i31i32i-B Parameter", 
+      "보수설명서_B-64485EN_02_FS30i31i32i-B Maintenance", 
+      "취급설명서(공통)_B-64484EN_05_FS30i31i32i-B Common_OP", 
+      "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)"
+    ],
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
     "machine_ver": "31i-B5"
@@ -408,8 +418,7 @@
       "B-64604EN-2_01_0i-F_Machining Center",
       "B-64605EN_01_0i-F_Mainternance",
       "B-64610EN_01_0i-F_Parameter",
-      "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p",
-      "20V-120"
+      "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p"
     ],
     "machine_maker": "SMEC",
     "machine_controller": "화낙",
@@ -430,13 +439,5 @@
     "machine_maker": "APEC",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC640"
-  },
-    "M053": {
-    "machine_name": "DHF8000",
-    "machine_ip": "192.168.1.12",
-    "document": [],
-    "machine_maker": "두산공작기계",
-    "machine_controller": "화낙",
-    "machine_ver": "31i-B5"
   }
 }

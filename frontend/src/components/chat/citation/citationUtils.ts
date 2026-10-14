@@ -62,7 +62,7 @@ export function getSelectedChunk(
 
 export function getReferenceLabelMap(answerText = "") {
   const labelMap = new Map<number, number>();
-  const citationPattern = /\[(?:chunk:)?(\d+)\]/gi;
+  const citationPattern = /\[chunk:(\d+)\]/gi;
   let match: RegExpExecArray | null;
 
   while ((match = citationPattern.exec(answerText)) !== null) {
@@ -75,10 +75,13 @@ export function getReferenceLabelMap(answerText = "") {
   return labelMap;
 }
 
-export function getReferenceItems(answerText = "") {
+export function getReferenceItems(answerText = "", metadata?: ChatMetadata) {
+  const availableIndexes = new Set([
+    ...(metadata?.chunks ?? []), ...(metadata?.used_chunks ?? []),
+  ].map((chunk) => chunk.index));
   return Array.from(getReferenceLabelMap(answerText).entries())
-    .map(([chunkIndex, label]) => ({ chunkIndex, label }))
-    .sort((left, right) => left.label - right.label);
+    .filter(([chunkIndex]) => availableIndexes.has(chunkIndex))
+    .map(([chunkIndex], index) => ({ chunkIndex, label: index + 1 }));
 }
 
 // Match the asset panel's used-chunk priority and type/path deduplication.
@@ -113,7 +116,7 @@ export function getDisplayedAssetChunks(metadata?: ChatMetadata): ChatChunk[] {
 
 export function getMessageReferenceItems(message?: Pick<MessageItem, "content" | "llm_mode" | "metadata">) {
   const items: { chunkIndex: number; label: number | string; additional: boolean }[] =
-    getReferenceItems(message?.content).map((item) => ({ ...item, additional: false }));
+    getReferenceItems(message?.content, message?.metadata).map((item) => ({ ...item, additional: false }));
   for (const chunk of getDisplayedAssetChunks(message?.metadata)) {
     if (items.some((item) => item.chunkIndex === chunk.index)) continue;
     items.push({ chunkIndex: chunk.index, label: items.length + 1, additional: false });

@@ -1,4 +1,4 @@
-﻿import api, { API_BASE_URL } from "@/services/api";
+﻿import api, { API_BASE_URL, CMS_MACHINE_CODE } from "@/services/api";
 import type {
   AskRequest,
   AskResponse,
@@ -93,6 +93,7 @@ async function askOnce({
         session_id: String(sessionId),
         question,
         mode: llmMode,
+        machine_code: llmMode === "cms" ? CMS_MACHINE_CODE : undefined,
         prompt_id: "tech_expert",
         persona_type: personaType,
         restore_memory: restoreMemory,
@@ -169,7 +170,10 @@ async function askOnce({
 export async function createSession(
   payload: CreateSessionPayload
 ): Promise<CreateSessionResponse> {
-  const response = await api.post<CreateSessionResponse>("/api/history/newSession", payload);
+  const response = await api.post<CreateSessionResponse>("/api/history/newSession", {
+    ...payload,
+    machine_code: payload.llm_mode === "cms" ? CMS_MACHINE_CODE : undefined,
+  });
   return response.data;
 }
 

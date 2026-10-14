@@ -1,4 +1,4 @@
-import api from "./api";
+import axios from "axios";
 import type { LadderDiagram, LadderNode } from "@/types/ladder";
 
 export type PmcSnapshot = {
@@ -23,7 +23,7 @@ export function getLadderSignals(diagram?: LadderDiagram) {
   };
   if (diagram?.status === "supported") {
     walk(diagram.logic);
-    add(diagram.coil.addr, diagram.coil.label, diagram.coil.description);
+    for (const coil of diagram.coils ?? [diagram.coil]) add(coil.addr, coil.label, coil.description);
   }
   // 그림으로 복원하지 못한 근거도 원본 명령에서 비트 주소를 수집한다.
   for (const instruction of diagram?.instructions ?? []) {
@@ -37,7 +37,7 @@ export async function readTestSignals(addresses: string[], signal: AbortSignal) 
   const values: PmcSnapshot["signals"] = [];
   // 서버의 요청당 128개 제한에 맞춰 순차 조회한다. 동일 PMC 스캔 시점은 보장하지 않는다.
   for (let start = 0; start < addresses.length; start += 128) {
-    const response = await api.post<PmcSnapshot>("/api/ladder/test-signals", { addresses: addresses.slice(start, start + 128) }, {
+    const response = await axios.post<PmcSnapshot>("/local-api/ladder/signals", { addresses: addresses.slice(start, start + 128) }, {
       signal, timeout: 30000,
     });
     snapshot = response.data;
@@ -71,6 +71,6 @@ export function getMachineSignals(nets: MachineLadderNet[]) {
 }
 
 export async function getTestLadder(signal: AbortSignal) {
-  const response = await api.get<MachineLadderDocument>("/api/ladder/test-document", { signal, timeout: 15000 });
+  const response = await axios.get<MachineLadderDocument>("/local-api/ladder/document", { signal, timeout: 15000 });
   return response.data;
 }

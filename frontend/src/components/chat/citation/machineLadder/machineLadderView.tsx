@@ -44,7 +44,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
   return <>
     {headerHost && createPortal(<>
     <div className={styles.ladderLiveToolbar}>
-      <div><strong>{snapshot ? `${snapshot.machine.name} · ${snapshot.machine.code} · ${snapshot.machine.ip}` : "M019 테스트 장비"}</strong>
+      <div><strong>{snapshot ? `${snapshot.machine.name} · ${snapshot.machine.code} · ${snapshot.machine.ip}` : "장비 연결 대기"}</strong>
         <p role="status">{state} · {knownSet.size}/{addresses.length}개 주소 확인
           {snapshot && ` · ${new Date(snapshot.read_completed).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul" })} KST`}</p>
       </div>
@@ -78,7 +78,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
     <details className={styles.ladderSource}>
       <summary>주소별 수신값 ({addresses.length})</summary>
       <div className={styles.ladderSignalTableWrap}><table className={styles.ladderSignalTable}>
-        <thead><tr><th>PMC 주소</th><th>M019 수신값</th></tr></thead>
+        <thead><tr><th>PMC 주소</th><th>장비 수신값</th></tr></thead>
         <tbody>{addresses.map(address => {
           const result = values.get(address);
           return <tr key={address}><td>{address}</td><td>{result?.value === 1 ? "ON · 1" : result?.value === 0 ? "OFF · 0" : "미확인"}
@@ -108,8 +108,10 @@ export default function MachineLadderView({ relatedAddresses, headerHost }: {
       programIndex, label: program.label, page: Math.floor(index / NETS_PER_PAGE), net,
     }))) ?? [], [document]);
   // 파란 배경과 자동 이동은 근거의 전체 주소 집합으로만 결정한다(논리 동등성 검증은 아님).
-  const exactMatches = useMemo(() => locations.filter(({ net }) => addressKey && net.outputs.some(output =>
-    getMachineNodeSignals([output]).sort().join(",") === addressKey)), [locations, addressKey]);
+  const exactMatches = useMemo(() => locations.filter(({ net }) => addressKey && (
+    getMachineNodeSignals(net.outputs).sort().join(",") === addressKey
+    || net.outputs.some(output => getMachineNodeSignals([output]).sort().join(",") === addressKey)
+  )), [locations, addressKey]);
   // 주황 강조는 별도의 선택 주소이며, 근거 일치 결과를 변경하지 않는다.
   const usages = locations.filter(({ net }) => selectedAddress && getMachineSignals([net]).includes(selectedAddress));
   const jump = (location: typeof locations[number]) => {
@@ -150,7 +152,7 @@ export default function MachineLadderView({ relatedAddresses, headerHost }: {
   return <section className={styles.machineLadderView} aria-label="장비 래더 뷰어">
     {error ? <div role="alert"><p>{error}</p><button type="button" className={styles.openDocumentButton}
       onClick={() => { setError(""); setRetry(value => value + 1); }}>다시 불러오기</button></div>
-      : !document ? <p role="status">M019 장비의 전체 래더를 불러오는 중…</p> : <>
+      : !document ? <p role="status">장비의 전체 래더를 불러오는 중…</p> : <>
         <aside className={styles.ladderNavigatorPanel} aria-label="래더 탐색 패널">
           <div className={styles.ladderFileToolbar}>
             <strong>장비 전체 래더 · {document.meta.filename}</strong>

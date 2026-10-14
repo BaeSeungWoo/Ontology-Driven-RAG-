@@ -17,15 +17,17 @@ ADDRESS = re.compile(r"([GFYXRAKTCD])([0-9]{1,5})\.([0-7])")
 
 
 def test_machine_code():
-    code = os.getenv("LADDER_TEST_MACHINE_CODE", "M019")
+    code = os.getenv("MCODE", "").strip()
     if not re.fullmatch(r"[A-Za-z0-9_-]+", code):
         raise HTTPException(503, "테스트 장비 코드 설정이 올바르지 않습니다.")
     return code
 
 
 @ladderRouter.get("/test-document")
-def ladder_document():
-    code = test_machine_code()
+def ladder_document(machine_code: str | None = None):
+    code = test_machine_code() if machine_code is None else machine_code
+    if not re.fullmatch(r"[A-Za-z0-9_-]+", code):
+        raise HTTPException(422, "장비 코드 형식이 올바르지 않습니다.")
     path = Path(__file__).resolve().parents[2] / "data" / "ladder" / f"{code}.LAD"
     try:
         doc = load_lad(str(path))

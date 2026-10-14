@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "@/services/api";
+import { API_BASE_URL, CMS_MACHINE_CODE } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import styles from "./answer.module.css";
 
@@ -53,7 +53,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
     if (source.startsWith("cms_")) {
       void fetch(`${API_BASE_URL}/api/recommendations/context`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel }),
+        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: source.startsWith("cms_") ? CMS_MACHINE_CODE : undefined }),
         signal: controller.signal,
       }).then(async response => {
         if (!response.ok) return;
@@ -79,7 +79,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
         const response = await fetch(`${API_BASE_URL}/api/recommendations`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel }),
+          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: source.startsWith("cms_") ? CMS_MACHINE_CODE : undefined }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("추천질문을 불러오지 못했습니다.");

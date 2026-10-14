@@ -102,18 +102,26 @@ function draw(layout: Layout, x: number, y: number): ReactNode {
 function LadderCircuit({ diagram }: { diagram: LadderDiagram }) {
   if (diagram.status !== "supported") return <p className={styles.note}>이 근거는 회로 미리보기를 지원하지 않습니다.</p>;
   const layout = measure(diagram.logic);
+  const coils = diagram.coils ?? [diagram.coil];
   const width = layout.width + 240;
-  const height = layout.height + 16;
+  const height = Math.max(layout.height, coils.length * 112) + 16;
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${diagram.nblock} 래더 회로, 출력 ${diagram.coil.addr}`}>
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`${diagram.nblock} 래더 회로, 출력 ${coils.map(coil => coil.addr).join(", ")}`}>
       <title>{`${diagram.nblock} 접점·기능 블록·출력의 명령 흐름`}</title>
       {wire(20, 16, 20, height - 16)}
       {wire(width - 20, 16, width - 20, height - 16)}
       {wire(20, 48, 40, 48)}
       {draw(layout, 40, 48)}
-      {wire(40 + layout.width, 48, width - 120, 48)}
-      {symbol(diagram.coil, width - 100, 48, true)}
-      {wire(width - 80, 48, width - 20, 48)}
+      {wire(40 + layout.width, 48, width - 140, 48)}
+      {coils.length > 1 && wire(width - 140, 48, width - 140, 48 + (coils.length - 1) * 112)}
+      {coils.map((coil, index) => {
+        const y = 48 + index * 112;
+        return <Fragment key={index}>
+          {wire(width - 140, y, width - 120, y)}
+          {symbol(coil, width - 100, y, true)}
+          {wire(width - 80, y, width - 20, y)}
+        </Fragment>;
+      })}
     </svg>
   );
 }
@@ -142,7 +150,7 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
         const layout = diagram.status === "supported" ? measure(diagram.logic) : null;
         return (
           <details key={diagram.nblock} className={styles.card} open={index === 0}>
-            <summary>{diagram.nblock} · {diagram.status === "supported" ? `${diagram.coil.addr} ${diagram.coil.label}` : "원본 명령"}</summary>
+            <summary>{diagram.nblock} · {diagram.status === "supported" ? (diagram.coils ?? [diagram.coil]).map(coil => `${coil.addr} ${coil.label}`).join(", ") : "원본 명령"}</summary>
             <div className={styles.body}>
               <p className={styles.note}>{reference.additional ? "추가 검색된 근거" : "답변에서 인용한 근거"} · 참조 [{reference.label}]</p>
               {layout && diagram.status === "supported" ? (

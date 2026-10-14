@@ -1,5 +1,7 @@
 import { API_BASE_URL } from "./api";
 
+const VOICE_API_URL = process.env.NEXT_PUBLIC_VOICE_API_URL ?? API_BASE_URL;
+
 export type VoiceState = {
   phase: "connecting" | "recording" | "finishing";
   committed: string;
@@ -81,7 +83,7 @@ export class VoiceSession {
       const requestTimer = this.timer(() => this.abort.abort(), 15000);
       let response: Response;
       try {
-        response = await fetch(`${API_BASE_URL}/api/voice/sessions`, {
+        response = await fetch(`${VOICE_API_URL}/api/voice/sessions`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           credentials: "same-origin", body: "{}", signal: this.abort.signal,
         });
@@ -127,7 +129,7 @@ export class VoiceSession {
   }
 
   private connect(ticket: string): Promise<void> {
-    const url = new URL(`${API_BASE_URL}/api/voice/stream`, window.location.origin);
+    const url = new URL(`${VOICE_API_URL}/api/voice/stream`, window.location.origin);
     url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
     if (window.location.protocol === "https:" && url.protocol !== "wss:") {
       throw new Error("음성 서버 주소를 HTTPS에 맞게 설정해 주세요.");

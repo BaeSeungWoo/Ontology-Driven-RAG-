@@ -18,7 +18,7 @@ def build_ladder_diagram(block: dict[str, Any]) -> dict[str, Any]:
     }
     current = None
     stack = []
-    coil = None
+    coils = []
 
     def combine(kind, left, right):
         children = []
@@ -28,7 +28,7 @@ def build_ladder_diagram(block: dict[str, Any]) -> dict[str, Any]:
 
     for step in steps:
         op = step.get("op", "")
-        if coil is not None:
+        if coils and op not in {"WRT", "WRT.NOT"}:
             return result
         if op == "SUB":
             sub = step.get("sub_instruction") or {}
@@ -59,7 +59,7 @@ def build_ladder_diagram(block: dict[str, Any]) -> dict[str, Any]:
         if op in {"WRT", "WRT.NOT"}:
             if current is None or stack:
                 return result
-            coil = node
+            coils.append(node)
         elif op in {"RD", "RD.NOT"}:
             if current is not None:
                 return result
@@ -74,6 +74,6 @@ def build_ladder_diagram(block: dict[str, Any]) -> dict[str, Any]:
                 return result
             current = combine("series" if op.startswith("AND") else "parallel", current, node)
 
-    if current is not None and coil is not None and not stack:
-        result.update(status="supported", logic=current, coil=coil)
+    if current is not None and coils and not stack:
+        result.update(status="supported", logic=current, coil=coils[0], coils=coils)
     return result

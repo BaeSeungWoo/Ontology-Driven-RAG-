@@ -52,7 +52,7 @@ export default function AssistantMessageBubble({
     : "시간 미기록";
   const citedChunkCount = message.metadata?.used_chunks
     ? new Set(message.metadata.used_chunks.map((chunk) => chunk.index)).size
-    : getReferenceItems(message.text).length;
+    : getReferenceItems(message.text, message.metadata).length;
   const additionalLadderCount = getMessageReferenceItems({
     content: message.text,
     llm_mode: message.llmMode,
@@ -223,7 +223,7 @@ export default function AssistantMessageBubble({
                 },
               }}
             >
-              {toCitationDisplayText(message.llmMode === "cms" ? formatCmsDateTime(message.text) : message.text)}
+              {toCitationDisplayText(message.llmMode === "cms" ? formatCmsDateTime(message.text) : message.text, message.metadata)}
             </ReactMarkdown>
           </div>
         )}
