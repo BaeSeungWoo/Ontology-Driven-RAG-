@@ -29,7 +29,14 @@
       "파라미터설명서_B-64490EN_05_FS30i31i32i-B Parameter", 
       "보수설명서_B-64485EN_02_FS30i31i32i-B Maintenance", 
       "취급설명서(공통)_B-64484EN_05_FS30i31i32i-B Common_OP", 
-      "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)"
+      "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)",
+      "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p",
+      "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p",
+      "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p",
+      "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p"
     ],
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
@@ -427,7 +434,15 @@
   "M051": {
     "machine_name": "DHF8000 #2",
     "machine_ip": "172.16.10.57",
-    "document": [],
+    "document": [
+      "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p",
+      "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p",
+      "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p",
+      "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p",
+      "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p"
+    ],
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
     "machine_ver": "31i-B5"

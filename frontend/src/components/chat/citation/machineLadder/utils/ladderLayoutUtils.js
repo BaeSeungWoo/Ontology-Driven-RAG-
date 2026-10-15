@@ -11,6 +11,9 @@
 import {
     MIN_RAIL_GAP,
     CELL_WIDTH,
+    FUNCTION_WIDTH,
+    TABLE_ROW_HEIGHT,
+    TABLE_COLUMNS,
     ROW_HEIGHT,
     WIRE_OFFSET,
     JOIN_STUB,
@@ -117,7 +120,7 @@ function groupOutputs(outputs) {
     let prevKey = null;
     outputs.forEach((output) => {
         const key = JSON.stringify(output.input ?? null);
-        if (groups.length > 0 && key === prevKey) {
+        if (!output.inputs && groups.length > 0 && !groups[groups.length - 1].outputs[0].inputs && key === prevKey) {
             groups[groups.length - 1].outputs.push(output);
         } else {
             groups.push({ input: output.input, outputs: [output] });
@@ -130,8 +133,11 @@ function groupOutputs(outputs) {
 /** 이 net을 그리는 데 필요한 최소 레일 간격 - 호출부에서 화면의 모든 net 중 최대값으로 통일한다. */
 export function requiredRailGap(net) {
     const groups = groupOutputs(net.outputs || []);
-    const maxInput = Math.max(0, ...groups.map((g) => (g.input ? measure(g.input).width : 0)));
-    return Math.max(MIN_RAIL_GAP, maxInput + OUTPUT_BRANCH_GAP + CELL_WIDTH + 40);
+    const widths = groups.map(g => g.outputs[0].inputs
+        ? Math.max(0, ...g.outputs[0].inputs.map(port => measure(port.input).width)) + 48 + FUNCTION_WIDTH + CELL_WIDTH
+        : (g.input ? measure(g.input).width : 0)
+            + Math.max(...g.outputs.map(output => output.type === 'function' ? FUNCTION_WIDTH : CELL_WIDTH)));
+    return Math.max(MIN_RAIL_GAP, ...widths.map(width => width + OUTPUT_BRANCH_GAP + 40));
 }
 
 /**
@@ -142,15 +148,48 @@ export function layoutNet(net, railGap = MIN_RAIL_GAP) {
     const leftRailX = LEFT_GUTTER;
     const rightRailX = LEFT_GUTTER + railGap;
     const coilX = rightRailX - CELL_WIDTH;
-    const branchX = coilX - OUTPUT_BRANCH_GAP;
     const elements = [];
 
     const groups = groupOutputs(net.outputs || []);
     let curY = NET_PAD_Y;
 
     groups.forEach((group) => {
+        const fn = group.outputs[0];
+        if (fn.inputs) {
+            const sizes = fn.inputs.map(port => measure(port.input));
+            const x = leftRailX + Math.max(0, ...sizes.map(size => size.width)) + 48;
+            let portY = curY;
+            const ports = fn.inputs.map((port, index) => {
+                const offset = portY - curY;
+                place(port.input, leftRailX, portY, elements);
+                elements.push({ kind: 'hwire', x1: leftRailX + sizes[index].width, x2: x + 4, y: portY + WIRE_OFFSET });
+                portY += sizes[index].height;
+                return { label: port.label, offset };
+            });
+            const height = Math.max(portY - curY, (fn.operands?.length || 1) * ROW_HEIGHT);
+            elements.push({ kind: 'function', sub: fn.sub, subName: fn.subName, operands: fn.operands || [],
+                ports, x, y: curY, width: FUNCTION_WIDTH, height, wireY: curY + WIRE_OFFSET });
+            (fn.coils || []).forEach((coil, index) => {
+                const wireY = curY + WIRE_OFFSET + index * ROW_HEIGHT;
+                elements.push({ kind: 'hwire', x1: x + FUNCTION_WIDTH, x2: coilX, y: wireY, signalAddress: coil.address });
+                elements.push({ kind: 'coil', address: coil.address, symbol: coil.symbol, comment: coil.comment,
+                    negated: coil.type === 'coil_not', x: coilX, y: curY + index * ROW_HEIGHT,
+                    width: CELL_WIDTH, wireY, commentX: rightRailX + 10 });
+            });
+            curY += Math.max(height, (fn.coils?.length || 0) * ROW_HEIGHT);
+            if (fn.table?.length) {
+                elements.push({ kind: 'data-table', x, y: curY, values: fn.table });
+                curY += Math.ceil(fn.table.length / TABLE_COLUMNS) * TABLE_ROW_HEIGHT + TABLE_ROW_HEIGHT;
+            }
+            return;
+        }
         const inputSize = group.input ? measure(group.input) : { width: 0, height: ROW_HEIGHT };
-        const groupHeight = Math.max(inputSize.height, group.outputs.length * ROW_HEIGHT);
+        const outputHeights = group.outputs.map(output => output.type === 'function'
+            ? Math.max(1, output.operands?.length || 0) * ROW_HEIGHT : ROW_HEIGHT);
+        const groupHeight = Math.max(inputSize.height, outputHeights.reduce((sum, height) => sum + height, 0));
+        const outputWidth = Math.max(...group.outputs.map(output => output.type === 'function' ? FUNCTION_WIDTH : CELL_WIDTH));
+        const outputX = rightRailX - outputWidth;
+        const branchX = outputX - OUTPUT_BRANCH_GAP;
         const mainWireY = curY + WIRE_OFFSET;
 
         if (group.input) place(group.input, leftRailX, curY, elements);
@@ -158,22 +197,26 @@ export function layoutNet(net, railGap = MIN_RAIL_GAP) {
 
         const multi = group.outputs.length > 1;
         // 입력 끝 -> (분기점 또는) 첫 코일
-        elements.push({ kind: 'hwire', x1: inputEndX, x2: multi ? branchX : coilX, y: mainWireY });
+        elements.push({ kind: 'hwire', x1: inputEndX, x2: multi ? branchX : outputX, y: mainWireY });
 
+        let rowY = curY;
+        let lastWireY = mainWireY;
         group.outputs.forEach((output, i) => {
-            const rowY = curY + i * ROW_HEIGHT;
             const wireY = rowY + WIRE_OFFSET;
+            const x = output.type === 'function' ? rightRailX - FUNCTION_WIDTH : coilX;
             if (multi) {
-                elements.push({ kind: 'hwire', x1: branchX, x2: coilX, y: wireY });
+                elements.push({ kind: 'hwire', x1: branchX, x2: x, y: wireY });
             }
             if (output.type === 'function') {
                 elements.push({
                     kind: 'function',
+                    sub: output.sub,
                     subName: output.subName || `SUB${output.sub ?? ''}`,
                     operands: output.operands || [],
-                    x: coilX,
+                    x,
                     y: rowY,
-                    width: CELL_WIDTH,
+                    width: FUNCTION_WIDTH,
+                    height: outputHeights[i],
                     wireY,
                 });
             } else {
@@ -190,10 +233,11 @@ export function layoutNet(net, railGap = MIN_RAIL_GAP) {
                     commentX: rightRailX + 10,
                 });
             }
+            lastWireY = wireY;
+            rowY += outputHeights[i];
         });
 
         if (multi) {
-            const lastWireY = curY + (group.outputs.length - 1) * ROW_HEIGHT + WIRE_OFFSET;
             elements.push({ kind: 'vwire', x: branchX, y1: mainWireY, y2: lastWireY });
         }
 

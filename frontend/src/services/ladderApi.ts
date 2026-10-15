@@ -49,10 +49,16 @@ export async function readTestSignals(addresses: string[], signal: AbortSignal) 
 export type MachineLadderNode = {
   type: string; address?: string; symbol?: string; comment?: string;
   children?: MachineLadderNode[]; input?: MachineLadderNode | null;
-  sub?: number; subName?: string; operands?: { kind: string; value: string | number }[];
+  inputs?: { label: string; input: MachineLadderNode }[];
+  table?: number[]; coils?: MachineLadderNode[];
+  sub?: number; subName?: string; operands?: { kind: string; value: string | number; symbol?: string }[];
 };
 export type MachineLadderNet = { netIndex: number; program: string; outputs: MachineLadderNode[]; warnings: string[] };
-export type MachineLadderDocument = { ladders: { name: string; label: string; nets: MachineLadderNet[] }[]; meta: { source: string; machine_code: string; filename: string } };
+export type MachineLadderDocument = {
+  symbols?: Record<string, { symbol: string; short: string; comment: string }>;
+  ladders: { name: string; label: string; nets: MachineLadderNet[] }[];
+  meta: { source: string; machine_code: string; filename: string };
+};
 
 // 접점과 출력 코일을 함께 순회하므로 클릭한 위치에 관계없이 같은 주소를 찾는다.
 export function getMachineNodeSignals(nodes: MachineLadderNode[]) {
@@ -60,6 +66,8 @@ export function getMachineNodeSignals(nodes: MachineLadderNode[]) {
   const walk = (node: MachineLadderNode) => {
     if (node.address && /^[GFYXRAKTCD]\d{1,5}\.[0-7]$/.test(node.address)) addresses.add(node.address);
     node.children?.forEach(walk);
+    node.inputs?.forEach(port => walk(port.input));
+    node.coils?.forEach(walk);
     if (node.input) walk(node.input);
   };
   nodes.forEach(walk);
@@ -72,5 +80,19 @@ export function getMachineSignals(nets: MachineLadderNet[]) {
 
 export async function getTestLadder(signal: AbortSignal) {
   const response = await axios.get<MachineLadderDocument>("/local-api/ladder/document", { signal, timeout: 15000 });
-  return response.data;
+  const document = response.data;
+  const addComment = (node: MachineLadderNode) => {
+    const symbol = node.address ? document.symbols?.[node.address] : undefined;
+    // LAD 파일에 따라 설명이 short 또는 comment 열에 저장된다.
+    node.comment = node.comment?.trim() || symbol?.comment?.trim() || symbol?.short?.trim() || "";
+    node.operands?.forEach(operand => {
+      if (operand.kind === "address") operand.symbol = document.symbols?.[String(operand.value)]?.symbol || "";
+    });
+    node.children?.forEach(addComment);
+    node.inputs?.forEach(port => addComment(port.input));
+    node.coils?.forEach(addComment);
+    if (node.input) addComment(node.input);
+  };
+  document.ladders.forEach(program => program.nets.forEach(net => net.outputs.forEach(addComment)));
+  return document;
 }
