@@ -7,8 +7,13 @@
 .viewport { max-width: 100%; overflow: auto; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: var(--chat-pane-bg); }
 .viewport svg { display: block; max-width: none; }
 .wire { stroke: var(--chat-muted-text); stroke-width: 2.2; fill: none; stroke-linecap: round; }
+.poweredWire { stroke: #16803b; filter: drop-shadow(0 0 2px #16803b80); }
 .address { fill: var(--chat-text-color); font: 600 13px ui-monospace, monospace; text-anchor: middle; }
 .label { fill: var(--chat-muted-text); font: 11px ui-monospace, monospace; text-anchor: middle; }
+.description { fill: var(--chat-muted-text); font: 11px ui-monospace, monospace; text-anchor: start; }
+.signalBackground { fill: #dcfce7; }
+.energized .wire { stroke: #16803b; }
+.energized .coil { fill: #16803b; }
 .instructions { margin-top: 10px; font-size: 12px; }
 .instructions summary { cursor: pointer; padding: 4px 0; }
 .instructions pre { overflow: auto; max-height: 260px; margin: 8px 0; line-height: 1.8; white-space: pre; }

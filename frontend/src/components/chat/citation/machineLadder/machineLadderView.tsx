@@ -174,8 +174,10 @@ export default function MachineLadderView({ relatedAddresses, headerHost }: {
             <span>진한 주황: 현재 탐색 위치 · 옅은 점선: 다른 회로의 같은 주소. 출력은 다른 접점 조건에도 영향을 받습니다.</span>
             <button type="button" onClick={() => setSelectedAddress("")}>탐색 닫기</button>
             <div className={styles.ladderUsageList}>{usages.map(location => {
-              const written = location.net.outputs.some(output => output.address === selectedAddress);
-              const read = location.net.outputs.some(output => output.input && getMachineNodeSignals([output.input]).includes(selectedAddress));
+              const written = location.net.outputs.some(output => output.address === selectedAddress || output.coils?.some(coil => coil.address === selectedAddress));
+              const read = location.net.outputs.some(output => getMachineNodeSignals([
+                ...(output.input ? [output.input] : []), ...(output.inputs?.map(port => port.input) || []),
+              ]).includes(selectedAddress));
               return <button type="button" key={`${location.programIndex}:${location.net.netIndex}`}
                 aria-pressed={focusedNet?.programIndex === location.programIndex && focusedNet.netIndex === location.net.netIndex}
                 onClick={() => jump(location)}>{location.label} · NET {location.net.netIndex} · {read ? "접점 사용" : ""}{read && written ? " / " : ""}{written ? "출력" : ""}

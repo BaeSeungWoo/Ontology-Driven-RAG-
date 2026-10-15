@@ -1,7 +1,7 @@
 'use client';
 
 import { layoutNet } from '../utils/ladderLayoutUtils.js';
-import { LABEL_FONT_SIZE, WIRE_OFFSET } from '../constants/ladderLayoutConstants.js';
+import { LABEL_FONT_SIZE, WIRE_OFFSET, ROW_HEIGHT, TABLE_COLUMNS, TABLE_ROW_HEIGHT } from '../constants/ladderLayoutConstants.js';
 
 // 색상은 ladderViewLayout.css의 CSS 변수에서 가져온다(라이트/다크 테마 전환은
 // html[data-theme]에 따라 CSS가 처리). SVG 속성(stroke="var(..)")은 브라우저마다
@@ -138,16 +138,45 @@ function CoilGlyph({ el, on, powerIn, displayMode, glowId, selKey, selected, onS
 function FunctionGlyph({ el }) {
     const boxX = el.x + 4;
     const boxY = el.wireY - 14;
+    const boxHeight = el.height - 20;
+    const dividerX = boxX + 76;
+    const operands = el.operands || [];
+    const subLabel = el.sub == null ? el.subName : `SUB${el.sub}`;
     return (
         <g className="ladder-function">
-            <title>{[el.subName, ...(el.operands || []).map(String)].join(' ')}</title>
+            <title>{[subLabel, el.subName, ...operands.map(operand => [operand.value, operand.symbol].filter(value => value !== undefined && value !== '').join(' · '))].join(' ')}</title>
             <line x1={el.x} y1={el.wireY} x2={boxX} y2={el.wireY} style={{ stroke: WIRE_COLOR }} strokeWidth={2} />
-            <rect x={boxX} y={boxY} width={el.width - 8} height={44} rx={6} style={{ fill: COIL_OFF_FILL, stroke: SYMBOL_STROKE }} strokeWidth={1.5} />
+            <rect x={boxX} y={boxY} width={el.width - 8} height={boxHeight} rx={6} style={{ fill: COIL_OFF_FILL, stroke: SYMBOL_STROKE }} strokeWidth={1.5} />
+            {el.ports?.map(port => <text key={port.label} x={boxX - 8} y={el.wireY + port.offset - 8}
+                textAnchor="end" fontSize={LABEL_FONT_SIZE} className="ladder-func-label">{port.label}</text>)}
+            <line x1={boxX + el.width - 8} y1={el.wireY} x2={el.x + el.width} y2={el.wireY} style={{ stroke: WIRE_COLOR }} strokeWidth={2} />
             <text x={boxX + 8} y={boxY + 16} fontSize={LABEL_FONT_SIZE} className="ladder-func-label">
-                {el.subName}
+                {subLabel}
             </text>
+            {el.subName !== subLabel && <text x={boxX + 8} y={boxY + 34} fontSize={LABEL_FONT_SIZE} className="ladder-func-label">{el.subName}</text>}
+            {operands.length > 0 && <line x1={dividerX} y1={boxY} x2={dividerX} y2={boxY + boxHeight} style={{ stroke: SYMBOL_STROKE }} />}
+            {operands.map((operand, index) => <g key={index}>
+                <text x={dividerX + 8} y={boxY + 16 + index * ROW_HEIGHT} fontSize={LABEL_FONT_SIZE} className="ladder-addr-label">{String(operand.value)}</text>
+                {operand.symbol && <text x={dividerX + 8} y={boxY + 34 + index * ROW_HEIGHT} fontSize={LABEL_FONT_SIZE} className="ladder-symbol-label">{operand.symbol}</text>}
+            </g>)}
         </g>
     );
+}
+
+function FunctionDataTable({ el }) {
+    return <g className="ladder-data-table" aria-label="CODB 변환 데이터 표">
+        {Array.from({ length: Math.ceil(el.values.length / TABLE_COLUMNS) }, (_, row) => (
+            <g key={row}>
+                <text x={el.x} y={el.y + (row + 1) * TABLE_ROW_HEIGHT} fontSize={LABEL_FONT_SIZE} className="ladder-symbol-label">
+                    {String(row * TABLE_COLUMNS).padStart(3, '0')}
+                </text>
+                {el.values.slice(row * TABLE_COLUMNS, (row + 1) * TABLE_COLUMNS).map((value, column) => (
+                    <text key={column} x={el.x + 56 + column * 88} y={el.y + (row + 1) * TABLE_ROW_HEIGHT}
+                        fontSize={LABEL_FONT_SIZE} className="ladder-addr-label">{value < 0 ? '-' : ''}{String(Math.abs(value)).padStart(5, '0')}</text>
+                ))}
+            </g>
+        ))}
+    </g>;
 }
 
 // 통전 여부: a접점=비트 1일 때, b접점(NOT)=비트 0일 때 통전(LADDER-III 온라인 표시와 동일).
@@ -206,7 +235,13 @@ function computePower(elements, energizedSet, knownSet, leftRailX) {
                     && Math.abs(v.x - (el.kind === 'hwire' ? el.x1 : el.x)) < 0.5
                     && y >= v.y1 - 0.5 && y <= v.y2 + 0.5);
                 if (boosted) p = true;
+                // CODB 출력은 RST/ACT 접점만으로 계산하지 않고 실제 코일 수신값을 사용한다.
+                if (el.signalAddress) p = knownSet.has(el.signalAddress) && energizedSet.has(el.signalAddress);
                 powered[i] = p;
+                if (el.kind === 'function' && el.ports) {
+                    p = false;
+                    pts.push({ x: el.x + el.width, p });
+                }
                 if (el.kind === 'contact') {
                     p = p && isOn(el, energizedSet, knownSet);
                     pts.push({ x: el.x + el.width, p });
@@ -307,6 +342,8 @@ export default function LadderNetSvg({
                         );
                     case 'function':
                         return <FunctionGlyph key={i} el={el} />;
+                    case 'data-table':
+                        return <FunctionDataTable key={i} el={el} />;
                     case 'hwire':
                         return <Wire key={i} x1={el.x1} y1={el.y} x2={el.x2} y2={el.y} on={powered[i]} glowId={glowId} />;
                     case 'vwire':

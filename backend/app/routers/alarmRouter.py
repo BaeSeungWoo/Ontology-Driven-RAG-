@@ -5,6 +5,7 @@ from typing import Literal
 from fastapi import APIRouter, HTTPException
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
+from app.routers.explanation_stream import explanation_response
 
 alarmRouter = APIRouter(prefix="/api/alarms", tags=["alarms"])
 
@@ -70,7 +71,7 @@ async def explain_alarm(req: AlarmRequest):
     except Exception:
         raise HTTPException(502, "매뉴얼 검색에 실패했습니다. 검색 DB와 임베딩 서버 연결을 확인하세요.")
     if not sources:
-        return {"answer": "이 장비에 연결된 매뉴얼에서 검색 근거를 찾지 못했습니다. 장비 코드와 매뉴얼 등록 상태를 확인해 주세요. 근거 없이 알람 원인이나 조치를 단정하지 않겠습니다.", "sources": []}
+        return explanation_response(answer="이 장비에 연결된 매뉴얼에서 검색 근거를 찾지 못했습니다. 장비 코드와 매뉴얼 등록 상태를 확인해 주세요. 근거 없이 알람 원인이나 조치를 단정하지 않겠습니다.", sources=[])
     messages = [{"role": "system", "content": (
         "당신은 CNC 알람 해석을 돕는 한국어 기술 도우미입니다. 제공된 매뉴얼 검색 근거에 기반해 "
         "알람의 의미, 가능한 원인, 확인 순서, 조치 방법을 설명하세요. 후속 질문에는 이전 대화를 참고하세요. "
@@ -86,15 +87,7 @@ async def explain_alarm(req: AlarmRequest):
           + "\n\n매뉴얼 검색 근거:\n" + json.dumps(sources, ensure_ascii=False)}]
     messages.extend(turn.model_dump() for turn in req.history)
     messages.append({"role": "user", "content": req.question})
-    llm = OpenAILLM(config)
-    try:
-        answer = await llm.ainvoke(messages)
-        if not answer.strip():
-            raise HTTPException(502, "알람 분석 답변이 비어 있습니다. 다시 시도해 주세요.")
-        return {"answer": answer, "sources": sources}
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(502, "vLLM 알람 분석 요청에 실패했습니다. 모델 연결을 확인하세요.")
-    finally:
-        await llm.client.close()
+    return explanation_response(
+        OpenAILLM(config), messages, sources=sources,
+        error_message="vLLM 알람 분석 요청에 실패했습니다. 모델 연결을 확인하세요.",
+    )

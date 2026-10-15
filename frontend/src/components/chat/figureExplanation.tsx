@@ -4,8 +4,7 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import axios from "axios";
-import api from "@/services/api";
+import { streamExplanation } from "@/services/explanationApi";
 import styles from "./figureExplanation.module.css";
 
 type Turn = { role: "user" | "assistant"; content: string };
@@ -17,6 +16,7 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
   onStatusChange?: (id: string, status: FigureStatus) => void;
 }) {
   const [turns, setTurns] = useState<Turn[]>([]);
+  const [partial, setPartial] = useState<Turn | null>(null);
   const [question, setQuestion] = useState("");
   const [busy, setBusy] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -35,20 +35,23 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
     controller.current = request;
     setBusy(true);
     setError(null);
+    setPartial(null);
     setFailedQuestion(text);
     try {
-      const { data } = await api.post<{ answer: string }>("/api/figures/explain", {
+      const data = await streamExplanation("/api/figures/explain", {
         model: "vllm_config", message_id: messageId, asset_path: assetPath, question: text,
         history: historyRef.current.slice(-6).map(turn => ({ ...turn, content: turn.content.slice(0, 4000) })),
-      }, { signal: request.signal, timeout: 120_000 });
+      }, request.signal, result => {
+        if (!request.signal.aborted) setPartial({ role: "assistant", content: result.answer });
+      });
       if (request.signal.aborted) return;
       historyRef.current = [...historyRef.current, { role: "user", content: text }, { role: "assistant", content: data.answer }];
       setTurns(historyRef.current);
+      setPartial(null);
       setQuestion("");
     } catch (cause) {
       if (request.signal.aborted) return;
-      const detail = axios.isAxiosError(cause) ? cause.response?.data?.detail : undefined;
-      setError(typeof detail === "string" ? detail : "그림 설명을 불러오지 못했습니다. 다시 시도해 주세요.");
+      setError(cause instanceof Error ? cause.message : "그림 설명을 불러오지 못했습니다. 다시 시도해 주세요.");
     } finally {
       if (controller.current === request) {
         controller.current = null;
@@ -67,7 +70,11 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [turns, busy, error]);
+  }, [turns, partial, busy, error]);
+
+  const displayedTurns: Turn[] = partial
+    ? [...turns, { role: "user", content: failedQuestion }, partial]
+    : turns;
 
   return (
     <div className={styles.layout}>
@@ -75,13 +82,13 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
       <section className={styles.panel} aria-label="그림 설명 대화">
         <strong className={styles.title}>그림 풀어서 설명</strong>
         <div className={styles.messages} ref={scrollRef} aria-live="polite">
-          {turns.map((turn, index) => index === 0 && turn.content === INITIAL_QUESTION ? null : (
+          {displayedTurns.map((turn, index) => index === 0 && turn.content === INITIAL_QUESTION ? null : (
             <div key={index} className={turn.role === "user" ? styles.question : styles.answer}>
               <ReactMarkdown remarkPlugins={[remarkGfm]}>{turn.content}</ReactMarkdown>
             </div>
           ))}
-          {busy && turns.length > 0 && <div className={styles.question}>{failedQuestion}</div>}
-          {busy && (
+          {busy && !partial && turns.length > 0 && <div className={styles.question}>{failedQuestion}</div>}
+          {busy && !partial && (
             <div className={styles.loading} role="status">
               <div className={styles.loadingLabel}>
                 <span className={styles.spinner} aria-hidden="true" />

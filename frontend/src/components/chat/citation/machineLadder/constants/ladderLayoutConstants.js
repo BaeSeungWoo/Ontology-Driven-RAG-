@@ -2,6 +2,9 @@
 // 전부 이 상수만 바꾸면 전체 그림 크기가 조정된다.
 export const MIN_RAIL_GAP = 900;      // 좌/우 레일 사이 최소 간격(입력 회로가 길면 자동으로 늘어남)
 export const CELL_WIDTH = 68;         // 접점/코일 한 칸 폭
+export const FUNCTION_WIDTH = 240;    // SUB 번호/명령명과 인수를 나란히 표시하는 함수 블록 폭
+export const TABLE_ROW_HEIGHT = 24;
+export const TABLE_COLUMNS = 3;
 export const ROW_HEIGHT = 64;         // 한 행 높이(위: 주소, 가운데: 선, 아래: 심볼)
 export const WIRE_OFFSET = 28;        // 행 상단 -> 가로선까지 거리
 export const JOIN_STUB = 10;          // parallel 진입/진출 세로 연결바 여유폭

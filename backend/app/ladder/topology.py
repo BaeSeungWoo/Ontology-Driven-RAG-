@@ -16,6 +16,8 @@
   함수명령(SUB n)         : WRT와 동일하게 top을 peek해서 enable 입력으로 사용, 뒤따르는
                            param/data 셀을 피연산자로 수집. END1/END2/END는 회로 로직이
                            없으므로 건너뛴다.
+  CODB(SUB27)            : RST/ACT 조건 2개를 소비하고 함수 결과를 push한다.
+                           뒤따르는 WRT는 함수 출력이며 data 셀은 별도 표로 보존한다.
 
 노드는 매번 새 dict를 만들어서 반환한다(기존 노드를 제자리에서 수정하지 않음) - 그래야
 WRT 시점에 top을 참조만 잡아도 이후 AND/OR가 "새 노드"를 만들어 쌓을 뿐 이미 내보낸
@@ -138,6 +140,8 @@ def build_net(
             elif op in ("WRT", "WRT.NOT"):
                 if not stack:
                     warnings.append(f"step {step.index}: {op} - 빈 스택에서 호출")
+                elif stack[-1].get("sub") == 27:
+                    stack[-1]["coils"].append(_coil_node(step, None, symbol_map))
                 else:
                     outputs.append(_coil_node(step, stack[-1], symbol_map))
 
@@ -153,6 +157,27 @@ def build_net(
                 while j < n and steps[j].kind in ("param", "data"):
                     operands.append(_operand_value(steps[j]))
                     j += 1
+                if step.sub == 27:
+                    # LAD는 param/data 셀로 구분되지만 LST는 숫자를 모두 data로 읽는다.
+                    # CODB의 고정 인수 4개 뒤부터 변환 표 데이터이다.
+                    if len(stack) < 2:
+                        warnings.append(f"step {step.index}: CODB - RST/ACT 입력 조건 2개 미만")
+                    conditions = stack[-2:]
+                    del stack[-len(conditions):]
+                    function = {
+                        "type": "function", "sub": 27, "subName": step.sub_name,
+                        "inputs": [
+                            {"label": label, "input": condition}
+                            for label, condition in zip(("RST", "ACT") if len(conditions) == 2 else ("ACT",), conditions)
+                        ],
+                        "operands": operands[:4],
+                        "table": [item["value"] for item in operands[4:]],
+                        "coils": [],
+                    }
+                    outputs.append(function)
+                    stack.append(function)
+                    i = j
+                    continue
                 input_node = stack[-1] if stack else None
                 if input_node is None:
                     warnings.append(

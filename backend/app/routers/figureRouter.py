@@ -6,6 +6,7 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field
+from app.routers.explanation_stream import explanation_response
 from starlette.concurrency import run_in_threadpool
 
 from app.database import database
@@ -95,15 +96,7 @@ async def explain_figure(req: FigureRequest, request: Request):
     ]}]
     messages.extend(turn.model_dump() for turn in req.history)
     messages.append({"role": "user", "content": req.question})
-    llm = OpenAILLM(config)
-    try:
-        answer = await llm.ainvoke(messages)
-        if not answer.strip():
-            raise HTTPException(502, "그림 설명이 비어 있습니다. 다시 시도해 주세요.")
-        return {"answer": answer}
-    except HTTPException:
-        raise
-    except Exception:
-        raise HTTPException(502, "Qwen3-VL 그림 설명 요청에 실패했습니다. 모델 연결을 확인하고 다시 시도해 주세요.")
-    finally:
-        await llm.client.close()
+    return explanation_response(
+        OpenAILLM(config), messages,
+        error_message="Qwen3-VL 그림 설명 요청에 실패했습니다. 모델 연결을 확인하고 다시 시도해 주세요.",
+    )
