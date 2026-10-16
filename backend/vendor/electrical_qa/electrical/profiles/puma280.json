@@ -1,0 +1,11 @@
+{
+  "machine": "Doosan PUMA280 lathe, FANUC",
+  "style": "puma",
+  "pdf": "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf",
+  "engine": {
+    "func_pages": 2,
+    "rev_pages": 2,
+    "scale": 4.0,
+    "flags": []
+  }
+}

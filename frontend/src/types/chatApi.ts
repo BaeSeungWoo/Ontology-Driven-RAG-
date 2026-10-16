@@ -12,6 +12,7 @@ export type AskRequest = {
   personaType: PersonaType;
   restoreMemory?: boolean;
   onChunk?: (chunk: string) => void;
+  onProgress?: (message: string, detail?: string) => void;
   onRetry?: (attempt: number) => void;
 };
 
@@ -29,6 +30,11 @@ export type ChatChunk = {
 };
 
 export type ChatMetadata = Record<string, unknown> & {
+  progress_history?: { message: string; detail?: string; at: number }[];
+  progress_started_at?: number;
+  progress_updated_at?: number;
+  progress_finished_at?: number;
+  progress_message?: string;
   elapsed_ms?: number;
   prompt_name?: string;
   images?: string[];

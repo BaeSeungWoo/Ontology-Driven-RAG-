@@ -30,13 +30,13 @@ import personaStyles from "./persona.module.css";
 
 type HistorySessionMeta = Pick<
   HistoryItem,
-  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType"
+  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType" | "targetMessageId"
 >;
 
 const PERSONA_CARDS = {
   operator: { icon: HardHat, description: "장비 조작과 안전 점검을 매뉴얼로 확인하세요.", mode: "rag" },
   maintenance: { icon: Wrench, description: "래더와 신호를 살펴 고장 원인을 찾아보세요.", mode: "ladder" },
-  engineer: { icon: Cpu, description: "설비 알람과 기술 자료를 함께 분석하세요.", mode: "cms" },
+  engineer: { icon: Cpu, description: "전기도면으로 고장 원인과 부품·배선을 확인하세요.", mode: "electrical" },
   manager: { icon: ChartNoAxesCombined, description: "가동 현황과 운영 지표를 한눈에 확인하세요.", mode: "cms" },
 } satisfies Record<PersonaType, { icon: typeof HardHat; description: string; mode: LlmMode }>;
 
@@ -55,6 +55,7 @@ export default function Chat() {
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
   const [isSending, setIsSending] = useState(false);
@@ -110,6 +111,7 @@ export default function Chat() {
     setSelectedCitation(null);
     isSessionResetPendingRef.current = false;
     resetChatState();
+    setMessageJump(null);
   };
 
   const handleSettingsOpen = () => {
@@ -178,6 +180,7 @@ export default function Chat() {
   // In: sessionId, sessionMeta / Out: 세션 메시지 로드 및 설정 state 갱신
   const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
     if (sendingRef.current) return;
+    setMessageJump(null);
     setIsCitationCollapsed(false);
     setRecommendationsEnabled(false);
     setRecommendationSendError("");
@@ -206,13 +209,14 @@ export default function Chat() {
 
     const loaded = await loadSessionMessages(sessionId, sessionMeta?.promptName);
     if (loaded) {
+      if (sessionMeta?.targetMessageId) setMessageJump({ messageId: sessionMeta.targetMessageId });
       const lastAnswer = loaded.findLast(message => message.role === "assistant");
       const savedPersona = sessionMeta?.personaType ?? lastAnswer?.metadata?.persona_type;
       const mode = sessionMeta?.llmMode ?? lastAnswer?.llm_mode ?? selectedLlmMode;
       const intent = lastAnswer?.metadata?.intent as { type?: string } | undefined;
       const restoredPersona = PERSONA_OPTIONS.find(option => option.value === savedPersona)?.value
         ?? (mode === "rag" ? "operator" : mode === "ladder" ? "maintenance"
-          : mode === "cms" ? (intent?.type === "concept_explanation" ? "manager"
+          : mode === "electrical" ? "engineer" : mode === "cms" ? (intent?.type === "concept_explanation" ? "manager"
             : intent?.type === "root_cause_analysis" ? "engineer"
             : selectedPersonaType === "manager" ? "manager" : "engineer") : selectedPersonaType);
       isHistorySessionSyncingRef.current = true;
@@ -290,10 +294,10 @@ export default function Chat() {
   const isWelcome = messages.length === 0 && selectedSessionId === null && !isSessionLoading;
   const lastUserMessage = messages.findLast(message => message.role === "user");
   const lastAnswerMessage = messages.findLast(message => message.role === "assistant");
-  const recommendationSource = isWelcome ? ({ operator: "manual", maintenance: "ladder", engineer: "cms_engineer", manager: "cms_manager" } as const)[selectedPersonaType]
+  const recommendationSource = isWelcome ? ({ operator: "manual", maintenance: "ladder", engineer: "electrical", manager: "cms_manager" } as const)[selectedPersonaType]
     : selectedLlmMode === "ladder" && selectedPersonaType === "maintenance"
     ? "ladder" : selectedLlmMode === "rag" && selectedPersonaType === "operator" ? "manual"
-    : selectedLlmMode === "cms" && selectedPersonaType === "engineer" ? "cms_engineer"
+    : selectedLlmMode === "electrical" ? "electrical"
     : selectedLlmMode === "cms" && selectedPersonaType === "manager" ? "cms_manager" : null;
   const prepareRecommendations = isWelcome || (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
     !isSending && !isLoading && !isSessionLoading && !error &&
@@ -398,6 +402,7 @@ export default function Chat() {
             <div className={styles.chatAnswerSplit}>
               <div className={styles.chatAnswerMain}>
                 <Answer
+                  messageJump={messageJump}
                   canExplainFigure={selectedLlmModel === "vllm_config"}
                   recommendations={messages.length === 0 ? recommendations : null}
                   messages={messages}

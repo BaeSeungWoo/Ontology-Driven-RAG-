@@ -45,7 +45,7 @@ export async function askApi(request: AskRequest): Promise<AskResponse> {
     try {
       return await askOnce({ ...request, restoreMemory: request.restoreMemory || attempt > 0 });
     } catch (error) {
-      if (attempt >= 2 || !(error instanceof TypeError || error instanceof RetryableChatError)) {
+      if (request.llmMode === "electrical" || attempt >= 2 || !(error instanceof TypeError || error instanceof RetryableChatError)) {
         throw error;
       }
       request.onRetry?.(attempt + 1);
@@ -62,6 +62,7 @@ async function askOnce({
   personaType,
   restoreMemory = false,
   onChunk,
+  onProgress,
 }: AskRequest): Promise<AskResponse> {
   const controller = new AbortController();
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined;
@@ -72,9 +73,9 @@ async function askOnce({
         operation,
         new Promise<never>((_, reject) => {
           timer = setTimeout(() => {
-            reject(new RetryableChatError("2분 동안 서버 응답이 없어 연결을 중단했습니다."));
+            reject(new RetryableChatError(llmMode === "electrical" ? "전기도면 QA 응답 제한시간을 초과했습니다." : "2분 동안 서버 응답이 없어 연결을 중단했습니다."));
             controller.abort();
-          }, 120_000);
+          }, llmMode === "electrical" ? 1_860_000 : 120_000);
         }),
       ]);
     } finally {
@@ -93,7 +94,7 @@ async function askOnce({
         session_id: String(sessionId),
         question,
         mode: llmMode,
-        machine_code: llmMode === "cms" ? CMS_MACHINE_CODE : undefined,
+        machine_code: (llmMode === "cms" || llmMode === "electrical") ? CMS_MACHINE_CODE : undefined,
         prompt_id: "tech_expert",
         persona_type: personaType,
         restore_memory: restoreMemory,
@@ -101,6 +102,10 @@ async function askOnce({
     }));
 
     if (!response.ok) {
+      if (llmMode === "electrical") {
+        const detail = await response.json().catch(() => null);
+        throw new Error(typeof detail?.detail === "string" ? detail.detail : `전기도면 QA 요청 실패: ${response.status}`);
+      }
       if ([408, 429, 500, 502, 503, 504].includes(response.status)) {
         throw new RetryableChatError(`서버 연결 실패: ${response.status}`);
       }
@@ -124,22 +129,33 @@ async function askOnce({
 
       const chunk = decoder.decode(value, { stream: true });
 
-      // 기능: 첫 번째 빈 줄 전까지는 metadata 프레임으로 처리하고 이후부터 답변 토큰으로 흘려보낸다.
-      // 목적: 사용자에게는 답변만 스트리밍하면서 내부적으로 metadata를 보존한다.
+      // 진행·오류 프레임을 먼저 처리하고, METADATA 이후의 내용만 답변으로 전달한다.
       if (metadataMode) {
         pending += chunk;
-        const splitIndex = pending.indexOf("\n\n");
-
-        if (splitIndex >= 0) {
-          metadataRaw += pending.slice(0, splitIndex + 2);
-          const rest = pending.slice(splitIndex + 2);
-          pending = "";
-          metadataMode = false;
-
-          if (rest) {
-            answerText += rest;
-            onChunk?.(rest);
+        let splitIndex: number;
+        while ((splitIndex = pending.indexOf("\n\n")) >= 0) {
+          const frame = pending.slice(0, splitIndex);
+          pending = pending.slice(splitIndex + 2);
+          if (frame.startsWith("PROGRESS:")) {
+            const message: unknown = JSON.parse(frame.slice("PROGRESS:".length));
+            if (typeof message === "string") onProgress?.(message);
+            else if (message && typeof message === "object" && "message" in message && typeof message.message === "string") {
+              onProgress?.(message.message, "detail" in message && typeof message.detail === "string" ? message.detail : undefined);
+            }
+            continue;
           }
+          if (frame.startsWith("ERROR:")) {
+            const message: unknown = JSON.parse(frame.slice("ERROR:".length));
+            throw new Error(typeof message === "string" ? message : "전기도면 QA 처리에 실패했습니다.");
+          }
+          metadataRaw = frame;
+          metadataMode = false;
+          if (pending) {
+            answerText += pending;
+            onChunk?.(pending);
+          }
+          pending = "";
+          break;
         }
         continue;
       }
@@ -172,7 +188,7 @@ export async function createSession(
 ): Promise<CreateSessionResponse> {
   const response = await api.post<CreateSessionResponse>("/api/history/newSession", {
     ...payload,
-    machine_code: payload.llm_mode === "cms" ? CMS_MACHINE_CODE : undefined,
+    machine_code: (payload.llm_mode === "cms" || payload.llm_mode === "electrical") ? CMS_MACHINE_CODE : undefined,
   });
   return response.data;
 }

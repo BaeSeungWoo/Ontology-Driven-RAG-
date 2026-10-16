@@ -7,7 +7,7 @@
 
 export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
-export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms" | "paddleocr" | "repairHistory";
+export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms" | "paddleocr" | "repairHistory" | "electrical";
 
 export type LlmModelOption = {
   value: LlmModel;
@@ -31,13 +31,14 @@ export const LLM_MODE_OPTIONS: LlmModeOption[] = [
   { value: "base", label: "Base" },
   { value: "rag", label: "RAG" },
   { value: "repairHistory", label: "RAG + 수리 사례" },
-  { value: "paddleocr", label: "OCR 비교 · 새 OCR" },
+  // { value: "paddleocr", label: "OCR 비교 · 새 OCR" },
   // { value: "graph", label: "Graph" },
   // { value: "chroma", label: "Chroma" },
   // { value: "faiss", label: "FAISS" },
   // { value: "kg", label: "KG" },
   { value: "ladder", label: "Ladder" },
   { value: "cms", label: "CMS" },
+  { value: "electrical", label: "전기도면 고장진단 QA" },
   // { value: "multimodal", label: "MultiModal" },
   // { value: "judge", label: "Judge" },
 ];

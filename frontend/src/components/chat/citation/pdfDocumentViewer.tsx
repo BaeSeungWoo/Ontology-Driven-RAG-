@@ -5,7 +5,7 @@ import type { ResolvedDocument } from "@/types/chatApi";
 import { findHighlightItemIndexes } from "./pdfHighlightMatcher";
 import styles from "./citation.module.css";
 
-type PdfDocumentViewerProps = {
+export type PdfDocumentViewerProps = {
   document: ResolvedDocument;
   pageLabel: string | null;
   chunkText: string;
@@ -13,6 +13,7 @@ type PdfDocumentViewerProps = {
   onClose?: () => void;
   variant?: "modal" | "panel" | "embedded";
   isUpdating?: boolean;
+  answerEvidenceText?: string;
 };
 
 type HighlightRect = {
@@ -38,6 +39,7 @@ type PdfJsModule = {
   };
   getDocument: (options: { url: string }) => {
     promise: Promise<PdfDocumentLike>;
+    destroy?: () => Promise<void>;
   };
 };
 
@@ -99,18 +101,21 @@ export default function PdfDocumentViewer({
   onClose,
   variant = "modal",
   isUpdating = false,
+  answerEvidenceText,
 }: PdfDocumentViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [pageSize, setPageSize] = useState({ width: 0, height: 0 });
   const [highlightRects, setHighlightRects] = useState<HighlightRect[]>([]);
+  const hasAnswerContext = answerEvidenceText !== undefined;
   const showLoading = isLoading || isUpdating;
 
   useEffect(() => {
     let isMounted = true;
     let renderTask: { cancel: () => void; promise: Promise<unknown> } | null = null;
     let loadedPdf: PdfDocumentLike | null = null;
+    let loadingTask: ReturnType<PdfJsModule["getDocument"]> | null = null;
 
     async function renderPage() {
       setIsLoading(true);
@@ -124,11 +129,12 @@ export default function PdfDocumentViewer({
           import.meta.url
         ).toString();
 
-        const loadingTask = pdfjs.getDocument({
+        loadingTask = pdfjs.getDocument({
           url: getPdfUrl(document.asset_url),
         });
         const pdf = await loadingTask.promise;
         loadedPdf = pdf;
+        if (!isMounted) { await pdf.destroy?.(); return; }
         const pageNumber = Math.min(getPageNumber(document), pdf.numPages);
         const page = await pdf.getPage(pageNumber);
         const viewport = page.getViewport({ scale: 1.35 });
@@ -150,6 +156,9 @@ export default function PdfDocumentViewer({
         renderTask = page.render({ canvasContext: context, viewport });
         await renderTask.promise;
 
+        // Electrical drawings are shown without automatic location highlights.
+        if (hasAnswerContext) return;
+
         const textContent = await page.getTextContent();
         const textItems = textContent.items as TextItemLike[];
         const matchedIndexes = new Set(findHighlightItemIndexes(textItems, chunkText));
@@ -163,7 +172,7 @@ export default function PdfDocumentViewer({
         if (!isMounted) return;
         if (error instanceof Error && error.name === "RenderingCancelledException") return;
         console.error("PDF.js render failed", error);
-        setLoadError("PDF 형광펜 렌더링에 실패해 기본 뷰어로 표시합니다.");
+        setLoadError("PDF 페이지를 불러오지 못해 기본 뷰어로 표시합니다.");
       } finally {
         if (isMounted) setIsLoading(false);
       }
@@ -174,11 +183,13 @@ export default function PdfDocumentViewer({
     return () => {
       isMounted = false;
       renderTask?.cancel();
-      if (typeof loadedPdf?.destroy === "function") {
-        void loadedPdf.destroy();
+      if (typeof loadingTask?.destroy === "function") {
+        void loadingTask.destroy().catch(() => {});
+      } else if (typeof loadedPdf?.destroy === "function") {
+        void loadedPdf.destroy().catch(() => {});
       }
     };
-  }, [chunkText, document]);
+  }, [chunkText, document.asset_url, document.page, hasAnswerContext]);
 
   const content = (
     <div
@@ -203,7 +214,7 @@ export default function PdfDocumentViewer({
           >
             <span aria-hidden="true">↗</span>
           </a>
-          {variant !== "embedded" && <button
+          {variant !== "embedded" && onClose && <button
             type="button"
             className={styles.pdfModalIconButton}
             onClick={onClose}
@@ -215,7 +226,7 @@ export default function PdfDocumentViewer({
         </div>
       </div>
 
-      <div className={styles.pdfViewerStage}>
+      <div className={styles.pdfViewerStage} style={hasAnswerContext ? { justifyContent: "flex-start" } : undefined}>
         {showLoading ? (
           <div className={styles.pdfViewerLoadingShade} role="status" aria-live="polite">
             <span className={styles.pdfViewerSpinner} aria-hidden="true" />
@@ -232,7 +243,8 @@ export default function PdfDocumentViewer({
         ) : (
           <div
             className={styles.pdfCanvasWrap}
-            style={{ width: pageSize.width || undefined, height: pageSize.height || undefined }}
+            style={{ width: pageSize.width || undefined, height: pageSize.height || undefined,
+              ...(hasAnswerContext ? { flexShrink: 0, marginInline: "auto" } : {}) }}
           >
             <canvas ref={canvasRef} className={styles.pdfCanvas} />
             <div className={styles.pdfHighlightLayer} aria-hidden="true">
@@ -254,11 +266,19 @@ export default function PdfDocumentViewer({
       </div>
 
       <div className={styles.pdfChunkHighlight}>
+        {hasAnswerContext ? <details>
+          <summary className={styles.pdfChunkHighlightHeader} style={{ cursor: "pointer", marginBottom: 0 }}>
+            <span>{referenceLabel}</span><strong>답변에 연결된 설명</strong>
+          </summary>
+          <p>{answerEvidenceText || "이 페이지에 직접 연결된 답변 설명이 없습니다."}</p>
+          {chunkText && <details><summary>원문 판독 보기</summary><p>{chunkText}</p></details>}
+        </details> : <>
         <div className={styles.pdfChunkHighlightHeader}>
           <span>{referenceLabel}</span>
           <strong>{highlightRects.length > 0 ? "PDF 형광펜 적용" : "선택 청크"}</strong>
         </div>
         <p>{chunkText}</p>
+        </>}
       </div>
     </div>
   );

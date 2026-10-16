@@ -5,7 +5,15 @@ import type {
   HistoryQuestionerCount,
   HistoryQuestionerPayload,
   HistoryResponse,
+  HistorySearchMode,
+  HistorySearchResponse,
 } from "@/types/historyApi";
+import type { MessageFeedback } from "@/types/chatApi";
+
+export async function searchHistory(mode: HistorySearchMode, feedback: MessageFeedback | null): Promise<HistorySearchResponse[]> {
+  const response = await api.post<HistorySearchResponse[]>("/api/history/search", { mode, feedback });
+  return response.data;
+}
 
 export async function getHistory(): Promise<HistoryResponse[]> {
   const response = await api.post<HistoryResponse[]>("/api/history/getHistory", {});

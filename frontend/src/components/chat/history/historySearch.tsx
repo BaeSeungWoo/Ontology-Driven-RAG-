@@ -1,9 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
-import { getHistory } from "@/services/historyApi";
+import { FileQuestion, Search, SlidersHorizontal, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { searchHistory } from "@/services/historyApi";
+import type { HistorySearchMode, HistorySearchResponse } from "@/types/historyApi";
+import type { MessageFeedback } from "@/types/chatApi";
 import { toHistoryItem } from "@/hooks/useHistoryPanel";
 import type { HistoryItem } from "./historyCard";
 import styles from "./history.module.css";
+
+const FEEDBACK_OPTIONS = [
+  { value: null, icon: null },
+  { value: "도움됨", icon: ThumbsUp },
+  { value: "틀림", icon: ThumbsDown },
+  { value: "근거없음", icon: FileQuestion },
+] as const;
 
 export default function HistorySearch({ onClose, onSelect }: {
   onClose: () => void;
@@ -12,7 +21,10 @@ export default function HistorySearch({ onClose, onSelect }: {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
-  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [items, setItems] = useState<HistorySearchResponse[]>([]);
+  const [mode, setMode] = useState<HistorySearchMode>("sessions");
+  const [feedback, setFeedback] = useState<MessageFeedback | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -26,19 +38,19 @@ export default function HistorySearch({ onClose, onSelect }: {
 
   useEffect(() => {
     let active = true;
-    getHistory().then(rows => {
-      if (active) setItems(rows.map(row => toHistoryItem(row, null)));
+    searchHistory(mode, feedback).then(rows => {
+      if (active) setItems(rows);
     }).catch(() => {
       if (active) setError("검색할 이력을 불러오지 못했습니다.");
     }).finally(() => {
       if (active) setIsLoading(false);
     });
     return () => { active = false; };
-  }, [retry]);
+  }, [retry, mode, feedback]);
 
   const keyword = query.trim().toLocaleLowerCase();
   const results = items.filter(item =>
-    `${item.title} ${item.questioner}`.toLocaleLowerCase().includes(keyword)
+    `${mode === "messages" ? item.question ?? item.title : item.title} ${item.questioner}`.toLocaleLowerCase().includes(keyword)
   );
 
   return (
@@ -53,15 +65,33 @@ export default function HistorySearch({ onClose, onSelect }: {
           <Search size={18} aria-hidden="true" />
           <input ref={inputRef} aria-label="제목 또는 질문자 검색" placeholder="제목 또는 질문자명으로 검색" value={query} onChange={event => setQuery(event.target.value)} />
         </label>
+        <div className={styles.searchToolbar}>
+          <p className={styles.searchCount} role="status">{isLoading ? "조회 중…" : error ? "조회 실패" : `${results.length}개의 ${mode === "sessions" ? "이력" : "질문·답변"}`}</p>
+          <button type="button" className={styles.filterButton} data-feedback={feedback ?? "전체"} data-active={feedback !== null} aria-expanded={filtersOpen} aria-controls="history-filters" onClick={() => setFiltersOpen(value => !value)}>
+            <SlidersHorizontal size={14} aria-hidden="true" /> 필터{feedback ? ` · ${feedback}` : ""}
+          </button>
+        </div>
+        <div className={styles.searchModes} role="group" aria-label="검색 결과 표시 방식">
+          {([ ["sessions", "세션별"], ["messages", "질문·답변별"] ] as const).map(([value, label]) => (
+            <button key={value} type="button" aria-pressed={mode === value} onClick={() => { if (mode !== value) { setIsLoading(true); setError(""); setMode(value); } }}>{label}</button>
+          ))}
+        </div>
+        {filtersOpen && <div id="history-filters" className={`${styles.searchModes} ${styles.feedbackFilters}`} role="group" aria-label="피드백 필터">
+          {FEEDBACK_OPTIONS.map(({ value, icon: Icon }) => (
+            <button key={value ?? "all"} type="button" data-feedback={value ?? "전체"} aria-pressed={feedback === value} onClick={() => { if (feedback !== value) { setIsLoading(true); setError(""); setFeedback(value); } }}>
+              {Icon && <Icon size={15} aria-hidden="true" />}{value ?? "전체"}
+            </button>
+          ))}
+        </div>}
         <div className={styles.searchResults}>
           {isLoading ? <p role="status">이력을 불러오는 중…</p> : error ? (
             <div role="alert">{error} <button type="button" onClick={() => { setIsLoading(true); setError(""); setRetry(value => value + 1); }}>다시 시도</button></div>
           ) : <>
-            <p className={styles.searchCount} role="status">{results.length}개의 이력</p>
             {results.map(item => (
-              <button type="button" key={item.id} className={styles.searchResult} onClick={() => onSelect(item)}>
-                <strong>{item.title}</strong>
-                <span>{item.questioner} · {item.recentAt}</span>
+              <button type="button" key={item.messageId ?? item.sessionId} className={styles.searchResult} onClick={() => onSelect({ ...toHistoryItem(item, null), targetMessageId: item.targetMessageId })}>
+                <strong>{mode === "messages" ? item.question || item.title : item.title}</strong>
+                {mode === "messages" && <span className={styles.answerPreview}>{item.answerPreview}</span>}
+                <span>{item.questioner} · {toHistoryItem({ ...item, updatedAt: item.messageCreatedAt ?? item.updatedAt }, null).recentAt}{mode === "messages" ? ` · ${item.feedback ?? "피드백 없음"}` : ""}</span>
               </button>
             ))}
             {results.length === 0 && <p>검색 결과가 없습니다.</p>}

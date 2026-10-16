@@ -15,6 +15,7 @@ import UserMessageBubble from "./userMessageBubble";
 import AssistantMessageBubble from "./assistantMessageBubble";
 
 type AnswerProps = {
+  messageJump?: { messageId: number } | null;
   canExplainFigure?: boolean;
   messages: MessageItem[];
   selectedCitation?: {
@@ -34,6 +35,7 @@ const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option
 const LLM_MODE_SET = new Set<LlmMode>(LLM_MODE_OPTIONS.map((option) => option.value));
 
 export default function Answer({
+  messageJump,
   messages,
   selectedCitation,
   onAssistantSelect,
@@ -50,6 +52,7 @@ export default function Answer({
   // =========================
   const scrollRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollRef = useRef(true);
+  const appliedJumpRef = useRef<typeof messageJump>(null);
   const [selectedAssistantMessage, setSelectedAssistantMessage] = useState<{
     id: string;
     assistantCountAtSelection: number;
@@ -210,9 +213,23 @@ export default function Answer({
   // =========================
   useEffect(() => {
     const container = scrollRef.current;
+    if (!messageJump && appliedJumpRef.current) {
+      appliedJumpRef.current = null;
+      shouldAutoScrollRef.current = true;
+    }
+    if (messageJump && appliedJumpRef.current !== messageJump) {
+      const target = container?.querySelector<HTMLElement>(`[data-message-id="${messageJump.messageId}"]`);
+      if (target) {
+        shouldAutoScrollRef.current = false;
+        appliedJumpRef.current = messageJump;
+        target.scrollIntoView({ block: "start" });
+        target.focus({ preventScroll: true });
+      }
+      return;
+    }
     if (!container || !shouldAutoScrollRef.current) return;
     container.scrollTop = container.scrollHeight;
-  }, [scrollAnchor, recommendations]);
+  }, [scrollAnchor, recommendations, messageJump]);
 
   useEffect(() => {
     onActiveAssistantChange?.(activeAssistantMessageId);
@@ -249,7 +266,7 @@ export default function Answer({
               const shouldShowGenerating = isGenerating && message.id === latestAssistantId;
 
               return (
-                <div key={message.id}>
+                <div key={message.id} data-message-id={message.id} tabIndex={-1}>
                   {showDateDivider && <ChatDateDivider createdAt={message.createdAt} />}
                   {message.role === "user" ? (
                     <UserMessageBubble message={message} />

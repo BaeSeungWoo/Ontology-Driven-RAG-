@@ -99,7 +99,7 @@ class ChatRequest(BaseModel):
 class RecommendationRequest(BaseModel):
     machine_code: str | None = None
     llm_model: Literal["ollama_config", "vllm_config"] = "ollama_config"
-    source: Literal["manual", "ladder", "cms_engineer", "cms_manager"] = "manual"
+    source: Literal["manual", "ladder", "electrical", "cms_engineer", "cms_manager"] = "manual"
     session_id: str | None = None
     question: str = Field(default="", max_length=10000)
     answer: str = Field(default="", max_length=50000)
@@ -115,7 +115,7 @@ def recommendation_machine_code(request, client_request, service):
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
         machine_code = ctx.request_machine_code
-    if request.source in {"cms_engineer", "cms_manager"}:
+    if request.source in {"cms_engineer", "cms_manager", "electrical"}:
         if request.session_id is None and ctx.is_main_server:
             machine_code = "ALL"
         machine_code = cms_machine_code(machine_code, request.machine_code, ctx, service.config.machines)
@@ -158,7 +158,7 @@ async def recommendation_endpoint(request: RecommendationRequest, client_request
         raise HTTPException(status_code=502, detail="추천질문을 생성하지 못했습니다. 다시 시도해 주세요.") from exc
     if questions is None:
         return Response(status_code=204)
-    source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "cms_engineer": "CMS 알람 로그", "cms_manager": "CMS 운영 데이터"}[request.source]
+    source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "electrical": "DHF8000 전기도면", "cms_engineer": "CMS 알람 로그", "cms_manager": "CMS 운영 데이터"}[request.source]
     return {"questions": questions, "message": "" if questions else f"매칭된 {source_label}에서 새롭게 이어갈 추천질문을 찾지 못했습니다.",
             "machine_code": machine_code,
             "machine_name": service.config.machines.get(machine_code, {}).get("machine_name", machine_code)}
@@ -180,6 +180,15 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
 
     session_info = database.getChatSessionInfo(request.session_id)
     effective_machine_code = validate_code(ctx, session_info)
+    if request.mode == "electrical":
+        from app.core.electrical_qa import validate_machine
+        effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
+        try:
+            validate_machine(effective_machine_code)
+            if not request.question.strip() or len(request.question) > 6000:
+                raise ValueError("전기도면 질문은 1~6000자로 입력해 주세요.")
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
     if request.mode == "cms":
         effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
         if request.persona_type not in {"engineer", "manager"}:
@@ -191,8 +200,8 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     if request.prompt_no is not None:
         user_prompt = database.getUserPrompt(request.prompt_no)
 
-    async def event_generator():
-        async for event in service.ask_stream(
+    def answer_events():
+        return service.ask_stream(
             session_id=request.session_id,
             question=request.question,
             mode=request.mode,
@@ -201,14 +210,23 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             user_prompt=user_prompt,
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code
-        ):
+        )
+
+    async def event_generator():
+        async for event in answer_events():
             if event["type"] == "metadata":
                 yield f"METADATA:{json.dumps(event['data'])}\n\n"
             elif event["type"] == "token":
                 yield event["data"]
 
+    if request.mode == "electrical":
+        from app.core.electrical_qa import electrical_response
+        content = electrical_response(client_request, answer_events())
+    else:
+        content = event_generator()
+
     return StreamingResponse(
-        event_generator(),
+        content,
         media_type="text/event-stream; charset=utf-8",
         headers={
             "Cache-Control": "no-cache",

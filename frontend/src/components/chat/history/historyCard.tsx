@@ -7,6 +7,7 @@ import styles from "./history.module.css";
 import personaStyles from "../persona.module.css";
 
 export type HistoryItem = {
+  targetMessageId?: number;
   id: number;
   title: string;
   questioner: string;

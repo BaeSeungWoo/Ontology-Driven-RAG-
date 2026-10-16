@@ -84,7 +84,7 @@ export default function FigureExplanation({ messageId, assetPath, imageUrl, labe
         <div className={styles.messages} ref={scrollRef} aria-live="polite">
           {displayedTurns.map((turn, index) => index === 0 && turn.content === INITIAL_QUESTION ? null : (
             <div key={index} className={turn.role === "user" ? styles.question : styles.answer}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{turn.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{turn.content}</ReactMarkdown>
             </div>
           ))}
           {busy && !partial && turns.length > 0 && <div className={styles.question}>{failedQuestion}</div>}

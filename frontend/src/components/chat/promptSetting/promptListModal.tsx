@@ -102,7 +102,7 @@ export default function PromptListModal({
                   checked={selectedPersonaType === option.value}
                   onChange={() => {
                     onSelectPersonaType(option.value);
-                    onSelectLlmMode(option.value === "operator" ? "rag" : option.value === "maintenance" ? "ladder" : "cms");
+                    onSelectLlmMode(option.value === "operator" ? "rag" : option.value === "maintenance" ? "ladder" : option.value === "engineer" ? "electrical" : "cms");
                   }}
                 />
                 <span>{option.label}</span>
@@ -135,7 +135,7 @@ export default function PromptListModal({
             </p>
           )}
           <p className={styles.llmGuideDesc}>
-            페르소나 선택 시 현장 작업자는 RAG, 정비·보전은 Ladder, 기술 엔지니어·관리자는 CMS로 자동 지정됩니다. 이후 모드를 직접 변경할 수 있습니다.
+            페르소나 선택 시 현장 작업자는 RAG, 정비·보전은 Ladder, 기술 엔지니어는 전기도면 고장진단 QA, 관리자는 CMS로 자동 지정됩니다. 전기도면 QA는 백엔드의 vLLM을 사용하며 현재 M005 · DHF8000 및 M051 · DHF8000 #2 도면을 지원합니다.
           </p>
           {selectedLlmMode === "repairHistory" && (
             <p className={styles.llmGuideDesc}>

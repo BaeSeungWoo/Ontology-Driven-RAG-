@@ -5,6 +5,7 @@ import remarkGfm from "remark-gfm";
 import remarkAnswerFormatting from "./remarkAnswerFormatting";
 import remarkAnswerCallouts from "./remarkAnswerCallouts";
 import AnswerCallout from "./answerCallout";
+import ElectricalProgress from "./electricalProgress";
 
 import styles from "./answer.module.css";
 import { toCitationDisplayText } from "./citationText";
@@ -171,9 +172,17 @@ export default function AssistantMessageBubble({
         aria-pressed={isActive}
         aria-label="답변 선택"
       >
+        {message.llmMode === "electrical" && (isThinking || !!message.metadata?.progress_history?.length) && (
+          <ElectricalProgress
+            key={isThinking ? "running" : isInterrupted ? "failed" : "complete"}
+            metadata={message.metadata}
+            isGenerating={isThinking}
+            failed={isInterrupted}
+          />
+        )}
         {isPlaceholderLoading && !isThinking ? (
           <p role="alert">답변 생성이 중단되었습니다. 다시 시도해 주세요.</p>
-        ) : isPlaceholderLoading ? (
+        ) : isPlaceholderLoading && message.llmMode === "electrical" ? null : isPlaceholderLoading ? (
           <div className={styles.assistantLoading} aria-live="polite">
             <p className={styles.loadingText}>답변 생성중입니다.</p>
             <span className={styles.loadingDots} aria-hidden="true">
@@ -183,7 +192,7 @@ export default function AssistantMessageBubble({
         ) : (
           <div className={styles.markdownContent}>
             <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkAnswerFormatting, remarkAnswerCallouts]}
+              remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkAnswerFormatting, remarkAnswerCallouts]}
               components={{
                 section: ({ node, children }) => (
                   <AnswerCallout

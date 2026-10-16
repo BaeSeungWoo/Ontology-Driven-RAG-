@@ -491,6 +491,70 @@
    위치: 답변 생성 중 상태
    기능: 로딩 텍스트/점 애니메이션
    ============================================================ */
+.electricalProgress {
+  margin: 6px 0 18px;
+  color: var(--chat-muted-text);
+}
+
+.electricalProgressToggle {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.electricalProgressToggle:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 3px; }
+.electricalProgressHistory {
+  list-style: none;
+  margin: 10px 0 14px 6px;
+  padding: 0 0 0 16px;
+  border-left: 1px solid var(--chat-pane-border);
+}
+.electricalProgressHistory li {
+  display: flex;
+  gap: 12px;
+  margin: 9px 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.electricalProgressStep { width: 100%; min-width: 0; }
+.electricalProgressStep summary { cursor: pointer; }
+.electricalProgressStep summary:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 3px; }
+.electricalProgressHint { margin-left: 8px; font-size: 11px; }
+.electricalProgressResult {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 6px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+
+.electricalProgressStage {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.electricalProgressDetail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin: 8px 0 0 23px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
 .assistantLoading {
   margin-top: 6px;
   display: flex;
