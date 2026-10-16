@@ -14,6 +14,11 @@ const WELCOME_QUESTIONS = {
     "인터록 때문에 동작이 제한되는지 확인하는 방법을 알려주세요.",
     "센서 입력과 출력 신호를 점검하는 기본 순서를 알려주세요.",
   ],
+  electrical: [
+    "장비가 동작하지 않을 때 전기도면에서 무엇부터 확인해야 하나요?",
+    "모터나 펌프가 작동하지 않을 때 관련 회로를 어떻게 점검하나요?",
+    "센서와 제어 신호의 연결 관계를 전기도면으로 확인하고 싶어요.",
+  ],
   cms_engineer: [
     "현재 장비에서 확인할 수 있는 알람과 상태 정보를 정리해 주세요.",
     "반복되는 알람의 원인을 분석하려면 어떤 정보를 확인해야 하나요?",
@@ -28,7 +33,7 @@ const WELCOME_QUESTIONS = {
 
 type Props = {
   llmModel?: LlmModel;
-  source?: "manual" | "ladder" | "cms_engineer" | "cms_manager";
+  source?: "electrical" | "manual" | "ladder" | "cms_engineer" | "cms_manager";
   sessionId: number | null;
   question: string;
   answer: string;
@@ -53,7 +58,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
     if (source.startsWith("cms_")) {
       void fetch(`${API_BASE_URL}/api/recommendations/context`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: source.startsWith("cms_") ? CMS_MACHINE_CODE : undefined }),
+        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: (source.startsWith("cms_") || source === "electrical") ? CMS_MACHINE_CODE : undefined }),
         signal: controller.signal,
       }).then(async response => {
         if (!response.ok) return;
@@ -79,7 +84,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
         const response = await fetch(`${API_BASE_URL}/api/recommendations`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: source.startsWith("cms_") ? CMS_MACHINE_CODE : undefined }),
+          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: (source.startsWith("cms_") || source === "electrical") ? CMS_MACHINE_CODE : undefined }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("추천질문을 불러오지 못했습니다.");
@@ -123,7 +128,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
   return (
     <section className={styles.recommendations} aria-label="추천질문" aria-busy={loading}>
       <h3>{question ? "추천 질문" : {
-        manual: "장비 매뉴얼에 물어보세요", ladder: "래더 정보에 물어보세요",
+        electrical: "전기도면 고장진단 QA · DHF8000 / DHF8000 #2", manual: "장비 매뉴얼에 물어보세요", ladder: "래더 정보에 물어보세요",
         cms_engineer: "현재 장비의 CMS 알람에 물어보세요", cms_manager: "현재 장비의 CMS 현황에 물어보세요",
       }[source]}</h3>
       {source.startsWith("cms_") && <p>테스트 기준일: 2026-08-11{machineLabel ? ` · ${machineLabel}` : ""}</p>}

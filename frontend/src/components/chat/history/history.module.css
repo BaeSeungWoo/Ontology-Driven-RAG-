@@ -422,9 +422,76 @@
 }
 
 .searchCount {
-  margin: 0 0 10px;
+  margin: 0;
   color: #7181a1;
   font-size: 12px;
+}
+
+.searchToolbar, .searchModes {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.searchToolbar { justify-content: space-between; }
+
+.filterButton, .searchModes button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #cbd8eb;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.searchModes button[aria-pressed="true"] {
+  background: #edf4ff;
+  border-color: #1659c7;
+  color: #1659c7;
+}
+
+.filterButton, .feedbackFilters button {
+  --feedback-bg: #edf4ff;
+  --feedback-border: #a8c7f5;
+  --feedback-color: #1254c4;
+  min-height: 32px;
+  background: #fff;
+  color: #607497;
+  transition: background-color 150ms, border-color 150ms, color 150ms;
+}
+
+.filterButton[data-feedback="틀림"], .feedbackFilters button[data-feedback="틀림"] {
+  --feedback-bg: #fff1f2;
+  --feedback-border: #fda4af;
+  --feedback-color: #b42318;
+}
+
+.filterButton[data-feedback="근거없음"], .feedbackFilters button[data-feedback="근거없음"] {
+  --feedback-bg: #f1f2f4;
+  --feedback-border: #b8bec8;
+  --feedback-color: #4b5563;
+}
+
+.filterButton:hover, .filterButton[data-active="true"],
+.feedbackFilters button:hover, .feedbackFilters button[aria-pressed="true"] {
+  background: var(--feedback-bg);
+  border-color: var(--feedback-border);
+  color: var(--feedback-color);
+}
+
+.filterButton:focus-visible, .feedbackFilters button:focus-visible {
+  outline: 2px solid var(--feedback-color);
+  outline-offset: 2px;
+}
+
+.answerPreview {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .searchResult {

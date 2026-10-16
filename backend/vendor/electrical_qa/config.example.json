@@ -1,0 +1,15 @@
+{
+  "profile": "electrical/profiles/dhf8000.json",
+  "index_dir": "data/index/dhf8000",
+  "pdf": "data/pdfs/DHF8000_doosan180.pdf",
+  "output_dir": "results",
+  "require_index_verified": true,
+  "provider": "vllm",
+  "base_url": "http://127.0.0.1:8100/v1",
+  "model": "Qwen3-VL",
+  "api_key_env": "OPENAI_API_KEY",
+  "context_tokens": 8192,
+  "max_tokens": 3000,
+  "max_images": 1,
+  "timeout_seconds": 1800
+}

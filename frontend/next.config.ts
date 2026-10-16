@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   env: { MCODE: process.env.MCODE ?? "" },
+  experimental: { proxyTimeout: 1_860_000 }, // 전기도면 QA의 최대 30분 판독 대기
   /* config options here */
   devIndicators: false, // 개발모드에서 뱃지 가시여부 옵션
 

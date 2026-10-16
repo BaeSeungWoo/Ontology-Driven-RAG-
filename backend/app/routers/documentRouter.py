@@ -31,11 +31,7 @@ def _asset_url(pdf_path: Path, asset_root: Path, page: int | None) -> str:
     return f"{url}#page={page}" if page is not None else url
 
 
-def resolve_pdf_document(
-    source_doc_name: str,
-    page_range: str | None = None,
-    asset_root: Path = DEFAULT_ASSET_ROOT,
-) -> dict:
+def _find_pdf(source_doc_name: str, asset_root: Path) -> Path:
     normalized_source = _normalize_doc_name(source_doc_name)
     if not normalized_source:
         raise HTTPException(status_code=400, detail="source_doc_name is required.")
@@ -59,6 +55,15 @@ def resolve_pdf_document(
     matched_path = (exact_matches or contains_matches or [None])[0]
     if matched_path is None:
         raise HTTPException(status_code=404, detail="PDF document not found.")
+    return matched_path
+
+
+def resolve_pdf_document(
+    source_doc_name: str,
+    page_range: str | None = None,
+    asset_root: Path = DEFAULT_ASSET_ROOT,
+) -> dict:
+    matched_path = _find_pdf(source_doc_name, asset_root)
 
     page = _first_page(page_range)
     return {

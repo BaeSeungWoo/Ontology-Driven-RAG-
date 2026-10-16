@@ -1,9 +1,13 @@
 import asyncio
 import json
+import logging
 from time import monotonic
 from pipeline.ingestion.machine_resolver import build_doc_to_machine_index, _resolve_machine_code
 from app.core.cms_context import load_cms_snapshot, cms_excerpts
 from app.core.cms_engineer import alarm_codes, contains_code, engineer_chunks, load_engineer_snapshot
+
+
+logger = logging.getLogger("uvicorn.error")
 
 
 class InitialQuestionCache:
@@ -123,10 +127,18 @@ async def recommend_questions(
     source: str = "manual",
     _alternate_topic: bool = False,
 ) -> list[str]:
+    logger.info("[recommendations] start machine=%s source=%s alternate=%s", machine_code, source, _alternate_topic)
+    if source == "electrical":
+        from app.core.electrical_qa import QUESTIONS, SUPPORTED_MACHINES
+        asked = set(asked_questions or []) | {question}
+        logger.info("[recommendations] electrical supported=%s remaining=%d", machine_code in SUPPORTED_MACHINES,
+                    sum(text not in asked for text in QUESTIONS))
+        return [text for text in QUESTIONS if text not in asked] if machine_code in SUPPORTED_MACHINES else []
     machine = service.config.machines.get(machine_code, {})
     documents = build_doc_to_machine_index({machine_code: machine})
     is_cms = source in {"cms_engineer", "cms_manager"}
     if (not documents and not is_cms) or machine_code == "ALL":
+        logger.info("[recommendations] skipped machine=%s documents=%d", machine_code, len(documents))
         return []
 
     is_ladder = source == "ladder"
@@ -148,6 +160,14 @@ async def recommend_questions(
         result = await asyncio.to_thread(
             lambda: service._get_retriever("ladder" if is_ladder else "rag").search(query=query, machine_code=machine_code, top_k=8)
         )
+        logger.info("[recommendations] search machine=%s results=%d configured_documents=%r",
+                    machine_code, len(result.items), list(documents))
+        for index, item in enumerate(result.items, start=1):
+            doc_name = item.metadata.get("source_doc_name")
+            logger.info("[recommendations] hit index=%d text_present=%s document=%r document_matches=%s container=%r",
+                        index, bool(item.text.strip()), doc_name,
+                        bool(doc_name) and machine_code in _resolve_machine_code(str(doc_name), documents),
+                        item.metadata.get("container_type"))
         excerpts = [
             {"id": index, "document": item.metadata.get("source_doc_name"), "text": item.text[:1000]}
             for index, item in enumerate(result.items, start=1)
@@ -155,6 +175,8 @@ async def recommend_questions(
             and machine_code in _resolve_machine_code(str(item.metadata["source_doc_name"]), documents)
             and (not is_ladder or item.metadata.get("container_type") == "ladder")
         ]
+    logger.info("[recommendations] retrieval machine=%s source=%s alternate=%s excerpts=%d",
+                machine_code, source, _alternate_topic, len(excerpts))
     if not excerpts:
         if not _alternate_topic and (question or answer or asked_questions or conversation):
             return await recommend_questions(service, machine_code, question, answer, asked_questions,
@@ -238,6 +260,8 @@ async def recommend_questions(
         questions.append(text)
         if len(questions) == 3:
             break
+    logger.info("[recommendations] generation machine=%s source=%s alternate=%s generated=%d valid=%d",
+                machine_code, source, _alternate_topic, len(rows), len(questions))
     if questions and asked_questions:
         # 생성 모델이 놓친 의역 중복과 조건부 작업의 맥락 이탈을 별도로 검토한다.
         reviewed = await service.llm.ainvoke([
@@ -283,6 +307,15 @@ async def recommend_questions(
             reviewed_indexes.add(index)
             intent = review.get("intent")
             new_information = review.get("new_information")
+            logger.info(
+                "[recommendations] review index=%d intent_present=%s unique_intent=%s no_duplicate=%s "
+                "unanswered=%s new_information=%s relevant=%s grounded=%s",
+                index, isinstance(intent, str) and bool(intent.strip()),
+                isinstance(intent, str) and intent.strip() not in intents,
+                review.get("same_intent_as") == [], review.get("answered_by") == [],
+                isinstance(new_information, str) and bool(new_information.strip()),
+                review.get("relevant") is True, review.get("grounded") is True,
+            )
             if (isinstance(intent, str) and intent.strip() and intent.strip() not in intents
                     and review.get("same_intent_as") == [] and review.get("answered_by") == []
                     and isinstance(new_information, str) and new_information.strip()
@@ -292,6 +325,8 @@ async def recommend_questions(
         if len(reviewed_indexes) != len(questions):
             raise ValueError("일부 추천질문의 검토 결과가 없습니다.")
         questions = [text for index, text in enumerate(questions) if index in keep]
+    logger.info("[recommendations] result machine=%s source=%s alternate=%s questions=%d",
+                machine_code, source, _alternate_topic, len(questions))
     if not questions and not _alternate_topic and not is_cms and (question or answer or asked_questions or conversation):
         return await recommend_questions(service, machine_code, question, answer, asked_questions,
                                          conversation, source, _alternate_topic=True)

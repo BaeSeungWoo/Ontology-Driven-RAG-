@@ -1,5 +1,6 @@
 # backend/app/service.py
 import asyncio
+from contextlib import aclosing
 import json
 import re
 from typing import Any
@@ -171,6 +172,32 @@ class RAGService:
         persona_type: str = "operator",
         restore_memory: bool = False,
     ):
+        if mode == "electrical":
+            from app.core.electrical_qa import stream_electrical, append_manual_evidence
+            from app.factories.config import CONFIGS
+            history = self.memory_manager.get_history(session_id)
+            if restore_memory and not history:
+                history = self._load_recent_history_from_db(session_id, question)
+                self.memory_manager.set_history(session_id, history)
+            async with aclosing(stream_electrical(effective_machine_code, question,
+                                                 llm_config=CONFIGS["vllm_config"].llm,
+                                                 history=history, user_prompt=user_prompt)) as stream:
+                async for event in stream:
+                    if event["type"] == "progress":
+                        yield event
+                    else:
+                        result = event["data"]
+            yield {"type": "progress", "data": "관련 장비 매뉴얼 근거를 확인하는 중"}
+            await append_manual_evidence(self, effective_machine_code, question, result)
+            yield {"type": "metadata", "data": {
+                "chunks": result["chunks"], "images": [], "tables": [],
+                "grounding_reviewed": result["grounding_reviewed"],
+                "intent": {"type": "troubleshooting", "source": "electrical"},
+            }}
+            yield {"type": "token", "data": result["answer"]}
+            self.memory_manager.add_turn(session_id, question, result["answer"])
+            return
+
         # prepare_ask_context로 준비물 생성
         # metadata 이벤트 먼저 yield
         # LLM token을 하나씩 yield
@@ -743,6 +770,12 @@ class JudgeRAGService(RAGService):
             if role not in ("user", "assistant"):
                 continue
             if not content:
+                continue
+            try:
+                metadata = json.loads(row[8]) if row[8] else {}
+            except (TypeError, ValueError):
+                metadata = {}
+            if role == "assistant" and isinstance(metadata, dict) and metadata.get("request_failed"):
                 continue
 
             messages.append({"role": role, "content": content})

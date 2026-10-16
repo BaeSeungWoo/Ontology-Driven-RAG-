@@ -11,6 +11,16 @@
   updatedAt: string;
 };
 
+export type HistorySearchMode = "sessions" | "messages";
+export type HistorySearchResponse = HistoryResponse & {
+  messageId?: number;
+  targetMessageId?: number;
+  question?: string | null;
+  answerPreview?: string;
+  feedback?: import("./chatApi").MessageFeedback | null;
+  messageCreatedAt?: string;
+};
+
 export type HistoryPaginationPayload = {
   page: number;
   page_size: number;

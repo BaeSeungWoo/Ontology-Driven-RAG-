@@ -85,7 +85,7 @@ export default function AlarmExplanation({ id, alarm, onStatusChange }: {
         <div className={styles.messages} ref={scrollRef} aria-live="polite">
           {displayedTurns.map((turn, index) => index === 0 && turn.content === INITIAL_QUESTION ? null : (
             <div key={index} className={turn.role === "user" ? styles.question : styles.answer}>
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{turn.content}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }]]}>{turn.content}</ReactMarkdown>
               {!!turn.sources?.length && <details className={styles.manualSources}>
                 <summary>매뉴얼 검색 근거 {turn.sources.length}건</summary>
                 {turn.sources.map(source => <details key={source.index}>

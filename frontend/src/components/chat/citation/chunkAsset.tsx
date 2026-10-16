@@ -1,8 +1,7 @@
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import TableContent from "../tableContent";
 import { API_BASE_URL } from "@/services/api";
 import styles from "./citation.module.css";
 import { useFigureExplanation } from "../figureExplanationProvider";
@@ -117,7 +116,7 @@ export default function ChunkAsset({
       ) : assetType === "tables" ? (
         <div className={styles.chunkAssetMarkdown}>
           {tableMarkdown ? (
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{tableMarkdown}</ReactMarkdown>
+            <TableContent text={tableMarkdown} />
           ) : tableLoadError ? (
             <p>MD 파일을 불러오지 못했습니다.</p>
           ) : (

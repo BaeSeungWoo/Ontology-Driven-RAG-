@@ -44,6 +44,36 @@ def getHistoryList(client_request: Request):
         )
 
 
+class HistorySearchRequest(BaseModel):
+    mode: Literal["sessions", "messages"] = "sessions"
+    feedback: Literal["도움됨", "틀림", "근거없음"] | None = None
+
+
+@historyRouter.post("/search")
+def searchHistory(req: HistorySearchRequest, client_request: Request):
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=load_machine_info(),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    machine_code = set_history_code(ctx)
+    try:
+        histories = _history_rows_to_json(database.getHistoryList(machine_code))
+        if req.mode == "sessions" and req.feedback is None:
+            return histories
+        answers = database.getHistoryAnswers([row["sessionId"] for row in histories], req.feedback)
+        if req.mode == "sessions":
+            matched = {row[0] for row in answers}
+            return [row for row in histories if row["sessionId"] in matched]
+        sessions = {row["sessionId"]: row for row in histories}
+        return [dict(sessions[row[0]], messageId=row[1], targetMessageId=row[2] or row[1],
+                     question=row[3], answerPreview=row[4], feedback=row[5], messageCreatedAt=row[6])
+                for row in answers]
+    except Exception:
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="질문 이력 검색 중 오류가 발생했습니다.")
+
+
 class HistoryPaginationRequest(BaseModel):
     page: int
     page_size: int
@@ -227,10 +257,16 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
-    if req.llm_mode == "cms":
+    if req.llm_mode in {"cms", "electrical"}:
         machine_code = cms_machine_code(machine_code, req.machine_code, ctx, machine_info)
     if machine_code == "ALL" and ctx.request_machine_code:
         machine_code = ctx.request_machine_code
+    if req.llm_mode == "electrical":
+        from app.core.electrical_qa import validate_machine
+        try:
+            validate_machine(machine_code)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
         session_id = database.createSession(
             req.questioner,

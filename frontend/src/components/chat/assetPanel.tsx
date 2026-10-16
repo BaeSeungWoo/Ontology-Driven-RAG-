@@ -1,7 +1,6 @@
 ﻿import Image from "next/image";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
+import TableContent from "./tableContent";
 import { API_BASE_URL } from "@/services/api";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import styles from "./chat.module.css";
@@ -79,7 +78,7 @@ function CompactTable({ content, onExpand }: {
     <>
       <div ref={contentRef} className={styles.chatAssetTableContent}>
         {content?.source === "md" ? (
-          <ReactMarkdown remarkPlugins={[remarkGfm]}>{content.text}</ReactMarkdown>
+          <TableContent text={content.text} />
         ) : (
           <p role="status">
             {content?.source === "error" ? "표를 불러오지 못했습니다." : "표를 불러오는 중입니다."}
@@ -526,9 +525,7 @@ export default function AssetPanel({
                 ) : inline ? (
                     <div className={styles.chatInlineTable}>
                       {tableMarkdownByPath[asset.path]?.source === "md" ? (
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {tableMarkdownByPath[asset.path].text}
-                        </ReactMarkdown>
+                        <TableContent text={tableMarkdownByPath[asset.path].text} />
                       ) : (
                         <p role="status">
                           {tableMarkdownByPath[asset.path]?.source === "error"
@@ -621,7 +618,7 @@ export default function AssetPanel({
           onClose={() => setTablePreview(null)}
         >
           <div className={styles.tablePreviewBody}>
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>{activeTableContent.text}</ReactMarkdown>
+            <TableContent text={activeTableContent.text} />
           </div>
         </AssetPreviewModal>
       ) : null}

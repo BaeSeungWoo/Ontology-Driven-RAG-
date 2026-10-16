@@ -19,7 +19,7 @@ import styles from "./citation.module.css";
 
 const evidenceTabs = ["문서 근거", "도면·래더", "지식그래프"] as const;
 function getEvidenceTab(chunk?: ChatChunk) {
-  return chunk?.metadata.ladder_diagram || chunk?.metadata.container_type === "ladder"
+  return chunk?.metadata.source_kind === "electrical" || chunk?.metadata.ladder_diagram || chunk?.metadata.container_type === "ladder"
     ? "도면·래더" : "문서 근거";
 }
 
@@ -267,7 +267,7 @@ export default function Citation({
               </button>;
             })}
           </div>
-          {activeMessage && activeTab === "도면·래더" && visibleCards.length > 0 && <>
+          {activeMessage && activeTab === "도면·래더" && visibleCards.some(card => card.chunk?.metadata.ladder_diagram) && <>
             <button type="button" className={styles.ladderSignalButton} aria-haspopup="dialog"
               onClick={() => setLadderSignalMessageId(activeMessage.message_id)}>
               <Workflow size={17} aria-hidden="true" />

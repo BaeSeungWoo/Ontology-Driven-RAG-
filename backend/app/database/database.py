@@ -345,6 +345,40 @@ def getHistoryPersonas(session_ids):
     return personas
 
 
+@with_thread_pool("db")
+def getHistoryAnswers(session_ids, feedback=None):
+    rows = []
+    if not session_ids:
+        return rows
+    with get_db_connection() as conn:
+        cursor = conn.cursor()
+        try:
+            for start in range(0, len(session_ids), 500):
+                batch = session_ids[start:start + 500]
+                placeholders = ",".join("?" for _ in batch)
+                cursor.execute(
+                    f"""
+                    SELECT a.SESSION_ID, a.MESSAGE_ID, q.MESSAGE_ID,
+                           q.CONTENT, LEFT(a.CONTENT, 300), a.FEEDBACK, a.CREATED_AT
+                    FROM dbo.CHAT_MESSAGE a
+                    OUTER APPLY (
+                        SELECT TOP 1 u.MESSAGE_ID, u.CONTENT
+                        FROM dbo.CHAT_MESSAGE u
+                        WHERE u.SESSION_ID = a.SESSION_ID AND u.ROLE = 'user'
+                          AND (u.CREATED_AT < a.CREATED_AT OR
+                               (u.CREATED_AT = a.CREATED_AT AND u.MESSAGE_ID < a.MESSAGE_ID))
+                        ORDER BY u.CREATED_AT DESC, u.MESSAGE_ID DESC
+                    ) q
+                    WHERE a.SESSION_ID IN ({placeholders}) AND a.ROLE = 'assistant'
+                    """ + (" AND a.FEEDBACK = ?" if feedback else ""),
+                    tuple(batch) + ((feedback,) if feedback else ()),
+                )
+                rows.extend(cursor.fetchall())
+        finally:
+            cursor.close()
+    return sorted(rows, key=lambda row: (row[6], row[1]), reverse=True)
+
+
 # 세션 id 및 소속 장비코드
 @with_thread_pool("db")
 def getChatSessionInfo(session_id):

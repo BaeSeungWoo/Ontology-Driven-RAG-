@@ -226,8 +226,12 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
   ) => {
     setIsLoading(true);
     setError(null);
+    let progress: ChatMetadata = llmMode === "electrical" ? {
+      progress_started_at: Date.now(),
+      progress_history: [{ message: "전기도면 QA 요청을 보내는 중", at: Date.now() }],
+    } : {};
     setMessages(prev => prev.map(item => item.message_id === assistantMessageId
-      ? { ...item, content: "", metadata: { persona_type: personaType } }
+      ? { ...item, content: "", metadata: { persona_type: personaType, ...progress } }
       : item));
     try {
       let streamedAnswer = "";
@@ -240,6 +244,18 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
         llmMode,
         personaType,
         restoreMemory,
+        onProgress: (message, detail) => {
+          const at = Date.now();
+          const history = progress.progress_history ?? [];
+          const last = history.at(-1);
+          progress = { ...progress, progress_message: message, progress_updated_at: at,
+            progress_history: last?.message === message
+              ? detail && detail !== last.detail ? [...history.slice(0, -1), { ...last, detail }] : history
+              : [...history, { message, detail, at }] };
+          setMessages(prev => prev.map(item => item.message_id === assistantMessageId
+            ? { ...item, metadata: { ...item.metadata, ...progress } }
+            : item));
+        },
         onRetry: (attempt) => {
           streamedAnswer = "";
           setMessages(prev => prev.map(item => item.message_id === assistantMessageId
@@ -261,6 +277,8 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       const finalAnswer = result.answer || streamedAnswer || "(응답 없음)";
       const metadataWithUsedChunks = {
         ...withUsedChunks(result.metadata, finalAnswer),
+        ...progress,
+        ...(llmMode === "electrical" ? { progress_finished_at: Date.now() } : {}),
         elapsed_ms: Math.round(performance.now() - requestStartedAt),
         persona_type: personaType,
       };
@@ -289,14 +307,24 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
       const message = err instanceof Error ? err.message : "질문 요청 중 오류가 발생했습니다.";
       setError(message);
       setShouldRestoreMemory(true);
+      const failedMetadata: ChatMetadata = { persona_type: personaType, request_failed: true, ...progress,
+        ...(llmMode === "electrical" ? { progress_finished_at: Date.now() } : {}) };
 
       setMessages((prev) =>
         prev.map((item) =>
           item.message_id === assistantMessageId
-            ? { ...item, content: `요청 실패: ${message}`, metadata: { persona_type: personaType, request_failed: true } }
+            ? { ...item, content: `요청 실패: ${message}`, metadata: failedMetadata }
             : item
         )
       );
+      if (llmMode === "electrical") {
+        try {
+          await updateMessage(assistantMessageId, { content: `요청 실패: ${message}`, metadata: failedMetadata });
+          onHistoryRefresh?.();
+        } catch {
+          setError(`${message} (작업 이력을 저장하지 못했습니다.)`);
+        }
+      }
       return false;
     } finally {
       setIsLoading(false);

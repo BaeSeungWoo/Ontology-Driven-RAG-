@@ -17,7 +17,7 @@
 .window[hidden] { display: none; }
 .pdfWindow { width: min(760px, calc(100vw - 48px)); }
 .alarmWindow { width: min(620px, calc(100vw - 48px)); z-index: 10001; }
-.dock.alarmDock { right: 88px; max-width: calc(100vw - 112px); z-index: 10002; }
+.dock.alarmDock { z-index: 10002; }
 .expanded { width: min(1180px, calc(100vw - 48px)); height: calc(100dvh - 110px); }
 .header { display: flex; align-items: center; gap: 4px; padding: 10px 12px; border-bottom: 1px solid #dce5f0; background: #f5f8ff; }
 .header strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
@@ -27,9 +27,9 @@
 .content { flex: 1; min-height: 0; }
 .content > div { height: 100%; }
 .window:not(.expanded):not(.pdfWindow) .content > div { grid-template-columns: 1fr; grid-template-rows: 28% minmax(0, 1fr); }
-.dock { position: fixed; right: 24px; bottom: 16px; z-index: 1201; display: flex; gap: 8px; max-width: calc(100vw - 48px); overflow-x: auto; padding: 4px; }
+.dock { position: fixed; right: 88px; bottom: 16px; z-index: 1201; display: flex; gap: 8px; max-width: calc(100vw - 112px); overflow-x: auto; padding: 4px; }
 .saved { display: flex; flex-shrink: 0; border: 1px solid #bfd0eb; border-radius: 10px; background: #edf4ff; box-shadow: 0 2px 8px #15305b1a; }
-.saved button:first-child { display: inline-flex; gap: 8px; max-width: 290px; font-size: 12px; }
+.saved button:first-child { display: inline-flex; gap: 8px; max-width: min(290px, calc(100vw - 152px)); font-size: 12px; }
 .savedLabel { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .savedStatus { display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0; white-space: nowrap; font-size: 11px; font-weight: 600; color: #1254c4; }
 .savedStatus[data-status="complete"] { color: #047857; }
@@ -45,5 +45,4 @@
 @media (max-width: 600px) {
   .window { right: 16px; }
   .expanded { width: calc(100vw - 32px); }
-  .dock { right: 12px; max-width: calc(100vw - 24px); }
 }

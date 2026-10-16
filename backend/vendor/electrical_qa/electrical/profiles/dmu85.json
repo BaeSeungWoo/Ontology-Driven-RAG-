@@ -1,0 +1,32 @@
+{
+  "machine": "DECKEL MAHO DMU85 machining centre, Heidenhain TNC 530, DIN/EN style",
+  "style": "din",
+  "pdf": "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf",
+  "engine": {
+    "func_pages": 6,
+    "rev_pages": 2,
+    "scale": 4.0,
+    "flags": [
+      "--demote-generic",
+      "--chain",
+      "--vendor-label",
+      "DECKEL MAHO (DMG) ASi-Bus / DIN",
+      "--device-prefix",
+      "printed with a leading hyphen and a zone prefix, like ",
+      "--device-examples",
+      "-B2-31Q61, -B2-23K11, -A1-06T21, -A3-01B11, -C1-01K41",
+      "--addr-grammar",
+      "a SYMBOLIC PLC signal name, not a numeric address: it starts with IX_ (input), OX_ (output), ISX_ (safe input) or OSX_ (safe output), then uppercase words joined by underscores, e.g. IX_CU_NIVEAU_MIN, OX_CU_M8, ISX_EMSTP_CH1_N, OSX_ENABLE_SPI",
+      "--addr-re",
+      "[IO]S?X_[A-Z0-9_]{3,}",
+      "--dev-re",
+      "^\\(?(-?[A-Z]\\d-\\d{2}[A-Z]\\d{2})\\)?$",
+      "--ref-re",
+      "/?([A-Z0-9]+-\\d{2})\\.(\\d)",
+      "--addr-norm",
+      "([IO](?:S?X|B|W)_[A-Z0-9_]+)()()",
+      "--addr-norm-sub",
+      "\\1"
+    ]
+  }
+}

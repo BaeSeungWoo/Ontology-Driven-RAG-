@@ -1,4 +1,5 @@
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
+import { electricalClaimText } from "./electricalEvidence";
 
 export type SelectedCitation = {
   messageId: string;
@@ -12,6 +13,7 @@ export type CitationDocumentRequest = {
   pageLabel: string | null;
   chunkText: string;
   referenceLabel: string;
+  answerEvidenceText?: string;
 };
 
 export function getLatestAssistantMessage(messages: MessageItem[]): MessageItem | undefined {
@@ -197,6 +199,11 @@ export function getCitationDocumentRequest(
     pageLabel: getChunkPageLabel(selectedChunk),
     chunkText: selectedChunk.document,
     referenceLabel,
+    ...(selectedChunk.metadata.source_kind === "electrical" ? {
+      answerEvidenceText: electricalClaimText(
+        selectedMessage?.content ?? "", selectedChunk.index
+      ),
+    } : {}),
   };
 }
 
