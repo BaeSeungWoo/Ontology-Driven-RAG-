@@ -108,6 +108,7 @@ protobuf==6.33.6
 psutil==7.2.2
 pyasn1==0.6.3
 pyasn1_modules==0.4.2
+pyarrow==22.0.0
 pybase64==1.4.3
 pyclipper==1.4.0
 pycparser==3.0

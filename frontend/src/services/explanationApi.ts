@@ -1,11 +1,12 @@
 import { API_BASE_URL } from "@/services/api";
 
 export type ManualSource = { index: number; document_name: string; page: string; excerpt: string };
-type Explanation = { answer: string; sources: ManualSource[] };
+export type Explanation = { answer: string; sources: ManualSource[] };
 
 export async function streamExplanation(
   path: string, payload: unknown, signal: AbortSignal,
   onUpdate: (result: Explanation) => void,
+  baseURL = API_BASE_URL,
 ): Promise<Explanation> {
   const controller = new AbortController();
   const abort = () => controller.abort();
@@ -19,7 +20,7 @@ export async function streamExplanation(
   };
   resetTimeout();
   try {
-    const response = await fetch(`${API_BASE_URL}${path}`, {
+    const response = await fetch(`${baseURL}${path}`, {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload), signal: controller.signal,
     });

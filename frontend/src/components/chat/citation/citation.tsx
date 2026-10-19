@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-reac
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
 import LadderSignalOverlay from "./ladderSignalOverlay";
+import KnowledgeGraphPanel from "./knowledgeGraphPanel";
 import CmsEvidence, { getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
   getActiveMessage,
@@ -55,6 +56,8 @@ export default function Citation({
   const [ladderSignalMessageId, setLadderSignalMessageId] = useState<number | null>(null);
 
   const activeMessage = getActiveMessage(messages, activeAssistantMessageId);
+  const latestAssistant = messages.findLast(message => message.role === "assistant");
+  const isActiveMessageGenerating = isLoading && activeMessage?.message_id === latestAssistant?.message_id;
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
   const selectedChunk = getSelectedChunk(messages, selectedCitation);
@@ -109,7 +112,7 @@ export default function Citation({
   }, [selectedCitation?.messageId, selectedCitation?.chunkIndex]);
 
   useEffect(() => {
-    setActiveTab("문서 근거");
+    setActiveTab(tab => tab === "지식그래프" ? tab : "문서 근거");
   }, [activeMessage?.message_id, isNewQuestion]);
 
   useEffect(() => {
@@ -278,7 +281,11 @@ export default function Citation({
               onClose={() => setLadderSignalMessageId(null)}
             />}
           </>}
-          {visibleCards.length === 0 && <div className={styles.emptyEvidence} role="status">
+          {activeTab === "지식그래프" ? <KnowledgeGraphPanel
+            key={activeMessage?.message_id ?? "new-question"}
+            messageId={isNewQuestion ? undefined : activeMessage?.message_id}
+            isGenerating={isActiveMessageGenerating}
+          /> : visibleCards.length === 0 && <div className={styles.emptyEvidence} role="status">
             <EmptyIcon size={50} strokeWidth={1.6} aria-hidden="true" />
             <h3>{isNewQuestion ? "답변의 근거가 모이는 곳" : `${activeTab}가 없습니다`}</h3>
             <p>{isLoading ? "답변과 관련된 근거를 확인하고 있어요." : isNewQuestion ? <>
