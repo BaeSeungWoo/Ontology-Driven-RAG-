@@ -67,6 +67,8 @@ async def electrical_response(request, events):
 
 
 async def append_manual_evidence(service, machine_code, question, result):
+    if not result["chunks"]:
+        return
     from pipeline.ingestion.machine_resolver import build_doc_to_machine_index, _resolve_machine_code
     documents = build_doc_to_machine_index({machine_code: service.config.machines.get(machine_code, {})})
     try:

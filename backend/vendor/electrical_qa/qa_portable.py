@@ -196,13 +196,14 @@ def engine_command(config, profile, run):
 
 
 def adapt_result(row, pdf, records=None):
-    pages = list(dict.fromkeys(map(str, row.get('func_pages', []) + row.get('rev_pages', []))))
-    if not pages:
+    pages = list(dict.fromkeys(str(record['page']) for record in records)) if records is not None else list(
+        dict.fromkeys(map(str, row.get('func_pages', []) + row.get('rev_pages', []))))
+    if not pages and records is None:
         raise ValueError('답변을 연결할 근거 페이지가 없습니다.')
     chunks = []
     for n, page in enumerate(pages, 1):
         source = [r['text'] for r in (records or []) if str(r['page']) == page]
-        chunks.append({'index': n, 'document': '\n'.join(source or row.get('evidence', [])),
+        chunks.append({'index': n, 'document': '\n'.join(source if records is not None else row.get('evidence', [])),
             'metadata': {'source_kind': 'electrical', 'source_doc_name': Path(pdf).stem,
                          'pdf': str(pdf), 'page': int(page), 'page_range': page,
                          'pdf_uri': Path(pdf).resolve().as_uri() + '#page=' + page,
@@ -217,7 +218,8 @@ def adapt_result(row, pdf, records=None):
     answer = re.sub(r'\(p(\d+)((?:, p\d+)*)\)', lambda match: '(' + ', '.join(
         f'p{p} [chunk:{by_page[p]}]' for p in re.findall(r'p(\d+)', match.group(0)) if p in by_page
     ) + ')', answer)
-    answer += '\n\n검토한 도면 페이지: ' + ' '.join(f'p{p} [chunk:{by_page[p]}]' for p in pages)
+    if pages:
+        answer += '\n\n검토한 도면 페이지: ' + ' '.join(f'p{p} [chunk:{by_page[p]}]' for p in pages)
     return {'answer': answer, 'chunks': chunks, 'images': [], 'tables': [],
             'picked_parts': row.get('picked_parts', []), 'picked_signals': row.get('picked_signals', []),
             'grounding_reviewed': bool(row.get('grounding_reviewed'))}
@@ -266,9 +268,9 @@ def worker(request):
                     reread=lambda client, current: reread_evidence(client, question, current, config['pdf'], run))
                 row['v52_answer_before_review'] = row['answer']
                 row['answer'] = answer
-                row['rev_pages'] = list(dict.fromkeys(row.get('rev_pages', []) + pages))
+                row['answer_pages'] = pages
                 row['grounding_reviewed'] = reviewed
-                records = source_records(evidence)
+                records = evidence['_answer_records']
             if not row.get('answer', '').strip():
                 raise ValueError('전기도면 답변이 비어 있습니다.')
             write_json(run / 'trace.json', row)

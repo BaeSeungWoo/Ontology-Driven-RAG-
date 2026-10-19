@@ -34,6 +34,7 @@ from app.routers.cmsRouter import cmsRouter
 from app.routers.mesRouter import mesRouter
 from app.routers.voiceRouter import voiceRouter
 from app.routers.ladderRouter import ladderRouter
+from app.routers.knowledgeGraphRouter import knowledgeGraphRouter
 
 dotenv.load_dotenv("app/.env.back")
 
@@ -256,6 +257,7 @@ app.include_router(cmsRouter)
 app.include_router(mesRouter)
 app.include_router(voiceRouter)
 app.include_router(ladderRouter)
+app.include_router(knowledgeGraphRouter)
 
 if __name__ == "__main__":
     # 스레드 풀 초기화

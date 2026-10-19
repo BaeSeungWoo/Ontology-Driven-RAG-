@@ -1,0 +1,195 @@
+<div id="kg-trace-20261016">
+  <style>
+    #kg-trace-20261016 .kg-top{display:flex;align-items:baseline;justify-content:space-between;gap:16px;flex-wrap:wrap;padding-right:90px}
+    #kg-trace-20261016 .kg-question{margin:12px 0;overflow-wrap:anywhere}
+    #kg-trace-20261016 .kg-stage{margin:12px 0}
+    #kg-trace-20261016 .kg-legend{display:flex;gap:8px 16px;flex-wrap:wrap;margin:10px 0}
+    #kg-trace-20261016 .kg-key{display:inline-flex;align-items:center;gap:6px}
+    #kg-trace-20261016 .kg-swatch{display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--key)}
+    #kg-trace-20261016 .kg-plot{position:relative;width:100%;overflow:hidden}
+    #kg-trace-20261016 .kg-graph{display:block;width:100%;touch-action:none}
+    #kg-trace-20261016 .kg-graph text{fill:var(--foreground);font-family:inherit;font-weight:400}
+    #kg-trace-20261016 .kg-link{stroke:var(--border);stroke-width:1.2;fill:none;opacity:.65}
+    #kg-trace-20261016 .kg-link.relation{stroke:var(--viz-series-1);opacity:.9}
+    #kg-trace-20261016 .kg-link.direct,#kg-trace-20261016 .kg-link.fact_match{stroke-dasharray:5 5;opacity:.55}
+    #kg-trace-20261016 .kg-link.relation.selected{stroke-width:2}
+    #kg-trace-20261016 .kg-node{--node-color:var(--muted-foreground)}
+    #kg-trace-20261016 .kg-node.fact{--node-color:var(--viz-series-1)}
+    #kg-trace-20261016 .kg-node.dense{--node-color:var(--viz-series-2)}
+    #kg-trace-20261016 .kg-node.ppr{--node-color:var(--viz-series-3)}
+    #kg-trace-20261016 .kg-node.both{--node-color:var(--viz-series-4)}
+    #kg-trace-20261016 .kg-node .mark{fill:color-mix(in srgb,var(--node-color) 28%,var(--background));stroke:var(--border);stroke-width:1}
+    #kg-trace-20261016 .kg-node.selected .mark{stroke:var(--foreground);stroke-width:2}
+    #kg-trace-20261016 .kg-node .hit{fill:transparent;stroke:none}
+    #kg-trace-20261016 .kg-node .rank{font-weight:500}
+    #kg-trace-20261016 .kg-node.dimmed{opacity:.24}
+    #kg-trace-20261016 .kg-link.dimmed{opacity:.1}
+    #kg-trace-20261016 .kg-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    #kg-trace-20261016 .kg-detail{margin-top:14px}
+    #kg-trace-20261016 .kg-detail pre{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:0;font-family:inherit}
+    #kg-trace-20261016 .kg-detail[hidden]{display:none}
+    #kg-trace-20261016 .kg-field{min-width:0;flex:1}
+    #kg-trace-20261016 .kg-field select{width:100%}
+    #kg-trace-20261016 .kg-node:focus-visible .mark{stroke:var(--ring);stroke-width:3}
+  </style>
+  <div class="kg-top"><h2>질문에서 근거까지</h2><span class="text-small" data-total></span></div>
+  <div class="viz-controls">
+    <label class="form-label kg-field">매뉴얼<select class="form-select" data-question>__GRAPH_DATA_OPTIONS__</select></label>
+  </div>
+  <div class="kg-question" data-question-text></div>
+  <div class="viz-row kg-stage" role="group" aria-label="탐색 단계">
+    <button class="btn" type="button" aria-pressed="true" data-view="overall">전체 연결</button>
+    <button class="btn" type="button" aria-pressed="false" data-view="dense">질문 → 본문·표</button>
+    <button class="btn" type="button" aria-pressed="false" data-view="triple">질문 → 관계</button>
+    <button class="btn" type="button" aria-pressed="false" data-view="ppr">그래프 탐색 결과</button>
+  </div>
+  <div class="kg-legend text-small" aria-label="색과 모양 범례">
+    <span class="kg-key"><i class="kg-swatch" style="--key:var(--viz-series-1)"></i>관계 시작 개체</span>
+    <span class="kg-key"><i class="kg-swatch" style="--key:var(--viz-series-2)"></i>직접 검색 D</span>
+    <span class="kg-key"><i class="kg-swatch" style="--key:var(--viz-series-3)"></i>그래프 탐색 G</span>
+    <span class="kg-key"><i class="kg-swatch" style="--key:var(--viz-series-4)"></i>두 방식 공통</span>
+    <span>○ 개체　▭ 본문　◇ 표</span>
+  </div>
+  <div class="kg-plot">
+    <svg class="kg-graph" role="group" aria-label="실제 검색에서 추출한 개체·본문·표 부분 그래프" data-graph>
+      <defs><marker id="kg-trace-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="var(--viz-series-1)"></path></marker></defs>
+      <g data-drawing></g>
+    </svg>
+  </div>
+  <div class="kg-caption text-small"><span data-count aria-live="polite"></span><button class="btn btn-ghost" type="button" data-fit>전체 맞춤</button></div>
+  <div class="text-small">실선: 저장된 연결 · 점선: 질문 유사도 · 단계별 상위 결과와 주변 연결</div>
+  <div class="viz-controls kg-detail"><label class="form-label kg-field">노드 원문<select class="form-select" data-node><option value="">노드 선택</option></select></label></div>
+  <div class="card kg-detail" data-detail id="kg-trace-detail" aria-live="polite" hidden>
+    <div class="text-small" data-kind></div><h3 data-label></h3><div class="text-small" data-source></div><div class="text-small tabular-nums" data-scores></div><pre data-content></pre>
+  </div>
+  <script type="application/json" data-graph-data>__GRAPH_DATA_JSON__</script>
+  <script>
+  (()=>{
+    const root=document.getElementById('kg-trace-20261016');
+    const DATA=JSON.parse(root.querySelector('[data-graph-data]').textContent);
+    const svg=root.querySelector('[data-graph]'),drawing=root.querySelector('[data-drawing]'),picker=root.querySelector('[data-question]'),nodePicker=root.querySelector('[data-node]');
+    const ns='http://www.w3.org/2000/svg';
+    const saved=window.openai?.widgetState;
+    let state={dataset:saved?.modelContent?.dataset||DATA.datasets[0].id,view:saved?.privateContent?.view||'overall',selected:saved?.modelContent?.selectedNode||''};
+    if(!DATA.datasets.some(d=>d.id===state.dataset))state.dataset=DATA.datasets[0].id;
+    if(!['overall','dense','triple','ppr'].includes(state.view))state.view='overall';
+    let positions=new Map(),shown=[],links=[],nodeEls=new Map(),lineEls=[],transform={x:0,y:0,k:1},drag=null,width=736,height=500;
+    const dataset=()=>DATA.datasets.find(d=>d.id===state.dataset);
+    const el=(tag,attributes={},parent)=>{let n=document.createElementNS(ns,tag);for(let[k,v]of Object.entries(attributes))n.setAttribute(k,v);if(parent)parent.append(n);return n};
+    const persist=()=>{if(window.openai?.setWidgetState)window.openai.setWidgetState({modelContent:{dataset:state.dataset,question:dataset().question,selectedNode:state.selected},privateContent:{view:state.view}}).catch(()=>{});};
+    const role=n=>n.dense&&n.ppr?'both':n.dense?'dense':n.ppr?'ppr':n.fact?'fact':'';
+    const kindLabel={query:'질문',entity:'개체',passage:'본문 발췌',table:'표 발췌'};
+    const shorten=(v,n)=>[...v].length>n?[...v].slice(0,n).join('')+'…':v;
+    const localPoint=event=>{const r=svg.getBoundingClientRect();return{x:(event.clientX-r.left-transform.x)/transform.k,y:(event.clientY-r.top-transform.y)/transform.k}};
+    function updateGeometry(){
+      drawing.setAttribute('transform',`translate(${transform.x} ${transform.y}) scale(${transform.k})`);
+      for(let i=0;i<links.length;i++){
+        const e=links[i],a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)continue;
+        const dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy)||1,offset=e.kind==='relation'?17:0;
+        const target={x:b.x-offset*dx/length,y:b.y-offset*dy/length};
+        lineEls[i].line.setAttribute('d',`M${a.x},${a.y} L${target.x},${target.y}`);
+        if(lineEls[i].label){lineEls[i].label.setAttribute('x',(a.x+b.x)/2);lineEls[i].label.setAttribute('y',(a.y+b.y)/2-7)}
+      }
+      for(const n of shown){const p=positions.get(n.id);nodeEls.get(n.id).setAttribute('transform',`translate(${p.x} ${p.y})`)}
+    }
+    function detail(node){
+      const box=root.querySelector('[data-detail]');
+      if(!node){box.hidden=true;return}
+      box.hidden=false;root.querySelector('[data-kind]').textContent=kindLabel[node.kind];
+      root.querySelector('[data-label]').textContent=node.caption||node.label;
+      root.querySelector('[data-source]').textContent=node.document?`${node.document} · p.${node.pages}`:'';
+      const info=[];
+      if(node.dense_rank)info.push(`직접 D${node.dense_rank}`);
+      if(node.ppr_rank)info.push(`탐색 G${node.ppr_rank}`);
+      if(node.final)info.push('현재 인덱스 최종 후보');
+      if(node.cosine!==undefined)info.push(`질문 유사도 ${node.cosine.toFixed(3)}`);
+      if(node.ppr_score!==undefined)info.push(`탐색 점수 ${node.ppr_score.toExponential(2)}`);
+      root.querySelector('[data-scores]').textContent=info.join(' · ');
+      root.querySelector('[data-content]').textContent=node.content;
+    }
+    function selectNode(id,save=true){
+      state.selected=id;nodePicker.value=id;
+      const selected=shown.find(n=>n.id===id);detail(selected);
+      const neighbors=new Set([id]);for(const e of links){if(e.source===id)neighbors.add(e.target);if(e.target===id)neighbors.add(e.source)}
+      for(const n of shown){const g=nodeEls.get(n.id);g.classList.toggle('selected',n.id===id);g.classList.toggle('dimmed',!!id&&!neighbors.has(n.id))}
+      for(let i=0;i<links.length;i++)lineEls[i].line.classList.toggle('dimmed',!!id&&links[i].source!==id&&links[i].target!==id);
+      if(save)persist();
+    }
+    function layout(){
+      const group={entity:shown.filter(n=>n.kind==='entity'),passage:shown.filter(n=>n.kind==='passage'),table:shown.filter(n=>n.kind==='table')};
+      positions=new Map();
+      const anchors={query:[width*.5,35],entity:[width*(state.view==='triple'?.5:.28),height*.47],passage:[width*.75,height*.33],table:[width*.72,height*.77]};
+      for(const n of shown){
+        const list=group[n.kind]||[n],i=list.indexOf(n),angle=(i/Math.max(1,list.length))*Math.PI*2;
+        const center=anchors[n.kind],rx=n.kind==='entity'?width*.2:width*.16,ry=n.kind==='entity'?height*.3:height*.16;
+        positions.set(n.id,{x:n.kind==='query'?center[0]:center[0]+Math.cos(angle)*rx,y:n.kind==='query'?center[1]:center[1]+Math.sin(angle)*ry,ax:center[0],ay:center[1]});
+      }
+      for(let step=0;step<160;step++){
+        let shifts=new Map(shown.map(n=>[n.id,{x:0,y:0}]));
+        for(let i=0;i<shown.length;i++)for(let j=i+1;j<shown.length;j++){
+          let a=positions.get(shown[i].id),b=positions.get(shown[j].id),dx=b.x-a.x,dy=b.y-a.y;
+          if(Math.abs(dx)+Math.abs(dy)<.1){dx=.5;dy=.3}
+          const dist=Math.max(12,Math.hypot(dx,dy)),force=1400/(dist*dist),sx=force*dx/dist,sy=force*dy/dist;
+          shifts.get(shown[i].id).x-=sx;shifts.get(shown[i].id).y-=sy;shifts.get(shown[j].id).x+=sx;shifts.get(shown[j].id).y+=sy;
+          if(Math.abs(dx)<85&&Math.abs(dy)<40){const push=(40-Math.abs(dy))*.03*(dy>=0?1:-1);shifts.get(shown[i].id).y-=push;shifts.get(shown[j].id).y+=push}
+        }
+        for(const e of links){if(['direct','fact_match','table_table'].includes(e.kind))continue;let a=positions.get(e.source),b=positions.get(e.target);if(!a||!b)continue;const dx=b.x-a.x,dy=b.y-a.y,dist=Math.hypot(dx,dy)||1,force=(dist-105)*.004;shifts.get(e.source).x+=dx/dist*force;shifts.get(e.source).y+=dy/dist*force;shifts.get(e.target).x-=dx/dist*force;shifts.get(e.target).y-=dy/dist*force}
+        for(const n of shown){const p=positions.get(n.id),s=shifts.get(n.id);if(n.kind==='query')continue;p.x=Math.max(50,Math.min(width-50,p.x+s.x+(p.ax-p.x)*.003));p.y=Math.max(85,Math.min(height-45,p.y+s.y+(p.ay-p.y)*.003))}
+      }
+      // Separate the actual label bounds, not only the circular marks.
+      const bounds=new Map(shown.map(n=>[n.id,nodeEls.get(n.id).getBBox()]));
+      const clamp=n=>{const p=positions.get(n.id),b=bounds.get(n.id);p.x=Math.max(8-b.x,Math.min(width-8-b.x-b.width,p.x));p.y=Math.max(8-b.y,Math.min(height-8-b.y-b.height,p.y))};
+      for(let iteration=0;iteration<160;iteration++){
+        let conflicts=0;
+        for(let i=0;i<shown.length;i++)for(let j=i+1;j<shown.length;j++){
+          const a=positions.get(shown[i].id),b=positions.get(shown[j].id),aa=bounds.get(shown[i].id),bb=bounds.get(shown[j].id);
+          const ax=a.x+aa.x+aa.width/2,bx=b.x+bb.x+bb.width/2,ay=a.y+aa.y+aa.height/2,by=b.y+bb.y+bb.height/2;
+          const ox=(aa.width+bb.width)/2+12-Math.abs(bx-ax),oy=(aa.height+bb.height)/2+12-Math.abs(by-ay);
+          if(ox>0&&oy>0){conflicts++;if(ox<oy){const s=(bx>=ax?1:-1)*(ox/2+.2);a.x-=s;b.x+=s}else{const s=(by>=ay?1:-1)*(oy/2+.2);a.y-=s;b.y+=s}clamp(shown[i]);clamp(shown[j])}
+        }
+        if(!conflicts)break;
+      }
+      transform={x:0,y:0,k:1};updateGeometry();
+    }
+    function render(){
+      const data=dataset(),view=data.views[state.view];
+      picker.value=state.dataset;root.querySelector('[data-question-text]').textContent=data.question;
+      const counts=data.index_counts;root.querySelector('[data-total]').textContent=`${state.dataset.toUpperCase()} · 표본 부분 그래프`;
+      for(const b of root.querySelectorAll('[data-view]'))b.setAttribute('aria-pressed',String(b.dataset.view===state.view));
+      shown=data.nodes.filter(n=>view.nodes.includes(n.id));links=data.edges.filter(e=>view.edges.includes(e.id));
+      width=Math.max(280,root.querySelector('.kg-plot').getBoundingClientRect().width);height=width<480?640:490;
+      svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('height',height);drawing.replaceChildren();nodeEls=new Map();lineEls=[];
+      root.querySelector('[data-count]').textContent=`표시 ${shown.length}노드 · ${links.length}연결 / 전체 개체 ${counts.entities.toLocaleString()} · 본문 ${counts.passages.toLocaleString()} · 표 ${counts.tables.toLocaleString()}`;
+      for(const e of links){const line=el('path',{class:`kg-link ${e.kind}`},drawing);if(e.kind==='relation')line.setAttribute('marker-end','url(#kg-trace-arrow)');let label=null;if(e.kind==='relation'){label=el('text',{class:'text-small','text-anchor':'middle'},drawing);label.textContent=shorten(e.label,18);line.addEventListener('click',()=>{const box=root.querySelector('[data-detail]');box.hidden=false;root.querySelector('[data-kind]').textContent='추출 관계 · 원문 검토 대상';root.querySelector('[data-label]').textContent=e.label;root.querySelector('[data-source]').textContent=(e.sources||[]).map(s=>`${s.document} · p.${s.pages}`).join(' / ');root.querySelector('[data-scores]').textContent=`질문–관계 유사도 ${e.cosine.toFixed(3)}`;root.querySelector('[data-content]').textContent=`${data.nodes.find(n=>n.id===e.source)?.label} → ${e.label} → ${data.nodes.find(n=>n.id===e.target)?.label}`})}if(label&&state.view!=='triple')label.setAttribute('visibility','hidden');lineEls.push({line,label})}
+      nodePicker.replaceChildren();let initial=document.createElement('option');initial.value='';initial.textContent='노드 선택';nodePicker.append(initial);
+      for(const n of shown){
+        const g=el('g',{class:`kg-node ${role(n)} cursor-interaction`,'aria-label':`${kindLabel[n.kind]} ${n.label}`},drawing);
+        el('circle',{r:22,class:'hit'},g);
+        if(n.kind==='entity')el('circle',{r:n.fact?14:9,class:'mark'},g);
+        else if(n.kind==='table')el('path',{d:'M0 -20 L27 0 L0 20 L-27 0 Z',class:'mark'},g);
+        else el('rect',{x:-30,y:-15,width:60,height:30,rx:n.kind==='query'?15:4,class:'mark'},g);
+        const isLabeled=n.kind!=='entity'||n.fact;
+        if(isLabeled){const label=el('text',{class:'text-small','text-anchor':'middle',y:n.kind==='entity'?29:34},g);label.textContent=shorten(n.label,width<480?9:14)}
+        if(n.kind!=='entity'){const rank=el('text',{class:'text-small rank','text-anchor':'middle',y:4},g);rank.textContent=n.kind==='query'?'질문':(n.dense_rank?`D${n.dense_rank}`:'')+(n.dense_rank&&n.ppr_rank?'/':'')+(n.ppr_rank?`G${n.ppr_rank}`:'')||'주변'}
+        g.addEventListener('pointerdown',event=>{event.stopPropagation();g.setPointerCapture(event.pointerId);drag={id:n.id,startX:event.clientX,startY:event.clientY,moved:false}});
+        g.addEventListener('pointermove',event=>{if(!drag||drag.id!==n.id)return;if(Math.hypot(event.clientX-drag.startX,event.clientY-drag.startY)>4){drag.moved=true;let p=localPoint(event),pos=positions.get(n.id);pos.x=p.x;pos.y=p.y;updateGeometry()}});
+        g.addEventListener('pointerup',()=>{if(drag&&!drag.moved)selectNode(n.id);drag=null});
+        nodeEls.set(n.id,g);
+        const option=document.createElement('option');option.value=n.id;option.textContent=`${kindLabel[n.kind]} · ${n.caption||n.label}`;nodePicker.append(option);
+      }
+      layout();if(!shown.some(n=>n.id===state.selected))state.selected='';selectNode(state.selected,false);
+    }
+    picker.addEventListener('change',()=>{state.dataset=picker.value;state.selected='';render();persist()});
+    root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{state.view=b.dataset.view;state.selected='';render();persist()}));
+    nodePicker.addEventListener('change',()=>selectNode(nodePicker.value));
+    root.querySelector('[data-fit]').addEventListener('click',()=>{layout();selectNode('',false)});
+    svg.addEventListener('wheel',event=>{event.preventDefault();const r=svg.getBoundingClientRect(),x=event.clientX-r.left,y=event.clientY-r.top,k=Math.min(3,Math.max(1,transform.k*(event.deltaY<0?1.12:.89))),ratio=k/transform.k;transform={k,x:x-(x-transform.x)*ratio,y:y-(y-transform.y)*ratio};updateGeometry()},{passive:false});
+    svg.addEventListener('pointerdown',event=>{if(event.target===svg){svg.setPointerCapture(event.pointerId);drag={pan:true,startX:event.clientX,startY:event.clientY,x:transform.x,y:transform.y}}});
+    svg.addEventListener('pointermove',event=>{if(drag?.pan){transform.x=drag.x+event.clientX-drag.startX;transform.y=drag.y+event.clientY-drag.startY;updateGeometry()}});
+    svg.addEventListener('pointerup',()=>{if(drag?.pan)drag=null});
+    let lastWidth=0;new ResizeObserver(entries=>{const w=Math.round(entries[0].contentRect.width);if(w!==lastWidth){lastWidth=w;render()}}).observe(root.querySelector('.kg-plot'));
+    window.addEventListener('openai:set_globals',event=>{const s=event.detail?.globals?.widgetState;if(!s)return;const next=s.modelContent?.dataset;if(DATA.datasets.some(d=>d.id===next))state.dataset=next;if(['overall','dense','triple','ppr'].includes(s.privateContent?.view))state.view=s.privateContent.view;state.selected=s.modelContent?.selectedNode||'';render()});
+    render();
+  })();
+  </script>
+</div>

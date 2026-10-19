@@ -71,8 +71,9 @@ class LLM:
         raise last
 
     def chat(self, system: str, user: str, max_new_tokens: int = 512, temperature: float = 0.0,
-             stop_strings: list[str] | None = None, response_format: dict | None = None) -> str:
-        if max_new_tokens >= 1000:
+             stop_strings: list[str] | None = None, response_format: dict | None = None,
+             include_answer_context: bool = True) -> str:
+        if include_answer_context and max_new_tokens >= 1000:
             system += os.getenv("GRAPHRAG_ANSWER_CONTEXT", "")
         payload = {"model": self.api_model, "temperature": temperature, "max_tokens": max_new_tokens,
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
