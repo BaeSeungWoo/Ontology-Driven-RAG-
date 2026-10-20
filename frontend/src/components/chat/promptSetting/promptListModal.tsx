@@ -112,7 +112,7 @@ export default function PromptListModal({
           <p className={styles.llmGuideTitle}>사용 LLM 모드 선택</p>
           <div className={styles.llmRadioGroup}>
             {LLM_MODE_OPTIONS.map((option) => {
-              const disabled = option.value === "cms" && !["engineer", "manager"].includes(selectedPersonaType);
+              const disabled = option.value === "cms" && selectedPersonaType !== "manager";
               return (
                 <label key={option.value} className={`${styles.llmRadioItem} ${disabled ? styles.llmRadioItemDisabled : ""}`}>
                   <input
@@ -129,9 +129,9 @@ export default function PromptListModal({
               );
             })}
           </div>
-          {!["engineer", "manager"].includes(selectedPersonaType) && (
+          {selectedPersonaType !== "manager" && (
             <p id="cms-mode-restriction" className={styles.llmGuideDesc}>
-              CMS를 사용하려면 페르소나를 기술 엔지니어 또는 관리자로 선택하세요.
+              CMS를 사용하려면 페르소나를 관리자로 선택하세요.
             </p>
           )}
           <p className={styles.llmGuideDesc}>
@@ -151,7 +151,7 @@ export default function PromptListModal({
             </p>
           )}
           <p className={styles.llmGuideDesc}>
-            추천질문은 Ollama 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 기술 엔지니어 또는 관리자·CMS 조합에서만 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. CMS는 현재 장비의 테스트 데이터를 조회합니다. 기술 엔지니어는 2026-08-04~08-11 작업일의 알람 이력과 매뉴얼, 관리자는 2026-08-11 작업일 집계를 사용합니다.
+            추천질문은 Ollama·vLLM 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 전기도면 고장진단 QA, 관리자·CMS 조합에서 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. 기술 엔지니어는 전기도면을 사용하며, 관리자·CMS는 현재 장비의 2026-10-19 작업일 집계를 사용합니다.
           </p>
         </section>
 

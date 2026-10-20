@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import AppHeader from "@/components/navigation/appHeader";
 import styles from "@/components/dailyReport/dailyReport.module.css";
 import theme from "@/components/dailyReport/reportTheme.module.css";
-import ReportDatePicker, { TEST_REPORT_DATE, todayInKorea } from "@/components/dailyReport/reportDatePicker";
+import ReportDatePicker, { todayInKorea } from "@/components/dailyReport/reportDatePicker";
 import { shiftReportDisplayDates } from "@/components/dailyReport/reportDisplayDates";
 import {
   getCmsSavedReport,
@@ -13,6 +13,8 @@ import {
 } from "@/services/cmsApi";
 import cmsStyles from "./cms.module.css";
 import CmsExecutiveReport from "./Report/cmsExecutiveReport";
+
+const CMS_REPORT_DATE = "2026-10-19";
 
 export default function CmsPage() {
   const [reportDate, setReportDate] = useState(todayInKorea);
@@ -24,7 +26,7 @@ function CmsReportPage({ reportDate, onDateChange }: { reportDate: string; onDat
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isStarting, setIsStarting] = useState(false);
-  const report = shiftReportDisplayDates(saved?.report ?? null, reportDate);
+  const report = shiftReportDisplayDates(saved?.report ?? null, reportDate, CMS_REPORT_DATE);
   const isSummaryLoading = isStarting || (saved?.status === "GENERATING" && !errorMessage);
   const summaryErrorMessage = errorMessage || saved?.errorMessage || "";
 
@@ -33,9 +35,9 @@ function CmsReportPage({ reportDate, onDateChange }: { reportDate: string; onDat
 
     const loadSavedReport = async () => {
       try {
-        let result = await getCmsSavedReport(TEST_REPORT_DATE);
+        let result = await getCmsSavedReport(CMS_REPORT_DATE);
         if (!isMounted) return;
-        if (!result) result = await startCmsSavedReport("vllm_config", TEST_REPORT_DATE);
+        if (!result) result = await startCmsSavedReport("vllm_config", CMS_REPORT_DATE);
         if (isMounted) {
           setSaved(result);
         }
@@ -63,7 +65,7 @@ function CmsReportPage({ reportDate, onDateChange }: { reportDate: string; onDat
     let timer: ReturnType<typeof setTimeout>;
     const poll = async () => {
       try {
-        const result = await getCmsSavedReport(TEST_REPORT_DATE);
+        const result = await getCmsSavedReport(CMS_REPORT_DATE);
         if (stopped) return;
         if (!result) throw new Error("저장된 리포트를 찾을 수 없습니다.");
         setSaved(result);
@@ -81,7 +83,7 @@ function CmsReportPage({ reportDate, onDateChange }: { reportDate: string; onDat
     setErrorMessage("");
 
     try {
-      const result = await startCmsSavedReport("vllm_config", TEST_REPORT_DATE, true);
+      const result = await startCmsSavedReport("vllm_config", CMS_REPORT_DATE, true);
       setSaved(result);
     } catch (error) {
       setErrorMessage(

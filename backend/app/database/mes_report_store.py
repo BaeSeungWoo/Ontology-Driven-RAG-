@@ -5,8 +5,8 @@ from decimal import Decimal
 
 from app.database.connection_pool import get_db_connection
 
-# Fixed test dataset: assume today is 2026-08-21.
-REPORT_DATE = date(2026, 8, 20)
+# Fixed MES dataset restored on 2026-10-20.
+REPORT_DATE = date(2026, 10, 19)
 
 
 def _json_default(value):
