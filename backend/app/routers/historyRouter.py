@@ -250,6 +250,8 @@ class GetMessagesRequest(BaseModel):
 
 @historyRouter.post("/newSession", response_model=CreateSessionResponse)
 def createSession(req: CreateSessionRequest, client_request: Request):
+    if req.llm_mode == "cms" and req.llm_persona != "manager":
+        raise HTTPException(status_code=400, detail="CMS 모드는 관리자 페르소나에서 사용하세요.")
     machine_info = load_machine_info()
     ctx = resolve_request_code(
         request=client_request,

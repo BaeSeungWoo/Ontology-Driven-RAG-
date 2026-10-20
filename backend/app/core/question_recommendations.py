@@ -4,7 +4,6 @@ import logging
 from time import monotonic
 from pipeline.ingestion.machine_resolver import build_doc_to_machine_index, _resolve_machine_code
 from app.core.cms_context import load_cms_snapshot, cms_excerpts
-from app.core.cms_engineer import alarm_codes, contains_code, engineer_chunks, load_engineer_snapshot
 
 
 logger = logging.getLogger("uvicorn.error")
@@ -42,52 +41,10 @@ class InitialQuestionCache:
                 await asyncio.gather(task, return_exceptions=True)
 
     async def _generate(self, service, machine_code, source, key):
-        if source == "cms_engineer":
-            snapshot = await asyncio.to_thread(load_engineer_snapshot, machine_code)
-            manual_codes = await asyncio.to_thread(initial_manual_alarm_codes, service, machine_code, snapshot)
-            questions = initial_engineer_questions(snapshot, manual_codes)
-        else:
-            questions = await recommend_questions(service, machine_code, source=source)
+        questions = await recommend_questions(service, machine_code, source=source)
         if questions:
             self.entries[key] = (monotonic() + 600, questions)
         return questions
-
-
-def initial_manual_alarm_codes(service, machine_code, snapshot):
-    documents = build_doc_to_machine_index({machine_code: service.config.machines.get(machine_code, {})})
-    if not documents:
-        return []
-    codes = [a["code"] for a in snapshot["alarms"] if a.get("code") and a["code"].strip() != "-"]
-    bundle = service._get_retriever("rag").bm25
-    matched = []
-    for text, metadata in zip(bundle["documents"], bundle["metadatas"]):
-        source = metadata.get("source_doc_name", "")
-        if source not in documents or metadata.get("container_type") == "ladder":
-            continue
-        for code in codes or alarm_codes(text):
-            if code not in matched and contains_code(text, code):
-                matched.append(code)
-    return matched[:3]
-
-
-def initial_engineer_questions(snapshot, manual_codes=()):
-    questions = [f"{', '.join(manual_codes)} 알람의 의미를 장비 매뉴얼 기준으로 알려주세요."] if manual_codes else []
-    if not snapshot["history_rows"]:
-        return questions
-    period = f"{snapshot['work_date_from']}~{snapshot['work_date']} 테스트 기간"
-    alarms = snapshot["alarms"]
-    if not snapshot["alarm_events"]:
-        return questions + [f"{period}에 기록된 장비 상태와 마지막 상태 기록을 알려주세요."]
-    questions.append(f"{period}에 어떤 알람이 발생했고 각각 몇 회 발생했나요?")
-    defined = [a["code"] for a in alarms if a.get("definition_registered") and a.get("code")
-               and (a.get("alarm_name") or a.get("alarm_description"))]
-    if defined and not manual_codes:
-        questions.append(f"{', '.join(defined[:3])} 알람의 등록된 이름과 내용은 무엇인가요?")
-    coded = [a for a in alarms if a.get("code") and a["code"].strip() != "-"]
-    if coded:
-        most_frequent = max(coded, key=lambda alarm: alarm["count"])
-        questions.append(f"{period}의 {most_frequent['code']} 알람은 어느 시간대에 발생했으며 최근 발생 시각은 언제인가요?")
-    return questions[:3]
 
 
 async def run_until_disconnect(request, generation):
@@ -136,26 +93,22 @@ async def recommend_questions(
         return [text for text in QUESTIONS if text not in asked] if machine_code in SUPPORTED_MACHINES else []
     machine = service.config.machines.get(machine_code, {})
     documents = build_doc_to_machine_index({machine_code: machine})
-    is_cms = source in {"cms_engineer", "cms_manager"}
+    is_cms = source == "cms_manager"
     if (not documents and not is_cms) or machine_code == "ALL":
         logger.info("[recommendations] skipped machine=%s documents=%d", machine_code, len(documents))
         return []
 
     is_ladder = source == "ladder"
-    source_label = "CMS 집계와 매뉴얼" if source == "cms_engineer" else "CMS 데이터" if is_cms else "래더" if is_ladder else "매뉴얼"
+    source_label = "CMS 데이터" if is_cms else "래더" if is_ladder else "매뉴얼"
     initial_query = ("정비 보전 래더 PLC 입력 출력 신호 접점 코일 인터록 운전 준비 조건"
                      if is_ladder else "현장 작업자 장비 운전 시작 전 안전 점검 기본 조작 알람 확인")
     query = (f"{question}\n현재 답변 이후의 작업과 확인 사항: {answer[:1200]}" if answer else question) or initial_query
     if _alternate_topic:
         query = ("래더 PLC 인터록 입력 출력 신호 운전 준비 조건" if is_ladder
                  else "장비 일상 점검 유지보수 윤활 냉각 운전 정지 안전 알람")
-    if source == "cms_engineer":
-        snapshot, chunks = await engineer_chunks(service, machine_code, "" if _alternate_topic else question)
-        excerpts = [{"id": item["index"], "document": item["metadata"]["source_doc_name"],
-                     "source_kind": item["metadata"]["source_kind"], "text": item["document"]} for item in chunks]
-    elif is_cms:
+    if is_cms:
         snapshot = await asyncio.to_thread(load_cms_snapshot, machine_code)
-        excerpts = cms_excerpts(snapshot, "engineer" if source == "cms_engineer" else "manager")
+        excerpts = cms_excerpts(snapshot)
     else:
         result = await asyncio.to_thread(
             lambda: service._get_retriever("ladder" if is_ladder else "rag").search(query=query, machine_code=machine_code, top_k=8)
@@ -212,13 +165,6 @@ async def recommend_questions(
     )
     if is_cms:
         recommendation_policy = (
-            "기술엔지니어를 위한 한국어 추천질문을 최대 3개 생성하세요. "
-            "처음에는 1) 제공된 매뉴얼로 설명할 수 있는 알람 의미 2) CMS 기간 집계의 최근·반복 발생 "
-            "3) 해당 코드의 매뉴얼 원인 후보와 점검 순서라는 서로 다른 주제를 우선하세요. "
-            "알람 코드는 자료에 있는 값만 쓰고, 매뉴얼 근거가 없는 코드에 해결법 질문을 만들지 마세요. "
-            "문서만 있는 알람을 실제 발생했다고 표현하지 마세요. 이미 원인이 밝혀졌다고 전제하지 마세요. "
-            "발생 질문에는 2026-08-04~2026-08-11 테스트 기간을 명시하세요. 실제 현재 상태를 묻지 마세요. "
-            if source == "cms_engineer" else
             "관리자를 위한 한국어 추천질문을 최대 3개 생성하세요. 현재 장비의 CMS 계획가동률, 시간대별 가동률, "
             "상태별 시간과 알람 현황 중 제공된 데이터로 답할 수 있는 질문만 만드세요. "
         ) + "현재 장비와 자료에 명시된 테스트 조회 기간만 대상으로 하세요. 다른 장비·기간 비교나 실시간 현황 질문은 만들지 마세요. "
