@@ -339,12 +339,18 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     const user = messages[messages.length - 2];
     if (!assistant || assistant.role !== "assistant" || !user || user.role !== "user") return false;
     if (assistant.content.trim() && assistant.content !== "(응답 생성 중...)" && !assistant.metadata?.request_failed) return false;
+    const mode = (assistant.llm_mode as LlmMode) || settings.llmMode;
+    const persona = (assistant.metadata?.persona_type as PersonaType) || settings.personaType;
+    if (mode === "cms" && persona !== "manager") {
+      setError("CMS는 관리자 모드에서만 사용할 수 있습니다. 현재 모드로 질문을 다시 전송해 주세요.");
+      return false;
+    }
     return generateAnswer(assistant.session_id, assistant.message_id, {
       ...settings,
       question: user.content,
       llmModel: (assistant.model as LlmModel) || settings.llmModel,
-      llmMode: (assistant.llm_mode as LlmMode) || settings.llmMode,
-      personaType: (assistant.metadata?.persona_type as PersonaType) || settings.personaType,
+      llmMode: mode,
+      personaType: persona,
     }, true);
   };
 

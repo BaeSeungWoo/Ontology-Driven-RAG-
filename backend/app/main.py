@@ -58,6 +58,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["Accept-Ranges", "Content-Range", "Content-Encoding"],
 )
 
 # 미리 생성하지 않고 요청 시 초기화
@@ -100,7 +101,7 @@ class ChatRequest(BaseModel):
 class RecommendationRequest(BaseModel):
     machine_code: str | None = None
     llm_model: Literal["ollama_config", "vllm_config"] = "ollama_config"
-    source: Literal["manual", "ladder", "electrical", "cms_engineer", "cms_manager"] = "manual"
+    source: Literal["manual", "ladder", "electrical", "cms_manager"] = "manual"
     session_id: str | None = None
     question: str = Field(default="", max_length=10000)
     answer: str = Field(default="", max_length=50000)
@@ -116,7 +117,7 @@ def recommendation_machine_code(request, client_request, service):
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
         machine_code = ctx.request_machine_code
-    if request.source in {"cms_engineer", "cms_manager", "electrical"}:
+    if request.source in {"cms_manager", "electrical"}:
         if request.session_id is None and ctx.is_main_server:
             machine_code = "ALL"
         machine_code = cms_machine_code(machine_code, request.machine_code, ctx, service.config.machines)
@@ -159,7 +160,7 @@ async def recommendation_endpoint(request: RecommendationRequest, client_request
         raise HTTPException(status_code=502, detail="추천질문을 생성하지 못했습니다. 다시 시도해 주세요.") from exc
     if questions is None:
         return Response(status_code=204)
-    source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "electrical": "DHF8000 전기도면", "cms_engineer": "CMS 알람 로그", "cms_manager": "CMS 운영 데이터"}[request.source]
+    source_label = {"manual": "매뉴얼", "ladder": "래더 정보", "electrical": "DHF8000 전기도면", "cms_manager": "CMS 운영 데이터"}[request.source]
     return {"questions": questions, "message": "" if questions else f"매칭된 {source_label}에서 새롭게 이어갈 추천질문을 찾지 못했습니다.",
             "machine_code": machine_code,
             "machine_name": service.config.machines.get(machine_code, {}).get("machine_name", machine_code)}
@@ -168,6 +169,8 @@ async def recommendation_endpoint(request: RecommendationRequest, client_request
 # /chat은 HTTP 스트리밍 포맷만 담당한다.
 # 프롬프트 조립, LLM 호출, 메모리 저장은 RAGService.ask_stream()에서 처리한다.
 async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: Request):
+    if request.mode == "cms" and request.persona_type != "manager":
+        raise HTTPException(status_code=400, detail="CMS 모드는 관리자 페르소나에서 사용하세요.")
     # 클라이언트 ip 확인
     # user_ip = get_client_ip_nginx(client_request)
     
@@ -192,8 +195,6 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     if request.mode == "cms":
         effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
-        if request.persona_type not in {"engineer", "manager"}:
-            raise HTTPException(status_code=400, detail="CMS 모드는 기술엔지니어 또는 관리자 페르소나에서 사용하세요.")
         if not effective_machine_code or effective_machine_code == "ALL":
             raise HTTPException(status_code=400, detail="CMS 모드는 현재 장비가 지정되어야 합니다.")
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.

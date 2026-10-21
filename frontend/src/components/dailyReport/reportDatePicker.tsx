@@ -3,7 +3,7 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import styles from "./reportTheme.module.css";
 
 // 전시 화면의 작성일과 별개로 기존 저장본을 조회하는 날짜입니다.
-export const TEST_REPORT_DATE = "2026-08-20";
+export const TEST_REPORT_DATE = "2026-10-19";
 
 export function todayInKorea(now = new Date()) {
   const koreaDate = new Date(now.getTime() + 9 * 60 * 60 * 1000);

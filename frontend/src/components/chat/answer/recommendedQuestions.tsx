@@ -19,11 +19,6 @@ const WELCOME_QUESTIONS = {
     "모터나 펌프가 작동하지 않을 때 관련 회로를 어떻게 점검하나요?",
     "센서와 제어 신호의 연결 관계를 전기도면으로 확인하고 싶어요.",
   ],
-  cms_engineer: [
-    "현재 장비에서 확인할 수 있는 알람과 상태 정보를 정리해 주세요.",
-    "반복되는 알람의 원인을 분석하려면 어떤 정보를 확인해야 하나요?",
-    "장비 이상 원인을 좁히기 위한 점검 순서를 알려주세요.",
-  ],
   cms_manager: [
     "현재 확인 가능한 장비 가동 현황을 요약해 주세요.",
     "장비의 비가동 원인을 파악하려면 어떤 지표를 확인해야 하나요?",
@@ -33,7 +28,7 @@ const WELCOME_QUESTIONS = {
 
 type Props = {
   llmModel?: LlmModel;
-  source?: "electrical" | "manual" | "ladder" | "cms_engineer" | "cms_manager";
+  source?: "electrical" | "manual" | "ladder" | "cms_manager";
   sessionId: number | null;
   question: string;
   answer: string;
@@ -129,9 +124,9 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
     <section className={styles.recommendations} aria-label="추천질문" aria-busy={loading}>
       <h3>{question ? "추천 질문" : {
         electrical: "전기도면 고장진단 QA · DHF8000 / DHF8000 #2", manual: "장비 매뉴얼에 물어보세요", ladder: "래더 정보에 물어보세요",
-        cms_engineer: "현재 장비의 CMS 알람에 물어보세요", cms_manager: "현재 장비의 CMS 현황에 물어보세요",
+        cms_manager: "현재 장비의 CMS 현황에 물어보세요",
       }[source]}</h3>
-      {source.startsWith("cms_") && <p>테스트 기준일: 2026-08-11{machineLabel ? ` · ${machineLabel}` : ""}</p>}
+      {source === "cms_manager" && <p>테스트 기준일: 2026-10-19{machineLabel ? ` · ${machineLabel}` : ""}</p>}
       {loading && (
         <p className={styles.assistantGenerationStatus} role="status">
           <span className={styles.assistantThinkingSpinner} aria-hidden="true" />

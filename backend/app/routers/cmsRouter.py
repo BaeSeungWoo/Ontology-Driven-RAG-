@@ -48,7 +48,7 @@ async def start_saved_report(req: CmsSavedReportRequest, background_tasks: Backg
         saved = await asyncio.to_thread(store.get_report, req.reportDate)
         if saved is not None and not req.force:
             return {"savedReport": saved}
-        raise HTTPException(status_code=409, detail="현재 테스트 데이터는 2026-08-20 기준입니다. 다른 날짜는 저장본 조회만 가능합니다.")
+        raise HTTPException(status_code=409, detail=f"현재 테스트 데이터는 {store.REPORT_DATE.isoformat()} 기준입니다. 다른 날짜는 저장본 조회만 가능합니다.")
     token = await asyncio.to_thread(store.claim_report, req.config, CONFIGS[req.config].llm.model_name, req.force, req.reportDate)
     if token is not None:
         background_tasks.add_task(generate_saved_report, token, req.config, req.reportDate)

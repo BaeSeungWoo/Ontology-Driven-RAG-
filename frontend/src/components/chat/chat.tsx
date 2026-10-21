@@ -216,11 +216,14 @@ export default function Chat() {
       const intent = lastAnswer?.metadata?.intent as { type?: string } | undefined;
       const restoredPersona = PERSONA_OPTIONS.find(option => option.value === savedPersona)?.value
         ?? (mode === "rag" ? "operator" : mode === "ladder" ? "maintenance"
-          : mode === "electrical" ? "engineer" : mode === "cms" ? (intent?.type === "concept_explanation" ? "manager"
-            : intent?.type === "root_cause_analysis" ? "engineer"
-            : selectedPersonaType === "manager" ? "manager" : "engineer") : selectedPersonaType);
+          : mode === "electrical" ? "engineer" : mode === "cms"
+            ? (intent?.type === "root_cause_analysis" ? "engineer" : "manager") : selectedPersonaType);
       isHistorySessionSyncingRef.current = true;
       setSelectedPersonaType(restoredPersona);
+      if (mode === "cms" && restoredPersona !== "manager") {
+        setSelectedLlmMode(PERSONA_CARDS[restoredPersona].mode);
+        isSessionResetPendingRef.current = true;
+      }
       setRecommendationsEnabled(true);
     }
   };

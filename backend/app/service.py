@@ -97,8 +97,10 @@ class RAGService:
         restore_memory: bool = False,
     ) -> tuple[list, list, list, list, dict]:
 
+        if mode == "cms" and persona_type != "manager":
+            raise ValueError("CMS 모드는 관리자 페르소나에서 사용하세요.")
         history = self.memory_manager.get_history(session_id)
-        intent = ({"type": "root_cause_analysis" if persona_type == "engineer" else "concept_explanation", "source": "cms"}
+        intent = ({"type": "concept_explanation", "source": "cms"}
                   if mode == "cms" else await self._resolve_intent(question, persona_type))
 
         if restore_memory and not history:
@@ -117,8 +119,7 @@ class RAGService:
         m_info = {}
         retriever = self._get_retriever(mode) if mode != "cms" else None
         if mode == "cms":
-            context, imgs, tables, chunks = await build_cms_context(
-                self, effective_machine_code, question, persona_type)
+            context, imgs, tables, chunks = await build_cms_context(effective_machine_code)
             m_info = self.config.machines.get(effective_machine_code, {})
         if retriever:
             if mode == "repairHistory":
@@ -154,7 +155,7 @@ class RAGService:
         )
 
         if mode == "cms":
-            messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy(persona_type)
+            messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy()
 
         return messages, imgs, tables, chunks, intent
 
