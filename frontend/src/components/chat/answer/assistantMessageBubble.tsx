@@ -14,7 +14,7 @@ import type { AnswerMessage } from "@/types/chat";
 import LadderDiagrams from "./ladderDiagram";
 import AnswerFeedback from "./answerFeedback";
 import AssetPanel from "../assetPanel";
-import { getMessageReferenceItems, getReferenceItems } from "../citation/citationUtils";
+import { getReferenceItems } from "../citation/citationUtils";
 
 type AssistantMessageBubbleProps = {
   canExplainFigure?: boolean;
@@ -54,11 +54,6 @@ export default function AssistantMessageBubble({
   const citedChunkCount = message.metadata?.used_chunks
     ? new Set(message.metadata.used_chunks.map((chunk) => chunk.index)).size
     : getReferenceItems(message.text, message.metadata).length;
-  const additionalLadderCount = getMessageReferenceItems({
-    content: message.text,
-    llm_mode: message.llmMode,
-    metadata: message.metadata,
-  }).filter((item) => item.additional).length;
 
   // =========================
   // 함수
@@ -144,12 +139,6 @@ export default function AssistantMessageBubble({
             <span aria-label={`응답 시간 ${elapsedLabel}`}>{elapsedLabel}</span>
             <span aria-hidden="true"> · </span>
             <span aria-label={`인용 청크 ${citedChunkCount}개`}>{citedChunkCount} chunks</span>
-            {additionalLadderCount > 0 && (
-              <>
-                <span aria-hidden="true"> · </span>
-                <span>추가 래더 근거 {additionalLadderCount}개</span>
-              </>
-            )}
           </span>
         )}
         <span

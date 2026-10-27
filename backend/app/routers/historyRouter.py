@@ -6,7 +6,7 @@ import traceback
 import os
 from pathlib import Path
 from app.database import database
-from app.security.validate_code import cms_machine_code, resolve_request_code, validate_code
+from app.security.validate_code import session_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
 
 historyRouter = APIRouter(prefix="/api/history", tags=["history"])
@@ -100,8 +100,15 @@ def _row_to_history_json(row):
 
 
 def _history_rows_to_json(rows):
-    personas = database.getHistoryPersonas([row[0] for row in rows])
-    return [dict(_row_to_history_json(row), personaType=personas.get(row[0])) for row in rows]
+    metadata = database.getHistorySessionMetadata([row[0] for row in rows])
+    machines = load_machine_info()
+    result = []
+    for row in rows:
+        session = metadata.get(row[0], {})
+        code = session.get("machineCode")
+        name = "전체 장비" if code == "ALL" else machines.get(code, {}).get("machine_name")
+        result.append(dict(_row_to_history_json(row), **session, machineName=name))
+    return result
 
 
 def _sanitize_page(page: int, page_size: int):
@@ -258,11 +265,7 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         machines=machine_info,
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
-    machine_code = set_history_code(ctx)
-    if req.llm_mode in {"cms", "electrical"}:
-        machine_code = cms_machine_code(machine_code, req.machine_code, ctx, machine_info)
-    if machine_code == "ALL" and ctx.request_machine_code:
-        machine_code = ctx.request_machine_code
+    machine_code = session_machine_code(ctx, req.machine_code, machine_info)
     if req.llm_mode == "electrical":
         from app.core.electrical_qa import validate_machine
         try:
@@ -336,6 +339,7 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
                 {
                     "message_id": row[0],
                     "session_id": row[1],
+                    "machine_code": session_info["machine_code"],
                     "role": row[2],
                     "content": row[3],
                     "created_at": created_at,

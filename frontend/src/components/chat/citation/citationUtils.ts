@@ -86,27 +86,23 @@ export function getReferenceItems(answerText = "", metadata?: ChatMetadata) {
     .map(([chunkIndex], index) => ({ chunkIndex, label: index + 1 }));
 }
 
-// Match the asset panel's used-chunk priority and type/path deduplication.
-export function getDisplayedAssetChunks(metadata?: ChatMetadata): ChatChunk[] {
-  if (metadata?.chunks?.some(chunk => chunk.metadata.source_kind === "paddleocr")) {
-    const seen = new Set<string>();
-    return (metadata.used_chunks ?? []).flatMap(chunk => {
+// The rendered answer is authoritative, including while streaming or loading history.
+export function getDisplayedAssetChunks(metadata?: ChatMetadata, answerText?: string): ChatChunk[] {
+  const cited = answerText === undefined ? null : getReferenceLabelMap(answerText);
+  const used = cited
+    ? (metadata?.chunks ?? metadata?.used_chunks ?? []).filter(chunk => cited.has(chunk.index))
+    : metadata?.used_chunks ?? [];
+  const assets = used.flatMap(chunk => {
+    if (chunk.metadata.source_kind === "paddleocr") {
       const paths = chunk.metadata.page_image_paths;
-      if (chunk.metadata.source_kind !== "paddleocr" || !Array.isArray(paths)) return [];
-      return paths.filter((path): path is string => {
-        if (typeof path !== "string" || !path || seen.has(path)) return false;
-        seen.add(path);
-        return true;
-      }).map(path => ({ ...chunk, metadata: {
+      if (!Array.isArray(paths)) return [];
+      return paths.filter((path): path is string => typeof path === "string" && !!path).map(path => ({ ...chunk, metadata: {
         ...chunk.metadata, container_type: "pictures", asset_path: path,
       } }));
-    });
-  }
-  const isAsset = (chunk: ChatChunk) =>
-    typeof chunk.metadata?.asset_path === "string" && chunk.metadata.asset_path.length > 0 &&
-    (chunk.metadata.container_type === "pictures" || chunk.metadata.container_type === "tables");
-  const usedAssets = metadata?.used_chunks?.filter(isAsset) ?? [];
-  const assets = usedAssets.length ? usedAssets : metadata?.chunks?.filter(isAsset) ?? [];
+    }
+    return typeof chunk.metadata.asset_path === "string" && chunk.metadata.asset_path.length > 0 &&
+      (chunk.metadata.container_type === "pictures" || chunk.metadata.container_type === "tables") ? [chunk] : [];
+  });
   const seen = new Set<string>();
   return assets.filter((chunk) => {
     const key = `${chunk.metadata.container_type}:${chunk.metadata.asset_path}`;
@@ -117,20 +113,7 @@ export function getDisplayedAssetChunks(metadata?: ChatMetadata): ChatChunk[] {
 }
 
 export function getMessageReferenceItems(message?: Pick<MessageItem, "content" | "llm_mode" | "metadata">) {
-  const items: { chunkIndex: number; label: number | string; additional: boolean }[] =
-    getReferenceItems(message?.content, message?.metadata).map((item) => ({ ...item, additional: false }));
-  for (const chunk of getDisplayedAssetChunks(message?.metadata)) {
-    if (items.some((item) => item.chunkIndex === chunk.index)) continue;
-    items.push({ chunkIndex: chunk.index, label: items.length + 1, additional: false });
-  }
-  if (message?.llm_mode !== "ladder") return items;
-  const chunks = message.metadata?.chunks ?? message.metadata?.used_chunks ?? [];
-  let extra = 0;
-  for (const chunk of chunks) {
-    if (!chunk.metadata.ladder_diagram || items.some((item) => item.chunkIndex === chunk.index)) continue;
-    items.push({ chunkIndex: chunk.index, label: `L${++extra}`, additional: true });
-  }
-  return items;
+  return getReferenceItems(message?.content, message?.metadata);
 }
 
 function toPageLabel(range: unknown): string | null {

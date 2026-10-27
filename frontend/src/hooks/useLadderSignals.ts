@@ -1,14 +1,19 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
+import { useMachine } from "@/components/machineProvider";
 import { readTestSignals, type PmcSnapshot } from "@/services/ladderApi";
 
 export default function useLadderSignals(addresses: string[], paused: boolean) {
+  const { machineCode, status } = useMachine();
   const [snapshot, setSnapshot] = useState<PmcSnapshot | null>(null);
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);
 
   useEffect(() => {
-    if (paused || !addresses.length) return;
+    if (paused || !addresses.length || !machineCode || machineCode === "ALL" || status !== "ready") return;
+    setSnapshot(null);
+    setError("");
+    setIsReading(false);
     let active = true;
     let reading = false;
     let timer: ReturnType<typeof setTimeout>;
@@ -18,7 +23,7 @@ export default function useLadderSignals(addresses: string[], paused: boolean) {
       reading = true;
       setIsReading(true);
       try {
-        const result = await readTestSignals(addresses, controller.signal);
+        const result = await readTestSignals(addresses, controller.signal, machineCode);
         if (active) { setSnapshot(result); setError(""); }
       } catch (err) {
         if (active) {
@@ -43,7 +48,7 @@ export default function useLadderSignals(addresses: string[], paused: boolean) {
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [paused, addresses]);
+  }, [paused, addresses, machineCode, status]);
 
-  return { snapshot, error, isReading };
+  return { snapshot: status === "ready" && snapshot?.machine.code === machineCode ? snapshot : null, error, isReading };
 }

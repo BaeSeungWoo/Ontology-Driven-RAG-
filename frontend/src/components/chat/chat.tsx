@@ -27,10 +27,11 @@ import {
 } from "./citation/citationUtils";
 import styles from "./chat.module.css";
 import personaStyles from "./persona.module.css";
+import { useMachine } from "@/components/machineProvider";
 
 type HistorySessionMeta = Pick<
   HistoryItem,
-  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType" | "targetMessageId"
+  "questioner" | "llmModel" | "llmMode" | "promptNo" | "promptName" | "personaType" | "targetMessageId" | "machineCode"
 >;
 
 const PERSONA_CARDS = {
@@ -55,6 +56,7 @@ export default function Chat() {
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const { machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus } = useMachine();
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
@@ -96,7 +98,7 @@ export default function Chat() {
   });
 
   const isPromptRequiredMissing =
-    questioner.trim().length === 0;
+    questioner.trim().length === 0 || machineStatus !== "ready" || !selectedMachineCode;
 
   // 함수: 세션 초기화/전송
   // 기능/목적: 새 질문 시작과 질문 전송 시 세션 생성 정책을 한곳에서 처리한다.
@@ -138,7 +140,7 @@ export default function Chat() {
   };
 
   const handleSendQuestion = async (payload: QuestionPayload) => {
-    if (sendingRef.current || isSessionLoading) return false;
+    if (sendingRef.current || isSessionLoading || isPromptRequiredMissing) return false;
     setIsCitationCollapsed(false);
     setRecommendationSendError("");
     sendingRef.current = true;
@@ -147,6 +149,7 @@ export default function Chat() {
       const shouldForceNewSession = isSessionResetPendingRef.current;
       const isSuccess = await sendQuestion({
         ...payload,
+        machineCode: selectedMachineCode,
         forceNewSession: shouldForceNewSession,
       });
 
@@ -209,6 +212,7 @@ export default function Chat() {
 
     const loaded = await loadSessionMessages(sessionId, sessionMeta?.promptName);
     if (loaded) {
+      setSelectedMachineCode(loaded[0]?.machine_code ?? sessionMeta?.machineCode);
       if (sessionMeta?.targetMessageId) setMessageJump({ messageId: sessionMeta.targetMessageId });
       const lastAnswer = loaded.findLast(message => message.role === "assistant");
       const savedPersona = sessionMeta?.personaType ?? lastAnswer?.metadata?.persona_type;
@@ -307,6 +311,7 @@ export default function Chat() {
     (selectedLlmModel === "ollama_config" || selectedLlmModel === "vllm_config") && recommendationSource !== null;
   const recommendations = prepareRecommendations && recommendationSource ? (
     <RecommendedQuestions
+      machineCode={selectedMachineCode}
       key={`${selectedLlmModel}:${recommendationSource}:${selectedSessionId}:${lastAnswerMessage?.message_id ?? "initial"}`}
       llmModel={selectedLlmModel}
       welcome={isWelcome}
@@ -333,6 +338,13 @@ export default function Chat() {
       <AppHeader>
         <div className={styles.headerSettings} inert={isSending}>
           <PromptSetting
+            selectedMachineCode={selectedMachineCode}
+            machineSelectionDisabled={isSending || isLoading || isSessionLoading}
+            onSelectMachineCode={code => {
+              if (sendingRef.current || isSessionLoading) return;
+              resetToNewSession();
+              setSelectedMachineCode(code);
+            }}
             onOpen={handleSettingsOpen}
             onClose={handleSettingsClose}
             questioner={questioner}

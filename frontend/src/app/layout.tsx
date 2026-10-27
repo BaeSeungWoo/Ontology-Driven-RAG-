@@ -4,6 +4,7 @@ import "./globals.css";
 import "../styles/themes/factory-themes.css";
 import FigureExplanationProvider from "@/components/chat/figureExplanationProvider";
 import MachineAlarmMonitor from "@/components/machineAlarmMonitor";
+import MachineProvider from "@/components/machineProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -51,7 +52,7 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className={`min-h-full flex flex-col ${factoryThemeClass}`}>
-        <FigureExplanationProvider>{children}<MachineAlarmMonitor /></FigureExplanationProvider>
+        <MachineProvider><FigureExplanationProvider>{children}<MachineAlarmMonitor /></FigureExplanationProvider></MachineProvider>
       </body>
     </html>
   );

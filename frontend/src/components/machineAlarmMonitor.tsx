@@ -1,5 +1,7 @@
 "use client";
 
+import { useMachine } from "@/components/machineProvider";
+
 import { useEffect, useState } from "react";
 import { Siren, X } from "lucide-react";
 import styles from "./machineAlarmMonitor.module.css";
@@ -21,6 +23,12 @@ const alarmKey = (machineCode: string, alarm: AlarmEntry["alarm"]) => JSON.strin
 const alarmTypeLabel = (type: AlarmEntry["alarm"]["type"]) => type === "system" ? "시스템" : "Operate";
 
 export default function MachineAlarmMonitor() {
+  const { machineCode, status } = useMachine();
+  if (status !== "ready" || !machineCode || machineCode === "ALL") return null;
+  return <SelectedMachineAlarmMonitor key={machineCode} machineCode={machineCode} />;
+}
+
+function SelectedMachineAlarmMonitor({ machineCode }: { machineCode: string }) {
   const openExplanation = useAlarmExplanation();
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [error, setError] = useState("");
@@ -39,7 +47,7 @@ export default function MachineAlarmMonitor() {
       if (controller.signal.aborted || reading) return;
       reading = true;
       try {
-        const response = await fetch("/local-api/alarms", {
+        const response = await fetch(`/local-api/alarms?machine_code=${encodeURIComponent(machineCode)}`,  {
           cache: "no-store",
           signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]),
         });
@@ -47,6 +55,7 @@ export default function MachineAlarmMonitor() {
         if (!response.ok) throw new Error(data.detail || "알람 상태를 확인할 수 없습니다.");
         if (controller.signal.aborted) return;
         const next = data as Snapshot;
+        if (next.machine.code !== machineCode) throw new Error("알람 응답의 장비 코드가 다릅니다.");
         const keys = new Set(next.alarms.map(alarm => alarmKey(next.machine.code, alarm)));
         if (keys.size !== previousAlarms.size || [...keys].some(key => !previousAlarms.has(key))) {
           const now = new Date().toISOString();
@@ -76,7 +85,7 @@ export default function MachineAlarmMonitor() {
     }
     void poll();
     return () => { controller.abort(); clearTimeout(timer); };
-  }, []);
+  }, [machineCode]);
 
   const alarms = snapshot?.alarms ?? [];
   const stateLabel = (entry: AlarmEntry) => entry.clearedAt ? "해제" : error ? "상태 미확인" : "발생 중";

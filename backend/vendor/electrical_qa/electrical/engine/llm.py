@@ -6,6 +6,7 @@ Works with llama.cpp (Gemma-4 + --mmproj), vLLM, or the OpenAI API (set OPENAI_A
 from __future__ import annotations
 
 import base64
+import copy
 import json
 import logging
 import os
@@ -41,6 +42,34 @@ class LLM:
         self.last_finish_reason = None
         self.last_usage: dict = {}
 
+    def clone(self):
+        client = copy.copy(self)
+        client.last_finish_reason = None
+        client.last_usage = {}
+        return client
+
+    def _complete(self, payload, *, purpose, timeout=300):
+        started = time.perf_counter()
+        self.last_finish_reason = None
+        self.last_usage = {}
+        error = None
+        try:
+            response = self._post(payload, timeout=timeout)
+            self.last_usage = response.get('usage') or {}
+            choice = response['choices'][0]
+            self.last_finish_reason = choice.get('finish_reason')
+            return choice['message']['content'].strip()
+        except Exception as exc:
+            error = type(exc).__name__
+            raise
+        finally:
+            log.info('Model call metrics %s', json.dumps({
+                'purpose': purpose, 'calls': 1,
+                'duration_seconds': round(time.perf_counter() - started, 4),
+                'completion_tokens': self.last_usage.get('completion_tokens'),
+                'finish_reason': self.last_finish_reason, 'error': error,
+            }))
+
     def _extra(self) -> dict:
         # Gemma-4 under llama.cpp --jinja thinks by default and returns an empty `content`.
         from runtime_support import chat_extra
@@ -72,7 +101,7 @@ class LLM:
 
     def chat(self, system: str, user: str, max_new_tokens: int = 512, temperature: float = 0.0,
              stop_strings: list[str] | None = None, response_format: dict | None = None,
-             include_answer_context: bool = True) -> str:
+             include_answer_context: bool = True, purpose: str = 'chat') -> str:
         if include_answer_context and max_new_tokens >= 1000:
             system += os.getenv("GRAPHRAG_ANSWER_CONTEXT", "")
         payload = {"model": self.api_model, "temperature": temperature, "max_tokens": max_new_tokens,
@@ -80,11 +109,10 @@ class LLM:
                    **self._extra(), **({"stop": stop_strings} if stop_strings else {})}
         if response_format is not None:
             payload['response_format'] = response_format
-        ch = self._post(payload)["choices"][0]
-        self.last_finish_reason = ch.get("finish_reason")
+        content = self._complete(payload, purpose=purpose)
         if self.last_finish_reason == "length":
             log.warning(f"generation hit max_tokens={max_new_tokens}; answer may be cut")
-        return ch["message"]["content"].strip()
+        return content
 
     def chat_vision(self, system: str, user: str, image_paths, max_new_tokens: int = 768,
                     temperature: float = 0.0) -> str:
@@ -117,4 +145,4 @@ class LLM:
         payload = {"model": self.api_model, "temperature": temperature, "max_tokens": max_new_tokens,
                    "messages": [{"role": "system", "content": system}, {"role": "user", "content": content}],
                    **self._extra()}
-        return self._post(payload, timeout=600)["choices"][0]["message"]["content"].strip()
+        return self._complete(payload, purpose='vision', timeout=600)

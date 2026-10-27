@@ -25,8 +25,8 @@ export const usePrompt = () => {
    * In: 없음
    * Out: PromptSelectableRow[]
    */
-  const getPromptList = useCallback(async (): Promise<PromptListResult> => {
-    return getPromptListApi();
+  const getPromptList = useCallback(async (machineCode?: string): Promise<PromptListResult> => {
+    return getPromptListApi(machineCode);
   }, []);
 
   /**

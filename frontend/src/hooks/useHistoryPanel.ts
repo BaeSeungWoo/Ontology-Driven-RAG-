@@ -39,6 +39,8 @@ export function toHistoryItem(row: HistoryResponse, selectedSessionId: number | 
 
   return {
     id,
+    machineCode: row.machineCode,
+    machineName: row.machineName,
     title: row.title ?? "제목 없음",
     questioner: row.questioner ?? "-",
     llmModel: row.llmModel ?? "",

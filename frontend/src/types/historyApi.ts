@@ -1,5 +1,7 @@
 ﻿export type HistoryResponse = {
   sessionId: number;
+  machineCode?: string;
+  machineName?: string | null;
   questioner: string;
   title: string;
   llmModel: string;

@@ -1,10 +1,10 @@
+import { authorizeMachine } from "../../machineAccess";
+
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const code = process.env.MCODE?.trim() || "";
-  if (!/^[A-Za-z0-9_-]+$/.test(code)) {
-    return Response.json({ detail: "테스트 장비 코드 설정이 올바르지 않습니다." }, { status: 503 });
-  }
+  const code = await authorizeMachine(request, new URL(request.url).searchParams.get("machine_code"));
+  if (typeof code !== "string") return code;
   const base = (process.env.NEXT_PUBLIC_API_URL || process.env.API_PROXY_TARGET || "http://127.0.0.1:8000").replace(/\/+$/, "");
   try {
     const response = await fetch(`${base}/api/ladder/test-document?machine_code=${encodeURIComponent(code)}`, {

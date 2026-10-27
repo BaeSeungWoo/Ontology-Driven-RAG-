@@ -123,13 +123,6 @@
   min-height: 0;
 }
 
-.referenceCardsTitle {
-  margin: 0 0 7px;
-  color: var(--chat-muted-text);
-  font-size: 11px;
-  font-weight: 700;
-}
-
 .referenceCardList {
   flex: 1;
   min-height: 0;

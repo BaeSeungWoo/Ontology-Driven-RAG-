@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import { useMachine } from "@/components/machineProvider";
 import { createPortal } from "react-dom";
 import { getMachineNodeSignals, getMachineSignals, getTestLadder, type MachineLadderDocument, type MachineLadderNet } from "@/services/ladderApi";
 import useLadderSignals from "@/hooks/useLadderSignals";
@@ -89,9 +90,15 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
   </>;
 }
 
-export default function MachineLadderView({ relatedAddresses, headerHost }: {
-  relatedAddresses: string[]; headerHost: HTMLDivElement | null;
-}) {
+type ViewProps = { relatedAddresses: string[]; headerHost: HTMLDivElement | null };
+
+export default function MachineLadderView(props: ViewProps) {
+  const { machineCode, status } = useMachine();
+  if (status !== "ready" || !machineCode || machineCode === "ALL") return <p>실시간 조회할 장비를 선택하세요.</p>;
+  return <SelectedMachineLadder key={machineCode} {...props} machineCode={machineCode} />;
+}
+
+function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: ViewProps & { machineCode: string }) {
   const [document, setDocument] = useState<MachineLadderDocument | null>(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -139,7 +146,7 @@ export default function MachineLadderView({ relatedAddresses, headerHost }: {
 
   useEffect(() => {
     const controller = new AbortController();
-    getTestLadder(controller.signal).then(result => {
+    getTestLadder(controller.signal, machineCode).then(result => {
       if (!controller.signal.aborted) setDocument(result);
     }).catch(err => {
       if (controller.signal.aborted) return;
@@ -147,7 +154,7 @@ export default function MachineLadderView({ relatedAddresses, headerHost }: {
       setError(typeof detail === "string" ? detail : "장비 래더 파일을 불러오지 못했습니다.");
     });
     return () => controller.abort();
-  }, [retry]);
+  }, [retry, machineCode]);
 
   return <section className={styles.machineLadderView} aria-label="장비 래더 뷰어">
     {error ? <div role="alert"><p>{error}</p><button type="button" className={styles.openDocumentButton}

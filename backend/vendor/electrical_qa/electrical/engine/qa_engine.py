@@ -51,6 +51,7 @@ from ko_terms import SUBSYS, SUBSYS_KO
 from ko_terms import question_axes
 from runtime_support import report_progress
 from electrical.grounding import CIRCUIT_RULES
+from electrical.target_search import search_targets
 
 log = get_logger("puma_v13")
 GOLD = ROOT / "data/example_qa_pair/gold_qa_pairs.json"
@@ -965,6 +966,13 @@ def main():
             log.info(f"[{i+1}/{len(qa)}] {it.get('id')}: 재개 — 건너뜀")
             continue
         q = it["question"]; gaddr = it.get("key_addresses", [])
+        report_progress('질문 대상과 직접 연결된 회로 기록을 찾는 중')
+        try:
+            target_search = search_targets(llm, q, page2parts)
+        except (ValueError, OSError) as exc:
+            log.warning('대상 검색 실패, 기존 검색 사용: %s', exc)
+            target_search = {'phrases': [], 'matches': []}
+        log.info('Target search: %s', json.dumps(target_search, ensure_ascii=False))
         _parts_in = parts
         if args.query_expand:
             _t = expand_query(llm, q, _qcache)
@@ -1101,6 +1109,8 @@ def main():
         circuit_pages = signal_circuit_pages(route_hits, a2sheet, parts, code2page, EX)
 
         # 트랙 1 — 기능 시트 (부품 SHEET NO 라우팅 + 표제란 제목)
+        target_parts = [row['symbol'] for row in target_search['matches']]
+        picked_parts = list(dict.fromkeys(target_parts + picked_parts))
         # 세 트랙의 기여를 따로 적어 둔다 — 사후에 "왜 이 페이지를 폈나"를 사람이 검증할 수
         # 있어야 한다(`scripts/build_trace_html.py`). 점수 계산 자체는 그대로다.
         score = defaultdict(float)
@@ -1136,6 +1146,8 @@ def main():
         # A/B 비교에 잡음이 섞인다(실측: 사전만 바꿨는데 rev_pages가 3문항에서 달라짐).
         _ranked_pages = sorted(score.items(), key=lambda kv: (-kv[1], int(kv[0])))[:args.func_pages]
         func_pages = [p for p, _ in _ranked_pages]
+        target_pages = [row['page'] for row in target_search['matches']]
+        func_pages = list(dict.fromkeys(target_pages + func_pages))[:args.func_pages]
         # **연속 시트(`--continuation`, P303).** 한 회로가 같은 제목으로 여러 장에 걸친다(SL2500
         # 16→17 3-PHASE MOTOR CONNECTION, 68→69 AMP DIAGRAM, 75→76 I/O LINK INTERFACE). 상위 쪽만
         # 읽으면 뒷장의 기기를 놓친다 — 정답 쪽 손실 16 중 이런 경우가 여럿. 상위 3쪽의 앞뒤 쪽이
@@ -1850,6 +1862,7 @@ def main():
                      "gold_answer": it.get("answer", ""), "picked_parts": picked_parts,
                      "picked_signals": picked_sigs, "func_pages": func_pages,
                      "rev_pages": rev_pages,
+                     "target_search": target_search,
                      "page_titles": [page_title.get(p, "") for p in func_pages + rev_pages],
                      "evidence": ev_top.split("\n"), "n_uncertain": n_uncertain,
                      "read_addrs": addrs, "devices": [d["device"] for d in devices],

@@ -1,3 +1,5 @@
+import { authorizeMachine } from "../../machineAccess";
+
 export const runtime = "nodejs";
 
 const ADDRESS = /^([GFYXRAKTCD])(\d{1,5})\.([0-7])$/;
@@ -5,8 +7,10 @@ const READ_ERROR = "신호 조회 실패 · 장비 연결 또는 주소 범위�
 
 export async function POST(request: Request) {
   let addresses: string[];
+  let requestedCode: unknown;
   try {
     const body = await request.json();
+    requestedCode = body.machine_code;
     if (!Array.isArray(body.addresses) || !body.addresses.length || body.addresses.length > 128) throw new Error();
     addresses = [...new Set<string>(body.addresses.map((raw: unknown) => {
       const match = typeof raw === "string" ? ADDRESS.exec(raw.toUpperCase()) : null;
@@ -17,10 +21,8 @@ export async function POST(request: Request) {
     return Response.json({ detail: "PMC 주소를 1~128개 입력하세요. 예: X8.4" }, { status: 422 });
   }
 
-  const code = process.env.MCODE?.trim() || "";
-  if (!/^[A-Za-z0-9_-]+$/.test(code)) {
-    return Response.json({ detail: "테스트 장비 코드 설정이 올바르지 않습니다." }, { status: 503 });
-  }
+  const code = await authorizeMachine(request, requestedCode);
+  if (typeof code !== "string") return code;
   const base = (process.env.LADDER_AGENT_URL || "http://127.0.0.1:5001").replace(/\/+$/, "");
   const path = `${base}/api/agent/fanuc/machines/${code}`;
   async function read(url: string) {

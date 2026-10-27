@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-react";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
@@ -99,7 +99,7 @@ export default function Citation({
       ? selectedChunk.metadata.container_type
       : undefined;
   const selectedMdImages = selectedChunk?.metadata.source_kind === "paddleocr"
-    ? getDisplayedAssetChunks(selectedMessage?.metadata).filter(chunk => chunk.index === selectedChunk.index)
+    ? getDisplayedAssetChunks(selectedMessage?.metadata, selectedMessage?.content).filter(chunk => chunk.index === selectedChunk.index)
     : [];
   const selectedDocumentRequest = getCitationDocumentRequest(
     messages,
@@ -295,11 +295,8 @@ export default function Citation({
         </>}
         {activeMessage && visibleCards.length > 0 ? (
           <section className={styles.referenceCardsArea} aria-label="참조 요약">
-            {visibleCards[0]?.additional && (
-              <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
-            )}
             <div className={styles.referenceCardList}>
-              {visibleCards.map(({ chunkIndex, label, chunk, additional }, index) => {
+              {visibleCards.map(({ chunkIndex, label, chunk }) => {
                 const isActive = selectedCitation?.messageId === String(activeMessage.message_id) && selectedCitation.chunkIndex === chunkIndex;
                 const isExpanded = isActive && isDetailOpen;
                 const sourceDocName =
@@ -310,11 +307,7 @@ export default function Citation({
                 const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
 
                 return (
-                  <Fragment key={chunkIndex}>
-                    {additional && index > 0 && !visibleCards[index - 1].additional && (
-                      <p className={styles.referenceCardsTitle}>추가 검색된 래더 근거</p>
-                    )}
-                  <article className={`${styles.referenceCard} ${isExpanded ? styles.referenceCardActive : ""}`}>
+                  <article key={chunkIndex} className={`${styles.referenceCard} ${isExpanded ? styles.referenceCardActive : ""}`}>
                   <button
                     type="button"
                     className={styles.referenceCardToggle}
@@ -341,7 +334,6 @@ export default function Citation({
                   </button>
                   {isExpanded && referenceDetail}
                   </article>
-                  </Fragment>
                 );
               })}
             </div>

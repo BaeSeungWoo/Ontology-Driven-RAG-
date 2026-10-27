@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL, CMS_MACHINE_CODE } from "@/services/api";
+import { API_BASE_URL } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import styles from "./answer.module.css";
 
@@ -27,6 +27,7 @@ const WELCOME_QUESTIONS = {
 };
 
 type Props = {
+  machineCode?: string;
   llmModel?: LlmModel;
   source?: "electrical" | "manual" | "ladder" | "cms_manager";
   sessionId: number | null;
@@ -38,7 +39,7 @@ type Props = {
   onSelect: (question: string) => void;
 };
 
-export default function RecommendedQuestions({ llmModel = "vllm_config", source = "manual", sessionId, question, answer, canSend, visible = true, welcome = false, onSelect }: Props) {
+export default function RecommendedQuestions({ machineCode, llmModel = "vllm_config", source = "manual", sessionId, question, answer, canSend, visible = true, welcome = false, onSelect }: Props) {
   const [questions, setQuestions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -53,7 +54,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
     if (source.startsWith("cms_")) {
       void fetch(`${API_BASE_URL}/api/recommendations/context`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: (source.startsWith("cms_") || source === "electrical") ? CMS_MACHINE_CODE : undefined }),
+        body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: machineCode }),
         signal: controller.signal,
       }).then(async response => {
         if (!response.ok) return;
@@ -65,7 +66,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
       }).catch(() => {});
     }
     return () => controller.abort();
-  }, [sessionId, source, llmModel, welcome]);
+  }, [sessionId, source, llmModel, welcome, machineCode]);
 
   useEffect(() => {
     if (welcome) return;
@@ -79,7 +80,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
         const response = await fetch(`${API_BASE_URL}/api/recommendations`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: (source.startsWith("cms_") || source === "electrical") ? CMS_MACHINE_CODE : undefined }),
+          body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: machineCode }),
           signal: controller.signal,
         });
         if (!response.ok) throw new Error("추천질문을 불러오지 못했습니다.");
@@ -104,7 +105,7 @@ export default function RecommendedQuestions({ llmModel = "vllm_config", source 
     }
     void load();
     return () => controller.abort();
-  }, [sessionId, question, answer, source, attempt, llmModel, welcome]);
+  }, [sessionId, question, answer, source, attempt, llmModel, welcome, machineCode]);
 
   if (!visible) return null;
   if (welcome) return (

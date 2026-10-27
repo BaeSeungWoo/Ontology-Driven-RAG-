@@ -11,7 +11,8 @@ from runtime_support import report_progress
 
 def run(request):
     config = load_config(request["config_path"])
-    config.update(model=request["model"], base_url=request["base_url"], provider="vllm", api_key_env="OPENAI_API_KEY")
+    config.update(model=request["model"], base_url=request["base_url"], max_tokens=request["max_tokens"],
+                  provider="vllm", api_key_env="OPENAI_API_KEY")
     os.environ.update(
         VLLM_API_BASE=config["base_url"], VLLM_API_MODEL=config["model"], LLM_NAME=config["model"],
         GRAPHRAG_PROVIDER=config["provider"], GRAPHRAG_CONTEXT_TOKENS=str(config["context_tokens"]),

@@ -115,7 +115,7 @@ class PromptManager:
         if m_info:
             machine_lines = [                
                 "장비명: " + m_info.get('machine_name'),
-                "IP: " +  m_info.get('machine_ip'),
+                "IP: " + ", ".join(filter(None, [m_info.get('machine_ip'), *m_info.get('machine_ips', [])])),
                 "제조사: " +  m_info.get('machine_maker'),
                 "컨트롤러: " +  m_info.get('machine_controller'),
                 "버전: " +  m_info.get('machine_ver'),
@@ -198,6 +198,24 @@ class PromptManager:
                 "과거 사례만 있고 매뉴얼이 없으면 매뉴얼 근거 부족을 명시하고 사례는 참고용으로만 설명한다.",
                 ANSWER_SNIPPET_POLICY,
             ]
+        if context and mode in {"rag", "chroma", "ladder", "repairHistory"}:
+            system_sections.append(
+                "[그림·래더 인용 규칙]\n"
+                "그림 후보의 설명이나 래더 신호가 답변에서 설명하는 대상·동작과 직접 일치할 때만 "
+                "그 근거를 사용하고 해당 [chunk:N]을 답변 마지막에 인용한다. "
+                "같은 문서·페이지에 있거나 검색되었다는 이유만으로 인용하지 않는다. "
+                "그림의 절 제목·설명에 있는 부품 종류, 내장/외장 구분, 커넥터·모델 식별자를 질문과 대조한다. "
+                "질문에 특정 식별자가 있으면 그 식별자를 포함하는 그림을 우선하며 다른 종류의 부품 그림은 제외한다. "
+                "그림이 없다고 답하면서 관계없는 그림을 인용하지 않는다. "
+                "설명에 도움이 되는 그림이 있으면 텍스트 근거와 함께 그 그림의 chunk도 인용한다. "
+                "그림 설명에 없는 시각적 내용은 추측하지 않는다. 관련 그림이 없으면 텍스트만 답한다."
+            )
+            if mode == "ladder":
+                system_sections.append(
+                    "질문이 매뉴얼의 부품 위치·교체 절차·그림에 관한 것이고 관련 래더 근거가 없다면 "
+                    "래더 출력 형식보다 이 규칙을 우선하여 매뉴얼 답변만 작성한다. "
+                    "무관한 래더 신호를 나열하거나 그 chunk를 인용하지 않는다."
+                )
         system_content = "\n\n".join(system_sections)
 
         # history 

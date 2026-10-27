@@ -10,6 +10,7 @@ import MachineInfoPanel from "./machineInfoPanel";
 import styles from "./promptSetting.module.css";
 
 type PromptListModalProps = {
+  selectedMachineCode?: string;
   onClose: () => void;
   onApply: () => void;
   selectedLlmModel: LlmModel;
@@ -21,6 +22,7 @@ type PromptListModalProps = {
 };
 
 export default function PromptListModal({
+  selectedMachineCode,
   onClose,
   onApply,
   selectedLlmModel,
@@ -41,7 +43,7 @@ export default function PromptListModal({
 
     const fetchPromptList = async () => {
       try {
-        const result = await getPromptList();
+        const result = await getPromptList(selectedMachineCode);
         if (!mounted) return;
         setMachineCode(result.machineCode);
         setMachineInfo(result.machineInfo);
@@ -60,7 +62,7 @@ export default function PromptListModal({
     return () => {
       mounted = false;
     };
-  }, [getPromptList]);
+  }, [getPromptList, selectedMachineCode]);
   
 
   return (
