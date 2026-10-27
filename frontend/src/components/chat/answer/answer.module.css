@@ -546,13 +546,46 @@
   line-height: 1.6;
 }
 
-.electricalProgressDetail {
+.electricalOverview {
+  padding: 18px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--chat-accent) 4%, var(--chat-pane-bg));
+}
+.electricalOverviewHeader {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 6px 14px;
-  margin: 8px 0 0 23px;
+  gap: 8px;
+  margin-bottom: 12px;
   font-size: 12px;
-  line-height: 1.6;
+}
+.electricalLiveState { display: flex; align-items: center; gap: 8px; color: var(--chat-accent); font-weight: 600; }
+.electricalLiveState[data-delayed="true"] { color: var(--chat-text-color); }
+.electricalStages { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 0; margin: 18px 0; list-style: none; }
+.electricalStages li { display: flex; flex-wrap: wrap; align-items: center; gap: 5px; padding-top: 9px; border-top: 3px solid var(--chat-pane-border); font-size: 11px; }
+.electricalStageTime { flex-basis: 100%; margin-left: 23px; font-size: 11px; font-weight: 400; color: var(--chat-muted-text); }
+.electricalStepTime { margin-left: auto; flex-shrink: 0; font-size: 11px; color: var(--chat-muted-text); }
+.electricalStages li > span { display: flex; align-items: center; justify-content: center; flex-shrink: 0; width: 18px; height: 18px; border-radius: 50%; background: var(--chat-pane-bg); }
+.electricalStages li[data-state="done"], .electricalStages li[data-state="current"] { border-color: var(--chat-accent); color: var(--chat-accent); }
+.electricalStages li[data-state="current"] { font-weight: 700; }
+.electricalFindings { display: grid; grid-template-columns: 1fr 1.4fr; gap: 10px; }
+.electricalFindings article, .electricalLatestResult { min-width: 0; padding: 12px; border: 1px solid var(--chat-pane-border); border-radius: 10px; background: var(--chat-pane-bg); }
+.electricalOverview h4 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; font-size: 12px; font-weight: 600; color: var(--chat-text-color); }
+.electricalOverview h4 > span { margin-left: auto; color: var(--chat-muted-text); font-size: 11px; font-weight: 400; }
+.electricalFindings p { margin: 0; font-size: 12px; line-height: 1.6; }
+.electricalChips { display: flex; flex-wrap: wrap; gap: 5px; }
+.electricalChips > span { padding: 3px 7px; border-radius: 5px; background: color-mix(in srgb, var(--chat-accent) 8%, var(--chat-pane-bg)); color: var(--chat-accent); font-size: 12px; overflow-wrap: anywhere; max-width: 100%; }
+.electricalFindings summary { margin: 8px 0; font-size: 11px; cursor: pointer; }
+.electricalLatestResult { margin-top: 10px; }
+.electricalLatestResult p { margin: 0; max-height: 180px; overflow-y: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; line-height: 1.7; }
+.electricalConnectionStatus { margin: 12px 0 0; font-size: 12px; }
+.electricalNotice { margin: 5px 0 0; font-size: 11px; line-height: 1.6; }
+@media (max-width: 600px) {
+  .electricalOverview { padding: 12px; }
+  .electricalStages { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 12px; }
+  .electricalFindings { grid-template-columns: minmax(0, 1fr); }
 }
 
 .assistantLoading {

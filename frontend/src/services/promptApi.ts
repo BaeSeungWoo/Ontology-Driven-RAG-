@@ -41,8 +41,8 @@ const toPromptSelectableRows = (
  * - POST /api/prompts/getPromptList
  * - 백엔드의 대문자 키 스키마를 프론트 표준 스키마로 변환
  */
-export async function getPromptList(): Promise<PromptListResult> {
-  const response = await api.post<PromptListLegacyResponse>("/api/prompts/getPromptList", {});
+export async function getPromptList(machineCode?: string): Promise<PromptListResult> {
+  const response = await api.post<PromptListLegacyResponse>("/api/prompts/getPromptList", {}, { params: { machine_code: machineCode } });
   const payload = response.data;
 
   if (Array.isArray(payload)) {

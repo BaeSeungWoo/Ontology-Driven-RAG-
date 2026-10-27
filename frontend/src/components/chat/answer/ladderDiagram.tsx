@@ -1,11 +1,11 @@
 import { Fragment, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import useLadderSignals from "@/hooks/useLadderSignals";
 import { getLadderSignals, getTestLadder, type MachineLadderDocument } from "@/services/ladderApi";
-import { CMS_MACHINE_CODE } from "@/services/api";
+import { useMachine } from "@/components/machineProvider";
 import type { ChatChunk } from "@/types/chatApi";
 import type { LadderContact, LadderDiagram, LadderNode } from "@/types/ladder";
 import styles from "./ladderDiagram.module.css";
-import { getMessageReferenceItems } from "../citation/citationUtils";
+import { getMessageReferenceItems, getReferenceLabelMap } from "../citation/citationUtils";
 
 type Layout = { node: LadderNode; width: number; height: number; children: Layout[] };
 
@@ -182,19 +182,21 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
   answerText: string;
   onSource: (index: number) => void;
 }) {
+  const { machineCode } = useMachine();
   const root = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [opened, setOpened] = useState<Record<string, boolean>>({});
   const [ladderDocument, setLadderDocument] = useState<MachineLadderDocument | null>(null);
   const diagrams = useMemo(() => {
     const seen = new Set<string>();
+    const cited = getReferenceLabelMap(answerText);
     return chunks.filter((chunk) => {
       const diagram = chunk.metadata.ladder_diagram;
-      if (!diagram || seen.has(diagram.nblock)) return false;
+      if (!cited.has(chunk.index) || !diagram || seen.has(diagram.nblock)) return false;
       seen.add(diagram.nblock);
       return true;
     });
-  }, [chunks]);
+  }, [chunks, answerText]);
   useEffect(() => {
     if (!root.current) return;
     const observer = new IntersectionObserver(([entry]) => setVisible(entry.isIntersecting));
@@ -202,25 +204,26 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
     return () => observer.disconnect();
   }, [diagrams.length]);
   useEffect(() => {
-    if (!visible || ladderDocument) return;
+    setLadderDocument(null);
+    if (!visible || !machineCode || machineCode === "ALL") return;
     const controller = new AbortController();
-    void getTestLadder(controller.signal).then(document => {
+    void getTestLadder(controller.signal, machineCode).then(document => {
       if (!controller.signal.aborted) setLadderDocument(document);
     }).catch(() => {});
     return () => controller.abort();
-  }, [visible, ladderDocument]);
+  }, [visible, machineCode]);
   const matchesMachine = (chunk: ChatChunk) => {
     const codes = chunk.metadata.machine_code;
-    return !!CMS_MACHINE_CODE && (Array.isArray(codes)
-      ? codes.some(code => String(code).trim() === CMS_MACHINE_CODE)
-      : typeof codes === "string" && codes.split(/[^A-Za-z0-9_-]+/).includes(CMS_MACHINE_CODE));
+    return !!machineCode && (Array.isArray(codes)
+      ? codes.some(code => String(code).trim() === machineCode)
+      : typeof codes === "string" && codes.split(/[^A-Za-z0-9_-]+/).includes(machineCode));
   };
   const addressKey = [...new Set(diagrams.filter((chunk, index) =>
     (opened[chunk.metadata.ladder_diagram!.nblock] ?? index === 0) && matchesMachine(chunk)
   ).flatMap(chunk => getLadderSignals(chunk.metadata.ladder_diagram).map(signal => signal.address)))].sort().join(",");
   const addresses = useMemo(() => addressKey ? addressKey.split(",") : [], [addressKey]);
   const { snapshot, error } = useLadderSignals(addresses, !visible);
-  const values: SignalValues = new Map(visible && !error && snapshot && snapshot.machine.code === CMS_MACHINE_CODE
+  const values: SignalValues = new Map(visible && !error && snapshot && snapshot.machine.code === machineCode
     ? snapshot.signals.filter(signal => addresses.includes(signal.address)).map(signal => [signal.address, signal.value]) : []);
   if (!diagrams.length) return null;
   const references = getMessageReferenceItems({ content: answerText, llm_mode: "ladder", metadata: { chunks } });
@@ -241,16 +244,16 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
             }}>
             <summary>{diagram.nblock} · {diagram.status === "supported" ? (diagram.coils ?? [diagram.coil]).map(coil => `${coil.addr} ${coil.label}`).join(", ") : "원본 명령"}</summary>
             <div className={styles.body}>
-              <p className={styles.note}>{reference.additional ? "추가 검색된 근거" : "답변에서 인용한 근거"} · 참조 [{reference.label}]</p>
+              <p className={styles.note}>답변에서 인용한 근거 · 참조 [{reference.label}]</p>
               {layout && diagram.status === "supported" ? (
                 <>
                   <p className={styles.note}>배선 색상은 수신값과 접점 논리로 계산합니다. SUB는 내부 동작을 해석하지 않아 입력만으로 뒤쪽 배선을 켜지 않습니다.</p>
                   <p className={styles.note} role="status">{!matchesMachine(chunk) ? "연결 장비와 근거의 장비 일치를 확인할 수 없어 실시간 신호를 표시하지 않습니다."
-                    : error || (snapshot && snapshot.machine.code === CMS_MACHINE_CODE
+                    : error || (snapshot && snapshot.machine.code === machineCode
                       ? `${snapshot.machine.name} · ${snapshot.machine.code} · ${new Date(snapshot.read_completed).toLocaleTimeString("ko-KR", { timeZone: "Asia/Seoul" })} 수신 · 녹색: a접점 1 / b접점 0 / 코일 1 · 미수신 주소는 색칠하지 않습니다.`
                       : "장비 신호 연결 대기 중")}</p>
                   <LadderCircuit diagram={diagram} values={matchesMachine(chunk) ? values : new Map()}
-                    symbols={matchesMachine(chunk) && ladderDocument && ladderDocument.meta.machine_code === CMS_MACHINE_CODE ? ladderDocument.symbols : undefined} />
+                    symbols={matchesMachine(chunk) && ladderDocument && ladderDocument.meta.machine_code === machineCode ? ladderDocument.symbols : undefined} />
                 </>
               ) : <p className={styles.note}>특수 명령 또는 지원하지 않는 구조가 포함되어 원본 명령을 표시합니다.</p>}
               <details className={styles.instructions} open={diagram.status === "unsupported"}>

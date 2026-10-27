@@ -12,6 +12,7 @@ type UseChatParams = {
 };
 
 export type SendQuestionParams = {
+  machineCode?: string;
   question: string;
   questioner: string;
   llmModel: LlmModel;
@@ -114,6 +115,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
    * Out: 성공 여부(boolean), messages/isLoading/error/session 상태 반영
    */
   const sendQuestion = async ({
+    machineCode,
     question,
     questioner,
     llmModel,
@@ -135,6 +137,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onHistoryRefresh }: Us
     if (sessionId === null) {
       try {
         const created = await createSession({
+          machine_code: machineCode,
           questioner: normalizedQuestioner,
           title: normalizedQuestion,
           llm_model: llmModel,

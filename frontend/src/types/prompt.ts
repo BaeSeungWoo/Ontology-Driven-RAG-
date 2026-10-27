@@ -7,7 +7,8 @@ export type PromptRow = {
 
 export type MachineInfo = {
   machine_name: string;
-  machine_ip: string;
+  machine_ip?: string;
+  machine_ips?: string[];
   document: readonly string[];
   machine_maker: string;
   machine_controller: string;

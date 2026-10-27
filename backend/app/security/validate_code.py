@@ -9,6 +9,23 @@ class RequestCode:
     is_main_server: bool
 
 
+def session_machine_code(ctx, requested_code, machines):
+    requested_code = (requested_code or "").strip()
+    if requested_code == "ALL" and ctx.is_main_server:
+        return "ALL"
+    if requested_code:
+        if not ctx.is_main_server and requested_code != ctx.request_machine_code:
+            raise HTTPException(status_code=403, detail="다른 장비에는 접근이 불가능합니다.")
+        if requested_code not in machines:
+            raise HTTPException(status_code=400, detail="등록되지 않은 장비코드입니다.")
+        return requested_code
+    if ctx.request_machine_code:
+        return ctx.request_machine_code
+    if ctx.is_main_server:
+        return "ALL"
+    raise HTTPException(status_code=403, detail="IP에 매핑된 장비가 없습니다.")
+
+
 def cms_machine_code(machine_code, requested_code, ctx, machines):
     requested_code = (requested_code or "").strip()
     if requested_code and not ctx.is_main_server and requested_code != ctx.request_machine_code:
@@ -31,10 +48,11 @@ def get_client_ip(request: Request) -> str:
 # ip별 해당 장비 코드 추출
 def resolve_request_code(request: Request, machines: dict, main_server_ips: set[str]) -> RequestCode:
     user_ip = get_client_ip(request)
+    main_server_ips = {ip.strip() for value in main_server_ips for ip in value.split(",") if ip.strip()}
 
     request_machine_code = None
     for code, m_info in machines.items():
-        if m_info.get("machine_ip") == user_ip:
+        if m_info.get("machine_ip") == user_ip or user_ip in m_info.get("machine_ips", []):
             request_machine_code = code
             break
 

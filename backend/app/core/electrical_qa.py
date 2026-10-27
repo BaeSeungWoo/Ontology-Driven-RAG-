@@ -56,7 +56,7 @@ async def electrical_response(request, events):
                 yield event["data"]
     except Exception as exc:
         logging.getLogger(__name__).exception("Electrical QA stream failed")
-        message = str(exc) if isinstance(exc, (RuntimeError, ValueError)) else "전기도면 QA 처리 중 오류가 발생했습니다. 다시 시도해 주세요."
+        message = (str(exc) if isinstance(exc, (RuntimeError, ValueError)) else "") or "전기도면 QA 처리 중 오류가 발생했습니다. 다시 시도해 주세요."
         yield "ERROR:" + json.dumps(message, ensure_ascii=False) + "\n\n"
     finally:
         if pending is not None:
@@ -104,29 +104,32 @@ async def stream_electrical(machine_code, question, *, llm_config, history=None,
     environment.update(PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
     if llm_config.api_key:
         environment["OPENAI_API_KEY"] = llm_config.api_key
-    process = await asyncio.create_subprocess_exec(
-        sys.executable, str(PACKAGE / "integration_worker.py"),
-        stdin=asyncio.subprocess.PIPE, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
-        cwd=PACKAGE, env=environment, limit=16 * 1024 * 1024,
+    # Uvicorn's Windows reload loop cannot run asyncio subprocess transports.
+    process = subprocess.Popen(
+        [sys.executable, str(PACKAGE / "integration_worker.py")],
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        cwd=PACKAGE, env=environment,
         **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}),
     )
     request = json.dumps({"config_path": str(config_path), "question": question, "machine_code": machine_code,
-                          "model": llm_config.model_name, "base_url": llm_config.base_url,
+                          "model": llm_config.model_name, "base_url": llm_config.base_url, "max_tokens": llm_config.max_tokens,
                           "history": history or [], "user_prompt": user_prompt or ""}, ensure_ascii=False).encode("utf-8")
-    stderr_task = asyncio.create_task(process.stderr.read())
+    stderr_task = asyncio.create_task(asyncio.to_thread(process.stderr.read))
     try:
         async with asyncio.timeout(1800):
-            process.stdin.write(request)
-            await process.stdin.drain()
-            process.stdin.close()
+            def send_request():
+                process.stdin.write(request)
+                process.stdin.close()
+
+            await asyncio.to_thread(send_request)
             payload = None
-            while line := await process.stdout.readline():
+            while line := await asyncio.to_thread(process.stdout.readline):
                 event = json.loads(line)
                 if event["type"] == "progress":
                     yield event
                 elif event["type"] == "result":
                     payload = event["data"]
-            await process.wait()
+            await asyncio.to_thread(process.wait)
             stderr = await stderr_task
             if process.returncode or payload is None:
                 logging.getLogger(__name__).error("Electrical QA worker failed: %s", stderr.decode("utf-8", errors="replace"))
@@ -140,7 +143,9 @@ async def stream_electrical(machine_code, question, *, llm_config, history=None,
     except asyncio.TimeoutError as exc:
         raise RuntimeError("전기도면 QA 제한시간(30분)을 초과했습니다.") from exc
     finally:
-        if process.returncode is None:
+        if process.poll() is None:
             process.kill()
-            await process.wait()
+            await asyncio.to_thread(process.wait)
         await asyncio.gather(stderr_task, return_exceptions=True)
+        for stream in (process.stdin, process.stdout, process.stderr):
+            stream.close()

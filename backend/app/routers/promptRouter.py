@@ -5,7 +5,7 @@ from pathlib import Path
 from fastapi import APIRouter, HTTPException, Request
 
 from app.database import database
-from app.security.validate_code import resolve_request_code
+from app.security.validate_code import resolve_request_code, session_machine_code
 
 promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
@@ -31,13 +31,15 @@ def get_machines(client_request: Request):
             "machine_controller": info.get("machine_controller", ""),
             "machine_ver": info.get("machine_ver", ""),
             "is_assigned": code == ctx.request_machine_code,
+            "can_select": ctx.is_main_server or code == ctx.request_machine_code,
+            "is_main_server": ctx.is_main_server,
         }
         for code, info in machines.items()
     ]
 
 
 @promptRouter.post("/getPromptList")
-def getPromptList(client_request: Request):
+def getPromptList(client_request: Request, machine_code: str | None = None):
     machine_info = load_machine_info()
     ctx = resolve_request_code(
         request=client_request,
@@ -45,6 +47,7 @@ def getPromptList(client_request: Request):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
 
+    selected_code = session_machine_code(ctx, machine_code, machine_info) if machine_code else ctx.request_machine_code
     try:
         prompt_list = database.getPromptList()
         json_data = []
@@ -62,8 +65,8 @@ def getPromptList(client_request: Request):
 
         return {
             "rows": json_data,
-            "machine_code": ctx.request_machine_code,
-            "machine_info": machine_info.get(ctx.request_machine_code) if ctx.request_machine_code else None,
+            "machine_code": selected_code,
+            "machine_info": machine_info.get(selected_code),
             "is_main_server": ctx.is_main_server,
         }
     except Exception as e:

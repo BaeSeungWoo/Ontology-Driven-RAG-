@@ -8,7 +8,10 @@
     {"page":"131","sheet":"11006","dwg_no":"EDHF800UE110060","title":"I/O RELAY 32 BOARD LAYOUT"},
     {"page":"154","sheet":"20012","dwg_no":"EHMC100UW200120","title":"EARTH LINE"}
   ],
-  "generation_rules": "원본 대조로 확인한 냉각수 회로: p29 M45는 쿨런트 건 펌프 모터 0.4kW, QM45는 모터 보호기(2.5A 표기), KM45는 접촉기, ZM45는 모터가 아닌 보호/서지 억제 요소이다. p16 Y0.5 CGUN.R의 태그는 KM45. p41 Y0.5에 해당하는 KAR06 출력 접점(COM2-R6)과 QM45 보조접점23-24가 KM45 코일 A1 회로에 있고 A2는 L000이다. KM45A는 배선명이며 별도 접촉기가 아니다. M44는 플러싱 모터1.5kW, QM44는 보호기(8.0A), KM44는 접촉기, Y0.4 MFOM.R/KAR05와 QM44 보조접점23-24가 KM44 코일 회로에 있다. 이 확인 사실과 어긋나는 자동 판독 기록은 사용하지 않는다. 전압·접지저항·절연저항·정상 ON/OFF 극성을 근거 없이 만들지 않는다. 관련 없는 신호는 나열하지 않는다. 안전 조건이 없는 통전 계측 지시는 쓰지 않는다. 1200자 이내로 연결과 점검 대상을 간결하게 쓰고 실제 고장 원인은 확정하지 않는다.",
+  "additional_records": [
+    {"id":"16:Y0.5","page":"16","targets":["Y0.5","CGUN.R","KM45"],"text":"Y0.5 CGUN.R COOLANT GUN PUMP MOTOR, tag KM45, pin B18, reference03091/7"},
+    {"id":"16:Y0.4","page":"16","targets":["Y0.4","MFOM.R","KM44"],"text":"Y0.4 MFOM.R MACHINE FLUSHING MOTOR, tag KM44, pin A18, reference03091/6"}
+  ],
   "devices": [
     {"page":"29","device":"-M45","description":"COOLANT GUN PUMP MOTOR, three-phase motor, 0.4kW; power through QM45 and KM45. ZM45 is not the motor.","model":"","note":"visually verified"},
     {"page":"29","device":"-QM45","description":"Motor protection circuit breaker, printed 2.5A; power to KM45 and M45. Auxiliary 23-24 in KM45 coil circuit on p41.","model":"","note":"visually verified"},

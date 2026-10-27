@@ -173,8 +173,60 @@ class BaseRetriever(ABC):
 
         return value
 
+    def _with_page_figures(self, items: list[RetrievalItem], machine_code: str, query: str = "") -> list[RetrievalItem]:
+        """Offer nearby figures as separately citable evidence, never automatic attachments."""
+        collection = getattr(self, "collection", None)
+        if collection is None:
+            return items
+        figures = []
+        seen_paths = {item.metadata.get("asset_path") for item in items}
+        visited = set()
+        for item in items:
+            meta = item.metadata
+            if meta.get("container_type") != "texts":
+                continue
+            source = meta.get("source_doc_name")
+            page = re.fullmatch(r"(\d+)(?:-(\d+))?", str(meta.get("page_range") or ""))
+            # Multi-page chunks cannot identify which page supports the answer.
+            if not source or not page or (page[2] and page[1] != page[2]):
+                continue
+            key = (source, page[1])
+            if key in visited:
+                continue
+            visited.add(key)
+            # A procedure often continues with its illustration on the next page.
+            nearby_pages = [page[1], str(int(page[1]) + 1)]
+            filters = [{"source_doc_name": source}, {"container_type": "pictures"},
+                       {"page_range": {"$in": [value for number in nearby_pages for value in (number, f"{number}-{number}")]}}]
+            if machine_code != "ALL":
+                filters.append({"machine_code": {"$contains": machine_code.strip()}})
+            result = collection.get(where={"$and": filters}, include=["documents", "metadatas"])
+            for chunk_id, text, metadata in zip(result["ids"], result["documents"], result["metadatas"]):
+                path = metadata.get("asset_path")
+                if not path or path in seen_paths or not (text or "").strip():
+                    continue
+                seen_paths.add(path)
+                figures.append(RetrievalItem(
+                    id=chunk_id, text=text, score=None, metadata=metadata,
+                    extra={"retrieval_group": "document", "related_figure_candidate": True},
+                ))
+                if len(figures) == 5:
+                    break
+            if len(figures) == 5:
+                break
+        candidates = [*items, *figures]
+        # An explicit connector/part identifier disambiguates similar-looking parts.
+        identifiers = [word for word in re.findall(r"\b[A-Za-z][A-Za-z0-9]*(?:[-.][A-Za-z0-9]+)*\b", query)
+                       if any(character.isdigit() for character in word)]
+        matching = {item.id for item in candidates if item.metadata.get("container_type") == "pictures"
+                    and any(re.search(r"(?<![\w.-])" + re.escape(word) + r"(?![\w.-])", item.text, re.I)
+                            for word in identifiers)}
+        return [item for item in candidates if not matching or item.metadata.get("container_type") != "pictures"
+                or item.id in matching]
+
     def get_context(self, query: str, machine_code: str = "ALL") -> tuple[str, list[str], list[str], list[dict]]:
         result = self.search(query=query, machine_code=machine_code)
+        result.items = self._with_page_figures(result.items, machine_code, query)
 
         context_parts = []
         imgs = []
@@ -188,7 +240,10 @@ class BaseRetriever(ABC):
             container_type = safe_meta.get("container_type", "texts")
             asset_path = safe_meta.get("asset_path")
 
-            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{item.text}")
+            kind = (f"[그림 근거 후보: 설명과 직접 관련될 때만 인용]\n"
+                    f"[절: {safe_meta.get('section_title', '')}; 페이지: {safe_meta.get('page_range', '')}]\n"
+                    if container_type == "pictures" else "")
+            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{kind}{item.text}")
 
             chunks.append({
                 "index": index,
@@ -482,6 +537,9 @@ class LadderRetriever(BaseRetriever):
         search_query = query_plan["expanded_query"]
         ladder_limit = max(top_k, len(query_plan["seed_nblocks"]))
         document_items = self._search_container(search_query, machine_code, top_k, "document")
+        if (re.search(r"(?:매뉴얼|설명서).{0,20}(?:그림|이미지|사진)", query)
+                and not re.search(r"래더|\b(?:ladder|PLC|PMC)\b", query, re.I)):
+            return RetrievalResult(items=document_items)
         ladder_candidates = self._search_container(search_query, machine_code, max(ladder_limit * 4, 20), "ladder")
         seeded_items = self._profile_ladder_items(query_plan["seed_nblocks"], machine_code)
         ladder_items = _deduplicate_items([*seeded_items, *ladder_candidates], max(ladder_limit * 4, 20))
@@ -518,7 +576,8 @@ class LadderRetriever(BaseRetriever):
             intent_type=intent_type,
         )
         grouped_items = {
-            "document": [item for item in result.items if item.extra.get("retrieval_group") == "document"],
+            "document": self._with_page_figures(
+                [item for item in result.items if item.extra.get("retrieval_group") == "document"], machine_code, query),
             "ladder": [item for item in result.items if item.extra.get("retrieval_group") == "ladder"],
         }
 
@@ -540,7 +599,10 @@ class LadderRetriever(BaseRetriever):
                 source = meta.get("source_doc_name", "unknown")
                 container_type = meta.get("container_type", "texts")
                 asset_path = meta.get("asset_path")
-                parts.append(f"[chunk:{index}]\n[문서: {source}]\n{item.text}")
+                kind = (f"[그림 근거 후보: 설명과 직접 관련될 때만 인용]\n"
+                        f"[절: {meta.get('section_title', '')}; 페이지: {meta.get('page_range', '')}]\n"
+                        if container_type == "pictures" else "")
+                parts.append(f"[chunk:{index}]\n[문서: {source}]\n{kind}{item.text}")
                 chunks.append({
                     "index": index,
                     "retrieval_rank": index,

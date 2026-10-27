@@ -22,7 +22,7 @@ if str(ROOT_DIR) not in sys.path:
 from app.factories.config import CONFIGS
 from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
-from app.security.validate_code import cms_machine_code, resolve_request_code, validate_code
+from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
@@ -116,13 +116,7 @@ def recommendation_machine_code(request, client_request, service):
     if request.session_id is not None:
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
-        machine_code = ctx.request_machine_code
-    if request.source in {"cms_manager", "electrical"}:
-        if request.session_id is None and ctx.is_main_server:
-            machine_code = "ALL"
-        machine_code = cms_machine_code(machine_code, request.machine_code, ctx, service.config.machines)
-    if machine_code == "ALL" and ctx.request_machine_code:
-        machine_code = ctx.request_machine_code
+        machine_code = session_machine_code(ctx, request.machine_code, service.config.machines)
     return machine_code
 
 

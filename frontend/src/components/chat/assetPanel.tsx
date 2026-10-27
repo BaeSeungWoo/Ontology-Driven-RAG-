@@ -158,22 +158,6 @@ function AssetPreviewModal({
   );
 }
 
-/**
- * 기능: 이미지/표 asset 목록에서 중복 경로를 제거한다.
- * 목적: 같은 chunk 또는 metadata fallback에서 같은 자료가 여러 번 표시되지 않게 한다.
- * In: assets(AssetItem[])
- * Out: 중복 제거된 AssetItem[]
- */
-function dedupeAssets(assets: AssetItem[]) {
-  const seen = new Set<string>();
-  return assets.filter((asset) => {
-    const key = `${asset.type}:${asset.path}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
-
 function toPageLabel(range: unknown): string | null {
   if (typeof range !== "string") return null;
   const normalized = range.trim();
@@ -215,26 +199,12 @@ function toAssetItem(chunk: ChatChunk): AssetItem {
 
 /**
  * 기능: active metadata에서 이미지/표 asset 목록을 추출한다.
- * 목적: 사용된 chunk 우선, 전체 chunk, legacy images/tables 순서로 화면 표시 대상을 결정한다.
+ * 목적: 답변이 실제 인용한 이미지/표만 표시한다.
  * In: metadata(ChatMetadata)
  * Out: AssetItem[]
  */
-function getChunkAssets(metadata?: ChatMetadata): AssetItem[] {
-  const chunkAssets = getDisplayedAssetChunks(metadata).map(toAssetItem);
-  if (chunkAssets.length > 0) return chunkAssets;
-
-  const imageAssets = Array.isArray(metadata?.images)
-    ? metadata.images
-        .filter((assetPath): assetPath is string => typeof assetPath === "string")
-        .map((path) => ({ path, type: "pictures" as const }))
-    : [];
-  const tableAssets = Array.isArray(metadata?.tables)
-    ? metadata.tables
-        .filter((assetPath): assetPath is string => typeof assetPath === "string")
-        .map((path) => ({ path, type: "tables" as const }))
-    : [];
-
-  return dedupeAssets([...imageAssets, ...tableAssets]);
+function getChunkAssets(metadata?: ChatMetadata, answerText = ""): AssetItem[] {
+  return getDisplayedAssetChunks(metadata, answerText).map(toAssetItem);
 }
 
 /**
@@ -313,10 +283,10 @@ export default function AssetPanel({
   const assetItems = useMemo(
     () =>
       sortAssetsByReferenceOrder(
-        getChunkAssets(activeAssistantMessage?.metadata),
+        getChunkAssets(activeAssistantMessage?.metadata, activeAssistantMessage?.content),
         referenceLabelMap
       ),
-    [activeAssistantMessage?.metadata, referenceLabelMap]
+    [activeAssistantMessage?.metadata, activeAssistantMessage?.content, referenceLabelMap]
   );
   const tableAssetKey = useMemo(
     () =>

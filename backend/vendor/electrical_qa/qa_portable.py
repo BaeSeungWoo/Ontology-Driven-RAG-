@@ -192,7 +192,7 @@ def engine_command(config, profile, run):
         '--qa', str(run / 'question.json'), '--docid', Path(config['profile']).stem,
         '--out', str(run / 'engine_result.json'), '--scale', str(eng.get('scale', 4.0)),
         '--func-pages', str(eng['func_pages']), '--rev-pages', str(eng['rev_pages']),
-        *eng['flags'], *CATALOG, *V52]
+        *eng['flags'], *CATALOG, *V52, '--max-tok', str(config['max_tokens'])]
 
 
 def adapt_result(row, pdf, records=None):
@@ -237,8 +237,6 @@ def worker(request):
             from runtime_support import answer_context
             from electrical.grounding import review, page_review_evidence, source_records, reread_evidence
             context = answer_context(request)
-            if verified:
-                context += '\n' + verified['generation_rules']
             scope = (verified or {}).get('index_scope') or profile.get('full_scope' if full_pages is not None else 'scope', '')
             context += '\n인덱스 범위: ' + scope
             os.environ['GRAPHRAG_ANSWER_CONTEXT'] = context
@@ -258,7 +256,8 @@ def worker(request):
                 evidence = page_review_evidence(
                     verified, full_pages, row.get('func_pages', []) + row.get('rev_pages', []), question,
                     index=config['index_dir'], picked_parts=row.get('picked_parts', []),
-                    picked_signals=row.get('picked_signals', []))
+                    picked_signals=row.get('picked_signals', []),
+                    target_matches=row.get('target_search', {}).get('matches', []))
                 review_records = source_records(evidence)
                 report_progress("답변의 부품·신호와 도면 근거를 검토하는 중",
                                 f"검토 후보 페이지: {', '.join('p' + p for p in sorted({r['page'] for r in review_records}, key=int))}\n"
@@ -270,6 +269,7 @@ def worker(request):
                 row['answer'] = answer
                 row['answer_pages'] = pages
                 row['grounding_reviewed'] = reviewed
+                row['grounding_trace'] = evidence.get('_review_trace', {})
                 records = evidence['_answer_records']
             if not row.get('answer', '').strip():
                 raise ValueError('전기도면 답변이 비어 있습니다.')

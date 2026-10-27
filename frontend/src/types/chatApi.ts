@@ -55,6 +55,7 @@ export type ResolvedDocument = {
 };
 
 export type CreateSessionPayload = {
+  machine_code?: string;
   questioner: string;
   title: string;
   llm_model: string;
@@ -90,6 +91,7 @@ export type UpdateMessageResponse = {
 export type MessageFeedback = "도움됨" | "틀림" | "근거없음";
 
 export type MessageItem = {
+  machine_code?: string;
   message_id: number;
   session_id: number;
   role: ChatRole;

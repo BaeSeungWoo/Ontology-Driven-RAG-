@@ -325,10 +325,10 @@ def deleteChatSession(session_id):
 
 
 @with_thread_pool("db")
-def getHistoryPersonas(session_ids):
-    personas = {}
+def getHistorySessionMetadata(session_ids):
+    metadata = {}
     if not session_ids:
-        return personas
+        return metadata
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
@@ -336,13 +336,14 @@ def getHistoryPersonas(session_ids):
                 batch = session_ids[start:start + 500]
                 placeholders = ",".join("?" for _ in batch)
                 cursor.execute(
-                    f"SELECT SESSION_ID, LLM_PRESONA FROM dbo.CHAT_HISTORY WHERE SESSION_ID IN ({placeholders})",
+                    f"SELECT SESSION_ID, LLM_PRESONA, MACHINE_CODE FROM dbo.CHAT_HISTORY WHERE SESSION_ID IN ({placeholders})",
                     tuple(batch),
                 )
-                personas.update(dict(cursor.fetchall()))
+                metadata.update({row[0]: {"personaType": row[1], "machineCode": (row[2] or "").strip()}
+                                 for row in cursor.fetchall()})
         finally:
             cursor.close()
-    return personas
+    return metadata
 
 
 @with_thread_pool("db")

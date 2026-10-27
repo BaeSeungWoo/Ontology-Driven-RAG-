@@ -20,6 +20,7 @@
   "M005": {
     "machine_name": "DHF8000",
     "machine_ip": "192.168.1.31",
+    "machine_ips": ["192.168.1.99"],
     "document": [
       "31i-B PMC.LST", 
       "취급설명서(선반)_B-64484EN-1_05_FS30i31i32i-B Lathe_OP", 

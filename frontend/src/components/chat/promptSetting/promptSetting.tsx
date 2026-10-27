@@ -11,6 +11,9 @@ import MachineSelect from "./machineSelect";
 import styles from "./promptSetting.module.css";
 
 type PromptSettingProps = {
+  selectedMachineCode?: string;
+  onSelectMachineCode: (code: string) => void;
+  machineSelectionDisabled?: boolean;
   questioner: string;
   onQuestionerChange: (value: string) => void;
   selectedLlmModel: LlmModel;
@@ -24,6 +27,9 @@ type PromptSettingProps = {
 };
 
 export default function PromptSetting({
+  selectedMachineCode,
+  onSelectMachineCode,
+  machineSelectionDisabled,
   questioner,
   onQuestionerChange,
   selectedLlmModel,
@@ -92,7 +98,7 @@ export default function PromptSetting({
   // render
   return (
     <div className={styles.headerControls}>
-      <MachineSelect />
+      <MachineSelect value={selectedMachineCode} onChange={onSelectMachineCode} disabled={machineSelectionDisabled} />
       <div className={styles.questionerField}>
         <label htmlFor="questioner-input" className={styles.questionerLabel}>질문자</label>
         <input
@@ -123,6 +129,7 @@ export default function PromptSetting({
 
       {isOpen && (
         <PromptListModal
+          selectedMachineCode={selectedMachineCode}
           onClose={handleCloseModal}
           onApply={handleApplyModal}
           selectedLlmModel={draftModel}

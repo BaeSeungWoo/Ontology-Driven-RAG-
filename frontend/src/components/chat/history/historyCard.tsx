@@ -7,6 +7,8 @@ import styles from "./history.module.css";
 import personaStyles from "../persona.module.css";
 
 export type HistoryItem = {
+  machineCode?: string;
+  machineName?: string | null;
   targetMessageId?: number;
   id: number;
   title: string;
@@ -130,6 +132,8 @@ export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardPro
         <div ref={tooltipRef} id={`history-tooltip-${item.id}`} role="tooltip" className={styles.historyTooltip} style={tooltipPosition}>
           <p className={styles.tooltipTitle}>{item.title}</p>
           <div className={styles.tooltipTags}>
+            <span>{item.machineCode === "ALL" ? "전체 장비" : item.machineName
+              ? `${item.machineName} (${item.machineCode})` : item.machineCode || "장비 미기록"}</span>
             <span>{item.llmModelLabel}</span><span className={personaStyles.theme} data-persona={item.personaType}>{personaLabel}</span><span>{item.llmModeLabel}</span>
           </div>
           <div className={styles.tooltipMeta}>
