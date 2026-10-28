@@ -12,6 +12,7 @@ import History from "./history/history";
 import ResizableChatLayout from "./resizableChatLayout";
 import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
+import FactorySelect from "./promptSetting/factorySelect";
 import {
   LLM_MODEL_OPTIONS,
   LLM_MODE_OPTIONS,
@@ -52,11 +53,10 @@ export default function Chat() {
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
   const [questioner, setQuestioner] = useState("");
-  const [selectedLlmModel, setSelectedLlmModel] = useState<LlmModel>("vllm_config");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const { machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus } = useMachine();
+  const { factoryId, setFactoryId, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
@@ -97,8 +97,18 @@ export default function Chat() {
     personaType: selectedPersonaType,
   });
 
+  const selectedMachine = machines.find(machine => machine.machine_code === selectedMachineCode);
+  const machineUnavailable = machineStatus !== "ready" || !selectedMachine?.can_select;
+  const featureUnavailable = !machineUnavailable && (
+    factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
+      ? "연암(기존)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다." :
+    (selectedPersonaType === "maintenance" || selectedLlmMode === "ladder") && !selectedMachine?.has_ladder
+      ? "래더 데이터가 준비되지 않아 설비보전 질의를 사용할 수 없습니다."
+      : (selectedPersonaType === "engineer" || selectedLlmMode === "electrical")
+        ? factoryId !== "yunam_origin" ? "기술엔지니어 모드는 연암(기존)에서만 사용할 수 있습니다."
+          : !selectedMachine?.has_electrical ? "전기도면 데이터가 준비되지 않아 기술엔지니어 질의를 사용할 수 없습니다." : "" : "");
   const isPromptRequiredMissing =
-    questioner.trim().length === 0 || machineStatus !== "ready" || !selectedMachineCode;
+    questioner.trim().length === 0 || machineUnavailable || Boolean(featureUnavailable);
 
   // 함수: 세션 초기화/전송
   // 기능/목적: 새 질문 시작과 질문 전송 시 세션 생성 정책을 한곳에서 처리한다.
@@ -164,7 +174,7 @@ export default function Chat() {
   };
 
   const handleRetryAnswer = async () => {
-    if (sendingRef.current || isSessionLoading) return;
+    if (sendingRef.current || isSessionLoading || isPromptRequiredMissing) return;
     sendingRef.current = true;
     setIsSending(true);
     setRecommendationSendError("");
@@ -309,7 +319,7 @@ export default function Chat() {
   const prepareRecommendations = isWelcome || (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
     !isSending && !isLoading && !isSessionLoading && !error &&
     (selectedLlmModel === "ollama_config" || selectedLlmModel === "vllm_config") && recommendationSource !== null;
-  const recommendations = prepareRecommendations && recommendationSource ? (
+  const recommendations = !machineUnavailable && !featureUnavailable && prepareRecommendations && recommendationSource ? (
     <RecommendedQuestions
       machineCode={selectedMachineCode}
       key={`${selectedLlmModel}:${recommendationSource}:${selectedSessionId}:${lastAnswerMessage?.message_id ?? "initial"}`}
@@ -337,11 +347,16 @@ export default function Chat() {
     <div className={`${styles.chatPage} tw-chat-page`}>
       <AppHeader>
         <div className={styles.headerSettings} inert={isSending}>
+          <FactorySelect disabled={isSending || isLoading || isSessionLoading || isSettingsOpen} onChange={factory => {
+            resetToNewSession();
+            setRecommendationsEnabled(true);
+            setFactoryId(factory);
+          }} />
           <PromptSetting
             selectedMachineCode={selectedMachineCode}
             machineSelectionDisabled={isSending || isLoading || isSessionLoading}
             onSelectMachineCode={code => {
-              if (sendingRef.current || isSessionLoading) return;
+              if (sendingRef.current || isSessionLoading || !machines.some(machine => machine.machine_code === code && machine.can_select)) return;
               resetToNewSession();
               setSelectedMachineCode(code);
             }}
@@ -360,11 +375,12 @@ export default function Chat() {
       </AppHeader>
 
       <ResizableChatLayout isCitationCollapsed={isCitationCollapsed} isWelcome={isWelcome}>
-        <aside className="tw-chat-left" inert={isSending}>
+        <aside className="tw-chat-left" inert={isSending || machineStatus !== "ready"}>
           <section
             className={styles.chatHistoryPane}
           >
             <History
+              key={factoryId}
               selectedSessionId={selectedSessionId}
               onSelectSession={handleSelectSession}
               onStartNewChat={resetToNewSession}
@@ -391,10 +407,15 @@ export default function Chat() {
                 {PERSONA_OPTIONS.map(persona => {
                   const card = PERSONA_CARDS[persona.value];
                   const Icon = card.icon;
+                  const unavailable = factoryId !== "yunam_origin" && persona.value !== "operator" ? "연암(기존)에서만 사용 가능"
+                    : persona.value === "maintenance" && !selectedMachine?.has_ladder ? "래더 데이터 미준비"
+                    : persona.value === "engineer" ? factoryId !== "yunam_origin" ? "연암(기존)에서만 사용 가능"
+                      : !selectedMachine?.has_electrical ? "전기도면 데이터 미준비" : "" : "";
                   return (
                     <button key={persona.value} type="button" className={`${styles.personaCard} ${personaStyles.theme}`} data-persona={persona.value}
                       aria-pressed={selectedPersonaType === persona.value}
-                      disabled={isSending || isLoading}
+                      disabled={isSending || isLoading || machineUnavailable || Boolean(unavailable)}
+                      title={unavailable || undefined}
                       onClick={() => {
                         setSelectedPersonaType(persona.value);
                         setSelectedLlmMode(card.mode);
@@ -405,7 +426,7 @@ export default function Chat() {
                         {selectedPersonaType === persona.value && <Check size={15} aria-hidden="true" />}
                       </span>
                       <strong>{persona.label}</strong>
-                      <span className={styles.personaDescription}>{card.description}</span>
+                      <span className={styles.personaDescription}>{unavailable || card.description}</span>
                     </button>
                   );
                 })}
@@ -434,12 +455,17 @@ export default function Chat() {
           </section>}
 
           <section className={styles.chatQuestionPane}>
+            {machineStatus === "ready" && machineUnavailable && <p role="status">{selectedMachine?.has_documents === false
+              ? "매뉴얼이 등록되지 않아 준비 중인 장비입니다. 채팅을 사용할 수 없습니다."
+              : "검색 데이터가 준비된 사용 가능한 장비를 선택해 주세요."}</p>}
+            {featureUnavailable && <p role="status">{featureUnavailable}</p>}
+            {selectedMachine?.readiness === "partial" && <p role="status">일부 미구축 · 등록 문서 {selectedMachine.document_count}개 중 {selectedMachine.searchable_document_count}개 검색 가능</p>}
             {error && <p role="alert">{error}</p>}
             {recommendationSendError && <p role="alert">{recommendationSendError}</p>}
             <Question
               key={composerEpoch}
               welcome={isWelcome}
-              isBusy={isSending || isLoading || isSessionLoading}
+              isBusy={isSending || isLoading || isSessionLoading || machineUnavailable || Boolean(featureUnavailable)}
               questioner={questioner}
               selectedLlmModel={selectedLlmModel}
               selectedLlmMode={selectedLlmMode}

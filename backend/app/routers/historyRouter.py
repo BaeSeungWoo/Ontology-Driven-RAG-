@@ -4,17 +4,15 @@ from typing import Literal
 import json
 import traceback
 import os
-from pathlib import Path
 from app.database import database
+from app.factories.config import get_factory_config
+from app.factories.machines import load_machine_info, request_factory
+from app.core.machine_readiness import require_machine_ready
 from app.security.validate_code import session_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
 
 historyRouter = APIRouter(prefix="/api/history", tags=["history"])
 
-def load_machine_info() -> dict:
-    json_path = Path(__file__).resolve().parent.parent / "factories" / "machine_info.json"
-    with json_path.open("r", encoding="utf-8-sig") as f:
-        return json.load(f)
 
 def set_history_code(ctx) -> str:
     if ctx.is_main_server:
@@ -26,7 +24,7 @@ def set_history_code(ctx) -> str:
 
 @historyRouter.post("/getHistory")
 def getHistoryList(client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -34,8 +32,8 @@ def getHistoryList(client_request: Request):
     )
     machine_code = set_history_code(ctx)
     try:
-        history_list = database.getHistoryList(machine_code)
-        return _history_rows_to_json(history_list)
+        history_list = database.getHistoryList(machine_code, request_factory(client_request))
+        return _history_rows_to_json(history_list, client_request)
     except Exception as e:
         print(f"get_history_list error: {e}")
         raise HTTPException(
@@ -46,28 +44,32 @@ def getHistoryList(client_request: Request):
 
 class HistorySearchRequest(BaseModel):
     mode: Literal["sessions", "messages"] = "sessions"
-    feedback: Literal["도움됨", "틀림", "근거없음"] | None = None
+    feedback: Literal["도움됨", "틀림", "부분도움"] | None = None
 
 
 @historyRouter.post("/search")
 def searchHistory(req: HistorySearchRequest, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
-        machines=load_machine_info(),
+        machines=load_machine_info(client_request),
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = set_history_code(ctx)
     try:
-        histories = _history_rows_to_json(database.getHistoryList(machine_code))
-        if req.mode == "sessions" and req.feedback is None:
-            return histories
+        histories = _history_rows_to_json(database.getHistoryList(machine_code, request_factory(client_request)), client_request)
         answers = database.getHistoryAnswers([row["sessionId"] for row in histories], req.feedback)
         if req.mode == "sessions":
             matched = {row[0] for row in answers}
-            return [row for row in histories if row["sessionId"] in matched]
+            reasons = {}
+            # Answers are newest first; use the latest nonempty reason matching the filter.
+            for answer in answers:
+                if answer[5] and answer[7] and answer[7].strip():
+                    reasons.setdefault(answer[0], answer[7].strip())
+            return [dict(row, reason=reasons.get(row["sessionId"])) for row in histories
+                    if req.feedback is None or row["sessionId"] in matched]
         sessions = {row["sessionId"]: row for row in histories}
         return [dict(sessions[row[0]], messageId=row[1], targetMessageId=row[2] or row[1],
-                     question=row[3], answerPreview=row[4], feedback=row[5], messageCreatedAt=row[6])
+                     question=row[3], answerPreview=row[4], feedback=row[5], messageCreatedAt=row[6], reason=row[7])
                 for row in answers]
     except Exception:
         traceback.print_exc()
@@ -99,9 +101,9 @@ def _row_to_history_json(row):
     }
 
 
-def _history_rows_to_json(rows):
+def _history_rows_to_json(rows, client_request):
     metadata = database.getHistorySessionMetadata([row[0] for row in rows])
-    machines = load_machine_info()
+    machines = load_machine_info(client_request)
     result = []
     for row in rows:
         session = metadata.get(row[0], {})
@@ -128,7 +130,7 @@ def _paginate_rows(rows, page: int, page_size: int):
 
 @historyRouter.post("/getHistoryPagination")
 def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -137,15 +139,12 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
     machine_code = set_history_code(ctx)
     try:
         page, page_size = _sanitize_page(req.page, req.page_size)
-        result = database.getHistoryPagination(page, page_size, machine_code)
-        rows = result.get("rows", [])
-        total_count = int(result.get("total_count", 0))
-        total_pages = max(1, int(result.get("total_pages", 1)))
-        safe_page = max(1, int(result.get("page", page)))
-        safe_page_size = max(1, int(result.get("page_size", page_size)))
+        histories = _history_rows_to_json(database.getHistoryList(machine_code, request_factory(client_request)), client_request)
+        rows, total_count, total_pages, safe_page = _paginate_rows(histories, page, page_size)
+        safe_page_size = page_size
 
         return {
-            "rows": _history_rows_to_json(rows),
+            "rows": rows,
             "total_count": total_count,
             "total_pages": total_pages,
             "page": safe_page,
@@ -162,7 +161,7 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
 
 @historyRouter.post("/getHistoryQuestioner")
 def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -170,37 +169,22 @@ def getHistoryQuestioner(req: HistoryQuestionerRequest, client_request: Request)
     )
     machine_code = set_history_code(ctx)
     try:
-        # 요청 바디가 {} 인 경우: 질문자별 count 목록 반환
+        histories = _history_rows_to_json(database.getHistoryList(machine_code, request_factory(client_request)), client_request)
         if req.questioner is None:
-            count_rows = database.getHistoryQuestionerCounts(machine_code)
-            return [
-                {"questioner": row[0] if row[0] else "-", "count": int(row[1]) if row[1] is not None else 0}
-                for row in count_rows
-            ]
-
-        # 요청 바디에 questioner/page/page_size가 있는 경우: 질문자 필터 페이지 조회
+            counts = {}
+            for row in histories:
+                name = row["questioner"] or "-"
+                counts[name] = counts.get(name, 0) + 1
+            return [{"questioner": name, "count": count} for name, count in counts.items()]
         if req.page is None or req.page_size is None:
-            raise HTTPException(
-                status_code=400,
-                detail="questioner 페이지 조회 시 page, page_size가 필요합니다.",
-            )
-
+            raise HTTPException(400, "questioner 페이지 조회 시 page, page_size가 필요합니다.")
         page, page_size = _sanitize_page(req.page, req.page_size)
-        target_questioner = req.questioner.strip() if req.questioner else "-"
-        result = database.getHistoryQuestioner(target_questioner, page, page_size, machine_code)
-        rows = result.get("rows", [])
-        total_count = int(result.get("total_count", 0))
-        total_pages = max(1, int(result.get("total_pages", 1)))
-        safe_page = max(1, int(result.get("page", page)))
-        safe_page_size = max(1, int(result.get("page_size", page_size)))
+        target = req.questioner.strip() or "-"
+        histories = [row for row in histories if (row["questioner"] or "-") == target]
+        rows, total_count, total_pages, safe_page = _paginate_rows(histories, page, page_size)
+        return {"rows": rows, "total_count": total_count, "total_pages": total_pages,
+                "page": safe_page, "page_size": page_size}
 
-        return {
-            "rows": _history_rows_to_json(rows),
-            "total_count": total_count,
-            "total_pages": total_pages,
-            "page": safe_page,
-            "page_size": safe_page_size,
-        }
     except HTTPException:
         raise
     except Exception as e:
@@ -248,7 +232,11 @@ class UpdateMessageResponse(BaseModel):
 
 
 class UpdateFeedbackRequest(BaseModel):
-    feedback: Literal["도움됨", "틀림", "근거없음"]
+    feedback: Literal["도움됨", "틀림", "부분도움"]
+
+
+class UpdateReasonRequest(BaseModel):
+    reason: str
 
 
 class GetMessagesRequest(BaseModel):
@@ -259,13 +247,15 @@ class GetMessagesRequest(BaseModel):
 def createSession(req: CreateSessionRequest, client_request: Request):
     if req.llm_mode == "cms" and req.llm_persona != "manager":
         raise HTTPException(status_code=400, detail="CMS 모드는 관리자 페르소나에서 사용하세요.")
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = session_machine_code(ctx, req.machine_code, machine_info)
+    config = get_factory_config(req.llm_model, request_factory(client_request))
+    require_machine_ready(machine_code, config, machine_info, req.llm_mode, req.llm_persona)
     if req.llm_mode == "electrical":
         from app.core.electrical_qa import validate_machine
         try:
@@ -281,6 +271,7 @@ def createSession(req: CreateSessionRequest, client_request: Request):
             req.prompt_no,
             machine_code,
             req.llm_persona,
+            request_factory(client_request),
         )
         return {"result": "success", "session_id": session_id}
     except Exception as e:
@@ -291,7 +282,7 @@ def createSession(req: CreateSessionRequest, client_request: Request):
 
 @historyRouter.delete("/sessions/{session_id}")
 def deleteChatSession(session_id: int, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -312,7 +303,7 @@ def deleteChatSession(session_id: int, client_request: Request):
 
 @historyRouter.post("/getMessages")
 def getMessages(req: GetMessagesRequest, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -348,6 +339,7 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
                     "llm_mode": row[7],
                     "metadata": metadata,
                     "feedback": row[9],
+                    "reason": row[10],
                 }
             )
         return json_data
@@ -359,7 +351,7 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
 
 @historyRouter.post("/messages", response_model=CreateMessageResponse)
 def createMessage(req: CreateMessageRequest, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -385,7 +377,7 @@ def createMessage(req: CreateMessageRequest, client_request: Request):
 
 @historyRouter.put("/messages/{message_id}", response_model=UpdateMessageResponse)
 def updateMessage(message_id: int, req: UpdateMessageRequest, client_request: Request):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,
@@ -413,7 +405,7 @@ def updateMessage(message_id: int, req: UpdateMessageRequest, client_request: Re
 def updateFeedback(message_id: int, req: UpdateFeedbackRequest, client_request: Request):
     ctx = resolve_request_code(
         request=client_request,
-        machines=load_machine_info(),
+        machines=load_machine_info(client_request),
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     session_id = database.getSessionIdByMessageId(message_id)
@@ -430,3 +422,28 @@ def updateFeedback(message_id: int, req: UpdateFeedbackRequest, client_request: 
     except Exception:
         traceback.print_exc()
         raise HTTPException(status_code=500, detail="피드백 저장 중 오류가 발생했습니다.")
+
+
+@historyRouter.put("/messages/{message_id}/reason", response_model=UpdateMessageResponse)
+def updateReason(message_id: int, req: UpdateReasonRequest, client_request: Request):
+    reason = req.reason.strip()
+    if not reason:
+        raise HTTPException(422, "평가사유를 입력해 주세요.")
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=load_machine_info(client_request),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    session_id = database.getSessionIdByMessageId(message_id)
+    if session_id is None:
+        raise HTTPException(404, "메시지를 찾을 수 없습니다.")
+    validate_code(ctx, database.getChatSessionInfo(session_id))
+    try:
+        if not database.updateChatMessageReason(message_id, reason):
+            raise HTTPException(409, "답변의 도움됨·틀림·부분도움을 먼저 선택해 주세요.")
+        return {"result": "success"}
+    except HTTPException:
+        raise
+    except Exception:
+        traceback.print_exc()
+        raise HTTPException(500, "평가사유 저장 중 오류가 발생했습니다.")

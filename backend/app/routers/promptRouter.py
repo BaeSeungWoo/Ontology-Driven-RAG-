@@ -1,24 +1,23 @@
-﻿import json
-import os
-from pathlib import Path
+﻿import os
 
 from fastapi import APIRouter, HTTPException, Request
 
 from app.database import database
+from app.factories.config import get_factory_config
+from app.factories.machines import load_machine_info, request_factory
+from app.core.machine_readiness import machine_readiness
+from pipeline.ingestion.machine_resolver import machine_documents
 from app.security.validate_code import resolve_request_code, session_machine_code
 
 promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
 
-def load_machine_info() -> dict:
-    json_path = Path(__file__).resolve().parent.parent / "factories" / "machine_info.json"
-    with json_path.open("r", encoding="utf-8-sig") as f:
-        return json.load(f)
-
 
 @promptRouter.get("/machines")
-def get_machines(client_request: Request):
-    machines = load_machine_info()
+def get_machines(client_request: Request, llm_model: str = "vllm_config"):
+    config = get_factory_config(llm_model, request_factory(client_request))
+    machines = config.machines
+    readiness = machine_readiness(config, machines)
     ctx = resolve_request_code(
         request=client_request,
         machines=machines,
@@ -31,7 +30,10 @@ def get_machines(client_request: Request):
             "machine_controller": info.get("machine_controller", ""),
             "machine_ver": info.get("machine_ver", ""),
             "is_assigned": code == ctx.request_machine_code,
-            "can_select": ctx.is_main_server or code == ctx.request_machine_code,
+            "has_documents": bool(machine_documents(info)),
+            **readiness[code],
+            "can_select": (ctx.is_main_server or code == ctx.request_machine_code) and (
+                readiness[code]["readiness"] in ("ready", "partial") or readiness[code]["has_electrical"]),
             "is_main_server": ctx.is_main_server,
         }
         for code, info in machines.items()
@@ -40,7 +42,7 @@ def get_machines(client_request: Request):
 
 @promptRouter.post("/getPromptList")
 def getPromptList(client_request: Request, machine_code: str | None = None):
-    machine_info = load_machine_info()
+    machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
         machines=machine_info,

@@ -11,7 +11,7 @@ from starlette.concurrency import run_in_threadpool
 
 from app.database import database
 from app.routers.documentRouter import DEFAULT_ASSET_ROOT
-from app.routers.historyRouter import load_machine_info
+from app.factories.machines import load_machine_info
 from app.security.validate_code import resolve_request_code, validate_code
 
 figureRouter = APIRouter(prefix="/api/figures", tags=["figures"])
@@ -31,7 +31,7 @@ class FigureRequest(BaseModel):
 
 
 def load_figure(req: FigureRequest, request: Request):
-    ctx = resolve_request_code(request, load_machine_info(), {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")})
+    ctx = resolve_request_code(request, load_machine_info(request), {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")})
     session_id = database.getSessionIdByMessageId(req.message_id)
     if session_id is None:
         raise HTTPException(404, "답변을 찾을 수 없습니다.")
@@ -48,6 +48,9 @@ def load_figure(req: FigureRequest, request: Request):
     ) or (
         item.get("metadata", {}).get("source_kind") == "paddleocr"
         and req.asset_path in (item.get("metadata", {}).get("page_image_paths") or [])
+    ) or (
+        any(asset.get("asset_path") == req.asset_path and asset.get("container_type") == "pictures"
+            for asset in item.get("metadata", {}).get("related_assets", []))
     )), None)
     if chunk is None and req.asset_path not in (metadata.get("images") or []):
         raise HTTPException(404, "이 답변에 연결된 그림이 아닙니다.")

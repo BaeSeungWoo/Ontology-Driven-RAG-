@@ -30,7 +30,7 @@
     "PDF/index data"
   ],
   "files": {
-    "config.example.json": "0cf2bd06d8e1bb6c4b88458b4b771ace25bc8949142eee5d9f23f711e088ad46",
+    "config.example.json": "301d3cdadb39bdd6ea87f1f999328553b84a311758008a5ad01ec33cc2eeb26f",
     "electrical/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "electrical/engine/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "electrical/engine/ko_terms.py": "ec7e79a7a2dd5b1568e0eb522eb0468e918ade148f0a87a546fb9705e383392a",
@@ -44,7 +44,7 @@
     "electrical/engine/qa_engine.py": "8743a2b40ad2cfe84ebac2595a07722a449944968c3e4dd0db9e58574535113d",
     "electrical/grounding.py": "d4294139a5c329b1498ad8539fb2ed1c9330499a735838eee5cbfee9d881e10e",
     "electrical/options.py": "fa6d0f98b488978cb7cbbcb2c08dd6142425868366ce01672531a58ad1931529",
-    "electrical/profiles/dhf8000.json": "a0645ed3c1fa287f4bff8d6ade6c0c5d1b215e0f98d13031de2e7f3d6aae4151",
+    "electrical/profiles/dhf8000.json": "f9268b63b1eb2d71650fd392c92ae303de20ea026d7bc82555762b1595ad2663",
     "electrical/profiles/dmu85.json": "ca33baab3a724e5919d76ec06fd3a18ba14724ebe5b8dc1f655b5eb33bf08416",
     "electrical/profiles/pl25.json": "6fd3e90d14b73ce19d1b191065972ce4145bd4437dba646d709ee8ea195749a7",
     "electrical/profiles/puma280.json": "f8a7b92dfc06e9abd5c017c8b5569efac14018349ea7085db07f5a9a1ab5668a",

@@ -259,7 +259,7 @@ export default function AssistantMessageBubble({
         />
       )}
       {!isThinking && !isInterrupted && (
-        <AnswerFeedback key={message.id} messageId={Number(message.id)} initialFeedback={message.feedback} />
+        <AnswerFeedback key={message.id} messageId={Number(message.id)} initialFeedback={message.feedback} initialReason={message.reason} />
       )}
     </article>
   );

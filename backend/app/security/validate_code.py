@@ -1,12 +1,21 @@
 from dataclasses import dataclass
 import logging
 from fastapi import Request, HTTPException
+from pipeline.ingestion.machine_resolver import machine_documents
+from app.factories.machines import history_factory_id, request_factory
 
 @dataclass
 class RequestCode:
     user_ip: str
     request_machine_code: str | None
     is_main_server: bool
+    machine_codes: frozenset[str] | None = None
+    factory_id: str = "yunam"
+
+
+def require_machine_documents(code, machines):
+    if code != "ALL" and not machine_documents(machines.get(code, {})):
+        raise HTTPException(status_code=409, detail="매뉴얼이 등록되지 않아 준비 중인 장비입니다. 채팅을 사용할 수 없습니다.")
 
 
 def session_machine_code(ctx, requested_code, machines):
@@ -18,8 +27,10 @@ def session_machine_code(ctx, requested_code, machines):
             raise HTTPException(status_code=403, detail="다른 장비에는 접근이 불가능합니다.")
         if requested_code not in machines:
             raise HTTPException(status_code=400, detail="등록되지 않은 장비코드입니다.")
+        require_machine_documents(requested_code, machines)
         return requested_code
     if ctx.request_machine_code:
+        require_machine_documents(ctx.request_machine_code, machines)
         return ctx.request_machine_code
     if ctx.is_main_server:
         return "ALL"
@@ -67,6 +78,8 @@ def resolve_request_code(request: Request, machines: dict, main_server_ips: set[
     )
 
     return RequestCode(
+        factory_id=request_factory(request),
+        machine_codes=frozenset(machines),
         user_ip=user_ip,
         request_machine_code=request_machine_code,
         is_main_server=(
@@ -82,6 +95,9 @@ def validate_code(ctx, session_info) -> str:
 
     session_machine_code = (session_info.get("machine_code") or "").strip()
     request_machine_code = (ctx.request_machine_code or "").strip()
+
+    if session_info.get("factory") != history_factory_id(ctx.factory_id):
+        raise HTTPException(status_code=403, detail="다른 공장의 대화 이력에는 접근할 수 없습니다.")
 
     if ctx.is_main_server:
         if not session_machine_code:

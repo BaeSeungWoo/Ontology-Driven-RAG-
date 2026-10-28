@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useEffect, useRef, useState } from "react";
-import api from "@/services/api";
+import { Fragment, createContext, useContext, useEffect, useRef, useState } from "react";
+import api, { setApiFactory, type FactoryId } from "@/services/api";
+import type { LlmModel } from "@/constants/llmOptions";
 
 export type Machine = {
   machine_code: string;
@@ -10,11 +11,21 @@ export type Machine = {
   machine_ver: string;
   is_assigned: boolean;
   can_select: boolean;
+  has_documents: boolean;
+  readiness: "no_documents" | "no_search_data" | "check_failed" | "partial" | "ready";
+  searchable_document_count: number;
+  document_count: number;
+  has_ladder: boolean;
+  has_electrical: boolean;
   is_main_server: boolean;
 };
 
 const MachineContext = createContext<{
+  factoryId: FactoryId;
+  setFactoryId: (factory: FactoryId) => void;
   machines: Machine[];
+  llmModel: LlmModel;
+  setLlmModel: (model: LlmModel) => void;
   machineCode?: string;
   setMachineCode: (code: string | undefined) => void;
   status: "loading" | "ready" | "error";
@@ -22,17 +33,31 @@ const MachineContext = createContext<{
 } | null>(null);
 
 export default function MachineProvider({ children }: { children: React.ReactNode }) {
+  const [factoryId, setFactory] = useState<FactoryId>("yunam");
+  const [loadedFactory, setLoadedFactory] = useState<FactoryId>();
+  const [llmModel, setLlmModel] = useState<LlmModel>("vllm_config");
+  const [loadedModel, setLoadedModel] = useState<LlmModel>();
   const [machines, setMachines] = useState<Machine[]>([]);
   const [machineCode, setMachineCode] = useState<string>();
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [revision, setRevision] = useState(0);
   const initialized = useRef(false);
 
+  const setFactoryId = (factory: FactoryId) => {
+    if (factory === factoryId) return;
+    setApiFactory(factory);
+    initialized.current = false;
+    setMachineCode(undefined);
+    setMachines([]);
+    setStatus("loading");
+    setFactory(factory);
+  };
+
   useEffect(() => {
     const controller = new AbortController();
-    api.get<Machine[]>("/api/prompts/machines", { signal: controller.signal }).then(({ data }) => {
+    api.get<Machine[]>("/api/prompts/machines", { signal: controller.signal, headers: { "X-Factory-Id": factoryId }, params: { llm_model: llmModel } }).then(({ data }) => {
       if (controller.signal.aborted) return;
-      const assigned = data.find(machine => machine.is_assigned)?.machine_code;
+      const assigned = data.find(machine => machine.is_assigned && machine.can_select)?.machine_code;
       const master = data.some(machine => machine.is_main_server);
       if (!initialized.current || !master) {
         const initial = master ? data.find(machine => machine.machine_code === process.env.MCODE?.trim() && machine.can_select)?.machine_code : undefined;
@@ -40,12 +65,14 @@ export default function MachineProvider({ children }: { children: React.ReactNod
       }
       initialized.current = true;
       setMachines(data);
+      setLoadedModel(llmModel);
+      setLoadedFactory(factoryId);
       setStatus("ready");
     }).catch(() => {
       if (!controller.signal.aborted) setStatus("error");
     });
     return () => controller.abort();
-  }, [revision]);
+  }, [revision, llmModel, factoryId]);
 
   useEffect(() => {
     const refresh = () => setRevision(value => value + 1);
@@ -53,8 +80,11 @@ export default function MachineProvider({ children }: { children: React.ReactNod
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
-  return <MachineContext.Provider value={{ machines, machineCode, setMachineCode, status,
-    refreshMachines: () => setRevision(value => value + 1) }}>{children}</MachineContext.Provider>;
+  return <MachineContext.Provider value={{ factoryId, setFactoryId, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
+    refreshMachines: () => {
+      if (status === "error") setStatus("loading");
+      setRevision(value => value + 1);
+    } }}><Fragment key={factoryId}>{children}</Fragment></MachineContext.Provider>;
 }
 
 export function useMachine() {

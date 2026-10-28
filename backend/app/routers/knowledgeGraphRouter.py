@@ -15,7 +15,7 @@ from app.core.knowledge_graph import (
     build_question_graph,
 )
 from app.database import database
-from app.routers.historyRouter import load_machine_info
+from app.factories.machines import load_machine_info, request_factory
 from app.routers.explanation_stream import explanation_response
 from app.security.validate_code import resolve_request_code, validate_code
 
@@ -30,7 +30,7 @@ class KnowledgeGraphRequest(BaseModel):
 
 def load_question(message_id: int, request: Request) -> str:
     ctx = resolve_request_code(
-        request, load_machine_info(), {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+        request, load_machine_info(request), {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     session_id = database.getSessionIdByMessageId(message_id)
     if session_id is None:
@@ -51,9 +51,9 @@ def load_question(message_id: int, request: Request) -> str:
     raise HTTPException(404, "선택한 답변을 찾을 수 없습니다.")
 
 
-def search_question(question: str):
+def search_question(question: str, factory_id: str = "yunam"):
     try:
-        result = build_question_graph(question)
+        result = build_question_graph(question, factory_id)
     except KnowledgeGraphConfigurationError as exc:
         logger.exception("Manual graph configuration is unavailable")
         raise HTTPException(503, "매뉴얼 그래프 인덱스를 사용할 수 없습니다. 서버의 인덱스 경로 설정을 확인해 주세요.") from exc
@@ -65,7 +65,7 @@ def search_question(question: str):
 
 @knowledgeGraphRouter.post("")
 def knowledge_graph(req: KnowledgeGraphRequest, request: Request):
-    result = search_question(load_question(req.message_id, request))
+    result = search_question(load_question(req.message_id, request), request_factory(request))
     return JSONResponse(
         {key: result[key] for key in ("question", "corpora", "html")},
         headers={"Cache-Control": "no-store"},
@@ -78,7 +78,7 @@ async def answer_knowledge_graph(req: KnowledgeGraphRequest, request: Request):
     # Leave room for both manuals and the response in the configured 8,192-token model.
     if len(question) > 1500:
         raise HTTPException(400, "지식그래프 기반 답변은 1,500자 이내의 질문을 지원합니다. 질문을 간추려 다시 질문해 주세요.")
-    result = await run_in_threadpool(search_question, question)
+    result = await run_in_threadpool(search_question, question, request_factory(request))
     sources = result["sources"]
     missing = [name.upper() for name in result["corpora"]
                if not any(source["corpus"] == name for source in sources)]

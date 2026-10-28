@@ -25,11 +25,14 @@ class KnowledgeGraphSearchError(RuntimeError):
     """The embedding service or manual search failed."""
 
 
-def _index_settings():
+def _index_settings(factory_id="yunam"):
     indexes, fingerprints = [], []
     for name in CORPORA:
-        variable = f"GRAPH_INDEX_{name.upper()}_DIR"
-        directory = Path(os.environ.get(variable) or ROOT / "backend/data/graph_indexes" / name).resolve()
+        variable = f"GRAPH_INDEX_{name.upper()}_DIR" if factory_id == "yunam" else f"GRAPH_INDEX_{factory_id.upper()}_{name.upper()}_DIR"
+        index_root = ROOT / "backend/data/graph_indexes"
+        if factory_id != "yunam":
+            index_root = index_root / factory_id
+        directory = Path(os.environ.get(variable) or index_root / name).resolve()
         manifest_path = directory / "manifest.json"
         try:
             stat = manifest_path.stat()
@@ -121,13 +124,13 @@ def _answer_sources(corpus, results, start_index):
     return sources
 
 
-def build_question_graph(question: str) -> dict:
+def build_question_graph(question: str, factory_id: str = "yunam") -> dict:
     question = question.strip()
     if not question:
         raise ValueError("질문을 입력해 주세요.")
     # Both indexes are large; serialise loading/search and reuse recent results.
     with _LOCK:
-        indexes, cache, configuration = _index_settings()
+        indexes, cache, configuration = _index_settings(factory_id)
         key = (configuration, question)
         if key in _RESULTS:
             _RESULTS.move_to_end(key)

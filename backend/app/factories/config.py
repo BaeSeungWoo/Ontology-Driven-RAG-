@@ -2,8 +2,9 @@
 
 from dataclasses import dataclass, field, replace
 from typing import Dict, Optional
-import json
 from pathlib import Path
+import json
+from .machines import load_machine_info
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -51,6 +52,7 @@ class StorePathConfig:
 
 @dataclass
 class VectorDBConfig:
+    collection_name: Optional[str] = None
     stores: dict[str, StorePathConfig] = field(
         default_factory=lambda: {
             "chroma": StorePathConfig(
@@ -93,10 +95,6 @@ class PromptConfig:
 # ──────────────────────────────────────────────────────────────────────────────
 #  최상위 통합 설정
 # ──────────────────────────────────────────────────────────────────────────────
-
-MACHINE_INFO_PATH = Path(__file__).resolve().parent / "machine_info.json"
-with MACHINE_INFO_PATH.open("r", encoding="utf-8-sig") as f:
-    machine_info = json.load(f)
 
 @dataclass
 class Config:
@@ -166,7 +164,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 연암 공장의 설비 유지보수 전문가입니다.",
         ),
-        machines=machine_info
+        machines=load_machine_info(factory_id="yunam")
     ),
 
     # ── B 공장 : OpenAI ───────────────────────────────────────────────────────
@@ -212,7 +210,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
-        machines=machine_info
+        machines=load_machine_info(factory_id="yulkok")
     ),
 
     # ── C 공장 : Anthropic ────────────────────────────────────────────────────
@@ -258,7 +256,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 풍산 공장의 품질 관리 전문가입니다.",
         ),
-        machines=machine_info
+        machines=load_machine_info(factory_id="poongsan")
     ),
 
     # ── D 공장 : Google Gemini ────────────────────────────────────────────────
@@ -304,7 +302,7 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 D 공장의 자동화 설비 전문가입니다.",
         ),
-        machines=machine_info
+        machines={}
     ),
 }
 
@@ -331,3 +329,29 @@ CONFIGS["vllm_config"] = replace(
         base_url="http://192.168.1.179:11434",
     ),
 )
+
+
+FACTORY_CONFIG_KEYS = {"yunam": "ollama_config", "yulkok": "openai_config", "poongsan": "anthropic_config", "yunam_origin": "ollama_config"}
+
+
+def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
+    from fastapi import HTTPException
+    if factory_id not in FACTORY_CONFIG_KEYS:
+        raise HTTPException(400, "등록되지 않은 공장입니다.")
+    if model_key not in CONFIGS:
+        raise HTTPException(404, "해당 모델 설정을 찾을 수 없습니다.")
+    factory = CONFIGS[FACTORY_CONFIG_KEYS[factory_id]]
+    model = CONFIGS[model_key]
+    root = Path(__file__).resolve().parents[3]
+    stores = {name: StorePathConfig(
+        db_path=str(root / "backend" / "data" / factory_id / name),
+        search_path=str(root / "pipeline" / "data" / factory_id / name),
+    ) for name in factory.vector_db.stores}
+    settings_path = root / "pipeline/data" / factory_id / "build_info/search_settings.json"
+    settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.is_file() else {}
+    if settings and (settings["site_id"] != factory_id or settings["embedding_model"] != model.embedding.model):
+        raise ValueError("공장 검색 인덱스와 임베딩 설정이 일치하지 않습니다.")
+    collection_name = "yunam" if factory_id == "yunam_origin" else factory_id
+    return replace(factory, id=factory_id, llm=model.llm, embedding=model.embedding,
+                   vector_db=replace(factory.vector_db, stores=stores, collection_name=settings.get("collection", collection_name)),
+                   machines=load_machine_info(factory_id=factory_id))

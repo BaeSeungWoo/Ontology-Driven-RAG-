@@ -88,7 +88,7 @@ export type UpdateMessageResponse = {
   result: string;
 };
 
-export type MessageFeedback = "도움됨" | "틀림" | "근거없음";
+export type MessageFeedback = "도움됨" | "틀림" | "부분도움";
 
 export type MessageItem = {
   machine_code?: string;
@@ -103,4 +103,5 @@ export type MessageItem = {
   prompt_name?: string | null;
   metadata?: ChatMetadata;
   feedback?: MessageFeedback | null;
+  reason?: string | null;
 };

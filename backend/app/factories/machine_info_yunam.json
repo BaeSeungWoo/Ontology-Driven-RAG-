@@ -1,0 +1,96 @@
+{
+  "M006": {
+    "machine_name": "DMU85 #1",
+    "machine_ips": ["172.16.10.6", "192.168.1.31"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640",
+    "document": {
+        "manual": [
+            "연암(DMU85)_EN DMG MORI DMU 85.95(FDTechnical Mechanics ) Milling part 654p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf",
+            "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
+            "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
+        ],
+        "electrical": [
+            "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M022": {
+    "machine_name": "DMU85 #2",
+    "machine_ips": ["172.16.10.22"],
+    "machine_maker": "DMG_MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640",
+    "document": {
+        "manual": [
+            "연암(DMU85)_EN DMG MORI DMU 85.95(FDTechnical Mechanics ) Milling part 654p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf",
+            "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
+            "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
+        ],
+        "electrical": [
+            "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M021": {
+    "machine_name": "DMU85 #3",
+    "machine_ips": ["172.16.10.21"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640",
+    "document": {
+        "manual": [
+            "연암(DMU85)_EN DMG MORI DMU 85.95(FDTechnical Mechanics ) Milling part 654p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf",
+            "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
+            "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
+        ],
+        "electrical": [
+            "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M007": {
+    "machine_name": "HERMLE C42",
+    "machine_ips": ["172.16.10.7"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane spare parts diagrams-458p.pdf",
+            "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006 eg부록 2 1A 1061P.pdf"
+        ],
+        "electrical": [
+            "연암(HERMLE C42)_EN HERMLE C42U 전기도면 343.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M008": {
+    "machine_name": "HERMLE C30",
+    "machine_ips": ["172.16.10.8"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(HERMLE C30)_GER HERMLE YP6 M 취급설명서 C 30 U 714P.pdf",
+            "연암(HERMLE C30)_EN HERMLE C30UOperating manual iTNC 530 1050p.pdf"
+        ],
+        "electrical": [
+            "연암(HERMLE C30)_EN HERMLE C 30 ya6-e2(전기도면)286P.pdf"
+        ],
+        "ladder": []
+    }
+  }
+}

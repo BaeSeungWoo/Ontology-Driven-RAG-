@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Check, ChevronDown, LockKeyhole } from "lucide-react";
+import { Check, ChevronDown, LockKeyhole, CircleAlert } from "lucide-react";
 import { useMachine } from "@/components/machineProvider";
 import styles from "./machineSelect.module.css";
 
@@ -32,6 +32,9 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
   const assigned = value ? machines.find(machine => machine.machine_code === value)
     : machines.find(machine => machine.is_assigned);
   const isMaster = machines.some(machine => machine.is_main_server);
+  const isUnready = (machine: typeof machines[number]) => (machine.is_main_server || machine.is_assigned) && !machine.can_select;
+  const readinessLabel = (machine: typeof machines[number]) => machine.readiness === "no_documents" ? "준비 중 · 매뉴얼 미등록"
+    : machine.readiness === "check_failed" ? "준비 상태 확인 실패" : "준비 중 · 검색 데이터 미구축";
   const sortedMachines = [...machines].sort((a, b) => Number(b.is_assigned) - Number(a.is_assigned));
   const placeholder = status === "loading" ? "장비 목록 불러오는 중"
     : status === "error" ? "장비 목록 조회 실패"
@@ -67,15 +70,15 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
           }
         }}
       >
-        <span aria-hidden="true" className={`${styles.dot} ${assigned ? styles.assigned : ""}`} />
-        <strong>{assigned?.machine_name ?? placeholder}</strong>
-        {assigned && <span className={styles.spec}>{assigned.machine_controller} {assigned.machine_ver}</span>}
+        <span aria-hidden="true" className={`${styles.dot} ${assigned && isUnready(assigned) ? styles.unreadyDot : assigned?.can_select ? styles.assigned : ""}`} />
+        <strong>{status === "ready" ? assigned?.machine_name ?? placeholder : placeholder}</strong>
+        {status === "ready" && assigned && <span className={styles.spec}>{assigned.machine_controller} {assigned.machine_ver}</span>}
         <ChevronDown aria-hidden="true" size={13} className={styles.chevron} />
       </button>
       {isOpen && (
         <div className={styles.panel}>
           <div className={styles.heading}><strong>장비 목록</strong><span>{machines.length}대</span></div>
-          <p id={`${listId}-guide`} className={styles.guide}><LockKeyhole size={13} aria-hidden="true" />{isMaster ? "모든 장비를 선택할 수 있습니다. 장비를 변경하면 새 대화를 시작합니다." : "현재 IP에 할당된 장비만 선택할 수 있습니다."}</p>
+          <p id={`${listId}-guide`} className={styles.guide}><LockKeyhole size={13} aria-hidden="true" />{isMaster ? "검색 데이터가 준비된 장비만 선택할 수 있습니다. 장비를 변경하면 새 대화를 시작합니다." : "현재 IP에 할당된 장비만 선택할 수 있습니다."}</p>
           <div ref={listRef} id={listId} role="listbox" aria-label="장비" aria-describedby={`${listId}-guide`}
             tabIndex={-1} className={styles.list}
             onKeyDown={event => {
@@ -90,18 +93,33 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
           >
             {sortedMachines.map(machine => (
               <button type="button" role="option" key={machine.machine_code}
-                aria-selected={machine.machine_code === assigned?.machine_code} disabled={disabled || !(machine.can_select ?? machine.is_assigned)}
-                className={styles.option}
-                title={!(machine.can_select ?? machine.is_assigned) ? "현재 IP에 할당되지 않아 선택할 수 없습니다." : undefined}
+                aria-selected={machine.machine_code === assigned?.machine_code} disabled={disabled || !machine.can_select}
+                className={`${styles.option} ${isUnready(machine) ? styles.unready : ""}`}
+                title={isUnready(machine) ? `${readinessLabel(machine)} · 선택 및 채팅을 사용할 수 없습니다.` : !machine.can_select ? "현재 IP에 할당되지 않아 선택할 수 없습니다." : undefined}
                 onClick={() => {
                   if (machine.machine_code !== assigned?.machine_code) onChange(machine.machine_code);
                   setIsOpen(false); triggerRef.current?.focus();
                 }}
               >
-                <span aria-hidden="true" className={`${styles.dot} ${machine.machine_code === assigned?.machine_code ? styles.assigned : ""}`} />
-                <span className={styles.machineText}><strong>{machine.machine_name}</strong><span>{machine.machine_controller} {machine.machine_ver}</span></span>
-                {machine.machine_code === assigned?.machine_code ? <Check size={16} aria-hidden="true" />
-                  : !(machine.can_select ?? machine.is_assigned) && <LockKeyhole size={14} aria-hidden="true" />}
+                <span aria-hidden="true" className={`${styles.dot} ${isUnready(machine) ? styles.unreadyDot : machine.can_select && machine.machine_code === assigned?.machine_code ? styles.assigned : ""}`} />
+                <span className={styles.machineText}>
+                  <strong>{machine.machine_name}</strong>
+                  <span>{machine.machine_controller} {machine.machine_ver}</span>
+                  {isUnready(machine) && <span className={styles.readiness}>{readinessLabel(machine)}</span>}
+                  {machine.can_select && <>
+                    <span className={machine.readiness === "partial" ? styles.partial : undefined}>
+                      {machine.readiness === "partial" ? "일부 미구축 · " : "매뉴얼 "}{machine.searchable_document_count}/{machine.document_count}개 검색 가능
+                    </span>
+                    <span className={styles.features}>
+                      <span className={!machine.has_ladder ? styles.missingFeature : undefined}>래더 {machine.has_ladder ? "준비" : "미준비"}</span>
+                      <span aria-hidden="true"> · </span>
+                      <span className={!machine.has_electrical ? styles.missingFeature : undefined}>전기도면 {machine.has_electrical ? "준비" : "미준비"}</span>
+                    </span>
+                  </>}
+                </span>
+                {isUnready(machine) ? <CircleAlert size={16} aria-hidden="true" />
+                  : !machine.can_select ? <LockKeyhole size={14} aria-hidden="true" />
+                  : machine.machine_code === assigned?.machine_code && <Check size={16} aria-hidden="true" />}
               </button>
             ))}
           </div>

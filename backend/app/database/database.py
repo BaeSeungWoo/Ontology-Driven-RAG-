@@ -7,6 +7,7 @@
 import os
 import json
 import pandas as pd
+from app.factories.machines import history_factory_id
 from .connection_pool import get_db_connection #, get_pool
 from .thread_pool_manager import with_thread_pool
 from .daily_report_sections_spec import (
@@ -123,20 +124,30 @@ def updatePrompt(updatePrompt) :
 
 # 대화 이력(세션 정보) 목록 조회
 @with_thread_pool("db")
-def getHistoryList(machine_code):
+def getHistoryList(machine_code, factory_id):
     try:
         with get_db_connection() as conn:
             conn.autocommit = True
             cursor = conn.cursor()
-            proc_name = "dbo.WAFC_WEB_HISTORY_SEL01_SP"
-            exec_stored_proc(cursor, proc_name, (machine_code,))
+            cursor.execute(
+                """
+                SELECT CH.SESSION_ID, CH.QUESTIONER, CH.TITLE, CH.LLM_MODEL,
+                       CH.LLM_MODE, CH.PROMPT_NO, CH.CREATED_AT, CH.UPDATED_AT,
+                       p.PROMPT_NAME
+                FROM dbo.CHAT_HISTORY CH
+                LEFT JOIN dbo.PROMPT_TB p ON CH.PROMPT_NO = p.PROMPT_NO
+                WHERE CH.FACTORY = ?
+                  AND (? = 'ALL' OR ? IS NULL OR CH.MACHINE_CODE = ?)
+                ORDER BY CH.UPDATED_AT DESC
+                """,
+                (history_factory_id(factory_id), machine_code, machine_code, machine_code),
+            )
             results = cursor.fetchall()
             cursor.close()
     except Exception as e:
         print(e, 'database getHistoryList() error')
-        return []
-    finally :
-        return results
+        raise
+    return results
 
 
 # 대화 이력 페이지 조회 (프로시저 기반)
@@ -259,7 +270,7 @@ def getHistoryQuestionerCounts(machine_code):
 
 # 신규 대화 세션 생성
 @with_thread_pool("db")
-def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_code, llm_persona):
+def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_code, llm_persona, factory_id):
     conn = None
     cursor = None
     try:
@@ -277,8 +288,8 @@ def createSession(questioner, title, llm_model, llm_mode, prompt_no, machine_cod
 
             session_id = int(row[0])
             cursor.execute(
-                "UPDATE dbo.CHAT_HISTORY SET LLM_PRESONA = ? WHERE SESSION_ID = ?",
-                (llm_persona, session_id),
+                "UPDATE dbo.CHAT_HISTORY SET LLM_PRESONA = ?, FACTORY = ? WHERE SESSION_ID = ?",
+                (llm_persona, history_factory_id(factory_id), session_id),
             )
             conn.commit()
             return session_id
@@ -360,7 +371,7 @@ def getHistoryAnswers(session_ids, feedback=None):
                 cursor.execute(
                     f"""
                     SELECT a.SESSION_ID, a.MESSAGE_ID, q.MESSAGE_ID,
-                           q.CONTENT, LEFT(a.CONTENT, 300), a.FEEDBACK, a.CREATED_AT
+                           q.CONTENT, LEFT(a.CONTENT, 300), a.FEEDBACK, a.CREATED_AT, a.REASON
                     FROM dbo.CHAT_MESSAGE a
                     OUTER APPLY (
                         SELECT TOP 1 u.MESSAGE_ID, u.CONTENT
@@ -392,7 +403,8 @@ def getChatSessionInfo(session_id):
                 SESSION_ID,
                 MACHINE_CODE,
                 QUESTIONER,
-                TITLE
+                TITLE,
+                FACTORY
             FROM dbo.CHAT_HISTORY
             WHERE SESSION_ID = ?
             """,
@@ -410,6 +422,7 @@ def getChatSessionInfo(session_id):
         "machine_code": row[1],
         "questioner": row[2],
         "title": row[3],
+        "factory": (row[4] or "").strip(),
     }
 
 # CHAT_MESSAGE 질문 / 답변(Temp) 저장
@@ -548,6 +561,31 @@ def updateChatMessageFeedback(message_id, feedback):
 
 # 세션별 채팅 메시지 조회
 @with_thread_pool("db")
+def updateChatMessageReason(message_id, reason):
+    with get_db_connection() as conn:
+        conn.autocommit = False
+        cursor = conn.cursor()
+        try:
+            cursor.execute(
+                """
+                UPDATE dbo.CHAT_MESSAGE SET REASON = ?
+                OUTPUT INSERTED.MESSAGE_ID
+                WHERE MESSAGE_ID = ? AND ROLE = 'assistant'
+                  AND FEEDBACK IN (?, ?, ?)
+                """,
+                (reason, message_id, "도움됨", "틀림", "부분도움"),
+            )
+            updated = cursor.fetchone() is not None
+            conn.commit()
+            return updated
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
+            cursor.close()
+
+
+@with_thread_pool("db")
 def getChatMessagesBySession(session_id):
     conn = None
     cursor = None
@@ -568,7 +606,8 @@ def getChatMessagesBySession(session_id):
                     s.LLM_MODEL,
                     s.LLM_MODE,
                     m.METADATA,
-                    m.FEEDBACK
+                    m.FEEDBACK,
+                    m.REASON
                 FROM dbo.CHAT_MESSAGE m
                 INNER JOIN dbo.CHAT_HISTORY s ON s.SESSION_ID = m.SESSION_ID
                 WHERE m.SESSION_ID = ?

@@ -3,7 +3,8 @@ from datetime import datetime, timedelta, timezone
 from functools import lru_cache
 from typing import Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
+from app.factories.machines import load_machine_info, request_factory
 from starlette.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 from app.routers.explanation_stream import explanation_response
@@ -47,17 +48,17 @@ def format_alarm_time(value: str | None) -> str:
             f"{local.hour % 12 or 12}시 {local.minute:02d}분 {local.second:02d}초 (한국 시간)")
 
 
-@lru_cache(maxsize=1)
-def manual_retriever():
-    from app.factories.config import CONFIGS
+@lru_cache(maxsize=3)
+def manual_retriever(factory_id="yunam"):
+    from app.factories.config import get_factory_config
     from app.core.retriever import ChromaRetriever
-    return ChromaRetriever(CONFIGS["vllm_config"], use_bm25=True)
+    return ChromaRetriever(get_factory_config("vllm_config", factory_id), use_bm25=True)
 
 
-def search_manuals(req: AlarmRequest):
+def search_manuals(req: AlarmRequest, factory_id="yunam"):
     previous_questions = "\n".join(turn.content[:1000] for turn in req.history if turn.role == "user")
     query = f"{req.alarm.code} {req.alarm.message}\n{previous_questions}\n{req.question}"
-    result = manual_retriever().search(query=query, machine_code=req.alarm.machine_code, top_k=20)
+    result = manual_retriever(factory_id).search(query=query, machine_code=req.alarm.machine_code, top_k=20)
     sources = []
     for item in result.items:
         meta = item.metadata
@@ -75,15 +76,19 @@ def search_manuals(req: AlarmRequest):
 
 
 @alarmRouter.post("/explain")
-async def explain_alarm(req: AlarmRequest):
+async def explain_alarm(req: AlarmRequest, request: Request):
     from app.factories.config import CONFIGS
     from app.core.llm_handler import OpenAILLM
+
+    factory_id = request_factory(request)
+    if req.alarm.machine_code not in load_machine_info(factory_id=factory_id):
+        raise HTTPException(400, "선택한 공장에 등록되지 않은 장비입니다.")
 
     config = CONFIGS["vllm_config"].llm
     if config.provider != "openai":
         raise HTTPException(400, "vLLM 연결 설정을 확인하세요.")
     try:
-        sources = await run_in_threadpool(search_manuals, req)
+        sources = await run_in_threadpool(search_manuals, req, factory_id)
     except Exception:
         raise HTTPException(502, "매뉴얼 검색에 실패했습니다. 검색 DB와 임베딩 서버 연결을 확인하세요.")
     if not sources:

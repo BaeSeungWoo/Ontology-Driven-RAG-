@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useEffect } from "react";
+import { useMachine } from "@/components/machineProvider";
 import { usePrompt } from "@/hooks/usePrompt";
 import type { MachineInfo } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
@@ -33,6 +34,8 @@ export default function PromptListModal({
   onSelectPersonaType,
 }: PromptListModalProps) {
   const { getPromptList } = usePrompt();
+  const { factoryId, machines } = useMachine();
+  const electricalAvailable = factoryId === "yunam_origin" && !!machines.find(machine => machine.machine_code === selectedMachineCode)?.has_electrical;
 
   const [machineCode, setMachineCode] = useState<string | null>(null);
   const [machineInfo, setMachineInfo] = useState<MachineInfo | null>(null);
@@ -93,6 +96,7 @@ export default function PromptListModal({
               </label>
             ))}
           </div>
+          {factoryId !== "yunam_origin" && <p id="factory-mode-restriction" className={styles.llmGuideDesc}>현재 공장에서는 현장작업자·RAG만 사용할 수 있습니다. 다른 역할과 모드는 연암(기존)에서 사용할 수 있습니다.</p>}
           <p className={styles.llmGuideTitle}>사용 페르소나 선택</p>
           <div className={styles.llmRadioGroup}>
             {PERSONA_OPTIONS.map((option) => (
@@ -100,6 +104,7 @@ export default function PromptListModal({
                 <input
                   type="radio"
                   name="personaType"
+                  disabled={(factoryId !== "yunam_origin" && option.value !== "operator") || (option.value === "engineer" && !electricalAvailable)}
                   value={option.value}
                   checked={selectedPersonaType === option.value}
                   onChange={() => {
@@ -107,14 +112,14 @@ export default function PromptListModal({
                     onSelectLlmMode(option.value === "operator" ? "rag" : option.value === "maintenance" ? "ladder" : option.value === "engineer" ? "electrical" : "cms");
                   }}
                 />
-                <span>{option.label}</span>
+                <span>{option.label}{((factoryId !== "yunam_origin" && option.value !== "operator") || (option.value === "engineer" && !electricalAvailable)) && " (선택 불가)"}</span>
               </label>
             ))}
           </div>
           <p className={styles.llmGuideTitle}>사용 LLM 모드 선택</p>
           <div className={styles.llmRadioGroup}>
             {LLM_MODE_OPTIONS.map((option) => {
-              const disabled = option.value === "cms" && selectedPersonaType !== "manager";
+              const disabled = (factoryId !== "yunam_origin" && option.value !== "rag") || (option.value === "electrical" && !electricalAvailable) || (option.value === "cms" && selectedPersonaType !== "manager");
               return (
                 <label key={option.value} className={`${styles.llmRadioItem} ${disabled ? styles.llmRadioItemDisabled : ""}`}>
                   <input
@@ -122,7 +127,7 @@ export default function PromptListModal({
                     name="llmMode"
                     value={option.value}
                     disabled={disabled}
-                    aria-describedby={disabled ? "cms-mode-restriction" : undefined}
+                    aria-describedby={disabled ? factoryId !== "yunam_origin" ? "factory-mode-restriction" : option.value === "electrical" ? "electrical-mode-restriction" : "cms-mode-restriction" : undefined}
                     checked={selectedLlmMode === option.value}
                     onChange={() => onSelectLlmMode(option.value)}
                   />
@@ -136,8 +141,8 @@ export default function PromptListModal({
               CMS를 사용하려면 페르소나를 관리자로 선택하세요.
             </p>
           )}
-          <p className={styles.llmGuideDesc}>
-            페르소나 선택 시 현장 작업자는 RAG, 정비·보전은 Ladder, 기술 엔지니어는 전기도면 고장진단 QA, 관리자는 CMS로 자동 지정됩니다. 전기도면 QA는 백엔드의 vLLM을 사용하며 현재 M005 · DHF8000 및 M051 · DHF8000 #2 도면을 지원합니다.
+          <p id="electrical-mode-restriction" className={styles.llmGuideDesc}>
+            페르소나 선택 시 현장 작업자는 RAG, 정비·보전은 Ladder, 관리자는 CMS로 자동 지정됩니다. 기술 엔지니어·전기도면 QA는 연암(기존)의 전기도면 데이터가 준비된 장비에서만 사용할 수 있습니다.
           </p>
           {selectedLlmMode === "repairHistory" && (
             <p className={styles.llmGuideDesc}>
@@ -153,7 +158,7 @@ export default function PromptListModal({
             </p>
           )}
           <p className={styles.llmGuideDesc}>
-            추천질문은 Ollama·vLLM 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 전기도면 고장진단 QA, 관리자·CMS 조합에서 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. 기술 엔지니어는 전기도면을 사용하며, 관리자·CMS는 현재 장비의 2026-10-19 작업일 집계를 사용합니다.
+            추천질문은 Ollama·vLLM 모델의 테스트 기능이며, 현장 작업자·RAG, 정비·보전·Ladder, 관리자·CMS 조합에서 표시·실행됩니다. 추천질문이 모드를 변경하지는 않습니다. 기술 엔지니어의 추천질문은 연암(기존)의 지원 장비에서 제공되며, 관리자·CMS는 현재 장비의 2026-10-19 작업일 집계를 사용합니다.
           </p>
         </section>
 

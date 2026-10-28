@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "@/services/api";
+import { API_BASE_URL, factoryHeaders } from "@/services/api";
 
 export type ManualSource = { index: number; document_name: string; page: string; excerpt: string };
 export type Explanation = { answer: string; sources: ManualSource[] };
@@ -21,7 +21,7 @@ export async function streamExplanation(
   resetTimeout();
   try {
     const response = await fetch(`${baseURL}${path}`, {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json", ...factoryHeaders() },
       body: JSON.stringify(payload), signal: controller.signal,
     });
     if (!response.ok) {

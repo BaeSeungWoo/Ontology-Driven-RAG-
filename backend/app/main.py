@@ -19,10 +19,12 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
-from app.factories.config import CONFIGS
+from app.factories.config import CONFIGS, get_factory_config
+from app.factories.machines import request_factory
 from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
+from app.core.machine_readiness import require_machine_ready
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
@@ -62,15 +64,13 @@ app.add_middleware(
 )
 
 # 미리 생성하지 않고 요청 시 초기화
-services: dict[str, JudgeRAGService] = {}
+services: dict[tuple[str, str], JudgeRAGService] = {}
 
-def get_service(factory_id: str) -> JudgeRAGService:
-    if factory_id not in services:
-        cfg = CONFIGS.get(factory_id)
-        if not cfg:
-            raise HTTPException(status_code=404, detail="해당 공장 설정을 찾을 수 없습니다.")
-        services[factory_id] = JudgeRAGService(cfg)
-    return services[factory_id]
+def get_service(model_key: str, factory_id: str = "yunam") -> JudgeRAGService:
+    key = (factory_id, model_key)
+    if key not in services:
+        services[key] = JudgeRAGService(get_factory_config(model_key, factory_id))
+    return services[key]
 
 # nginx 등 리버스 프록시 대응
 def get_client_ip_nginx(request: Request) -> str:
@@ -117,12 +117,13 @@ def recommendation_machine_code(request, client_request, service):
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
         machine_code = session_machine_code(ctx, request.machine_code, service.config.machines)
+    require_machine_ready(machine_code, service.config, service.config.machines, mode=request.source)
     return machine_code
 
 
 @app.post("/api/recommendations/context")
 def recommendation_context(request: RecommendationRequest, client_request: Request):
-    service = get_service(request.llm_model)
+    service = get_service(request.llm_model, request_factory(client_request))
     machine_code = recommendation_machine_code(request, client_request, service)
     return {"machine_code": machine_code if machine_code != "ALL" else None,
             "machine_name": service.config.machines.get(machine_code, {}).get("machine_name")}
@@ -130,7 +131,7 @@ def recommendation_context(request: RecommendationRequest, client_request: Reque
 
 @app.post("/api/recommendations")
 async def recommendation_endpoint(request: RecommendationRequest, client_request: Request):
-    service = get_service(request.llm_model)
+    service = get_service(request.llm_model, request_factory(client_request))
     machine_code = recommendation_machine_code(request, client_request, service)
     if not machine_code or machine_code == "ALL":
         return {"questions": [], "message": "현재 장비가 지정되지 않아 추천질문을 만들 수 없습니다."}
@@ -168,7 +169,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     # 클라이언트 ip 확인
     # user_ip = get_client_ip_nginx(client_request)
     
-    service = get_service(factory_id)
+    service = get_service(factory_id, request_factory(client_request))
 
     ctx = resolve_request_code(
         request=client_request,
@@ -191,6 +192,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
         effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
         if not effective_machine_code or effective_machine_code == "ALL":
             raise HTTPException(status_code=400, detail="CMS 모드는 현재 장비가 지정되어야 합니다.")
+    require_machine_ready(effective_machine_code, service.config, service.config.machines, request.mode, request.persona_type)
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
     if request.prompt_no is not None:
