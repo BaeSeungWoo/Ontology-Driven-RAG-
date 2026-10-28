@@ -233,7 +233,7 @@ class DatabaseConnectionPool:
         
         cleanup_thread = threading.Thread(target=cleanup_worker, daemon=True)
         cleanup_thread.start()
-        print("🧹 연결 정리 스레드 시작됨 (5분 간격)")
+        print("연결 정리 스레드 시작됨 (5분 간격)")
     
     def _cleanup_dead_connections(self):
         """죽은 연결들 정리"""

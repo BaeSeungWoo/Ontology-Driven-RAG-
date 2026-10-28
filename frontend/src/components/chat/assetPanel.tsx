@@ -15,6 +15,7 @@ type AssetItem = {
   document?: string;
   sourceDocName?: string;
   pageLabel?: string | null;
+  label?: string;
 };
 
 function getChunkMetaString(chunk: ChatChunk, key: string): string | null {
@@ -194,6 +195,7 @@ function toAssetItem(chunk: ChatChunk): AssetItem {
     document: chunk.document,
     sourceDocName: getChunkSourceDocName(chunk) ?? undefined,
     pageLabel: getChunkPageLabel(chunk),
+    label: getChunkMetaString(chunk, "label") ?? undefined,
   };
 }
 
@@ -479,7 +481,7 @@ export default function AssetPanel({
                   >
                     <Image
                       src={toAssetUrl(asset.path)}
-                      alt={`metadata 이미지 ${index + 1}`}
+                      alt={asset.label ?? `metadata 이미지 ${index + 1}`}
                       width={260}
                       height={180}
                       unoptimized
@@ -518,6 +520,7 @@ export default function AssetPanel({
                   />
                 )}
                 <figcaption>
+                  {asset.label && <p>{asset.label}</p>}
                   <button
                     type="button"
                     className={styles.chatAssetCaptionButton}

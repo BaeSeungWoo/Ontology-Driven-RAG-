@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FileQuestion, Search, SlidersHorizontal, ThumbsDown, ThumbsUp, X } from "lucide-react";
+import { Contrast, Search, SlidersHorizontal, ThumbsDown, ThumbsUp, X } from "lucide-react";
 import { searchHistory } from "@/services/historyApi";
 import type { HistorySearchMode, HistorySearchResponse } from "@/types/historyApi";
 import type { MessageFeedback } from "@/types/chatApi";
@@ -11,7 +11,7 @@ const FEEDBACK_OPTIONS = [
   { value: null, icon: null },
   { value: "도움됨", icon: ThumbsUp },
   { value: "틀림", icon: ThumbsDown },
-  { value: "근거없음", icon: FileQuestion },
+  { value: "부분도움", icon: Contrast },
 ] as const;
 
 export default function HistorySearch({ onClose, onSelect }: {
@@ -91,6 +91,7 @@ export default function HistorySearch({ onClose, onSelect }: {
               <button type="button" key={item.messageId ?? item.sessionId} className={styles.searchResult} onClick={() => onSelect({ ...toHistoryItem(item, null), targetMessageId: item.targetMessageId })}>
                 <strong>{mode === "messages" ? item.question || item.title : item.title}</strong>
                 {mode === "messages" && <span className={styles.answerPreview}>{item.answerPreview}</span>}
+                {item.reason?.trim() && <span className={styles.reasonPreview} title={item.reason}>평가사유 · {item.reason}</span>}
                 <span>{item.questioner} · {toHistoryItem({ ...item, updatedAt: item.messageCreatedAt ?? item.updatedAt }, null).recentAt}{mode === "messages" ? ` · ${item.feedback ?? "피드백 없음"}` : ""}</span>
               </button>
             ))}

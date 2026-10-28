@@ -104,6 +104,7 @@ export default function Answer({
       promptName: message.prompt_name ?? null,
       metadata: message.metadata,
       feedback: message.feedback,
+      reason: message.reason,
     };
   });
 

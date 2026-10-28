@@ -181,7 +181,7 @@ class RAGService:
                 history = self._load_recent_history_from_db(session_id, question)
                 self.memory_manager.set_history(session_id, history)
             async with aclosing(stream_electrical(effective_machine_code, question,
-                                                 llm_config=CONFIGS["vllm_config"].llm,
+                                                 llm_config=CONFIGS["vllm_config"].llm, factory_id=self.config.id,
                                                  history=history, user_prompt=user_prompt)) as stream:
                 async for event in stream:
                     if event["type"] == "progress":

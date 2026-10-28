@@ -1,4 +1,4 @@
-"""Run the supplied DHF8000 drawing engine for M005 and M051 in an isolated process."""
+"""Run each machine's drawing engine in an isolated process."""
 import asyncio
 import json
 import logging
@@ -10,7 +10,9 @@ import sys
 from time import monotonic
 
 PACKAGE = Path(__file__).resolve().parents[2] / "vendor" / "electrical_qa"
-SUPPORTED_MACHINES = {"M005", "M051"}
+MACHINE_CONFIGS = {"M005": "config.json", "M051": "config.json"}
+SUPPORTED_MACHINES = set(MACHINE_CONFIGS)
+DISABLED_MESSAGE = "기술엔지니어 모드는 연암(기존)에서만 사용할 수 있습니다."
 QUESTIONS = [
     "장비가 동작하지 않을 때 전기도면에서 무엇부터 확인해야 하나요?",
     "모터나 펌프가 작동하지 않을 때 관련 회로를 어떻게 점검하나요?",
@@ -20,7 +22,12 @@ QUESTIONS = [
 
 def validate_machine(machine_code):
     if machine_code not in SUPPORTED_MACHINES:
-        raise ValueError("전기도면 고장진단 QA는 현재 M005 · DHF8000 및 M051 · DHF8000 #2를 지원합니다. 해당 장비를 선택해 주세요.")
+        raise ValueError("전기도면 고장진단 QA는 M005 · DHF8000, M051 · DHF8000 #2를 지원합니다.")
+
+
+def config_for_machine(machine_code):
+    validate_machine(machine_code)
+    return Path(os.environ.get("ELECTRICAL_QA_CONFIG", PACKAGE / MACHINE_CONFIGS[machine_code])).resolve()
 
 
 async def electrical_response(request, events):
@@ -94,11 +101,13 @@ async def append_manual_evidence(service, machine_code, question, result):
         result["answer"] += "\n\n" + " ".join(citations)
 
 
-async def stream_electrical(machine_code, question, *, llm_config, history=None, user_prompt=None):
+async def stream_electrical(machine_code, question, *, llm_config, factory_id, history=None, user_prompt=None):
+    if factory_id != "yunam_origin":
+        raise ValueError(DISABLED_MESSAGE)
     validate_machine(machine_code)
     if not question.strip() or len(question) > 6000:
         raise ValueError("전기도면 질문은 1~6000자로 입력해 주세요.")
-    config_path = Path(os.environ.get("ELECTRICAL_QA_CONFIG", PACKAGE / "config.json")).resolve()
+    config_path = config_for_machine(machine_code)
     environment = {key: value for key, value in os.environ.items()
                    if not key.startswith(("GRAPHRAG_", "VLLM_")) and key not in ("LLM_NAME", "PYTHONPATH")}
     environment.update(PYTHONUTF8="1", PYTHONIOENCODING="utf-8")

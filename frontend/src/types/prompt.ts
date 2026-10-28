@@ -9,7 +9,7 @@ export type MachineInfo = {
   machine_name: string;
   machine_ip?: string;
   machine_ips?: string[];
-  document: readonly string[];
+  document: { manual: readonly string[]; electrical: readonly string[]; ladder: readonly string[] };
   machine_maker: string;
   machine_controller: string;
   machine_ver: string;

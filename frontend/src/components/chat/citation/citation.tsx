@@ -98,7 +98,7 @@ export default function Citation({
     typeof selectedChunk?.metadata?.container_type === "string"
       ? selectedChunk.metadata.container_type
       : undefined;
-  const selectedMdImages = selectedChunk?.metadata.source_kind === "paddleocr"
+  const selectedLinkedAssets = selectedChunk && (selectedChunk.metadata.source_kind === "paddleocr" || Array.isArray(selectedChunk.metadata.related_assets))
     ? getDisplayedAssetChunks(selectedMessage?.metadata, selectedMessage?.content).filter(chunk => chunk.index === selectedChunk.index)
     : [];
   const selectedDocumentRequest = getCitationDocumentRequest(
@@ -201,15 +201,15 @@ export default function Citation({
                   referenceLabel={selectedReferenceLabel ?? "선택 참조"}
                 />
               ) : null}
-              {selectedMdImages.length > 0 && <div className={styles.chunkBodyBlock}>
-                <p className={styles.chunkBodyTitle}>연결된 MD 이미지 ({selectedMdImages.length})</p>
-                {selectedMdImages.map(chunk => (
+              {selectedLinkedAssets.length > 0 && <div className={styles.chunkBodyBlock}>
+                <p className={styles.chunkBodyTitle}>연결된 표·그림 ({selectedLinkedAssets.length})</p>
+                {selectedLinkedAssets.map(chunk => (
                   <ChunkAsset
                     key={String(chunk.metadata.asset_path)}
                     figureMessageId={canExplainFigure ? Number(selectedCitation.messageId) : undefined}
                     assetPath={String(chunk.metadata.asset_path)}
-                    assetType="pictures"
-                    referenceLabel={selectedReferenceLabel ?? "선택 참조"}
+                    assetType={String(chunk.metadata.container_type)}
+                    referenceLabel={typeof chunk.metadata.label === "string" && chunk.metadata.label ? chunk.metadata.label : selectedReferenceLabel ?? "선택 참조"}
                   />
                 ))}
               </div>}

@@ -151,6 +151,8 @@ def search(question, config, machine_name="", top_k=6, balance_sources=False):
     from backend.app.core.bm25_tokenizer import tokenize_for_bm25
 
     config = store_config(config, search=True)
+    if config.id == "yunam_origin":
+        config.id = "yunam"
     with (Path(config.vector_db.get_db_path("bm25")) / BUNDLE_NAME).open("rb") as stream:
         bundle = pickle.load(stream)
     client = chromadb.PersistentClient(path=config.vector_db.get_db_path("chroma"))

@@ -19,6 +19,7 @@ export type HistorySearchResponse = HistoryResponse & {
   targetMessageId?: number;
   question?: string | null;
   answerPreview?: string;
+  reason?: string | null;
   feedback?: import("./chatApi").MessageFeedback | null;
   messageCreatedAt?: string;
 };

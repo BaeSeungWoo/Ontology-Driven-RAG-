@@ -3,6 +3,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Request
+from app.factories.machines import request_factory
 
 documentRouter = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -80,8 +81,7 @@ def resolve_document(
     page_range: str | None = None,
 ):
     asset_root = Path(getattr(request.app.state, "asset_root", DEFAULT_ASSET_ROOT))
-    return resolve_pdf_document(
-        source_doc_name=source_doc_name,
-        page_range=page_range,
-        asset_root=asset_root,
-    )
+    matched_path = _find_pdf(source_doc_name, asset_root / request_factory(request))
+    page = _first_page(page_range)
+    return {"document_name": matched_path.name,
+            "asset_url": _asset_url(matched_path, asset_root, page), "page": page}

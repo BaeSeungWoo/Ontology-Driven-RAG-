@@ -1,0 +1,8 @@
+.control { display: flex; align-items: center; gap: 8px; }
+.trigger { min-width: 100px; }
+.panel { width: 180px; }
+.list { margin-top: 10px; }
+.option { justify-content: space-between; font-size: 12px; }
+.option[aria-selected="true"] { margin-bottom: 4px; }
+.retry:focus-visible { outline: 2px solid #194fbd; outline-offset: 2px; }
+.retry { border: 0; background: transparent; color: #b42318; font-size: 12px; cursor: pointer; }

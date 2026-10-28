@@ -2,10 +2,19 @@ from __future__ import annotations
 
 from typing import Any
 
+def machine_documents(info: dict, kind: str | None = None) -> list[str]:
+    documents = info.get("document") or []
+    if isinstance(documents, dict):
+        return list(documents.get(kind, [])) if kind else [
+            name for group in ("manual", "electrical", "ladder") for name in documents.get(group, [])
+        ]
+    return list(documents)
+
+
 def build_doc_to_machine_index(machines: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
     doc_to_machine = {}
     for machine_code, info in machines.items():
-        for doc_name in info.get("document", []):
+        for doc_name in machine_documents(info):
             key = doc_name
             doc_to_machine.setdefault(key, []).append(machine_code)
 

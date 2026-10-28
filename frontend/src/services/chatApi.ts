@@ -1,4 +1,4 @@
-import api, { API_BASE_URL } from "@/services/api";
+import api, { API_BASE_URL, factoryHeaders } from "@/services/api";
 import type {
   AskRequest,
   AskResponse,
@@ -15,6 +15,10 @@ import type { ChatMetadata } from "@/types/chatApi";
 
 export async function updateMessageFeedback(messageId: number, feedback: MessageFeedback): Promise<void> {
   await api.put(`/api/history/messages/${messageId}/feedback`, { feedback }, { timeout: 15_000 });
+}
+
+export async function updateMessageReason(messageId: number, reason: string): Promise<void> {
+  await api.put(`/api/history/messages/${messageId}/reason`, { reason }, { timeout: 15_000 });
 }
 
 /**
@@ -88,6 +92,7 @@ async function askOnce({
       signal: controller.signal,
       method: "POST",
       headers: {
+        ...factoryHeaders(),
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

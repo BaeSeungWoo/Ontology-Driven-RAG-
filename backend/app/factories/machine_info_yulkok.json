@@ -1,0 +1,94 @@
+{
+  "M001": {
+    "machine_name": "VC630-5AX#C1",
+    "machine_ips": ["172.16.10.28"],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-A5",
+    "document": {
+        "manual": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산 Parts book VC630 5AX, 160p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
+        ],
+        "electrical": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M002": {
+    "machine_name": "VC630-5AX#C2",
+    "machine_ips": ["172.16.10.30"],
+    "machine_maker": "DOOSAN INFRACORE",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-A5",
+    "document": {
+        "manual": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산 Parts book VC630 5AX, 160p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
+        ],
+        "electrical": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M003": {
+    "machine_name": "VC630-5AX#C3",
+    "machine_ips": ["172.16.10.31"],
+    "machine_maker": "DOOSAN INFRACORE",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-A5",
+    "document": {
+        "manual": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산 Parts book VC630 5AX, 160p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
+        ],
+        "electrical": [
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
+            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M004": {
+    "machine_name": "MD6700#3",
+    "machine_ips": ["172.16.10.10"],
+    "machine_maker": "두산공작기계, KOREA",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+
+        ],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M005": {
+    "machine_name": "DMU70 evolution",
+    "machine_ips": ["192.168.1.99"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡4(DMU70 evolution) DECKEL MAHO Operating Instructions DMU70eVolution iTNC 530 , 1114p.pdf"
+        ],
+        "electrical": [
+            "율곡4(DMU70 evolution) DECKEL MAHO SEEBACH GmbH cricuit diagram DMU70eVo, 209p.pdf"
+        ],
+        "ladder": []
+    }
+  }
+}

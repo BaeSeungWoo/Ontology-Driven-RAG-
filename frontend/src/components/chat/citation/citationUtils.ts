@@ -93,6 +93,13 @@ export function getDisplayedAssetChunks(metadata?: ChatMetadata, answerText?: st
     ? (metadata?.chunks ?? metadata?.used_chunks ?? []).filter(chunk => cited.has(chunk.index))
     : metadata?.used_chunks ?? [];
   const assets = used.flatMap(chunk => {
+    if (Array.isArray(chunk.metadata.related_assets)) {
+      return chunk.metadata.related_assets.filter((asset): asset is {
+        asset_path: string; container_type: "pictures" | "tables"; label?: string;
+      } => !!asset && typeof asset.asset_path === "string" && !!asset.asset_path &&
+        (asset.container_type === "pictures" || asset.container_type === "tables"))
+        .map(asset => ({ ...chunk, metadata: { ...chunk.metadata, ...asset } }));
+    }
     if (chunk.metadata.source_kind === "paddleocr") {
       const paths = chunk.metadata.page_image_paths;
       if (!Array.isArray(paths)) return [];

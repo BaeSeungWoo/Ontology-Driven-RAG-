@@ -19,7 +19,7 @@ export default function MachineInfoPanel({
   const machineSpec = machineInfo
     ? `${machineInfo.machine_maker} / ${machineInfo.machine_ver} / ${machineInfo.machine_controller}`
     : "-";
-  const documents = machineInfo?.document ?? [];
+  const documents = Object.values(machineInfo?.document ?? {}).flat();
 
   return (
     <section className={styles.machineInfoBox} aria-label="장비 정보">

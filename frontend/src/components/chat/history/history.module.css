@@ -469,7 +469,7 @@
   --feedback-color: #b42318;
 }
 
-.filterButton[data-feedback="근거없음"], .feedbackFilters button[data-feedback="근거없음"] {
+.filterButton[data-feedback="부분도움"], .feedbackFilters button[data-feedback="부분도움"] {
   --feedback-bg: #f1f2f4;
   --feedback-border: #b8bec8;
   --feedback-color: #4b5563;
@@ -518,6 +518,15 @@
   color: #7181a1;
   font-size: 11px;
   overflow-wrap: anywhere;
+}
+
+.searchResult .reasonPreview {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: #486b9c;
+  font-size: 12px;
 }
 
 .searchResult:focus-visible {

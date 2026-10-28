@@ -147,6 +147,9 @@ class BaseRetriever(ABC):
         return pd.read_parquet(chunks_path)
 
     def _to_json_safe(self, value: Any) -> Any:
+        if isinstance(value, str) and self.config.id == "yunam_origin":
+            from app.core.ocr_page_context import origin_asset_path
+            return origin_asset_path(value, self.config.id)
         if isinstance(value, dict):
             return {str(k): self._to_json_safe(v) for k, v in value.items()}
 
@@ -174,7 +177,9 @@ class BaseRetriever(ABC):
         return value
 
     def _with_page_figures(self, items: list[RetrievalItem], machine_code: str, query: str = "") -> list[RetrievalItem]:
-        """Offer nearby figures as separately citable evidence, never automatic attachments."""
+        """Restore OCR page context; offer legacy figures as separate evidence."""
+        from app.core.ocr_page_context import expand_paddle_pages
+        items = expand_paddle_pages(items, Path(__file__).resolve().parents[3] / "pipeline/data", self.config.id)
         collection = getattr(self, "collection", None)
         if collection is None:
             return items
@@ -183,6 +188,8 @@ class BaseRetriever(ABC):
         visited = set()
         for item in items:
             meta = item.metadata
+            if meta.get("context_scope") == "ocr_page":
+                continue
             if meta.get("container_type") != "texts":
                 continue
             source = meta.get("source_doc_name")
@@ -273,7 +280,7 @@ class ChromaRetriever(BaseRetriever):
             path=self.config.vector_db.get_search_path("chroma")
         )
         self.collection = self.chroma.get_or_create_collection(
-            name=self.config.id,
+            name=self.config.vector_db.collection_name or self.config.id,
             embedding_function=self.embedding_fn
         )
         self.bm25 = self._load_bm25() if self.use_bm25 else None
@@ -355,7 +362,7 @@ class LadderRetriever(BaseRetriever):
             path=self.config.vector_db.get_search_path("chroma")
         )
         self.collection = self.chroma.get_or_create_collection(
-            name=self.config.id,
+            name=self.config.vector_db.collection_name or self.config.id,
             embedding_function=self.embedding_fn,
         )
         self.bm25 = self._load_bm25()

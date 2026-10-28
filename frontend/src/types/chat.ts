@@ -18,4 +18,5 @@ export type AnswerMessage = {
   promptName?: string | null;
   metadata?: ChatMetadata;
   feedback?: MessageFeedback | null;
+  reason?: string | null;
 };
