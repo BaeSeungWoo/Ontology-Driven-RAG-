@@ -10,7 +10,7 @@ import type {
 } from "@/types/historyApi";
 import type { MessageFeedback } from "@/types/chatApi";
 
-export async function searchHistory(mode: HistorySearchMode, feedback: MessageFeedback | null): Promise<HistorySearchResponse[]> {
+export async function searchHistory(mode: HistorySearchMode, feedback: MessageFeedback | "평가" | null): Promise<HistorySearchResponse[]> {
   const response = await api.post<HistorySearchResponse[]>("/api/history/search", { mode, feedback });
   return response.data;
 }

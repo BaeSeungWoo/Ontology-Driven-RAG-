@@ -12,7 +12,7 @@ from time import monotonic
 PACKAGE = Path(__file__).resolve().parents[2] / "vendor" / "electrical_qa"
 MACHINE_CONFIGS = {"M005": "config.json", "M051": "config.json"}
 SUPPORTED_MACHINES = set(MACHINE_CONFIGS)
-DISABLED_MESSAGE = "기술엔지니어 모드는 연암(기존)에서만 사용할 수 있습니다."
+DISABLED_MESSAGE = "기술엔지니어 모드는 연암(구)에서만 사용할 수 있습니다."
 QUESTIONS = [
     "장비가 동작하지 않을 때 전기도면에서 무엇부터 확인해야 하나요?",
     "모터나 펌프가 작동하지 않을 때 관련 회로를 어떻게 점검하나요?",

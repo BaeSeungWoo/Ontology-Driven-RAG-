@@ -4,7 +4,7 @@ import { useMachine } from "@/components/machineProvider";
 import { readTestSignals, type PmcSnapshot } from "@/services/ladderApi";
 
 export default function useLadderSignals(addresses: string[], paused: boolean) {
-  const { machineCode, status } = useMachine();
+  const { executionMachineCode: machineCode, status } = useMachine();
   const [snapshot, setSnapshot] = useState<PmcSnapshot | null>(null);
   const [error, setError] = useState("");
   const [isReading, setIsReading] = useState(false);

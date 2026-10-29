@@ -54,9 +54,8 @@ export default function Chat() {
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
   const [questioner, setQuestioner] = useState("");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
-  const [selectedPersonaType, setSelectedPersonaType] = useState<PersonaType>("operator");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const { factoryId, setFactoryId, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
+  const { factoryId, setFactoryId, isDemo, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
@@ -100,13 +99,13 @@ export default function Chat() {
   const selectedMachine = machines.find(machine => machine.machine_code === selectedMachineCode);
   const machineUnavailable = machineStatus !== "ready" || !selectedMachine?.can_select;
   const featureUnavailable = !machineUnavailable && (
-    factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
-      ? "연암(기존)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다." :
-    (selectedPersonaType === "maintenance" || selectedLlmMode === "ladder") && !selectedMachine?.has_ladder
+    !isDemo && factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
+      ? "연암(구)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다." :
+    (selectedPersonaType === "maintenance" || selectedLlmMode === "ladder") && !isDemo && !selectedMachine?.has_ladder
       ? "래더 데이터가 준비되지 않아 설비보전 질의를 사용할 수 없습니다."
       : (selectedPersonaType === "engineer" || selectedLlmMode === "electrical")
-        ? factoryId !== "yunam_origin" ? "기술엔지니어 모드는 연암(기존)에서만 사용할 수 있습니다."
-          : !selectedMachine?.has_electrical ? "전기도면 데이터가 준비되지 않아 기술엔지니어 질의를 사용할 수 없습니다." : "" : "");
+        ? !isDemo && factoryId !== "yunam_origin" ? "기술엔지니어 모드는 연암(구)에서만 사용할 수 있습니다."
+          : !isDemo && !selectedMachine?.has_electrical ? "전기도면 데이터가 준비되지 않아 기술엔지니어 질의를 사용할 수 없습니다." : "" : "");
   const isPromptRequiredMissing =
     questioner.trim().length === 0 || machineUnavailable || Boolean(featureUnavailable);
 
@@ -407,14 +406,14 @@ export default function Chat() {
                 {PERSONA_OPTIONS.map(persona => {
                   const card = PERSONA_CARDS[persona.value];
                   const Icon = card.icon;
-                  const unavailable = factoryId !== "yunam_origin" && persona.value !== "operator" ? "연암(기존)에서만 사용 가능"
-                    : persona.value === "maintenance" && !selectedMachine?.has_ladder ? "래더 데이터 미준비"
-                    : persona.value === "engineer" ? factoryId !== "yunam_origin" ? "연암(기존)에서만 사용 가능"
-                      : !selectedMachine?.has_electrical ? "전기도면 데이터 미준비" : "" : "";
+                  const usesDemo = factoryId !== "yunam_origin" && persona.value !== "operator";
+                  const unavailable = usesDemo ? ""
+                    : persona.value === "maintenance" && !isDemo && !selectedMachine?.has_ladder ? "래더 데이터 미준비"
+                    : persona.value === "engineer" && !selectedMachine?.has_electrical ? "전기도면 데이터 미준비" : "";
                   return (
                     <button key={persona.value} type="button" className={`${styles.personaCard} ${personaStyles.theme}`} data-persona={persona.value}
                       aria-pressed={selectedPersonaType === persona.value}
-                      disabled={isSending || isLoading || machineUnavailable || Boolean(unavailable)}
+                      disabled={isSending || isLoading || (machineUnavailable || Boolean(unavailable))}
                       title={unavailable || undefined}
                       onClick={() => {
                         setSelectedPersonaType(persona.value);

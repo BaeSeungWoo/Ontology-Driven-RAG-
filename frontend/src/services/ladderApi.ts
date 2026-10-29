@@ -1,4 +1,5 @@
 import axios from "axios";
+import { executionHeaders } from "@/services/api";
 import type { LadderDiagram, LadderNode } from "@/types/ladder";
 
 export type PmcSnapshot = {
@@ -38,7 +39,7 @@ export async function readTestSignals(addresses: string[], signal: AbortSignal, 
   // 서버의 요청당 128개 제한에 맞춰 순차 조회한다. 동일 PMC 스캔 시점은 보장하지 않는다.
   for (let start = 0; start < addresses.length; start += 128) {
     const response = await axios.post<PmcSnapshot>("/local-api/ladder/signals", { machine_code: machineCode, addresses: addresses.slice(start, start + 128) }, {
-      signal, timeout: 30000,
+      headers: executionHeaders(), signal, timeout: 30000,
     });
     snapshot = response.data;
     if (snapshot.machine.code !== machineCode) throw new Error("신호 응답의 장비 코드가 다릅니다.");
@@ -80,7 +81,7 @@ export function getMachineSignals(nets: MachineLadderNet[]) {
 }
 
 export async function getTestLadder(signal: AbortSignal, machineCode: string) {
-  const response = await axios.get<MachineLadderDocument>("/local-api/ladder/document", { params: { machine_code: machineCode }, signal, timeout: 15000 });
+  const response = await axios.get<MachineLadderDocument>("/local-api/ladder/document", { params: { machine_code: machineCode }, headers: executionHeaders(), signal, timeout: 15000 });
   const document = response.data;
   if (document.meta.machine_code !== machineCode) throw new Error("래더 응답의 장비 코드가 다릅니다.");
   const addComment = (node: MachineLadderNode) => {

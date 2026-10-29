@@ -32,7 +32,9 @@ def get_machines(client_request: Request, llm_model: str = "vllm_config"):
             "is_assigned": code == ctx.request_machine_code,
             "has_documents": bool(machine_documents(info)),
             **readiness[code],
-            "can_select": (ctx.is_main_server or code == ctx.request_machine_code) and (
+            "can_select": (config.id not in {"yulkok", "poongsan"} or code in {
+                "M001", "M002", "M003", "M004", "M005",
+            }) and (ctx.is_main_server or code == ctx.request_machine_code) and (
                 readiness[code]["readiness"] in ("ready", "partial") or readiness[code]["has_electrical"]),
             "is_main_server": ctx.is_main_server,
         }

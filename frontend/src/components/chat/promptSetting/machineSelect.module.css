@@ -78,7 +78,3 @@
 .option.unready:disabled, .option.unready:disabled:hover { color: #b42318; background: #fff1f0; border-color: #f5c9c5; }
 .option.unready:disabled .readiness { color: #b42318; }
 .unreadyDot { background: #d92d20; }
-
-.machineText > .partial { color: #946200; }
-
-.features .missingFeature { color: #b42318; }

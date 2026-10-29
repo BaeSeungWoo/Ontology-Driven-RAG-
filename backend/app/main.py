@@ -25,6 +25,7 @@ from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
 from app.core.machine_readiness import require_machine_ready
+from app.core.demo_mode import execution_target
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
@@ -117,14 +118,16 @@ def recommendation_machine_code(request, client_request, service):
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
         machine_code = session_machine_code(ctx, request.machine_code, service.config.machines)
+    target_factory, machine_code = execution_target(service.config.id, machine_code, request.source)
+    service = get_service(request.llm_model, target_factory)
     require_machine_ready(machine_code, service.config, service.config.machines, mode=request.source)
-    return machine_code
+    return service, machine_code
 
 
 @app.post("/api/recommendations/context")
 def recommendation_context(request: RecommendationRequest, client_request: Request):
     service = get_service(request.llm_model, request_factory(client_request))
-    machine_code = recommendation_machine_code(request, client_request, service)
+    service, machine_code = recommendation_machine_code(request, client_request, service)
     return {"machine_code": machine_code if machine_code != "ALL" else None,
             "machine_name": service.config.machines.get(machine_code, {}).get("machine_name")}
 
@@ -132,7 +135,7 @@ def recommendation_context(request: RecommendationRequest, client_request: Reque
 @app.post("/api/recommendations")
 async def recommendation_endpoint(request: RecommendationRequest, client_request: Request):
     service = get_service(request.llm_model, request_factory(client_request))
-    machine_code = recommendation_machine_code(request, client_request, service)
+    service, machine_code = recommendation_machine_code(request, client_request, service)
     if not machine_code or machine_code == "ALL":
         return {"questions": [], "message": "현재 장비가 지정되지 않아 추천질문을 만들 수 없습니다."}
     try:
@@ -179,9 +182,13 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
 
     session_info = database.getChatSessionInfo(request.session_id)
     effective_machine_code = validate_code(ctx, session_info)
+    if request.mode in {"electrical", "cms"}:
+        effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
+    target_factory, effective_machine_code = execution_target(
+        service.config.id, effective_machine_code, request.mode, request.persona_type)
+    service = get_service(factory_id, target_factory)
     if request.mode == "electrical":
         from app.core.electrical_qa import validate_machine
-        effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
         try:
             validate_machine(effective_machine_code)
             if not request.question.strip() or len(request.question) > 6000:
@@ -189,7 +196,6 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     if request.mode == "cms":
-        effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
         if not effective_machine_code or effective_machine_code == "ALL":
             raise HTTPException(status_code=400, detail="CMS 모드는 현재 장비가 지정되어야 합니다.")
     require_machine_ready(effective_machine_code, service.config, service.config.machines, request.mode, request.persona_type)

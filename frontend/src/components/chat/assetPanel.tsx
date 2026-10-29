@@ -520,7 +520,7 @@ export default function AssetPanel({
                   />
                 )}
                 <figcaption>
-                  {asset.label && <p>{asset.label}</p>}
+                  {!inline && asset.label && <p>{asset.label}</p>}
                   <button
                     type="button"
                     className={styles.chatAssetCaptionButton}
@@ -538,7 +538,6 @@ export default function AssetPanel({
               <details
                 key={`${asset.type}-${asset.path}`}
                 className={styles.chatInlineAssetDetails}
-                open={index === 0}
               >
                 <summary>
                   {asset.type === "tables" ? "표" : "이미지"} · {assetLabel}

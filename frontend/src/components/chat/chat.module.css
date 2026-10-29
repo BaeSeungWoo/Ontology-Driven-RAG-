@@ -967,6 +967,24 @@
 .personaCard:focus-visible { outline: 2px solid var(--persona-color); outline-offset: 3px; }
 .personaCard:disabled { cursor: default; opacity: 0.6; }
 
+.documentNotice {
+  width: min(380px, calc(100vw - 32px));
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 16px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-text-color);
+  box-shadow: 0 16px 48px var(--chat-shadow);
+}
+.documentNotice::backdrop { background: rgb(0 0 0 / 38%); }
+.documentNotice h3 { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--chat-title-color); font-size: 16px; }
+.documentNotice h3 svg { color: var(--chat-accent); }
+.documentNotice p { margin: 18px 0 24px; font-size: 14px; line-height: 1.6; }
+.documentNotice form { display: flex; justify-content: flex-end; }
+.documentNotice button { padding: 9px 24px; border: 0; border-radius: 8px; background: var(--chat-accent); color: #fff; font: inherit; font-size: 13px; cursor: pointer; }
+.documentNotice button:focus-visible { outline: 2px solid var(--chat-accent); outline-offset: 3px; }
+
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
   .personaCard:hover:not(:disabled) {
     animation: personaCardLift 520ms ease-in-out;
