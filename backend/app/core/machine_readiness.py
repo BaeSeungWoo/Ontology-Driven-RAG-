@@ -146,7 +146,7 @@ def machine_readiness(config, machines):
             electrical_states[code] = False
     result = {}
     for code, info in machines.items():
-        documents = set(machine_documents(info, "manual"))
+        documents = set(machine_documents(info, "manual")) | set(machine_documents(info, "controller"))
         ladder_documents = set(machine_documents(info, "ladder"))
         matched = set()
         has_ladder = False
@@ -172,7 +172,7 @@ def require_machine_ready(code, config, machines, mode=None, persona=None):
     if config.id != "yunam_origin" and (mode == "electrical" or persona == "engineer"):
         raise HTTPException(409, DISABLED_MESSAGE)
     if config.id != "yunam_origin" and (persona not in (None, "operator") or mode not in (None, "rag", "manual")):
-        raise HTTPException(409, "연암(기존)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다.")
+        raise HTTPException(409, "연암(구)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다.")
     if code == "ALL":
         raise HTTPException(409, "검색 가능한 장비를 선택해 주세요.")
     state = machine_readiness(config, machines).get(code, {})

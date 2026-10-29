@@ -8,10 +8,10 @@ import styles from "./factorySelect.module.css";
 import listStyles from "./machineSelect.module.css";
 
 const factories: { id: FactoryId; name: string }[] = [
+  { id: "yunam_origin", name: "연암(구)" },
   { id: "yunam", name: "연암" },
   { id: "yulkok", name: "율곡" },
   { id: "poongsan", name: "풍산" },
-  { id: "yunam_origin", name: "연암(기존)" },
 ];
 
 export default function FactorySelect({ disabled, onChange }: {

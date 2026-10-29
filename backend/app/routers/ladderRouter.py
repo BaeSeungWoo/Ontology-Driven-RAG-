@@ -8,9 +8,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from app.ladder.document import load_lad
+from app.factories.machines import load_machine_info, request_factory
+from pipeline.ingestion.machine_resolver import machine_documents
 
 ladderRouter = APIRouter(prefix="/api/ladder", tags=["ladder"])
 ADDRESS = re.compile(r"([GFYXRAKTCD])([0-9]{1,5})\.([0-7])")
@@ -24,19 +26,32 @@ def test_machine_code():
 
 
 @ladderRouter.get("/test-document")
-def ladder_document(machine_code: str | None = None):
+def ladder_document(request: Request, machine_code: str | None = None):
     code = test_machine_code() if machine_code is None else machine_code
     if not re.fullmatch(r"[A-Za-z0-9_-]+", code):
         raise HTTPException(422, "장비 코드 형식이 올바르지 않습니다.")
-    path = Path(__file__).resolve().parents[2] / "data" / "ladder" / f"{code}.LAD"
+    factory_id = request_factory(request)
+    machine = load_machine_info(factory_id=factory_id).get(code)
+    if machine is None:
+        raise HTTPException(404, "해당 공장에 등록되지 않은 장비입니다.")
+    filenames = [name for name in machine_documents(machine, "ladder") if Path(name).suffix.lower() == ".lad"]
+    if not filenames:
+        raise HTTPException(404, "장비에 등록된 LAD 파일이 없습니다.")
+    if len(filenames) != 1:
+        raise HTTPException(422, "장비별 LAD 파일은 하나만 등록해 주세요.")
+    root = Path(__file__).resolve().parents[3] / "pipeline" / "data" / factory_id / "ladder" / "LAD"
+    filename = filenames[0]
+    path = (root / filename).resolve()
+    if "/" in filename or "\\" in filename or path.parent != root.resolve():
+        raise HTTPException(422, "LAD 항목에는 파일명만 입력해 주세요.")
     try:
         doc = load_lad(str(path))
         if not any(net["outputs"] for program in doc["ladders"] for net in program["nets"]):
             raise ValueError("표시할 회로가 없는 래더 파일입니다.")
-        doc["meta"].update(machine_code=code, filename=path.name)
+        doc["meta"].update(machine_code=code, filename=path.name, factory_id=factory_id)
         return doc
     except OSError as exc:
-        raise HTTPException(404, "테스트 장비의 래더 파일을 찾을 수 없습니다.") from exc
+        raise HTTPException(404, "공장의 LAD 폴더에서 등록된 래더 파일을 찾을 수 없습니다.") from exc
     except (ValueError, KeyError, zipfile.BadZipFile, RuntimeError) as exc:
         raise HTTPException(422, str(exc) or "래더 파일을 읽지 못했습니다.") from exc
 

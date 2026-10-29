@@ -780,31 +780,11 @@
   margin-left: 4px;
 }
 
-.feedbackOptions .reasonButton:disabled { cursor: not-allowed; }
-
-.reasonText {
-  flex: 1 1 200px;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  min-width: 0;
-  max-width: 100%;
-  padding: 7px 11px;
-  border-left: 2px solid var(--chat-accent, #1854bd);
-  border-radius: 0 6px 6px 0;
-  background: var(--chat-pane-bg, #f3f7ff);
-  color: var(--chat-muted-text, #64748b);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
-
-.reasonText strong { flex-shrink: 0; color: var(--chat-accent, #1854bd); }
-
 .reasonDialog {
   margin: auto;
   max-height: calc(100dvh - 40px);
   overflow-y: auto;
-  width: min(460px, calc(100vw - 40px));
+  width: min(600px, calc(100vw - 40px));
   padding: 24px;
   border: 1px solid var(--chat-pane-border, #dce5f0);
   border-radius: 16px;

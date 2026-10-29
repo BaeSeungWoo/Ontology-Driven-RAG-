@@ -9,6 +9,8 @@ export async function authorizeMachine(request: Request, requestedCode: unknown)
   // PC, omit loopback so the backend sees this frontend PC's network address.
   const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0].trim().replace(/^::ffff:/, "");
   const headers: Record<string, string> = {};
+  const factoryId = request.headers.get("X-Factory-Id");
+  if (factoryId) headers["X-Factory-Id"] = factoryId;
   if (clientIp && clientIp !== "::1" && !clientIp.startsWith("127.")) headers["X-Forwarded-For"] = clientIp;
   try {
     const response = await fetch(`${base}/api/prompts/machines`, {

@@ -1,7 +1,68 @@
 {
+  "M003": {
+    "machine_name": "OKUMA #1",
+    "machine_ips": ["172.16.10.3"],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB",
+    "document": {
+        "manual": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY OKUMA VMP T180 yA2 N 기본조작설명서 245P.pdf",
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_EN DA98172 ya2 c 2 LADDER 187p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M004": {
+    "machine_name": "OKUMA #4",
+    "machine_ips": ["172.16.10.4"],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB",
+    "document": {
+        "manual": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY OKUMA VMP T180 yA2 N 기본조작설명서 245P.pdf",
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_EN DA98172 ya2 c 2 LADDER 187p.pdf",
+            "연암(OKUMA#4)_JPY OKUHA #4  ya2 L12 LADDER 173p.pdf",
+            "연암(OKUMA#4)_JPY  OCUMA #4 VMP_10 보수설명서-162P"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf",
+            "연암(OKUMA#4)_JPY OKUMA #4 VMP_10 전기회로도-110p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M005": {
+    "machine_name": "DHF8000",
+    "machine_ips": ["172.16.10.5"],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5",
+    "document": {
+        "manual": [
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p.pdf",
+            "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p.pdf",
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p.pdf"
+        ],
+        "ladder": []
+    }
+  },
   "M006": {
     "machine_name": "DMU85 #1",
-    "machine_ips": ["172.16.10.6", "192.168.1.31"],
+    "machine_ips": ["172.16.10.6", "192.168.1.99"],
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC640",
@@ -13,6 +74,206 @@
             "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
             "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
         ],
+        "controller": [],
+        "electrical": [
+            "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M007": {
+    "machine_name": "HERMLE C42",
+    "machine_ips": ["172.16.10.7"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane spare parts diagrams-458p.pdf",
+            "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006 eg부록 2 1A 1061P.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(HERMLE C42)_EN HERMLE C42U 전기도면 343.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M008": {
+    "machine_name": "HERMLE C30",
+    "machine_ips": ["172.16.10.8"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(HERMLE C30)_GER HERMLE YP6 M 취급설명서 C 30 U 714P.pdf",
+            "연암(HERMLE C30)_EN HERMLE C30UOperating manual iTNC 530 1050p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(HERMLE C30)_EN HERMLE C 30 ya6-e2(전기도면)286P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M009": {
+    "machine_name": "HERMLE C40",
+    "machine_ips": ["172.16.10.9"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(HERMLE C40)_EN HERMLE C-40 List spare parts and wearing parts 662p.pdf",
+            "연암(HERMLE C40)_EN HERMLE C40U Operating manual iTNC 530 1004p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(HERMLE C40)_EN HERMLE C 40 ELECTRICAL DOCUMENTION 73p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M012": {
+    "machine_name": "VC630/5AX #2",
+    "machine_ips": ["172.16.10.12"],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-A5",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M013": {
+    "machine_name": "DMU125P #1",
+    "machine_ips": ["172.16.10.13"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(DMU125P#1)_EN vDMU 125 P duoBLOCK 1호기 장비메뉴얼 682p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M014": {
+    "machine_name": "DMU125P #2",
+    "machine_ips": ["172.16.10.14"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [
+            "연암(DMU125P#2)_EN DMU125P3 2호기 전기도면 702p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M015": {
+    "machine_name": "WIA L280",
+    "machine_ips": ["172.16.10.15"],
+    "machine_maker": "현대위아",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D",
+    "document": {
+        "manual": [
+            "연암3(WIA L280) 현대 위아 Machine Tools NC선반 S280-L 취급설명서 1018p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M016": {
+    "machine_name": "HI-TECH 300S",
+    "machine_ips": ["172.16.10.16"],
+    "machine_maker": "화천기계",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-T",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M017": {
+    "machine_name": "PUMA 350LB",
+    "machine_ips": ["172.16.10.17"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "18T",
+    "document": {
+        "manual": [
+            "연암3(PUMA 350LB) 대우 PUMA 350L 400L CNC TURNING CENTER PARTS BOOK 327p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(PUMA 350LB) 대우 ELECTRICA DIAGRAM-69p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M019": {
+    "machine_name": "OKUMA #6",
+    "machine_ips": ["172.16.10.1"],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB",
+    "document": {
+        "manual": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY OKUMA VMP T180 yA2 N 기본조작설명서 245P.pdf",
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_EN DA98172 ya2 c 2 LADDER 187p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M020": {
+    "machine_name": "OKUMA #8",
+    "machine_ips": ["172.16.10.20"],
+    "machine_maker": "OKUMA&HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB",
+    "document": {
+        "manual": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY OKUMA VMP T180 yA2 N 기본조작설명서 245P.pdf",
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_EN DA98172 ya2 c 2 LADDER 187p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(OKUMA#1, OKUMA#4, OKUMA#6)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M021": {
+    "machine_name": "DMU85 #3",
+    "machine_ips": ["172.16.10.21"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(DMU85)_EN DMG MORI DMU 85.95(FDTechnical Mechanics ) Milling part 654p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p.pdf",
+            "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf",
+            "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
+            "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
+        ],
+        "controller": [],
         "electrical": [
             "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
         ],
@@ -33,35 +294,368 @@
             "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
             "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
         ],
+        "controller": [],
         "electrical": [
             "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
         ],
         "ladder": []
     }
   },
-  "M021": {
-    "machine_name": "DMU85 #3",
-    "machine_ips": ["172.16.10.21"],
+  "M023": {
+    "machine_name": "DMU60 EVO",
+    "machine_ips": ["172.16.10.23"],
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
-    "machine_ver": "iTNC640",
+    "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            "연암(DMU85)_EN DMG MORI DMU 85.95(FDTechnical Mechanics ) Milling part 654p.pdf",
-            "연암(DMU85)_EN DMG MORI DMU 85_95(FD)Operating instruction(사용 설명서) mono block milling-882p.pdf",
-            "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf",
-            "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf",
-            "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf"
+            "연암(DMU60 EVO)_EN DMU 60eVo Heidenhain iTMC 530 장비매뉴얼 588p.pdf"
         ],
+        "controller": [],
         "electrical": [
-            "연암(DMU85)_GER 3 DMG DMU85MB 전기도면-641p.pdf"
+            "연암(DMU60 EVO)_EN DMU 60eVo ya25-5 전기도면 252p.pdf"
         ],
         "ladder": []
     }
   },
-  "M007": {
-    "machine_name": "HERMLE C42",
-    "machine_ips": ["172.16.10.7"],
+  "M024": {
+    "machine_name": "GROB G550",
+    "machine_ips": ["172.16.10.47"],
+    "machine_maker": "GROB",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [
+            "연암(GROB G550)_EN -Technical documentatio-Electrical fuid engineering documentation 5 axus CNC universal machining center G350 550 -267p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M025": {
+    "machine_name": "MYNX6500 #2",
+    "machine_ips": ["172.16.10.25"],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD",
+    "document": {
+        "manual": [
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 6500 PARTS BOOK -638p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 Electrical Circuit DIAGRAM-228p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M026": {
+    "machine_name": "MYNX6500 #1",
+    "machine_ips": ["172.16.10.26"],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MB",
+    "document": {
+        "manual": [
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 6500 PARTS BOOK -638p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf",
+            "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 Electrical Circuit DIAGRAM-228p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M027": {
+    "machine_name": "MYNX7500",
+    "machine_ips": ["172.16.10.27"],
+    "machine_maker": "두산인프라코어",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD",
+    "document": {
+        "manual": [
+            "연암3(MYNX7500) 두산 PARTS BOOK PARTS LIST Mynx 7500 (A3)-126p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M028": {
+    "machine_name": "SIRIUS7050",
+    "machine_ips": ["172.16.10.28"],
+    "machine_maker": "화천기공",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD",
+    "document": {
+        "manual": [
+            "연암3(SIRIUS7050) 화천 SIRIUS 7050 취급설명서 국문 320p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(SIRIUS7050) SIRIUS 7050 전기회로도 340p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M029": {
+    "machine_name": "NT10/12F VTL",
+    "machine_ips": ["172.16.10.29"],
+    "machine_maker": "한국정밀기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M030": {
+    "machine_name": "KTC14/16F #2",
+    "machine_ips": ["172.16.10.30"],
+    "machine_maker": "KDM",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-T",
+    "document": {
+        "manual": [
+            "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC_14 16F ELECTRIC MANUAL -354p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M031": {
+    "machine_name": "KTC14/16F #1",
+    "machine_ips": ["172.16.10.31"],
+    "machine_maker": "KDM",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-T",
+    "document": {
+        "manual": [
+            "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC_14 16F ELECTRIC MANUAL -354p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M032": {
+    "machine_name": "DMU75",
+    "machine_ips": ["172.16.10.48"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(DMU75)_GER DMG MORI operating instructions 1 584p.pdf",
+            "연암(DMU75)_GER DMG MORI operating instructions 2 706p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M033": {
+    "machine_name": "STARRAG #3",
+    "machine_ips": ["172.16.10.49"],
+    "machine_maker": "STARRAG",
+    "machine_controller": "지멘스",
+    "machine_ver": "SL",
+    "document": {
+        "manual": [
+            "연암3(STARRAG #2, STARRAG #3) StarragHeckert  STC800 유압회로 42p",
+            "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1)",
+            "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p",
+            "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p",
+            "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P",
+            "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(STARRAG #2, STARRAG #3) ZT_800 140 전기도면-303p"
+        ],
+        "ladder": []
+    }
+  },
+  "M034": {
+    "machine_name": "MILACRON T35 #2",
+    "machine_ips": ["172.16.10.34"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950",
+    "document": {
+        "manual": [
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf",
+            "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf",
+            "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(MILACRON T35 #2)_KR T-35 2호기 전기도면(A3-50p A4-10p).pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M035": {
+    "machine_name": "MILACRON T35 #1",
+    "machine_ips": ["172.16.10.35"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950",
+    "document": {
+        "manual": [
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf",
+            "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf",
+            "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M036": {
+    "machine_name": "H-5",
+    "machine_ips": ["172.16.10.50"],
+    "machine_maker": "MAG CINCINNATI",
+    "machine_controller": "지멘스",
+    "machine_ver": "PL",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [
+            "연암(H-5)_EN 7 H5 전기도면 180p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M039": {
+    "machine_name": "HAS-628",
+    "machine_ips": ["172.16.10.39"],
+    "machine_maker": "HARTFORD",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-MB",
+    "document": {
+        "manual": [
+            "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M040": {
+    "machine_name": "APEC G3080",
+    "machine_ips": ["172.16.10.40"],
+    "machine_maker": "APEC",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(APEC G3080)_EN G Series Electrical Operation Manual Heidenhain iTNC530-99p.pdf",
+            "연암(APEC G3080)_EN G Series Operation and Maintenance Manual(Original instruction) 98P.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(APEC G3080)_EN G3080 Electrical loop manual-167p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M041": {
+    "machine_name": "HAS-423",
+    "machine_ips": ["172.16.10.41"],
+    "machine_maker": "HARTFORD",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF",
+    "document": {
+        "manual": [
+            "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf",
+            "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M042": {
+    "machine_name": "KEN B4060",
+    "machine_ips": ["172.16.10.51"],
+    "machine_maker": "KEN",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(KEN B4060)_KR KEN ICHI MACHINE 작동 및 유지보수 매뉴얼 lIN MAX 시리즈 GSB-4060(5-AX)-186p .pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M043": {
+    "machine_name": "STARRAG #2",
+    "machine_ips": ["172.16.10.43"],
+    "machine_maker": "STARRAG",
+    "machine_controller": "지멘스",
+    "machine_ver": "PL",
+    "document": {
+        "manual": [
+            "연암3(STARRAG #2, STARRAG #3) StarragHeckert  STC800 유압회로 42p",
+            "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1)",
+            "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p",
+            "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p",
+            "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P",
+            "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(STARRAG #2, STARRAG #3) ZT_800 140 전기도면-303p"
+        ],
+        "ladder": []
+    }
+  },
+  "M044": {
+    "machine_name": "C400",
+    "machine_ips": ["172.16.10.52"],
+    "machine_maker": "HERMLE",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [
+            "연암(C400)_KR 6 C400 오류메시지 전기도면 402p"
+        ],
+        "ladder": []
+    }
+  },
+  "M045": {
+    "machine_name": "C42-2",
+    "machine_ips": ["172.16.10.53"],
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC530",
@@ -70,25 +664,147 @@
             "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane spare parts diagrams-458p.pdf",
             "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006 eg부록 2 1A 1061P.pdf"
         ],
+        "controller": [],
         "electrical": [
             "연암(HERMLE C42)_EN HERMLE C42U 전기도면 343.pdf"
         ],
         "ladder": []
     }
   },
-  "M008": {
-    "machine_name": "HERMLE C30",
-    "machine_ips": ["172.16.10.8"],
+  "M046": {
+    "machine_name": "C32",
+    "machine_ips": ["172.16.10.54"],
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            "연암(HERMLE C30)_GER HERMLE YP6 M 취급설명서 C 30 U 714P.pdf",
-            "연암(HERMLE C30)_EN HERMLE C30UOperating manual iTNC 530 1050p.pdf"
+            "연암(C32)_GER c32u 설계도 108p.pdf",
+            "연암(C32) c32u 장비메뉴얼 267p"
         ],
+        "controller": [],
         "electrical": [
-            "연암(HERMLE C30)_EN HERMLE C 30 ya6-e2(전기도면)286P.pdf"
+            "연암(C32) c32u 전기도면 313p"
+        ],
+        "ladder": []
+    }
+  },
+  "M047": {
+    "machine_name": "MILACRON T35 #3",
+    "machine_ips": ["172.16.10.55"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "아크라매틱",
+    "machine_ver": "950",
+    "document": {
+        "manual": [
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf",
+            "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf",
+            "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf",
+            "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(MILACRON T35 #3)_KR T-35 3호기 전기도면(A3-56P).pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M048": {
+    "machine_name": "DMU160",
+    "machine_ips": ["172.16.10.56"],
+    "machine_maker": "DMG-MORI",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part2.pdf",
+            "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part1.pdf",
+            "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part3.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암(DMU160)_EN DMG 1호기 전기도면(2) 572p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M049": {
+    "machine_name": "LCV-6700 #1",
+    "machine_ips": ["172.16.10.58"],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF",
+    "document": {
+        "manual": [
+            "연암3(LCV6700 #1, LCV6700 #2) 스멕 PARTS LIST Vertical machining LCV6700 A4-60p A3-3p",
+            "연암(LCV6700, LCV850) 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf",
+            "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf",
+            "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(LCV6700 #1, LCV6700 #2) SMEC VERTICAL MACHINING CENTER LCV 6700 LCV 6700 GEAR TYPE ELECTRIC DIAGRAM-214p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M050": {
+    "machine_name": "LCV-6700 #2",
+    "machine_ips": ["172.16.10.59"],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF",
+    "document": {
+        "manual": [
+            "연암3(LCV6700 #1, LCV6700 #2) 스멕 PARTS LIST Vertical machining LCV6700 A4-60p A3-3p",
+            "연암(LCV6700, LCV850) 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf",
+            "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf",
+            "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(LCV6700 #1, LCV6700 #2) SMEC VERTICAL MACHINING CENTER LCV 6700 LCV 6700 GEAR TYPE ELECTRIC DIAGRAM-214p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M051": {
+    "machine_name": "DHF8000 #2",
+    "machine_ips": ["172.16.10.57"],
+    "machine_maker": "두산공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5",
+    "document": {
+        "manual": [
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p.pdf",
+            "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p.pdf",
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p.pdf",
+            "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M052": {
+    "machine_name": "APEC SK3060",
+    "machine_ips": ["172.16.10.60"],
+    "machine_maker": "APEC",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC640",
+    "document": {
+        "manual": [
+            "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 전자제어사용메뉴얼-236p",
+            "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 설비유지보수매뉴얼 -86P"
+        ],
+        "controller": [],
+        "electrical": [
+            "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 전기배선도 -438p"
         ],
         "ladder": []
     }

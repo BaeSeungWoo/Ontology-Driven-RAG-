@@ -1,7 +1,7 @@
 {
-  "TTC-10": {
-    "machine_name": "자동1Line A-01 #45",
-    "machine_ips": [],
+  "M001": {
+    "machine_name": "자동1Line A-01 #45 (TTC-10)",
+    "machine_ips": ["192.168.1.99"],
     "machine_maker": "화천",
     "machine_controller": "화낙",
     "machine_ver": "0i-D PMC",
@@ -11,14 +11,25 @@
             "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V66 38p.pdf",
             "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V72 49p.pdf"
         ],
+        "controller": [
+            "B-64302EN_01_0i-D.pdf",
+            "B-64303EN_03_0i-D.pdf",
+            "B-64303EN-1_02_0i-D.pdf",
+            "B-64304KO_03.PDF",
+            "B-64305KO_04.PDF",
+            "B-64310KO_03.PDF",
+            "B-64393EN_02_0i-D.pdf",
+            "B-64304KO-1_02.PDF",
+            "B-64304KO-2_03.PDF"
+        ],
         "electrical": [
             "풍산(TTC_10)-화천TTC_10(2SP) FANUC Oi-TD ELECTRIC DIAGRAM-470P.pdf"
         ],
         "ladder": []
     }
   },
-  "SL2500X": {
-    "machine_name": "자동3Line A-03 #14",
+  "M002": {
+    "machine_name": "자동3Line A-03 #14 (SL2500X)",
     "machine_ips": [],
     "machine_maker": "SMEC",
     "machine_controller": "화낙",
@@ -30,12 +41,23 @@
             "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
             "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
         ],
+        "controller": [
+            "B-64602EN_01_0i-F_Descriptions.PDF",
+            "B-64603EN_01_0i-F_Connection(Hardware).pdf",
+            "B-64603EN-1_01_0i-F_Connection(Function).pdf",
+            "B-64604KO_01.PDF",
+            "B-64605KO_01.PDF",
+            "B-64610KO_01.PDF",
+            "B-64604KO-1_01.PDF",
+            "B-64604KO-2_01.PDF",
+            "B-64513EN_03_PMC_Programming.PDF"
+        ],
         "electrical": [],
         "ladder": []
     }
   },
-  "DNT2600": {
-    "machine_name": "자동5Line A-05 #7",
+  "M003": {
+    "machine_name": "자동5Line A-05 #7 (DNT2600)",
     "machine_ips": [],
     "machine_maker": "두산",
     "machine_controller": "화낙",
@@ -47,6 +69,17 @@
             "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
             "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
         ],
+        "controller": [
+            "B-64602EN_01_0i-F_Descriptions.PDF",
+            "B-64603EN_01_0i-F_Connection(Hardware).pdf",
+            "B-64603EN-1_01_0i-F_Connection(Function).pdf",
+            "B-64604KO_01.PDF",
+            "B-64605KO_01.PDF",
+            "B-64610KO_01.PDF",
+            "B-64604KO-1_01.PDF",
+            "B-64604KO-2_01.PDF",
+            "B-64513EN_03_PMC_Programming.PDF"
+        ],
         "electrical": [
             "풍산(DNT2600)_EN-두산ELECTRIAL CIRCUIT DIAGRAM(FANUC Oi-TF-PLUS) SQ OPTION-202P.pdf",
             "풍산(DNT2600)_EN-두산electric circuit diagram(FANUC Oi-TD, ELECTRIC DIAGRAM) DNT 2100,2600-194P.pdf"
@@ -54,8 +87,8 @@
         "ladder": []
     }
   },
-  "PUMA280": {
-    "machine_name": "수동7Line M-07 #1",
+  "M004": {
+    "machine_name": "수동7Line M-07 #1 (PUMA280)",
     "machine_ips": [],
     "machine_maker": "두산",
     "machine_controller": "화낙",
@@ -67,14 +100,25 @@
             "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
             "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
         ],
+        "controller": [
+            "B-64302EN_01_0i-D.pdf",
+            "B-64303EN_03_0i-D.pdf",
+            "B-64303EN-1_02_0i-D.pdf",
+            "B-64304KO_03.PDF",
+            "B-64305KO_04.PDF",
+            "B-64310KO_03.PDF",
+            "B-64393EN_02_0i-D.pdf",
+            "B-64304KO-1_02.PDF",
+            "B-64304KO-2_03.PDF"
+        ],
         "electrical": [
             "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
         ],
         "ladder": []
     }
   },
-  "PL25": {
-    "machine_name": "수동8Line M-08 #6",
+  "M005": {
+    "machine_name": "수동8Line M-08 #6 (PL25)",
     "machine_ips": [],
     "machine_maker": "SMEC",
     "machine_controller": "화낙",
@@ -87,9 +131,977 @@
             "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
             "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
         ],
+        "controller": [
+            "B-64302EN_01_0i-D.pdf",
+            "B-64303EN_03_0i-D.pdf",
+            "B-64303EN-1_02_0i-D.pdf",
+            "B-64304KO_03.PDF",
+            "B-64305KO_04.PDF",
+            "B-64310KO_03.PDF",
+            "B-64393EN_02_0i-D.pdf",
+            "B-64304KO-1_02.PDF",
+            "B-64304KO-2_03.PDF"
+        ],
         "electrical": [
             "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
         ],
+        "ladder": []
+    }
+  },
+  "M006": {
+    "machine_name": "수동7Line M-07 #3 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M007": {
+    "machine_name": "수동8Line M-08 #4 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M008": {
+    "machine_name": "자동2Line A-02 #51 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M009": {
+    "machine_name": "자동2Line A-02 #52 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M010": {
+    "machine_name": "자동2Line A-02 #53 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M011": {
+    "machine_name": "자동2Line A-02 #54 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M012": {
+    "machine_name": "자동2Line A-02 #55 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M013": {
+    "machine_name": "자동2Line A-02 #56 (PUMA280)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(PUMA280) 두산 Parts book PUMA 280 194p.pdf",
+            "풍산3(PUMA280) 두산 PARTS BOOK PUMA280 PM280PLE27 422p.pdf",
+            "풍산3(PUMA280) 두산 조작설명서 PUMA280 L M LM P2000YOPKF3017 336p.pdf",
+            "풍산3(PUMA280) 두산 취급설명서 PUMA280 L M LM PM281NKOB 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PUMA280) 두산 Electrical circuit diagram FANUC CNC SYSTEM 129p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M014": {
+    "machine_name": "수동7Line M-07 #2 (PUMA2600LY)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(PUMA2600LY)_KR-두산조작설명서Horizontal Turning CenterDN안전 지침서 TCPSK257.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf",
+            "풍산3(PUMA2600LY) 두산 조작설명서 ML0089OK173 VSVDTMNOPK04 573p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M015": {
+    "machine_name": "자동4Line A-04 #30 (PL25)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M016": {
+    "machine_name": "수동1Line M-01 #31 (PL25)",
+    "machine_ips": ["192.168.10.135"],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M017": {
+    "machine_name": "수동5Line M-05 #11 (PL25L)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M018": {
+    "machine_name": "자동4Line A-04 #29 (PL25L)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M019": {
+    "machine_name": "선반라인 #37 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M020": {
+    "machine_name": "선반라인 #38 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M021": {
+    "machine_name": "선반라인 #39 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M022": {
+    "machine_name": "선반라인 #40 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M023": {
+    "machine_name": "선반라인 #41 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M024": {
+    "machine_name": "선반라인 #42 (XD20J)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M025": {
+    "machine_name": "선반라인 #43 (XE35)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산3(XD20J) 한화테크엠 XD20J H 취급설명서 732p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M026": {
+    "machine_name": "자동1Line A-01 #46 (TTC-10)",
+    "machine_ips": [],
+    "machine_maker": "화천",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(TTC_10)-화천 사용설명서(FANUC) 국문-a4-266P A3-35P.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V66 38p.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V72 49p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(TTC_10)-화천TTC_10(2SP) FANUC Oi-TD ELECTRIC DIAGRAM-470P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M027": {
+    "machine_name": "자동1Line A-01 #47 (TTC-10)",
+    "machine_ips": [],
+    "machine_maker": "화천",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(TTC_10)-화천 사용설명서(FANUC) 국문-a4-266P A3-35P.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V66 38p.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V72 49p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(TTC_10)-화천TTC_10(2SP) FANUC Oi-TD ELECTRIC DIAGRAM-470P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M028": {
+    "machine_name": "자동1Line A-01 #48 (TTC-10)",
+    "machine_ips": [],
+    "machine_maker": "화천",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [
+            "풍산(TTC_10)-화천 사용설명서(FANUC) 국문-a4-266P A3-35P.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V66 38p.pdf",
+            "풍산3(TTC_10) 두산 조작설명서 DTMT104 KO V72 49p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(TTC_10)-화천TTC_10(2SP) FANUC Oi-TD ELECTRIC DIAGRAM-470P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M029": {
+    "machine_name": "수동8Line M-08 #5 (PUMA2600LY)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA2600LY)_KR-두산조작설명서Horizontal Turning CenterDN안전 지침서 TCPSK257.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf",
+            "풍산3(PUMA2600LY) 두산 조작설명서 ML0089OK173 VSVDTMNOPK04 573p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M030": {
+    "machine_name": "자동5Line A-05 #8 (DNT2600)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA DNT2600)_EN-두산parts book-140P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK243-334P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(DNT2600)_EN-두산ELECTRIAL CIRCUIT DIAGRAM(FANUC Oi-TF-PLUS) SQ OPTION-202P.pdf",
+            "풍산(DNT2600)_EN-두산electric circuit diagram(FANUC Oi-TD, ELECTRIC DIAGRAM) DNT 2100,2600-194P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M031": {
+    "machine_name": "수동2Line M-02 #22 (DNT2600LM)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA DNT2600LM)_EN-두산parts book -154P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK243-334P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M032": {
+    "machine_name": "수동5Line M-05 #13 (DNT2600LM)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA DNT2600LM)_EN-두산parts book -154P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK243-334P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M033": {
+    "machine_name": "수동4Line M-04 #27 (DNT2600LM)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA DNT2600LM)_EN-두산parts book -154P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK243-334P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M034": {
+    "machine_name": "수동1Line M-01 #33 (DNT2600LM)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PUMA DNT2600LM)_EN-두산parts book -154P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK243-334P.pdf",
+            "풍산(DNT2600, DNT2600LM)_KR-두산취급설명서 시방 및 보수자료 (FANUC,SIEMENS) ML0492INK257-334P.pdf",
+            "풍산(PUMA2600LY, DNT2600, DNT2600LM)_KR-두산DN 조작설명서 TCPSK241-738P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M035": {
+    "machine_name": "수동6Line M-06 #10 (L400LMC)",
+    "machine_ips": [],
+    "machine_maker": "현대위아",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서2-1816P.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 SW MANUAL NC탑재형 LATHE FANUC iHMI-552P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M036": {
+    "machine_name": "자동3Line A-03 #15 (SL2500X)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SL2500X)_KR 스맥5 PARTS LIST CNC Turning center SL 2500 SL 3000 150p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (2).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M037": {
+    "machine_name": "자동3Line A-03 #16 (SL2500X)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SL2500X)_KR 스맥5 PARTS LIST CNC Turning center SL 2500 SL 3000 150p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (3).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M038": {
+    "machine_name": "자동3Line A-03 #17 (SL2500X)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SL2500X)_KR 스맥5 PARTS LIST CNC Turning center SL 2500 SL 3000 150p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (4).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M039": {
+    "machine_name": "자동3Line A-03 #18 (SL2500X)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SL2500X)_KR 스맥5 PARTS LIST CNC Turning center SL 2500 SL 3000 150p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (5).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M040": {
+    "machine_name": "자동3Line A-03 #19 (SL2500X)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SL2500X)_KR 스맥5 PARTS LIST CNC Turning center SL 2500 SL 3000 150p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (6).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M041": {
+    "machine_name": "49 (SL2500SY)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf",
+            "풍산3(SL2500SY) 스멕 기계설명서 CNC Turning centet SL 2500ASY Y SL 2500BSY Y SL 2500AMS BMS 538p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(SL2500SY) 스멕 ELECTRIC DIAGRAM CNC LATHR SL 2500ASY BSY FANUC 0i TF 80p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M042": {
+    "machine_name": "50 (SL2500SY)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산(SL2500X, SL2500SY) 스맥1 기계설명서 CNC Turning center SL 2500 SL 3000 458p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf",
+            "풍산3(SL2500SY) 스멕 기계설명서 CNC Turning centet SL 2500ASY Y SL 2500BSY Y SL 2500AMS BMS 538p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(SL2500SY) 스멕 ELECTRIC DIAGRAM CNC LATHR SL 2500ASY BSY FANUC 0i TF 80p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M043": {
+    "machine_name": "수동3Line M-03 #24 (PL45L)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf",
+            "풍산3(PL45L) 스멕 기계설명서 CNC Turning centet PL 45L XL LM XLM 372p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL45L) 스멕 ELECTRIC DIAGRAM CNC LATHE PL 45L XL F0i TF 154p (2).pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M044": {
+    "machine_name": "수동3Line M-03 #25 (GT3100L)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산3(GT3100L) 두산 Parts book PUMA GT3100L 194p.pdf",
+            "풍산3(GT3100L) 두산 PARTS BOOK PUMA GT3100L-0001 194p.pdf",
+            "풍산3(GT3100L) SMW AUTOBLOK INSTRUCTION MANUAL TYPE SLU SLUA SPECIAL 32p.pdf",
+            "풍산3(GT3100L) 두산 취급설명서 시방 및 보수자료 PUMA GT3100 M L LM 241p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M045": {
+    "machine_name": "선반라인 #34 (SA51XⅡ)",
+    "machine_ips": [],
+    "machine_maker": "넥스턴",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(SA51XII)_KR NEXTURN CNC 자동선반 취급설명서 508p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M046": {
+    "machine_name": "수동9Line M-09 #57 (LCV650S)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MC",
+    "document": {
+        "manual": [
+            "풍산3(LCV650S) 스멕 PARTS LIST Vwetical Machining Center Anymill LCV 650S 190p (2).pdf",
+            "풍산3(LCV650S) 스멕 기계설명서 vertivak machining center anymill LCV 650S 136p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M047": {
+    "machine_name": "수동9Line M-09 #58 (LCV650S)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MC",
+    "document": {
+        "manual": [
+            "풍산3(LCV650S) 스멕 PARTS LIST Vwetical Machining Center Anymill LCV 650S 190p (2).pdf",
+            "풍산3(LCV650S) 스멕 기계설명서 vertivak machining center anymill LCV 650S 136p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M048": {
+    "machine_name": "수동5Line M-05 #12 (PL35A)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TC",
+    "document": {
+        "manual": [
+            "풍산3(PL35A) 스멕 PARTS LIST CNC LATHE PL 35 1500 86p (1).pdf",
+            "풍산3(PL35A) 스멕 PARTS LIST CNC LATHE PL 35 1500 86p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M049": {
+    "machine_name": "수동3Line M-03 #23 (PL35A)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TC",
+    "document": {
+        "manual": [
+            "풍산3(PL35A) 스멕 PARTS LIST CNC LATHE PL 35 1500 86p (1).pdf",
+            "풍산3(PL35A) 스멕 PARTS LIST CNC LATHE PL 35 1500 86p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M050": {
+    "machine_name": "수동4Line M-04 #26 (PL25A)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TC",
+    "document": {
+        "manual": [
+            "풍산(PL25A)_EN 스맥6 PARTS LIST CNC LATHE PL 25A 500 56p.pdf",
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M051": {
+    "machine_name": "수동4Line M-04 #28 (PL25A)",
+    "machine_ips": [],
+    "machine_maker": "SMEC",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TC",
+    "document": {
+        "manual": [
+            "풍산(PL25A)_EN 스맥6 PARTS LIST CNC LATHE PL 25A 500 56p.pdf",
+            "풍산(PL25, PL25L, PL25A)_KR 스멕2 기계설명서 CNC LATHE PL 25series 390p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, PL45L)_KR 스맥4 전기조작 보수설명서 CNC Turning PL series FANUC SYSTEM 272p.pdf",
+            "풍산(PL25, PL25L, PL25A, PL35A, SL2500X, SL2500SY)_KR 스맥3 조작보수설명서 CNC Turning center SL 2500 SL 3000 300p.pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A) 스멕 전기조작 보수 설명서 CNC LATHE PL 20 25 39 35 240 FANUC 0iTC 280p (1).pdf",
+            "풍산3(PL25, PL25L, PL25A, PL35A, PL45L, SL2500X, SL2500SY) 스멕 조작 보수설명서 PL SERIES SL SERIES FANUC SYSTEM 300p (1).pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산3(PL25, PL25L, PL25A) 스멕 ELECTRIC DIAGRAM CNC Turning center PL 20 25 30 240 20MC 25MC FANUC 56p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M052": {
+    "machine_name": "수동2Line M-02 #20 (S550L)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "21T",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M053": {
+    "machine_name": "수동2Line M-02 #21 (S550L)",
+    "machine_ips": [],
+    "machine_maker": "두산",
+    "machine_controller": "화낙",
+    "machine_ver": "21T",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M054": {
+    "machine_name": "수동1Line M-01 #32 (L300LMA)",
+    "machine_ips": ["192.168.10.133"],
+    "machine_maker": "현대위아",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-B(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서2-1816P.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 SW MANUAL NC탑재형 LATHE FANUC iHMI-552P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M055": {
+    "machine_name": "선반라인 #35 (XD12Ⅱ)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-B(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(XD12) 한화 Instruction manual XE XD12 16-2 500p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(XD12) 한화 Electrical Diagram XE XD12 16-2 302 p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M056": {
+    "machine_name": "선반라인 #36 (XD12Ⅱ)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-B(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(XD12) 한화 Instruction manual XE XD12 16-2 500p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "풍산(XD12) 한화 Electrical Diagram XE XD12 16-2 302 p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M057": {
+    "machine_name": "선반라인 #44 (XD38Ⅱ-R)",
+    "machine_ips": [],
+    "machine_maker": "한화",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-B(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(XD38) 한화 Instruction manual XD32 35 38 2-R 652p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M058": {
+    "machine_name": "수동6Line M-06 #9 (L400LMC)",
+    "machine_ips": [],
+    "machine_maker": "현대위아",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-F(MEM-B)",
+    "document": {
+        "manual": [
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 Machinee Tools 취급설명서2-1816P.pdf",
+            "풍산(L400LMC, L300LMA)_KR-위아 SW MANUAL NC탑재형 LATHE FANUC iHMI-552P.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
         "ladder": []
     }
   }

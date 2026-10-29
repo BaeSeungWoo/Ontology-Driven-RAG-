@@ -8,12 +8,13 @@ export async function GET(request: Request) {
   const base = (process.env.NEXT_PUBLIC_API_URL || process.env.API_PROXY_TARGET || "http://127.0.0.1:8000").replace(/\/+$/, "");
   try {
     const response = await fetch(`${base}/api/ladder/test-document?machine_code=${encodeURIComponent(code)}`, {
+      headers: { "X-Factory-Id": request.headers.get("X-Factory-Id") || "yunam" },
       cache: "no-store",
       signal: AbortSignal.any([request.signal, AbortSignal.timeout(12000)]),
     });
     if (!response.ok) {
       return Response.json({ detail: response.status === 404
-        ? `${code}.LAD 파일을 백엔드에서 찾을 수 없습니다.`
+        ? "선택한 공장·장비에 등록된 LAD 파일을 찾을 수 없습니다."
         : "백엔드에서 래더 파일을 불러오지 못했습니다." }, { status: response.status });
     }
     const document = await response.json();

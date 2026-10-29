@@ -571,9 +571,8 @@ def updateChatMessageReason(message_id, reason):
                 UPDATE dbo.CHAT_MESSAGE SET REASON = ?
                 OUTPUT INSERTED.MESSAGE_ID
                 WHERE MESSAGE_ID = ? AND ROLE = 'assistant'
-                  AND FEEDBACK IN (?, ?, ?)
                 """,
-                (reason, message_id, "도움됨", "틀림", "부분도움"),
+                (reason, message_id),
             )
             updated = cursor.fetchone() is not None
             conn.commit()

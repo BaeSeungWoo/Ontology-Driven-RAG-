@@ -93,7 +93,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
 type ViewProps = { relatedAddresses: string[]; headerHost: HTMLDivElement | null };
 
 export default function MachineLadderView(props: ViewProps) {
-  const { machineCode, status } = useMachine();
+  const { executionMachineCode: machineCode, status } = useMachine();
   if (status !== "ready" || !machineCode || machineCode === "ALL") return <p>실시간 조회할 장비를 선택하세요.</p>;
   return <SelectedMachineLadder key={machineCode} {...props} machineCode={machineCode} />;
 }

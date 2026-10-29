@@ -8,6 +8,7 @@ from app.database import database
 from app.factories.config import get_factory_config
 from app.factories.machines import load_machine_info, request_factory
 from app.core.machine_readiness import require_machine_ready
+from app.core.demo_mode import execution_target
 from app.security.validate_code import session_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
 
@@ -44,7 +45,7 @@ def getHistoryList(client_request: Request):
 
 class HistorySearchRequest(BaseModel):
     mode: Literal["sessions", "messages"] = "sessions"
-    feedback: Literal["도움됨", "틀림", "부분도움"] | None = None
+    feedback: Literal["도움됨", "틀림", "부분도움", "평가"] | None = None
 
 
 @historyRouter.post("/search")
@@ -57,7 +58,9 @@ def searchHistory(req: HistorySearchRequest, client_request: Request):
     machine_code = set_history_code(ctx)
     try:
         histories = _history_rows_to_json(database.getHistoryList(machine_code, request_factory(client_request)), client_request)
-        answers = database.getHistoryAnswers([row["sessionId"] for row in histories], req.feedback)
+        answers = database.getHistoryAnswers([row["sessionId"] for row in histories], None if req.feedback == "평가" else req.feedback)
+        if req.feedback == "평가":
+            answers = [row for row in answers if row[7] and row[7].strip()]
         if req.mode == "sessions":
             matched = {row[0] for row in answers}
             reasons = {}
@@ -232,7 +235,7 @@ class UpdateMessageResponse(BaseModel):
 
 
 class UpdateFeedbackRequest(BaseModel):
-    feedback: Literal["도움됨", "틀림", "부분도움"]
+    feedback: Literal["도움됨", "틀림", "부분도움"] | None
 
 
 class UpdateReasonRequest(BaseModel):
@@ -254,12 +257,14 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = session_machine_code(ctx, req.machine_code, machine_info)
-    config = get_factory_config(req.llm_model, request_factory(client_request))
-    require_machine_ready(machine_code, config, machine_info, req.llm_mode, req.llm_persona)
+    target_factory, target_code = execution_target(
+        request_factory(client_request), machine_code, req.llm_mode, req.llm_persona)
+    config = get_factory_config(req.llm_model, target_factory)
+    require_machine_ready(target_code, config, config.machines, req.llm_mode, req.llm_persona)
     if req.llm_mode == "electrical":
         from app.core.electrical_qa import validate_machine
         try:
-            validate_machine(machine_code)
+            validate_machine(target_code)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:
@@ -440,7 +445,7 @@ def updateReason(message_id: int, req: UpdateReasonRequest, client_request: Requ
     validate_code(ctx, database.getChatSessionInfo(session_id))
     try:
         if not database.updateChatMessageReason(message_id, reason):
-            raise HTTPException(409, "답변의 도움됨·틀림·부분도움을 먼저 선택해 주세요.")
+            raise HTTPException(404, "평가할 답변을 찾을 수 없습니다.")
         return {"result": "success"}
     except HTTPException:
         raise

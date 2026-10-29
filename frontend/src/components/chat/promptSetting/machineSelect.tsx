@@ -35,7 +35,8 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
   const isUnready = (machine: typeof machines[number]) => (machine.is_main_server || machine.is_assigned) && !machine.can_select;
   const readinessLabel = (machine: typeof machines[number]) => machine.readiness === "no_documents" ? "준비 중 · 매뉴얼 미등록"
     : machine.readiness === "check_failed" ? "준비 상태 확인 실패" : "준비 중 · 검색 데이터 미구축";
-  const sortedMachines = [...machines].sort((a, b) => Number(b.is_assigned) - Number(a.is_assigned));
+  const sortedMachines = [...machines].sort((a, b) =>
+    Number(b.can_select) - Number(a.can_select) || a.machine_code.localeCompare(b.machine_code, undefined, { numeric: true }));
   const placeholder = status === "loading" ? "장비 목록 불러오는 중"
     : status === "error" ? "장비 목록 조회 실패"
     : value === "ALL" ? "전체 장비" : value && !assigned ? `${value} · 미등록 장비`
@@ -106,16 +107,6 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
                   <strong>{machine.machine_name}</strong>
                   <span>{machine.machine_controller} {machine.machine_ver}</span>
                   {isUnready(machine) && <span className={styles.readiness}>{readinessLabel(machine)}</span>}
-                  {machine.can_select && <>
-                    <span className={machine.readiness === "partial" ? styles.partial : undefined}>
-                      {machine.readiness === "partial" ? "일부 미구축 · " : "매뉴얼 "}{machine.searchable_document_count}/{machine.document_count}개 검색 가능
-                    </span>
-                    <span className={styles.features}>
-                      <span className={!machine.has_ladder ? styles.missingFeature : undefined}>래더 {machine.has_ladder ? "준비" : "미준비"}</span>
-                      <span aria-hidden="true"> · </span>
-                      <span className={!machine.has_electrical ? styles.missingFeature : undefined}>전기도면 {machine.has_electrical ? "준비" : "미준비"}</span>
-                    </span>
-                  </>}
                 </span>
                 {isUnready(machine) ? <CircleAlert size={16} aria-hidden="true" />
                   : !machine.can_select ? <LockKeyhole size={14} aria-hidden="true" />

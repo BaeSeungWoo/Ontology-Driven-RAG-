@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "@/services/api";
+import { API_BASE_URL, factoryHeaders } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import styles from "./answer.module.css";
 
@@ -53,7 +53,7 @@ export default function RecommendedQuestions({ machineCode, llmModel = "vllm_con
     setMachineLabel("");
     if (source.startsWith("cms_")) {
       void fetch(`${API_BASE_URL}/api/recommendations/context`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json", ...factoryHeaders() },
         body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), source, llm_model: llmModel, machine_code: machineCode }),
         signal: controller.signal,
       }).then(async response => {
@@ -79,7 +79,7 @@ export default function RecommendedQuestions({ machineCode, llmModel = "vllm_con
       try {
         const response = await fetch(`${API_BASE_URL}/api/recommendations`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...factoryHeaders() },
           body: JSON.stringify({ session_id: sessionId === null ? null : String(sessionId), question, answer, source, llm_model: llmModel, machine_code: machineCode }),
           signal: controller.signal,
         });

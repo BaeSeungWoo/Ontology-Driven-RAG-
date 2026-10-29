@@ -1,7 +1,7 @@
 {
   "M001": {
     "machine_name": "VC630-5AX#C1",
-    "machine_ips": ["172.16.10.28"],
+    "machine_ips": ["172.16.10.28", "192.168.1.99"],
     "machine_maker": "두산인프라코어",
     "machine_controller": "화낙",
     "machine_ver": "31iM-A5",
@@ -10,6 +10,16 @@
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산 Parts book VC630 5AX, 160p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
+        ],
+        "controller": [
+            "B-63942EN_04_31i-A.pdf",
+            "B-63943EN_03_31i-A.pdf",
+            "B-63943EN-1_04_30i-A.pdf",
+            "B-63944EN_04_30i-A.pdf",
+            "B-63944EN-2_04_30i-A.pdf",
+            "B-63945EN_04_30i-A.pdf",
+            "B-63950EN_04_30i-A.pdf",
+            "B-63983EN_04_30i-A.pdf"
         ],
         "electrical": [
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
@@ -30,6 +40,16 @@
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
         ],
+        "controller": [
+            "B-63942EN_04_31i-A.pdf",
+            "B-63943EN_03_31i-A.pdf",
+            "B-63943EN-1_04_30i-A.pdf",
+            "B-63944EN_04_30i-A.pdf",
+            "B-63944EN-2_04_30i-A.pdf",
+            "B-63945EN_04_30i-A.pdf",
+            "B-63950EN_04_30i-A.pdf",
+            "B-63983EN_04_30i-A.pdf"
+        ],
         "electrical": [
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
@@ -49,6 +69,16 @@
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf"
         ],
+        "controller": [
+            "B-63942EN_04_31i-A.pdf",
+            "B-63943EN_03_31i-A.pdf",
+            "B-63943EN-1_04_30i-A.pdf",
+            "B-63944EN_04_30i-A.pdf",
+            "B-63944EN-2_04_30i-A.pdf",
+            "B-63945EN_04_30i-A.pdf",
+            "B-63950EN_04_30i-A.pdf",
+            "B-63983EN_04_30i-A.pdf"
+        ],
         "electrical": [
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
@@ -67,7 +97,16 @@
             "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
             "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
             "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
-
+        ],
+        "controller": [
+            "B-64482EN_05_FS30i31i32i-B Descriptions.pdf",
+            "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf",
+            "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf",
+            "B-64484KO_05.PDF",
+            "B-64484KO-2_05.PDF",
+            "B-64485KO_01.PDF",
+            "B-64490KO_05.PDF",
+            "B-64513EN_03_PMC_Programming.PDF"
         ],
         "electrical": [
             "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
@@ -77,7 +116,7 @@
   },
   "M005": {
     "machine_name": "DMU70 evolution",
-    "machine_ips": ["192.168.1.99"],
+    "machine_ips": [],
     "machine_maker": "DECKEL-MAHO",
     "machine_controller": "하이덴하인",
     "machine_ver": "iTNC530",
@@ -85,9 +124,937 @@
         "manual": [
             "율곡4(DMU70 evolution) DECKEL MAHO Operating Instructions DMU70eVolution iTNC 530 , 1114p.pdf"
         ],
+        "controller": [],
         "electrical": [
             "율곡4(DMU70 evolution) DECKEL MAHO SEEBACH GmbH cricuit diagram DMU70eVo, 209p.pdf"
         ],
+        "ladder": []
+    }
+  },
+  "M006": {
+    "machine_name": "ACE-H40",
+    "machine_ips": [],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "0M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M007": {
+    "machine_name": "PC-60V",
+    "machine_ips": ["172.16.10.25"],
+    "machine_maker": "SNK(新日本機械)",
+    "machine_controller": "화낙",
+    "machine_ver": "11M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M008": {
+    "machine_name": "VMP8-1P",
+    "machine_ips": ["172.16.10.11"],
+    "machine_maker": "OKUMA & HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15M",
+    "document": {
+        "manual": [
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(VMP8-1P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 5,114p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M009": {
+    "machine_name": "VMP8-6P",
+    "machine_ips": ["172.16.10.18"],
+    "machine_maker": "OKUMA & HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15M",
+    "document": {
+        "manual": [
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf",
+            "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 4, A3 48p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 2, A3 62P.pdf",
+            "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 3, A3 34P.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M010": {
+    "machine_name": "VMP8-2P",
+    "machine_ips": ["172.16.10.3"],
+    "machine_maker": "OKUMA & HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "15M",
+    "document": {
+        "manual": [
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf",
+            "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(VMP8-2P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 1, A3 161p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M011": {
+    "machine_name": "MILLAC-1000HV",
+    "machine_ips": ["172.16.10.17"],
+    "machine_maker": "OKUMA & HOWA",
+    "machine_controller": "화낙",
+    "machine_ver": "16M",
+    "document": {
+        "manual": [
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 1, 111p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 2, 115p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 3, 51p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 4, 113p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 5, 159p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 6, 162p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 1 152p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 전기보수 설명서, 52p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 2, 23p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 3, 108p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 4, 164p.pdf",
+            "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 5, 105p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M012": {
+    "machine_name": "MYNX500#1",
+    "machine_ips": ["172.16.10.4"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "21M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M013": {
+    "machine_name": "MYNX500#2",
+    "machine_ips": ["172.16.10.5"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "21M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M014": {
+    "machine_name": "MYNX500#3",
+    "machine_ips": ["172.16.10.6"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "21M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M015": {
+    "machine_name": "MYNX500#4",
+    "machine_ips": ["172.16.10.7"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "화낙",
+    "machine_ver": "21M",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M016": {
+    "machine_name": "MULTI mill 4500 (Liechti)",
+    "machine_ips": ["192.168.1.45"],
+    "machine_maker": "Liechti, Switzerland",
+    "machine_controller": "화낙",
+    "machine_ver": "21i",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M017": {
+    "machine_name": "KT MODU LINE #1",
+    "machine_ips": ["172.16.10.36"],
+    "machine_maker": "Kearney&Trecker,USA",
+    "machine_controller": "화낙",
+    "machine_ver": "160i-MB",
+    "document": {
+        "manual": [
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578,553p.pdf",
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578, 144p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(KT MODU LINE #1, KT MODU LINE #3) K&T 1,3호기 MODULINE MACHINE 전기 PLC 도면, 830p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M018": {
+    "machine_name": "KT MODU LINE #3",
+    "machine_ips": ["172.16.10.38"],
+    "machine_maker": "Kearney&Trecker,USA",
+    "machine_controller": "화낙",
+    "machine_ver": "160i-MB",
+    "document": {
+        "manual": [
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578,553p.pdf",
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578, 144p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(KT MODU LINE #1, KT MODU LINE #3) K&T 1,3호기 MODULINE MACHINE 전기 PLC 도면, 830p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M019": {
+    "machine_name": "MULTI mill 2800 (Liechti)",
+    "machine_ips": ["172.16.10.46"],
+    "machine_maker": "Liechti, Switzerland",
+    "machine_controller": "화낙",
+    "machine_ver": "16i",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M020": {
+    "machine_name": "SIRIUS-UL",
+    "machine_ips": ["192.168.1.47"],
+    "machine_maker": "화천기계",
+    "machine_controller": "화낙",
+    "machine_ver": "18i",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M021": {
+    "machine_name": "VMD-550",
+    "machine_ips": ["172.16.10.13"],
+    "machine_maker": "대우종합기계",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-MB",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M022": {
+    "machine_name": "KT MODU LINE #2",
+    "machine_ips": ["172.16.10.37"],
+    "machine_maker": "Kearney&Trecker,USA",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-MB 5",
+    "document": {
+        "manual": [
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578,553p.pdf",
+            "율곡4(KT MODU LINE #1, KT MODU LINE #2, KT MODU LINE #3) K&T Safety everybody's business PUB-578, 144p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(KT MODU LINE #2) K&T 2호기 MODULINE MACHINE 전기 PLC, 534p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M023": {
+    "machine_name": "MP2150",
+    "machine_ips": ["172.16.10.12"],
+    "machine_maker": "TOSHIBA",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB",
+    "document": {
+        "manual": [
+            "율곡4(MP2150) CONTROL TECHNIQUES KT공용 user guide Mentor MP 298p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M024": {
+    "machine_name": "PUMA2500LY#1",
+    "machine_ips": ["172.16.10.59"],
+    "machine_maker": "DOOSAN INFRACORE",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M025": {
+    "machine_name": "PUMA2500LY#2",
+    "machine_ips": ["172.16.10.60"],
+    "machine_maker": "DOOSAN INFRACORE",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M026": {
+    "machine_name": "BMC80-10P",
+    "machine_ips": ["172.16.10.22"],
+    "machine_maker": "TOSHIBA",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB 5",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M027": {
+    "machine_name": "30V3S",
+    "machine_ips": [],
+    "machine_maker": "CINCINNATI MILACRON",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M028": {
+    "machine_name": "PUMA  PV 8300R #3(102)",
+    "machine_ips": ["192.168.1.46"],
+    "machine_maker": "DOOSAN INFRACORE",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TF",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M029": {
+    "machine_name": "DNM750LII #C1",
+    "machine_ips": ["172.16.10.64"],
+    "machine_maker": "DN솔루션즈",
+    "machine_controller": "화낙",
+    "machine_ver": "i-Series",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M030": {
+    "machine_name": "MD 6700 #1",
+    "machine_ips": ["172.16.10.23"],
+    "machine_maker": "두산공작기계, KOREA",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M031": {
+    "machine_name": "MD 6700 #2",
+    "machine_ips": ["172.16.10.24"],
+    "machine_maker": "두산공작기계, KOREA",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M032": {
+    "machine_name": "MD 6700 #4",
+    "machine_ips": ["192.168.1.48"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M033": {
+    "machine_name": "MD 6700 #5",
+    "machine_ips": ["192.168.1.49"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M034": {
+    "machine_name": "MD 6700 #6",
+    "machine_ips": ["172.16.10.51"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M035": {
+    "machine_name": "MD 6700 #7",
+    "machine_ips": ["172.16.10.52"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡(MD6700)_EN 두산 PARTS BOOK MD 6700 86p.pdf",
+            "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf",
+            "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M036": {
+    "machine_name": "HU80A-5X",
+    "machine_ips": ["172.16.10.26"],
+    "machine_maker": "MITSUI-SEIKI",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [
+            "율곡5(HU80A-5X) 삼정정기 제작사양서 FANUC 31i A5, 22p.pdf",
+            "율곡5(HU80A-5X) 삼정정기 설명서 FANUC 30iM 31iM DM3034AE03, 202p.pdf",
+            "율곡5(HU80A-5X) 삼정정기 NC 장비 F30 31l-0001, 16p.pdf",
+            "율곡5(HU80A-5X) 삼정정기 HU80A 5X 보수설명서 , 222p.pdf",
+            "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X, 56p.pdf",
+            "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X,  2번 56p.pdf",
+            "율곡5(HU80A-5X) 삼정전기 공구 계측 장비 보족설명서 F30 31i, 16p.pdf",
+            "율곡5(HU80A-5X) 삼정기계 기본조작설명서 FANUC 30iM 31iM, 120p.pdf",
+            "율곡5(HU80A-5X) 기타 봉투,97p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI MACHINING C4NTER MAINTENANCE MANUAL ELECTRICAL VOLUMEHU80A 5X NC FANUC, 56p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI KOGYO PROGRAMMING MANUAL HORIZONTAL SPINDLE MACHINING CENTERS WITH FANUC 30iM 31iM,202p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI KOGYO HORIZONTAL MACHINING CENTER BASIC OPERATION MANUAL FANUC 30iM 31iM, 120p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI KOGYO 5 AXES HORIZONTAL MACHINING CENTER HU80A 5X MAINTENANCE MANUAL,280p.pdf",
+            "율곡5(HU80A-5X) MITSU SEIKI SUPPLEMENTS FOR LASER TOOL MEASURING INSTRUMENT NC Unit F30 31i, 22p.pdf",
+            "율곡5(HU80A-5X) EBA KOHYO INSTRUCTION MANUAL PALLET POOL RPP80 8TEL, 31p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡5(HU80A-5X) 에바공업 첨부도면일람표 , 21p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI LADDER DIAGRAM FANUC 31i HU80A 5X 222,218p.pdf",
+            "율곡5(HU80A-5X) MITSUI SEIKI ELEMENTARY FANUC F30 31MI HU80A 5X 222, 181p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M037": {
+    "machine_name": "H5-800",
+    "machine_ips": ["172.16.10.45"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-B5",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M038": {
+    "machine_name": "DHF8000 #C1",
+    "machine_ips": ["192.168.1.44"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-B5",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M039": {
+    "machine_name": "DHF8000 #C2",
+    "machine_ips": ["172.16.10.65"],
+    "machine_maker": "DOOSAN 공작기계",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-B5",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M040": {
+    "machine_name": "H5-1000 #1",
+    "machine_ips": ["172.16.10.8"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf",
+            "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf",
+            "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB H5 1000XT (#605) 553p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(H5-1000 #1, H5-1000 #2) H5 1000XT Infinite table, 202p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M041": {
+    "machine_name": "H5-1000 #2",
+    "machine_ips": ["172.16.10.9"],
+    "machine_maker": "CINCINNATI",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf",
+            "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf",
+            "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB H5 1000XT (#605) 553p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(H5-1000 #1, H5-1000 #2) H5 1000XT Infinite table, 202p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M042": {
+    "machine_name": "ECOSPEED FHT 1010",
+    "machine_ips": ["172.16.10.29"],
+    "machine_maker": "DST",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(ECOSPEED FHT 1010) Programming Instruction DST A800137, 121p.pdf",
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf",
+            "율곡5(ECOSPEED FHT 1010) Documentation of Sub Suppliers file 1 A800137, 804p  .pdf",
+            "율곡5(ECOSPEED FHT 1010) a3 22쪽 Maintenance and Instruction Manual DST with Diagrams and Plans A800137, A3 22p A4 127P .pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M043": {
+    "machine_name": "ZS-500 #1",
+    "machine_ips": ["172.16.10.42"],
+    "machine_maker": "Starrag, Switzerland",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf",
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M044": {
+    "machine_name": "ZS-500 #2",
+    "machine_ips": ["172.16.10.43"],
+    "machine_maker": "Starrag, Switzerland",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf",
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M045": {
+    "machine_name": "ZS-500 #3",
+    "machine_ips": ["172.16.10.63"],
+    "machine_maker": "Starrag, Switzerland",
+    "machine_controller": "지멘스",
+    "machine_ver": "840D",
+    "document": {
+        "manual": [
+            "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf",
+            "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M046": {
+    "machine_name": "DMU100T",
+    "machine_ips": ["172.16.10.20"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "TNC430",
+    "document": {
+        "manual": [
+            "율곡4(DMU100T) DECKEL MAHO DMU100T TNC430 Machine manual, 554p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMU100T) DECKEL MAHO DMU100TN 전기메뉴얼, 574p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M047": {
+    "machine_name": "DMU125P #1",
+    "machine_ips": [],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "TNC430",
+    "document": {
+        "manual": [
+            "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMU125P #1) DECKEL MAHO circuit diagram DMU 125P 1호기, 140p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M048": {
+    "machine_name": "DMU125P #2",
+    "machine_ips": ["172.16.10.35"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "TNC430",
+    "document": {
+        "manual": [
+            "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf"
+        ],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M049": {
+    "machine_name": "DMU60T#1",
+    "machine_ips": ["172.16.10.14"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO DMU 60TN(전기도면), 507p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M050": {
+    "machine_name": "DMU60T#2",
+    "machine_ips": ["192.168.1.60"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO DMU 60TN(전기도면), 507p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M051": {
+    "machine_name": "DMC60T#1",
+    "machine_ips": ["172.16.10.15"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T 전기 494p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M052": {
+    "machine_name": "DMC60T#2",
+    "machine_ips": ["172.16.10.16"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T 전기 494p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M053": {
+    "machine_name": "DMC60T#3",
+    "machine_ips": ["172.16.10.19"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T 전기 494p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M054": {
+    "machine_name": "DMC125U",
+    "machine_ips": ["172.16.10.21"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡4(DMC125U) DECKEL MAHO DMC 125 U OPERATORS MANUAL, 1070(확인)p.pdf",
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMC125U) DECKEL MAHO DMC125U2(전기도면), 20p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M055": {
+    "machine_name": "DMC105V",
+    "machine_ips": ["172.16.10.27"],
+    "machine_maker": "DECKEL-MAHO",
+    "machine_controller": "하이덴하인",
+    "machine_ver": "iTNC530",
+    "document": {
+        "manual": [
+            "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf",
+            "율곡4(DMC105V) DECKEL MAHO DMC105V OPERATING INSTRUCTIONS, 572p.pdf",
+            "율곡4(DMC105V) DECKEL MAHO Operators Manual DMC 105Vlin iTNC 530, 477p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(DMC105V) DECKEL MAHO GmbH DMC75 105Vlin iTNC, 298p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M056": {
+    "machine_name": "INTEGREX i-200",
+    "machine_ips": ["172.16.10.53"],
+    "machine_maker": "YAMAZAKI MAZAK",
+    "machine_controller": "마작",
+    "machine_ver": "Matrix 2",
+    "document": {
+        "manual": [
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(INTEGREX i-200) MAZAK Electric diagram integrex i-200_1, 586p.pdf",
+            "율곡4(INTEGREX i-200) MAZAK Electric diagram integrex i-200_2, 586p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Electric diagram, 310p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M057": {
+    "machine_name": "INTEGREX i-400",
+    "machine_ips": ["172.16.10.54"],
+    "machine_maker": "YAMAZAKI MAZAK",
+    "machine_controller": "마작",
+    "machine_ver": "Matrix 2",
+    "document": {
+        "manual": [
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf",
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf"
+        ],
+        "controller": [],
+        "electrical": [
+            "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Electric diagram, 310p.pdf"
+        ],
+        "ladder": []
+    }
+  },
+  "M058": {
+    "machine_name": "PUMA12L",
+    "machine_ips": ["172.16.10.55"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "비전",
+    "machine_ver": "VISION 380L",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M059": {
+    "machine_name": "PUMA350L",
+    "machine_ips": ["172.16.10.58"],
+    "machine_maker": "대우중공업",
+    "machine_controller": "비전",
+    "machine_ver": "VISION 380L",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M060": {
+    "machine_name": "LT15#1",
+    "machine_ips": ["172.16.10.56"],
+    "machine_maker": "기아중공업",
+    "machine_controller": "야스낙",
+    "machine_ver": "YASNAC",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
+        "ladder": []
+    }
+  },
+  "M061": {
+    "machine_name": "LT15#2",
+    "machine_ips": ["172.16.10.57"],
+    "machine_maker": "기아중공업",
+    "machine_controller": "야스낙",
+    "machine_ver": "YASNAC",
+    "document": {
+        "manual": [],
+        "controller": [],
+        "electrical": [],
         "ladder": []
     }
   }

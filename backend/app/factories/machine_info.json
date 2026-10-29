@@ -4,6 +4,7 @@
     "machine_ip": "172.16.10.3",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -18,6 +19,7 @@
       "manual": [
         "연암(OKUMA#4)_JPY  OCUMA #4 VMP_10 보수설명서-162P"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -31,6 +33,13 @@
     "machine_ips": ["192.168.1.99"],
     "document": {
       "manual": [
+        "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p",
+        "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p",
+        "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p",
+        "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p",
+        "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p"
+      ],
+      "controller": [
         "취급설명서(선반)_B-64484EN-1_05_FS30i31i32i-B Lathe_OP",
         "취급설명서(MCT)_B-64484EN-2_05_FS30i31i32i-B Machining Center_OP",
         "사양설명서_B-64482EN_05_FS30i31i32i-B Descriptions",
@@ -38,19 +47,15 @@
         "파라미터설명서_B-64490EN_05_FS30i31i32i-B Parameter",
         "보수설명서_B-64485EN_02_FS30i31i32i-B Maintenance",
         "취급설명서(공통)_B-64484EN_05_FS30i31i32i-B Common_OP",
-        "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)",
-        "연암3(DHF8000, DHF8000 #2) DN Parts book DHF8000-152p",
-        "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 PARTS BOOK 152p",
-        "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p",
-        "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p",
-        "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p"
+        "결합설명서(FUNCTION)_B-64483EN-1_05_FS30i31i32i-B Connection(Function)"
       ],
       "electrical": [
         "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p",
         "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p"
       ],
       "ladder": [
-        "31i-B PMC.LST"
+        "31i-B PMC.LST",
+        "M005.LAD"
       ]
     },
     "machine_maker": "두산공작기계",
@@ -67,6 +72,7 @@
         "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
         "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -81,6 +87,7 @@
       "manual": [
         "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006 eg부록 2 1A 1061P"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -95,6 +102,7 @@
       "manual": [
         "연암(HERMLE C30)_EN HERMLE C30UOperating manual iTNC 530 1050p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -109,6 +117,7 @@
       "manual": [
         "연암(HERMLE C40)_EN HERMLE C40U Operating manual iTNC 530 1004p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -121,6 +130,7 @@
     "machine_ip": "172.16.10.12",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -135,6 +145,7 @@
       "manual": [
         "연암(DMU125P#1)_EN vDMU 125 P duoBLOCK 1호기 장비메뉴얼 682p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -147,6 +158,7 @@
     "machine_ip": "172.16.10.14",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -159,6 +171,7 @@
     "machine_ip": "172.16.10.15",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -171,6 +184,7 @@
     "machine_ip": "172.16.10.16",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -183,6 +197,7 @@
     "machine_ip": "172.16.10.17",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -195,6 +210,7 @@
     "machine_ip": "172.16.10.1",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -207,6 +223,7 @@
     "machine_ip": "172.16.10.20",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -224,6 +241,7 @@
         "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
         "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -241,8 +259,9 @@
         "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p",
         "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p"
       ],
+      "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": ["M022.LAD"]
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -255,6 +274,7 @@
       "manual": [
         "연암(DMU60 EVO)_EN DMU 60eVo Heidenhain iTMC 530 장비매뉴얼 588p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -267,6 +287,7 @@
     "machine_ip": "172.16.10.47",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -279,6 +300,7 @@
     "machine_ip": "172.16.10.25",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -291,6 +313,7 @@
     "machine_ip": "172.16.10.26",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -303,6 +326,7 @@
     "machine_ip": "172.16.10.27",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -315,6 +339,7 @@
     "machine_ip": "172.16.10.28",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -327,6 +352,7 @@
     "machine_ip": "172.16.10.29",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -339,6 +365,7 @@
     "machine_ip": "172.16.10.30",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -351,6 +378,7 @@
     "machine_ip": "172.16.10.31",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -366,6 +394,7 @@
         "연암(DMU75)_GER DMG MORI operating instructions 1 584p",
         "연암(DMU75)_GER DMG MORI operating instructions 2 706p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -378,6 +407,7 @@
     "machine_ip": "172.16.10.49",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -394,6 +424,7 @@
         "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
         "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -410,6 +441,7 @@
         "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
         "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -422,6 +454,7 @@
     "machine_ip": "172.16.10.50",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -434,6 +467,7 @@
     "machine_ip": "172.16.10.39",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -449,6 +483,7 @@
         "연암(APEC G3080)_EN G Series Electrical Operation Manual Heidenhain iTNC530-99p",
         "연암(APEC G3080)_EN G Series Operation and Maintenance Manual(Original instruction) 98P"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -461,6 +496,7 @@
     "machine_ip": "172.16.10.41",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -475,6 +511,7 @@
       "manual": [
         "연암(KEN B4060)_KR KEN ICHI MACHINE 작동 및 유지보수 매뉴얼 lIN MAX 시리즈 GSB-4060(5-AX)-186p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -487,6 +524,7 @@
     "machine_ip": "172.16.10.43",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -499,6 +537,7 @@
     "machine_ip": "172.16.10.52",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -511,6 +550,7 @@
     "machine_ip": "172.16.10.53",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -525,6 +565,7 @@
       "manual": [
         "연암(C32) c32u 장비메뉴얼 267p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -541,6 +582,7 @@
         "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p",
         "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -556,6 +598,7 @@
         "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part1",
         "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part3"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -578,6 +621,7 @@
         "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p",
         "lcv6700"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -599,6 +643,7 @@
         "B-64610EN_01_0i-F_Parameter",
         "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p"
       ],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },
@@ -617,6 +662,7 @@
         "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p",
         "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p"
       ],
+      "controller": [],
       "electrical": [
         "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p",
         "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p"
@@ -632,6 +678,7 @@
     "machine_ip": "172.16.10.60",
     "document": {
       "manual": [],
+      "controller": [],
       "electrical": [],
       "ladder": []
     },

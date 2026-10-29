@@ -13,7 +13,7 @@ import type {
 } from "@/types/chatApi";
 import type { ChatMetadata } from "@/types/chatApi";
 
-export async function updateMessageFeedback(messageId: number, feedback: MessageFeedback): Promise<void> {
+export async function updateMessageFeedback(messageId: number, feedback: MessageFeedback | null): Promise<void> {
   await api.put(`/api/history/messages/${messageId}/feedback`, { feedback }, { timeout: 15_000 });
 }
 

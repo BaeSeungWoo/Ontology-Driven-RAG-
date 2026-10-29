@@ -182,7 +182,7 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
   answerText: string;
   onSource: (index: number) => void;
 }) {
-  const { machineCode } = useMachine();
+  const { executionMachineCode: machineCode } = useMachine();
   const root = useRef<HTMLElement>(null);
   const [visible, setVisible] = useState(false);
   const [opened, setOpened] = useState<Record<string, boolean>>({});
@@ -218,8 +218,8 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
       ? codes.some(code => String(code).trim() === machineCode)
       : typeof codes === "string" && codes.split(/[^A-Za-z0-9_-]+/).includes(machineCode));
   };
-  const addressKey = [...new Set(diagrams.filter((chunk, index) =>
-    (opened[chunk.metadata.ladder_diagram!.nblock] ?? index === 0) && matchesMachine(chunk)
+  const addressKey = [...new Set(diagrams.filter((chunk) =>
+    (opened[chunk.metadata.ladder_diagram!.nblock] ?? false) && matchesMachine(chunk)
   ).flatMap(chunk => getLadderSignals(chunk.metadata.ladder_diagram).map(signal => signal.address)))].sort().join(",");
   const addresses = useMemo(() => addressKey ? addressKey.split(",") : [], [addressKey]);
   const { snapshot, error } = useLadderSignals(addresses, !visible);
@@ -231,12 +231,12 @@ export default function LadderDiagrams({ chunks, answerText, onSource }: {
   return (
     <section ref={root} className={styles.root} aria-label="검색된 래더 도면">
       <p className={styles.heading}>검색된 래더 근거</p>
-      {diagrams.map((chunk, index) => {
+      {diagrams.map((chunk) => {
         const diagram = chunk.metadata.ladder_diagram!;
         const reference = references.find((item) => item.chunkIndex === chunk.index)!;
         const layout = diagram.status === "supported" ? measure(diagram.logic) : null;
         return (
-          <details key={diagram.nblock} className={styles.card} open={opened[diagram.nblock] ?? index === 0}
+          <details key={diagram.nblock} className={styles.card} open={opened[diagram.nblock] ?? false}
             onToggle={event => {
               if (event.target !== event.currentTarget) return;
               const open = event.currentTarget.open;

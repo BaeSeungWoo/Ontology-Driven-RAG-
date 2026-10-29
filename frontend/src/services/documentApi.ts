@@ -1,4 +1,4 @@
-import api, { API_BASE_URL } from "@/services/api";
+import api, { API_BASE_URL, executionHeaders } from "@/services/api";
 import type { ResolvedDocument } from "@/types/chatApi";
 
 function toBackendUrl(path: string) {
@@ -11,6 +11,7 @@ export async function resolveDocument(
   pageRange?: string | null
 ): Promise<ResolvedDocument> {
   const response = await api.get<ResolvedDocument>("/api/documents/resolve", {
+    headers: executionHeaders(),
     params: {
       source_doc_name: sourceDocName,
       page_range: pageRange || undefined,

@@ -6,7 +6,7 @@ def machine_documents(info: dict, kind: str | None = None) -> list[str]:
     documents = info.get("document") or []
     if isinstance(documents, dict):
         return list(documents.get(kind, [])) if kind else [
-            name for group in ("manual", "electrical", "ladder") for name in documents.get(group, [])
+            name for group in ("manual", "controller", "electrical", "ladder") for name in documents.get(group, [])
         ]
     return list(documents)
 
