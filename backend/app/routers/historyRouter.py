@@ -8,7 +8,6 @@ from app.database import database
 from app.factories.config import get_factory_config
 from app.factories.machines import load_machine_info, request_factory
 from app.core.machine_readiness import require_machine_ready
-from app.core.demo_mode import execution_target
 from app.security.validate_code import session_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
 
@@ -257,14 +256,12 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
     machine_code = session_machine_code(ctx, req.machine_code, machine_info)
-    target_factory, target_code = execution_target(
-        request_factory(client_request), machine_code, req.llm_mode, req.llm_persona)
-    config = get_factory_config(req.llm_model, target_factory)
-    require_machine_ready(target_code, config, config.machines, req.llm_mode, req.llm_persona)
+    config = get_factory_config(req.llm_model, request_factory(client_request))
+    require_machine_ready(machine_code, config, config.machines, req.llm_mode, req.llm_persona)
     if req.llm_mode == "electrical":
         from app.core.electrical_qa import validate_machine
         try:
-            validate_machine(target_code)
+            validate_machine(config.id, machine_code)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
     try:

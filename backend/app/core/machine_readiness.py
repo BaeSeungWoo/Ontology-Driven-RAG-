@@ -13,7 +13,7 @@ from time import monotonic
 
 from fastapi import HTTPException
 
-from app.core.electrical_qa import PACKAGE, SUPPORTED_MACHINES, config_for_machine, DISABLED_MESSAGE
+from app.core.electrical_qa import package_for_factory, config_for_machine
 from pipeline.ingestion.machine_resolver import machine_documents
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -103,12 +103,13 @@ def _search_records(chroma_path, collection_name, bm25_path, revision):
     return result
 
 
-@lru_cache(maxsize=2)
-def _electrical_ready(config_path, revision):
-    # Reuse the drawing engine's own PDF/index/evidence validation, without LLM calls.
+@lru_cache(maxsize=128)
+def _electrical_ready(config_path, revision, factory_id):
+    # Reuse the selected engine's PDF/index/evidence validation, without LLM calls.
+    package = package_for_factory(factory_id)
     result = subprocess.run(
-        [sys.executable, str(PACKAGE / "qa_portable.py"), "--config", config_path, "--check"],
-        cwd=PACKAGE, capture_output=True, timeout=15,
+        [sys.executable, str(package / "qa_portable.py"), "--config", config_path, "--check"],
+        cwd=package, capture_output=True, timeout=15,
         **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}),
     )
     return result.returncode == 0
@@ -134,14 +135,12 @@ def machine_readiness(config, machines):
     except (OSError, ValueError, KeyError, TypeError):
         ladder_ready = False
     electrical_states = {}
-    for code in (SUPPORTED_MACHINES & machines.keys()) if config.id == "yunam_origin" else ():
+    for code, info in machines.items():
+        if not machine_documents(info, "electrical"):
+            continue
         try:
-            config_path = config_for_machine(code)
-            if isinstance(machines[code].get("document"), dict):
-                drawing = Path(json.loads(config_path.read_text(encoding="utf-8-sig"))["pdf"]).stem
-                if drawing not in {Path(name).stem for name in machine_documents(machines[code], "electrical")}:
-                    continue
-            electrical_states[code] = _electrical_ready(str(config_path), revision)
+            config_path = config_for_machine(config.id, code)
+            electrical_states[code] = _electrical_ready(str(config_path), revision, config.id)
         except (OSError, ValueError, KeyError, subprocess.TimeoutExpired):
             electrical_states[code] = False
     result = {}
@@ -169,10 +168,8 @@ def machine_readiness(config, machines):
 
 
 def require_machine_ready(code, config, machines, mode=None, persona=None):
-    if config.id != "yunam_origin" and (mode == "electrical" or persona == "engineer"):
-        raise HTTPException(409, DISABLED_MESSAGE)
-    if config.id != "yunam_origin" and (persona not in (None, "operator") or mode not in (None, "rag", "manual")):
-        raise HTTPException(409, "연암(구)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다.")
+    if config.id != "yunam_origin" and (persona not in (None, "operator", "engineer") or mode not in (None, "rag", "manual", "electrical")):
+        raise HTTPException(409, "정비·보전·관리자 기능은 신규 공장 연결 준비 중입니다.")
     if code == "ALL":
         raise HTTPException(409, "검색 가능한 장비를 선택해 주세요.")
     state = machine_readiness(config, machines).get(code, {})

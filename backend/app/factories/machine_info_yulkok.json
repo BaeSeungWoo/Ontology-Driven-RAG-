@@ -22,10 +22,10 @@
             "B-63983EN_04_30i-A.pdf"
         ],
         "electrical": [
-            "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Ladder Diagram VC630, 418p.pdf",
             "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf"
         ],
-        "ladder": []
+        "ladder": [
+        ]
     }
   },
   "M002": {

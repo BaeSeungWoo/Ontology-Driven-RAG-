@@ -9,14 +9,21 @@ from typing import Iterable
 import torch
 from PIL import Image
 
-from chromadb.utils.embedding_functions import OllamaEmbeddingFunction
+from chromadb.utils.embedding_functions import OllamaEmbeddingFunction, OpenAIEmbeddingFunction
 from app.factories.config import Config
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  chroma용 ollama 임베딩
 # ──────────────────────────────────────────────────────────────────────────────
-def load_embeddings(config: Config) -> OllamaEmbeddingFunction:
-    """설정에서 OllamaEmbeddingFunction 인스턴스를 생성합니다."""
+def load_embeddings(config: Config):
+    """Connect to Ollama or an OpenAI-compatible embedding server."""
+    if config.embedding.provider == "openai":
+        return OpenAIEmbeddingFunction(
+            api_key="EMPTY", model_name=config.embedding.model,
+            api_base=config.get_embedding_base_url(),
+        )
+    if config.embedding.provider != "ollama":
+        raise ValueError(f"Unsupported embedding provider: {config.embedding.provider}")
     return OllamaEmbeddingFunction(
         model_name=config.embedding.model,
         url=config.get_embedding_base_url()
@@ -114,6 +121,7 @@ def save_embedding_meta(config: Config) -> None:
     meta = {
         "factory_id": config.id,
         "embedding_model": config.embedding.model,
+        "embedding_provider": config.embedding.provider,
         "embedding_base_url": config.get_embedding_base_url()
     }
     with meta_path.open("w", encoding="utf-8") as f:

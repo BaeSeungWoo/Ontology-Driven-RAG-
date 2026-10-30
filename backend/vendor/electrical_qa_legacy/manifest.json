@@ -1,0 +1,61 @@
+{
+  "package": "electrical-qa-only",
+  "format_version": 2,
+  "release": "20261015_merged_v2",
+  "recommended_data_version": "manual_merged_v1",
+  "original_engine_sha256": {
+    "ko_terms.py": "ec7e79a7a2dd5b1568e0eb522eb0468e918ade148f0a87a546fb9705e383392a",
+    "llm.py": "27b08c1ddc9ae1605ddced0656315f7c07521187f6eba4c6658c4455425335c4",
+    "metrics.py": "e44db0e202dbd5730da17758b594ac49cf164f29cdb6443d16ab9cc7d711f786",
+    "parts_select.py": "8dd5b03d41f9e287c2698b6896a313322ca31be75ca95c0bedbf82728a4dcc27",
+    "provenance.py": "e99810c15cb8fcd1ad3b805e24b168806a25da32d2928690f8b6b5c80e12bdaf",
+    "puma_evidence.py": "5f9efb7047174cf5a1c1003a512ff64034985a74da31c3e406458c67a617a1a7",
+    "puma_read.py": "8aecef43bff12dc49385ba16536f4267fd3ba84521818474bdf4325007a35fe0",
+    "puma_retrieval.py": "f7660050f99d79a1c0b233bf9f403f6a3aa16e3241b831f03872e74b0392acc1",
+    "qa_engine.py": "e373de2b1efa36620543db514a9f220261931647c3e46795968baec6fc79386b"
+  },
+  "adaptations": [
+    "generic_signals.json query cache moved to per-request cache; algorithms and v52 flags unchanged",
+    "index-local verified evidence, required full-page/PDF validation, merged scope and explicit-question checked-page expansion",
+    "latest shared grounding guards and final-generation prompt"
+  ],
+  "excluded": [
+    "indexing code",
+    "bulk OCR",
+    "Docling",
+    "manual GraphRAG",
+    "web backend/frontend",
+    "credentials",
+    "model weights",
+    "PDF/index data"
+  ],
+  "files": {
+    "config.example.json": "301d3cdadb39bdd6ea87f1f999328553b84a311758008a5ad01ec33cc2eeb26f",
+    "electrical/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "electrical/engine/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "electrical/engine/ko_terms.py": "ec7e79a7a2dd5b1568e0eb522eb0468e918ade148f0a87a546fb9705e383392a",
+    "electrical/engine/llm.py": "27b08c1ddc9ae1605ddced0656315f7c07521187f6eba4c6658c4455425335c4",
+    "electrical/engine/metrics.py": "e44db0e202dbd5730da17758b594ac49cf164f29cdb6443d16ab9cc7d711f786",
+    "electrical/engine/parts_select.py": "8dd5b03d41f9e287c2698b6896a313322ca31be75ca95c0bedbf82728a4dcc27",
+    "electrical/engine/provenance.py": "e99810c15cb8fcd1ad3b805e24b168806a25da32d2928690f8b6b5c80e12bdaf",
+    "electrical/engine/puma_evidence.py": "5f9efb7047174cf5a1c1003a512ff64034985a74da31c3e406458c67a617a1a7",
+    "electrical/engine/puma_read.py": "8aecef43bff12dc49385ba16536f4267fd3ba84521818474bdf4325007a35fe0",
+    "electrical/engine/puma_retrieval.py": "f7660050f99d79a1c0b233bf9f403f6a3aa16e3241b831f03872e74b0392acc1",
+    "electrical/engine/qa_engine.py": "8743a2b40ad2cfe84ebac2595a07722a449944968c3e4dd0db9e58574535113d",
+    "electrical/grounding.py": "d4294139a5c329b1498ad8539fb2ed1c9330499a735838eee5cbfee9d881e10e",
+    "electrical/options.py": "fa6d0f98b488978cb7cbbcb2c08dd6142425868366ce01672531a58ad1931529",
+    "electrical/profiles/dhf8000.json": "f9268b63b1eb2d71650fd392c92ae303de20ea026d7bc82555762b1595ad2663",
+    "electrical/profiles/dmu85.json": "ca33baab3a724e5919d76ec06fd3a18ba14724ebe5b8dc1f655b5eb33bf08416",
+    "electrical/profiles/pl25.json": "6fd3e90d14b73ce19d1b191065972ce4145bd4437dba646d709ee8ea195749a7",
+    "electrical/profiles/puma280.json": "f8a7b92dfc06e9abd5c017c8b5569efac14018349ea7085db07f5a9a1ab5668a",
+    "electrical/profiles/sl2500.json": "38cac44c1b93c0748a0f2372752b11621c24666ec4393b622cf337ec15e8ac10",
+    "electrical/verified/dhf8000.json": "0582367aa26701fcecf1513b3de8eba10a3098b0976885707161630ce47cdbf2",
+    "NOTICE.md": "640dc63de47d41affd1c641287f8f17c13ad3d042e767c9dd1f53529134226be",
+    "qa_portable.py": "36c31192917b66b91424821a12d50ce9b489f258208f77c799891e23a70ecc6a",
+    "README.md": "125bea07cbae7edc9c1a749ea034cc1ac3f6ca4d1793778c7557bfc7f9e7e9c8",
+    "RELEASE_VALIDATION.json": "ab089210efa337f3e809ab598576f2895d463eab58c1df1aca35992568e7c62a",
+    "runtime_support.py": "1c92fae67e1de4c025da992900b964da0d7f0ae95b74a080825d2457e7a4e8c8",
+    "VALIDATION.md": "111e89388db1980de1fede8c1c90180c6f37b77dcd92cdb35e3703bcfc41d49a",
+    "verify_files.py": "88a4a4ed23a941dd1f4ea9b54e4f1eb9465a972972aefbf2f4cd92f6ff6ebd4e"
+  }
+}

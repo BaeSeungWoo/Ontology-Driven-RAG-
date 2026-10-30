@@ -29,7 +29,7 @@ def run(request):
     report_progress("답변에 연결할 도면 미리보기를 준비하는 중")
     import pypdfium2
     asset_root = Path(__file__).resolve().parents[3] / "pipeline" / "data"
-    preview_dir = asset_root / "electrical" / "previews" / run_id
+    preview_dir = Path(config["output_dir"]).parent / "previews" / run_id
     preview_dir.mkdir(parents=True)
     with pypdfium2.PdfDocument(config["pdf"]) as pdf:
         for chunk in result["chunks"]:
@@ -45,7 +45,7 @@ def run(request):
                 image.close()
                 bitmap.close()
                 page.close()
-            meta.update(asset_path=target.relative_to(asset_root).as_posix(), container_type="pictures", machine_code=request["machine_code"])
+            meta.update(asset_path=target.relative_to(asset_root).as_posix(), container_type="pictures", machine_code=request["machine_code"], site_id=request["factory_id"])
             meta.pop("pdf", None)
             meta.pop("pdf_uri", None)
     return {"ok": True, "result": {key: result[key] for key in

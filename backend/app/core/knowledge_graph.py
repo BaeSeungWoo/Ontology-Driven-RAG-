@@ -28,9 +28,9 @@ class KnowledgeGraphSearchError(RuntimeError):
 def _index_settings(factory_id="yunam"):
     indexes, fingerprints = [], []
     for name in CORPORA:
-        variable = f"GRAPH_INDEX_{name.upper()}_DIR" if factory_id == "yunam" else f"GRAPH_INDEX_{factory_id.upper()}_{name.upper()}_DIR"
+        variable = f"GRAPH_INDEX_{name.upper()}_DIR" if factory_id == "yunam_origin" else f"GRAPH_INDEX_{factory_id.upper()}_{name.upper()}_DIR"
         index_root = ROOT / "backend/data/graph_indexes"
-        if factory_id != "yunam":
+        if factory_id != "yunam_origin":
             index_root = index_root / factory_id
         directory = Path(os.environ.get(variable) or index_root / name).resolve()
         manifest_path = directory / "manifest.json"

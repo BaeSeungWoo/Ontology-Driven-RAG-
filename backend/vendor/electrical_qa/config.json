@@ -1,8 +1,8 @@
 {
-  "profile": "electrical/profiles/dhf8000.json",
-  "index_dir": "../../../pipeline/data/electrical/index/dhf8000",
-  "pdf": "../../../pipeline/data/electrical/pdfs/연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p.pdf",
-  "output_dir": "../../data/electrical_qa/results",
+  "profile": "../../../pipeline/data/yunam/electrical/profiles/dhf8000.json",
+  "index_dir": "../../../pipeline/data/yunam/electrical/index/dhf8000",
+  "pdf": "../../../pipeline/data/yunam/inputs/electricals/연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p.pdf",
+  "output_dir": "../../../pipeline/data/yunam/electrical/results",
   "require_index_verified": true,
   "provider": "vllm",
   "base_url": "http://127.0.0.1:8100/v1",

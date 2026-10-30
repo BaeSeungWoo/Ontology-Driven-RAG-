@@ -1,7 +1,7 @@
 "use client";
 
 import { Fragment, createContext, useContext, useEffect, useRef, useState } from "react";
-import api, { setApiFactory, setApiPersona, type FactoryId } from "@/services/api";
+import api, { setApiFactory, type FactoryId } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
 
@@ -25,7 +25,6 @@ const MachineContext = createContext<{
   factoryId: FactoryId;
   setFactoryId: (factory: FactoryId) => void;
   executionMachineCode?: string;
-  isDemo: boolean;
   personaType: PersonaType;
   setPersonaType: (persona: PersonaType) => void;
   machines: Machine[];
@@ -40,8 +39,6 @@ const MachineContext = createContext<{
 export default function MachineProvider({ children }: { children: React.ReactNode }) {
   const [factoryId, setFactory] = useState<FactoryId>("yunam_origin");
   const [personaType, setPersona] = useState<PersonaType>("operator");
-  // Display and history retain the selected equipment; only execution uses M005.
-  const isDemo = factoryId !== "yunam_origin" && personaType !== "operator";
 
   const [loadedFactory, setLoadedFactory] = useState<FactoryId>();
   const [llmModel, setLlmModel] = useState<LlmModel>("vllm_config");
@@ -56,7 +53,6 @@ export default function MachineProvider({ children }: { children: React.ReactNod
     if (factory === factoryId) return;
     setApiFactory(factory);
     setPersona("operator");
-    setApiPersona("operator");
     initialized.current = false;
     setMachineCode(undefined);
     setMachines([]);
@@ -65,7 +61,6 @@ export default function MachineProvider({ children }: { children: React.ReactNod
   };
 
   const setPersonaType = (persona: PersonaType) => {
-    setApiPersona(persona);
     setPersona(persona);
   };
 
@@ -96,7 +91,7 @@ export default function MachineProvider({ children }: { children: React.ReactNod
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
-  return <MachineContext.Provider value={{ factoryId, setFactoryId, executionMachineCode: isDemo ? "M005" : machineCode, isDemo, personaType, setPersonaType, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
+  return <MachineContext.Provider value={{ factoryId, setFactoryId, executionMachineCode: machineCode, personaType, setPersonaType, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
     refreshMachines: () => {
       if (status === "error") setStatus("loading");
       setRevision(value => value + 1);

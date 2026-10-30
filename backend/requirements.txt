@@ -24,11 +24,6 @@ defusedxml==0.7.1
 dill==0.4.1
 distro==1.9.0
 doclang==0.7.1
-docling==2.108.0
-docling-core==2.85.0
-docling-ibm-models==3.13.3
-docling-parse==7.4.0
-docling-slim==2.108.0
 durationpy==0.10
 et_xmlfile==2.0.0
 faiss-cpu==1.14.2

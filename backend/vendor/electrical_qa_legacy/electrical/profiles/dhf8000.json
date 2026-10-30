@@ -1,0 +1,15 @@
+{
+  "machine": "Doosan DHF8000 machining center, FANUC 31i-B5 (DHF8H31BA02)",
+  "style": "puma",
+  "pdf": "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p.pdf",
+  "verified_evidence": "verified/dhf8000.json",
+  "scope": "냉각수 모터 제어와 관련 전원·I/O·부품표 15쪽의 테스트 인덱스입니다. 전체 180쪽 중 나머지 회로는 아직 인덱싱하지 않았습니다.",
+  "full_scope": "두산 DHF8H31BA02 전기도면 180쪽의 전체 페이지 색인입니다. Qwen3-VL 제목란 판독과 기존 판독·PaddleOCR·PDF 텍스트를 합쳤습니다. 냉각수 건·플러싱·Y2 모터 및 검출기 연결은 원본 대조했으며, 그 외 회로는 자동 판독 미검수입니다.",
+  "engine": {
+    "func_pages": 2,
+    "rev_pages": 2,
+    "scale": 4.0,
+    "max_images": 1,
+    "flags": []
+  }
+}

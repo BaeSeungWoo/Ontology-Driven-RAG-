@@ -1,0 +1,43 @@
+{
+  "sha256": "bdfb28adc5024b6b807ebca35cebaa943f8a1537b0b6e6e7d706c646f1b7c82d",
+  "method": "Human visual cross-check of original PDF pages 16, 29, 41, 50 and 55; correct generated transcription, no fault ground truth.",
+  "page_scoped_tags": ["AV14", "M12V2", "M12VA2", "AV12F2", "WJ12V2", "WJ12F2", "XJ12VA2", "XT11", "A52", "WJ12C2"],
+  "title_corrections": [
+    {"page":"116","sheet":"09305","dwg_no":"EDHF800UE093050","title":"FIXTURE SEAT CHECK"},
+    {"page":"117","sheet":"09306","dwg_no":"EDHF800UE093060","title":"FIXTURE OUTPUT RELAY CONTROL"},
+    {"page":"131","sheet":"11006","dwg_no":"EDHF800UE110060","title":"I/O RELAY 32 BOARD LAYOUT"},
+    {"page":"154","sheet":"20012","dwg_no":"EHMC100UW200120","title":"EARTH LINE"}
+  ],
+  "additional_records": [
+    {"id":"16:Y0.5","page":"16","targets":["Y0.5","CGUN.R","KM45"],"text":"Y0.5 CGUN.R COOLANT GUN PUMP MOTOR, tag KM45, pin B18, reference03091/7"},
+    {"id":"16:Y0.4","page":"16","targets":["Y0.4","MFOM.R","KM44"],"text":"Y0.4 MFOM.R MACHINE FLUSHING MOTOR, tag KM44, pin A18, reference03091/6"}
+  ],
+  "devices": [
+    {"page":"29","device":"-M45","description":"COOLANT GUN PUMP MOTOR, three-phase motor, 0.4kW; power through QM45 and KM45. ZM45 is not the motor.","model":"","note":"visually verified"},
+    {"page":"29","device":"-QM45","description":"Motor protection circuit breaker, printed 2.5A; power to KM45 and M45. Auxiliary 23-24 in KM45 coil circuit on p41.","model":"","note":"visually verified"},
+    {"page":"29","device":"-KM45","description":"Contactor switching three-phase power to coolant gun pump motor M45; power contacts 1-2,3-4,5-6; coil circuit on p41.","model":"","note":"visually verified"},
+    {"page":"29","device":"-ZM45","description":"서지 억제 소자(스파크 킬러), M45 전원선의 보호 요소. Surge suppression element, not a motor. 부품 형식과 정격은 미확인.","model":"","note":"visually verified"},
+    {"page":"41","device":"-QM45","description":"Motor protector auxiliary contact 23-24 in series with KM45 coil A1; not a relay coil. Main power circuit p29. 보조접점의 과부하·트립 시 개폐 동작은 이번 원본 대조에서 확인하지 않았다.","model":"","note":"visually verified"},
+    {"page":"41","device":"-KM45","description":"Coolant gun contactor coil A1: L110 via KB1/KAR06 COM2-R6 (Y0.5), then QM45 auxiliary23-24; A2 to L000. KM45A is wire label, not device.","model":"","note":"visually verified"},
+    {"page":"41","device":"-KAR06","description":"Relay output contact COM2-R6 associated with PLC output Y0.5, feeds KM45 coil circuit through QM45 auxiliary23-24.","model":"","note":"visually verified"},
+    {"page":"41","device":"-ZK45","description":"Suppression element across KM45 contactor coil A1/A2; no rating/model verified.","model":"","note":"visually verified"},
+    {"page":"29","device":"-M44","description":"MACHINE FLUSHING COOLANT PUMP MOTOR, three-phase motor, 1.5kW; power via QM44 and KM44.","model":"","note":"visually verified"},
+    {"page":"29","device":"-QM44","description":"Motor protection circuit breaker, printed8.0A; power to KM44 and M44; auxiliary23-24 in KM44 coil circuit p41.","model":"","note":"visually verified"},
+    {"page":"29","device":"-KM44","description":"Contactor switching three-phase power to machine flushing coolant motor M44; coil circuit on p41.","model":"","note":"visually verified"},
+    {"page":"29","device":"-ZM44","description":"서지 억제 소자(스파크 킬러), M44 전원선의 보호 요소. Surge suppression element, not a motor.","model":"","note":"visually verified"},
+    {"page":"41","device":"-QM44","description":"Motor protector auxiliary contact23-24 in series with KM44 coil A1; main power circuit p29. 보조접점의 과부하·트립 시 개폐 동작은 이번 원본 대조에서 확인하지 않았다.","model":"","note":"visually verified"},
+    {"page":"41","device":"-KM44","description":"Machine flushing contactor coil A1: L110 via KB1/KAR05 COM2-R5 (Y0.4), then QM44 auxiliary23-24; A2 to L000. KM44A is wire label.","model":"","note":"visually verified"},
+    {"page":"41","device":"-KAR05","description":"Relay output contact COM2-R5 associated with PLC output Y0.4, feeds KM44 coil through QM44 auxiliary23-24.","model":"","note":"visually verified"},
+    {"page":"50","device":"-AV14","description":"Y2,Z2-axis servo amplifier S.V.M-2. On this Y2-axis page its motor power runs through WJ12V2/XJ12V2 to M12V2; pulse-coder path from JF1/XJF1Y2 uses WJ12F2 and XJ12F2 to AV12F2.","model":"","note":"visually verified"},
+    {"page":"50","device":"-M12V2","description":"Y2-axis main servo motor. Power through WJ12V2 cable and XJ12V2 motor connector from AV14. AV12F2 serial pulse coder is installed in the motor. M12VA2 is a separate fan motor.","model":"","note":"visually verified"},
+    {"page":"50","device":"-M12VA2","description":"FAN MOTOR, separate from the M12V2 main servo motor. Fan supply uses WJ12VA2 cable and XJ12VA2 connector. XJ12VA2 is not the amplifier or pulse-coder connector.","model":"","note":"visually verified"},
+    {"page":"50","device":"-AV12F2","description":"Serial pulse coder installed in Y2 servo motor; links to AV14 amplifier JF1/XJF1Y2 through WJ12F2 cable and XJ12F2 connector. XT11 is not this pulse-coder connection.","model":"","note":"visually verified"},
+    {"page":"50","device":"-WJ12V2","description":"Main Y2 motor power cable from AV14 amplifier to XJ12V2 connector and M12V2 motor; separate from pulse-coder cable WJ12F2.","model":"","note":"visually verified"},
+    {"page":"50","device":"-WJ12F2","description":"Serial pulse-coder cable between AV14 amplifier JF1/XJF1Y2 and XJ12F2 connector to motor-installed AV12F2 coder; not motor power cable WJ12V2.","model":"","note":"visually verified"},
+    {"page":"50","device":"-XJ12VA2","description":"Connector for M12VA2 fan motor via WJ12VA2; not the main motor connector XJ12V2 or pulse-coder connector XJ12F2.","model":"","note":"visually verified"},
+    {"page":"50","device":"-XT11","description":"Terminals SM and Y22 for Y12V2 brake circuit via WJ12H2/XJ12H2; ZK23 suppression element across these lines. Not the serial pulse-coder circuit.","model":"","note":"visually verified"},
+    {"page":"55","device":"-A52","description":"Separate detector interface unit for external axis glass scale, WITHOUT AMPLIFIER TYPE; printed usage table assigns Y2 to A52 JF101. This external glass-scale feedback is distinct from the motor-installed serial pulse coder AV12F2 on p50.","model":"","note":"visually verified"},
+    {"page":"55","device":"-WJ12C2","description":"Y2 AXIS GLASS SCALE WIRE for separate detector feedback to A52 JF101 in printed usage table. Distinct from WJ12F2 motor serial pulse-coder cable and WJ12V2 motor power on p50.","model":"","note":"visually verified"}
+  ],
+  "wire_labels": ["KM45A", "KM44A"]
+}

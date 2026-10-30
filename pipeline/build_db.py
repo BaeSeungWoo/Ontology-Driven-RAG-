@@ -1,190 +1,162 @@
-# pipeline/build_db.py
-from pathlib import Path
+"""Build factory OCR exports into prepared documents, then search indexes."""
 import argparse
-import shutil
+from copy import deepcopy
+from pathlib import Path
 import sys
 
-# Support both `python -m pipeline.build_db` and the original pipeline working directory.
 PIPELINE_ROOT = Path(__file__).resolve().parent
-for import_root in (PIPELINE_ROOT.parent, PIPELINE_ROOT.parent / "backend", PIPELINE_ROOT / "parsers",
-                    PIPELINE_ROOT / "parsers/doclings", PIPELINE_ROOT / "parsers/upstage"):
+for import_root in (PIPELINE_ROOT.parent, PIPELINE_ROOT.parent / "backend"):
     if str(import_root) not in sys.path:
         sys.path.insert(0, str(import_root))
 
-from typing import Any
-from dotenv import load_dotenv
+from pipeline.ingestion.prepared_documents import (
+    document_key, initialize_layout, load_prepared_chunks, prepare_ocr, prepare_ladders, require_empty_indexes,
+)
 
-from backend.app.factories.config import CONFIGS
-from backend.app.embeddings import save_embedding_meta, ColpaliEmbedder
 
-from backend.app.core.llm_handler import LLMProvider
-from pipeline.ingestion.data_loader import DataLoader
-from pipeline.ingestion.vector_writer import write_bm25, create_vector_collection, write_chroma, write_faiss, write_kg, write_multimodal
-from pipeline.maintenance_index import build_sources, store_config
+FACTORIES = ("yunam", "yulkok", "poongsan")
 
-load_dotenv()
 
-def _build_sources(factory_id: str) -> dict[str, Any]:
-    sources = {
-        "drawing": {
-            "input": f"./data/{factory_id}/drawings/inputs",
-            "extract": f"./data/{factory_id}/drawings/extract",
-            "struct": f"./data/{factory_id}/drawings/struct",
-            "asset": f"./data/{factory_id}/drawings/asset",
-        },
-        "manual": {
-            "input": f"./data/{factory_id}/manuals/inputs",
-            "extract": f"./data/{factory_id}/manuals/extract",
-            "struct": f"./data/{factory_id}/manuals/struct",
-            "asset": f"./data/{factory_id}/manuals/asset",
-        },
-        "scanned": {
-            "input": f"./data/{factory_id}/scanned/inputs",
-            "extract": f"./data/{factory_id}/scanned/extract",
-            "struct": f"./data/{factory_id}/scanned/struct",
-            "asset": f"./data/{factory_id}/scanned/asset",
-        },
-        "text": {
-            "input": f"./data/{factory_id}/texts/inputs",
-            "struct": f"./data/{factory_id}/texts/struct",
-        },
-        "ladder": {
-            "input": f"./data/{factory_id}/ladder/inputs",
-            "struct": f"./data/{factory_id}/ladder/struct",
-        }
-    }
-    return {kind: {key: str(PIPELINE_ROOT / path) for key, path in paths.items()}
-            for kind, paths in sources.items()}
+def resolve_build_config(factory_id: str, model_config: str | None = None):
+    from backend.app.factories.config import CONFIGS, FACTORY_CONFIGS, get_factory_config
 
-def _build_site_settings(factory_id: str) -> dict[str, Any]:
-    from pipeline.adapters.site_a import SiteAParser
-    from pipeline.adapters.site_b import SiteBParser
+    if factory_id not in FACTORIES:
+        raise ValueError(f"지원하지 않는 공장: {factory_id}")
+    model_key = model_config or FACTORY_CONFIGS[factory_id].default_model
+    if model_key not in CONFIGS:
+        raise ValueError(f"지원하지 않는 모델 설정: {model_key}")
+    config = deepcopy(get_factory_config(model_key, factory_id))
+    config.vector_db.collection_name = factory_id
+    for name, store in config.vector_db.stores.items():
+        store.db_path = str(PIPELINE_ROOT / "data" / factory_id / name)
+        store.search_path = store.db_path
+    return config
 
-    adapter_map = {
-        "yunam": SiteAParser,
-        "yulkok": SiteBParser,
-    }
-    adapter_cls = adapter_map.get(factory_id)
-    if adapter_cls is None:
-        raise ValueError(f"'{factory_id}'에 대한 adapter가 정의되지 않았습니다.")
 
-    return {
-        "adapter": adapter_cls(),
-        "sources": _build_sources(factory_id),
-    }
-
-def build(site_id: str, reset: bool = False, *, maintenance_only: bool = False,
-          workbook: str | None = None, tacit: str | None = None) -> None:
-    """메인 실행 부.
-    각 site_id에 따라 정해진 폴더 경로에서 vectorDB를 생성
-
-    config_id로 LLM 플랫폼에 대한 설정 값에 따라 실행.
-
-    Args:
-        site_id (str): 공장 id
-        config_id (str): LLM 설정 아이디
-        reset (bool): vectorDB 재생성 여부
-    
-    """
-    config = CONFIGS.get(site_id)
-    if not config:
-        raise ValueError(f"[오류] '{site_id}' 설정을 찾을 수 없습니다.")
-    config = store_config(config)
-    if maintenance_only:
-        build_sources(config, workbook, tacit, reset=reset)
+def build(factory_id: str, reset: bool = False, *, model_config: str | None = None,
+          maintenance_only: bool = False,
+          workbook: str | None = None, tacit: str | None = None,
+          stage: str = "all", output_root: str | None = None,
+          embedding_provider: str | None = None, embedding_url: str | None = None,
+          paddleocr_zip: str | None = None, docling_zip: str | None = None) -> None:
+    if reset:
+        raise ValueError("기존 데이터 삭제는 지원하지 않습니다. 새 --output-root를 지정하세요.")
+    if stage not in {"init", "prepare", "ladders", "index", "kg", "multimodal", "all"}:
+        raise ValueError(f"지원하지 않는 단계: {stage}")
+    config = resolve_build_config(factory_id, model_config)
+    if embedding_provider:
+        config.embedding.provider = embedding_provider
+    if embedding_url:
+        config.embedding.base_url = embedding_url
+    root = PIPELINE_ROOT / "data" / config.id
+    if paddleocr_zip:
+        if stage not in {"prepare", "all"} or maintenance_only:
+            raise ValueError("--paddleocr-zip은 prepare/all 단계에서 사용하세요.")
+        from pipeline.ingestion.paddleocr_import import import_zip
+        import_zip(Path(paddleocr_zip), root)
+    if docling_zip:
+        if stage not in {"prepare", "all"} or maintenance_only:
+            raise ValueError("--docling-zip은 prepare/all 단계에서 사용하세요.")
+        from pipeline.ingestion.paddleocr_import import import_zip
+        import_zip(Path(docling_zip), root, "docling")
+    if stage == "init":
+        initialize_layout(root)
+        print(f"폴더 준비 완료 (기존 데이터 유지): {root}")
         return
-    settings = _build_site_settings(config.id)
+    destination = Path(output_root).resolve() if output_root else root
+    if stage == "ladders":
+        prepare_ladders(root, config.machines, config.id)
+        return
+    # Validate before importing models, contacting services, or changing files.
+    if not maintenance_only and stage in {"prepare", "all"}:
+        prepare_ocr(root, config.machines)
+        if stage == "prepare":
+            return
+    chunks = None if maintenance_only else load_prepared_chunks(root, config.machines, config.id)
+    require_empty_indexes(destination, ("multimodal", "asset/pages") if stage == "multimodal" else
+                          ("kg",) if stage == "kg" else
+                          ("chroma", "bm25") if maintenance_only else ("chroma", "bm25", "faiss"))
+    for name, store in config.vector_db.stores.items():
+        store.db_path = str(destination / name)
 
-    chroma_db_path = Path(config.vector_db.get_db_path("chroma"))
-    bm25_db_path = Path(config.vector_db.get_db_path("bm25"))
-    faiss_path = Path(config.vector_db.get_db_path("faiss"))
-    kg_path = Path(config.vector_db.get_db_path("kg"))
-    multimodal_path = Path(config.vector_db.get_db_path("multimodal"))
+    from dotenv import load_dotenv
+    from pipeline.maintenance_index import build_sources
 
-    # Reset 시 기존 크로마 DB, bm25 bundle 제거 후 재생성
-    if reset and chroma_db_path.exists():
-        shutil.rmtree(chroma_db_path)
-        print(f"[{config.id}] 기존 DB 삭제")
+    load_dotenv()
+    if maintenance_only:
+        build_sources(config, workbook, tacit)
+        return
 
-    if reset and bm25_db_path.exists():
-        shutil.rmtree(bm25_db_path)
-        print(f"[{config.id}] 기존 BM25 삭제")
+    if stage == "kg":
+        from backend.app.core.llm_handler import LLMProvider
+        from pipeline.ingestion.vector_writer import write_kg
 
-    if reset and faiss_path.exists():
-        shutil.rmtree(faiss_path)
-        print(f"[{config.id}] 기존 FAISS 삭제")
+        write_kg(config, chunks, config.vector_db.get_db_path("kg"), LLMProvider.get_model(config))
+        return
 
-    if reset and kg_path.exists():
-        shutil.rmtree(kg_path)
-        print(f"[{config.id}] 기존 KG 삭제")
-    
-    if reset and multimodal_path.exists():
-        shutil.rmtree(multimodal_path)
-        print(f"[{config.id}] 기존 multimodal 삭제")
+    if stage == "multimodal":
+        from backend.app.embeddings import ColpaliEmbedder
+        from pipeline.ingestion.data_loader import DataLoader
+        from pipeline.ingestion.vector_writer import write_multimodal
 
-
-    print(f"\n{'='*50}")
-    print(f"  ID: {site_id} | 어댑터: {settings['adapter'].__class__.__name__}")
-    print(f"  임베딩: {config.embedding.model} @ {config.get_embedding_base_url()}")
-    print(f"  DB 경로: {chroma_db_path.parent}")
-    print(f"{'='*50}")
-
-    # ------------------------------------------------------------
-
-    builder = DataLoader(config, adapter=settings["adapter"])
-    all_chunks = []
-    all_img_chunks = []
-
-    for doc_type, source_dir in settings["sources"].items():
-        print(f"\n  [{doc_type}]")
-        if doc_type == "ladder":
-            all_chunks.extend(builder.load_ladder_from(source_dir=source_dir, doc_type=doc_type))
-        else:
-            all_chunks.extend(builder.load_text_from(source_dir=source_dir, doc_type=doc_type))
-            all_img_chunks.extend(builder.load_image_from(source_dir=source_dir, doc_type=doc_type, output_dir=multimodal_path))
-
-    if all_chunks:
-        collection = create_vector_collection(config)
-
-        write_chroma(
-            collection=collection, 
-            chunks=all_chunks, 
-            id=config.id,
-            db_path=chroma_db_path
-        )
-
-        write_bm25(config, all_chunks)
-
-        write_faiss(config=config, chunks=all_chunks, db_path=faiss_path)
-
-        llm = LLMProvider.get_model(config)
-        write_kg(config=config, chunks=all_chunks, db_path=kg_path, llm=llm)
-
-    if all_img_chunks:
+        allowed = {document_key(c["metadata"]["source_doc_name"]) for c in chunks
+                   if c["metadata"]["document_type"] in {"manual", "controller"}}
+        loader = DataLoader(config)
+        # Use the same exact document mapping as the prepared text index.
+        loader.doc_to_machine = {Path(c["metadata"]["source_doc_name"]).stem:
+                                 c["metadata"]["machine_code"] for c in chunks}
+        images = []
+        for folder, kind in (("manuals", "manual"), ("controllers", "controller")):
+            images.extend(loader.load_image_from(
+                {"input": str(root / "inputs" / folder)}, kind, destination / "asset",
+                allowed_document_names=allowed))
+        if not images:
+            raise ValueError("멀티모달 빌드 대상 PDF가 inputs/manuals, inputs/controllers에 없습니다.")
         embedder = ColpaliEmbedder()
         try:
-            write_multimodal(
-                chunks=all_img_chunks,
-                db_path=multimodal_path,
-                embedding=embedder
-            )
+            write_multimodal(images, config.vector_db.get_db_path("multimodal"), embedder)
         finally:
             embedder.unload()
+        return
 
+    from backend.app.embeddings import save_embedding_meta
+    from pipeline.ingestion.vector_writer import (
+        create_vector_collection, write_chroma, write_bm25, write_faiss,
+    )
+
+    collection = create_vector_collection(config)
+    write_chroma(collection, chunks, config.id, config.vector_db.get_db_path("chroma"))
+    write_bm25(config, chunks)
+    write_faiss(config, chunks, config.vector_db.get_db_path("faiss"))
     build_sources(config, workbook, tacit)
-    save_embedding_meta(config=config)
-    print(f"\n  [완료] {site_id} 벡터 DB 생성 성공\n")
+    save_embedding_meta(config)
+    print(f"공용 인덱스 생성 완료: {destination} ({len(chunks)} chunks)")
+
+
+def main(argv=None):
+    from backend.app.factories.config import CONFIGS
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--factory", required=True, choices=FACTORIES,
+                        help="입력·출력 폴더와 machine_info를 선택할 공장")
+    parser.add_argument("--model-config", choices=CONFIGS,
+                        help="답변 생성 LLM 선택 (기본 vllm_config, 임베딩은 공장 설정 유지)")
+    parser.add_argument("--stage", choices=("init", "prepare", "ladders", "index", "kg", "multimodal", "all"), default="all")
+    parser.add_argument("--output-root", help="인덱스를 생성할 비어 있는 별도 경로 (입력은 공장 폴더 유지)")
+    parser.add_argument("--embedding-provider", choices=("ollama", "openai"), help="임베딩 API 종류")
+    parser.add_argument("--embedding-url", help="임베딩 서버 주소 (OpenAI 호환은 /v1 포함)")
+    parser.add_argument("--paddleocr-zip", help="원본을 보존하며 inputs/extracted/paddleocr에 가져올 ZIP")
+    parser.add_argument("--docling-zip", help="원본을 보존하며 inputs/extracted/docling에 가져올 ZIP")
+    parser.add_argument("--reset", action="store_true", help="사용 불가: 기존 데이터 보존을 위해 거부")
+    parser.add_argument("--maintenance-only", action="store_true")
+    parser.add_argument("--workbook", help="수리이력 XLS (기본: inputs/repairHistory/*.xls)")
+    parser.add_argument("--tacit", help="암묵지 TXT (기본: inputs/knowledge/*.txt)")
+    args = parser.parse_args(argv)
+    build(factory_id=args.factory, model_config=args.model_config, reset=args.reset, maintenance_only=args.maintenance_only,
+          workbook=args.workbook, tacit=args.tacit, stage=args.stage, output_root=args.output_root,
+          paddleocr_zip=args.paddleocr_zip, docling_zip=args.docling_zip,
+          embedding_provider=args.embedding_provider, embedding_url=args.embedding_url)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--id", type=str, required=True, choices=CONFIGS)
-    parser.add_argument("--reset", action="store_true")
-    parser.add_argument("--maintenance-only", action="store_true", help="매뉴얼을 유지하고 수리 사례만 갱신")
-    parser.add_argument("--workbook", help="공장 수리 이력 XLS (생략 시 공장 repairHistory/inputs 폴더)")
-    parser.add_argument("--tacit", help="업체 암묵지 TXT (생략 시 shared/knowledge/inputs 폴더)")
-    args = parser.parse_args()
-
-    build(site_id=args.id, reset=args.reset, maintenance_only=args.maintenance_only,
-          workbook=args.workbook, tacit=args.tacit)
-    # for sid in ([args.id] if args.id else list(SITE_SETTINGS.keys())):
+    main()
