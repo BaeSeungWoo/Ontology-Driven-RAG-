@@ -134,6 +134,24 @@ def validate_inputs(config):
             raise ValueError('병합 인덱스에 필요한 전체 페이지 근거가 없습니다.')
         if full_pages is not None and set(full_pages) != set(page_numbers):
             raise ValueError('전체 페이지 근거와 제목 인덱스의 페이지가 다릅니다.')
+    if config.get('require_index_manifest') and not (index / 'manifest.json').is_file():
+        raise ValueError('반입 인덱스의 manifest.json이 없습니다.')
+    if not verified and (index / 'manifest.json').is_file():
+        manifest = read_json(index / 'manifest.json')
+        digest = sha256(pdf)
+        if manifest.get('pdf_sha256') != digest:
+            raise ValueError('반입 인덱스와 원본 PDF 판본이 다릅니다.')
+        for name, expected in manifest['files'].items():
+            target = (index / name).resolve()
+            if not target.is_relative_to(index.resolve()) or sha256(target) != expected:
+                raise ValueError(f'반입 인덱스 파일 지문이 다릅니다: {name}')
+        from electrical.grounding import load_page_evidence
+        full_pages = load_page_evidence(index, digest)
+        if full_pages is None or set(full_pages) != {str(n) for n in range(1, page_count + 1)}:
+            raise ValueError('반입 인덱스의 전체 페이지 근거가 누락되었습니다.')
+        # Integrity is checked; OCR records remain automatic/unreviewed. Keep final grounding review enabled.
+        verified = {'sha256': digest, 'devices': [], 'verification_status': 'automatic_unverified',
+                    'index_scope': '외부 추출 인덱스입니다. PDF·파일 지문과 페이지 범위만 검증했으며 자동 판독 내용은 미검수입니다.'}
     return profile, verified, full_pages, page_count
 
 
@@ -230,10 +248,10 @@ def worker(request):
     with (run / 'engine.log').open('w', encoding='utf-8') as log, contextlib.redirect_stdout(log), contextlib.redirect_stderr(log):
         try:
             from runtime_support import report_progress
-            report_progress("180쪽 도면 자료와 PDF 판본을 확인하는 중")
+            report_progress("도면 자료와 PDF 판본을 확인하는 중")
             profile, verified, full_pages, page_count = validate_inputs(config)
-            report_progress("180쪽 도면 자료와 PDF 판본을 확인하는 중",
-                            f"문서: {Path(config['pdf']).name}\n페이지 수: {page_count}쪽\n원본 대조 기록: {'있음' if verified else '없음'}")
+            report_progress("도면 자료와 PDF 판본을 확인하는 중",
+                            f"문서: {Path(config['pdf']).name}\n페이지 수: {page_count}쪽\n원본 대조 기록: {'있음' if verified and verified.get('devices') else '없음'}")
             from runtime_support import answer_context
             from electrical.grounding import review, page_review_evidence, source_records, reread_evidence
             context = answer_context(request)

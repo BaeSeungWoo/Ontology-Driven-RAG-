@@ -36,6 +36,7 @@ class LLMConfig:
 class EmbeddingConfig:
     model: str = "qwen3-embedding:8b"
     base_url: Optional[str] = None          # None이면 llm.base_url 공용
+    provider: str = "ollama"
 
     def resolve_base_url(self, llm_base_url: Optional[str]) -> str:
         return self.base_url or llm_base_url or "http://localhost:11434"
@@ -109,18 +110,10 @@ class Config:
     def get_embedding_base_url(self) -> str:
         return self.embedding.resolve_base_url(self.llm.base_url)
 
-# ──────────────────────────────────────────────────────────────────────────────
-#  인스턴스 등록
-#  - key: 프론트엔드 드롭다운 표시 및 /chat/{key} 라우팅에 사용
-#  - 새 공장 추가 시 CONFIGS에만 항목 추가
-# ──────────────────────────────────────────────────────────────────────────────
-
+# 모델 선택은 답변 생성에만 사용한다. 공장 데이터와 임베딩은 FACTORY_CONFIGS에서 관리한다.
+# 기존 API와 대화 이력의 모델 키는 유지한다.
 CONFIGS: Dict[str, Config] = {
-
-    # ── A 공장 : Ollama 로컬 모델 ─────────────────────────────────────────────
-    "ollama_config": Config(
-        id="yunam",
-        llm=LLMConfig(
+    "ollama_config": Config(id="ollama_config", llm=LLMConfig(
             provider="ollama",
             # model_name="gpt-oss:20b",
             model_name="gemma4:31b",
@@ -130,10 +123,46 @@ CONFIGS: Dict[str, Config] = {
             # num_ctx=16384,
             max_tokens=1024,
             # max_tokens=2049,
-        ),
-        embedding=EmbeddingConfig(
-            model="qwen3-embedding:8b",
-        ),
+        )),
+    "openai_config": Config(id="openai_config", llm=LLMConfig(
+            provider="openai",
+            model_name="gpt-4o",
+            temperature=0,
+            max_tokens=2048,
+        )),
+    "anthropic_config": Config(id="anthropic_config", llm=LLMConfig(
+            provider="anthropic",
+            model_name="claude-sonnet-4-6",
+            temperature=0,
+            max_tokens=1024,
+        )),
+    "google_config": Config(id="google_config", llm=LLMConfig(
+            provider="google",
+            model_name="gemini-2.0-flash",
+            temperature=0,
+            max_tokens=1024,
+        )),
+    "vllm_config": Config(id="vllm_config", llm=LLMConfig(
+        provider="openai",
+        model_name="Qwen3-VL",
+        base_url="http://127.0.0.1:8100/v1",
+        api_key="EMPTY",                    # vLLM 은 키를 검사하지 않지만 SDK 가 빈 값을 거부한다
+        temperature=0,
+        max_tokens=3072,                    # 서버 max_model_len 8192 = 프롬프트 + 응답
+    )),
+}
+
+@dataclass
+class FactoryConfig:
+    embedding: EmbeddingConfig
+    vector_db: VectorDBConfig
+    prompt: PromptConfig
+    default_model: str = "vllm_config"
+
+
+FACTORY_CONFIGS: Dict[str, FactoryConfig] = {
+    "yunam": FactoryConfig(
+        embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://127.0.0.1:8101/v1", provider="openai"),
         vector_db=VectorDBConfig(
             stores={
                 "chroma": StorePathConfig(
@@ -164,21 +193,12 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 연암 공장의 설비 유지보수 전문가입니다.",
         ),
-        machines=load_machine_info(factory_id="yunam")
     ),
-
-    # ── B 공장 : OpenAI ───────────────────────────────────────────────────────
-    "openai_config": Config(
-        id="yulkok",
-        llm=LLMConfig(
-            provider="openai",
-            model_name="gpt-4o",
-            temperature=0,
-            max_tokens=2048,
-        ),
+    "yulkok": FactoryConfig(
         embedding=EmbeddingConfig(
             model="qwen3-embedding:8b",
-            base_url="http://192.168.1.180:11434",
+            base_url="http://127.0.0.1:8101/v1",
+            provider="openai",
         ),
         vector_db=VectorDBConfig(
             stores={
@@ -210,22 +230,9 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
-        machines=load_machine_info(factory_id="yulkok")
     ),
-
-    # ── C 공장 : Anthropic ────────────────────────────────────────────────────
-    "anthropic_config": Config(
-        id="poongsan",
-        llm=LLMConfig(
-            provider="anthropic",
-            model_name="claude-sonnet-4-6",
-            temperature=0,
-            max_tokens=1024,
-        ),
-        embedding=EmbeddingConfig(
-            model="qwen3-embedding:8b",
-            base_url="http://192.168.1.180:11434",
-        ),
+    "poongsan": FactoryConfig(
+        embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://127.0.0.1:8101/v1", provider="openai"),
         vector_db=VectorDBConfig(
             stores={
                 "chroma": StorePathConfig(
@@ -256,92 +263,23 @@ CONFIGS: Dict[str, Config] = {
             default_prompt_id="tech_expert",
             fallback_system_prompt="당신은 풍산 공장의 품질 관리 전문가입니다.",
         ),
-        machines=load_machine_info(factory_id="poongsan")
-    ),
-
-    # ── D 공장 : Google Gemini ────────────────────────────────────────────────
-    "google_config": Config(
-        id="D",
-        llm=LLMConfig(
-            provider="google",
-            model_name="gemini-2.0-flash",
-            temperature=0,
-            max_tokens=1024,
-        ),
-        embedding=EmbeddingConfig(
-            model="qwen3-embedding:8b",
-            base_url="http://192.168.1.180:11434",
-        ),
-        vector_db=VectorDBConfig(
-            stores={
-                "chroma": StorePathConfig(
-                    db_path="./data/D/chroma",
-                    search_path="../pipeline/data/D/chroma",
-                ),
-                "bm25": StorePathConfig(
-                    db_path="./data/D/bm25",
-                    search_path="../pipeline/data/D/bm25",
-                ),
-                "faiss": StorePathConfig(
-                    db_path="./data/D/faiss",
-                    search_path="../pipeline/data/D/faiss",
-                ),
-                "kg": StorePathConfig(
-                    db_path="./data/D/kg",
-                    search_path="../pipeline/data/D/kg",
-                ),
-                "multimodal": StorePathConfig(
-                    db_path="./data/D/multimodal",
-                    search_path="../pipeline/data/D/multimodal",
-                ),
-            },
-            retrieval_k=5,
-            score_threshold=0.7,
-        ),
-        prompt=PromptConfig(
-            default_prompt_id="tech_expert",
-            fallback_system_prompt="당신은 D 공장의 자동화 설비 전문가입니다.",
-        ),
-        machines={}
     ),
 }
-
-
-# ── 로컬 vLLM : A 공장(yunam) 데이터 그대로 두고 LLM 만 교체 ──────────────────
-#   vLLM 이 OpenAI 호환 API 를 제공하므로 provider 는 "openai" 를 쓴다.
-#   서버: python -m vllm.entrypoints.openai.api_server --served-model-name Qwen3-VL
-#   원격(로컬 PC)에서 쓸 때는 SSH 터널을 로컬 8100 으로 연다 (8000 은 백엔드가 사용).
-#     ssh -p 10521 -N -L 8100:127.0.0.1:8000 -L 8101:127.0.0.1:8001 work@max.gntp.or.kr
-CONFIGS["vllm_config"] = replace(
-    CONFIGS["ollama_config"],
-    llm=LLMConfig(
-        provider="openai",
-        model_name="Qwen3-VL",
-        base_url="http://127.0.0.1:8100/v1",
-        api_key="EMPTY",                    # vLLM 은 키를 검사하지 않지만 SDK 가 빈 값을 거부한다
-        temperature=0,
-        max_tokens=3072,                    # 서버 max_model_len 8192 = 프롬프트 + 응답
-    ),
-    # 임베딩은 LLM 과 별개다. 명시하지 않으면 llm.base_url(vLLM)을 그대로 물려받아
-    # Ollama 임베딩 요청이 vLLM 으로 가버리므로 반드시 따로 지정한다.
-    embedding=EmbeddingConfig(
-        model="qwen3-embedding:8b",
-        base_url="http://192.168.1.179:11434",
-    ),
+FACTORY_CONFIGS["yunam_origin"] = replace(
+    FACTORY_CONFIGS["yunam"],
+    embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://192.168.1.179:11434"),
 )
-
-
-FACTORY_CONFIG_KEYS = {"yunam": "ollama_config", "yulkok": "openai_config", "poongsan": "anthropic_config", "yunam_origin": "ollama_config"}
 
 
 def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
     from fastapi import HTTPException
-    if factory_id not in FACTORY_CONFIG_KEYS:
+    if factory_id not in FACTORY_CONFIGS:
         raise HTTPException(400, "등록되지 않은 공장입니다.")
     if model_key not in CONFIGS:
         raise HTTPException(404, "해당 모델 설정을 찾을 수 없습니다.")
-    factory = CONFIGS[FACTORY_CONFIG_KEYS[factory_id]]
+    factory = FACTORY_CONFIGS[factory_id]
     model = CONFIGS[model_key]
+    embedding = factory.embedding
     root = Path(__file__).resolve().parents[3]
     stores = {name: StorePathConfig(
         db_path=str(root / "backend" / "data" / factory_id / name),
@@ -349,9 +287,9 @@ def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
     ) for name in factory.vector_db.stores}
     settings_path = root / "pipeline/data" / factory_id / "build_info/search_settings.json"
     settings = json.loads(settings_path.read_text(encoding="utf-8")) if settings_path.is_file() else {}
-    if settings and (settings["site_id"] != factory_id or settings["embedding_model"] != model.embedding.model):
+    if settings and (settings["site_id"] != factory_id or settings["embedding_model"] != embedding.model):
         raise ValueError("공장 검색 인덱스와 임베딩 설정이 일치하지 않습니다.")
     collection_name = "yunam" if factory_id == "yunam_origin" else factory_id
-    return replace(factory, id=factory_id, llm=model.llm, embedding=model.embedding,
+    return Config(id=factory_id, llm=model.llm, embedding=embedding, prompt=factory.prompt,
                    vector_db=replace(factory.vector_db, stores=stores, collection_name=settings.get("collection", collection_name)),
                    machines=load_machine_info(factory_id=factory_id))

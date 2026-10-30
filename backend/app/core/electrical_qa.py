@@ -10,9 +10,8 @@ import sys
 from time import monotonic
 
 PACKAGE = Path(__file__).resolve().parents[2] / "vendor" / "electrical_qa"
-MACHINE_CONFIGS = {"M005": "config.json", "M051": "config.json"}
-SUPPORTED_MACHINES = set(MACHINE_CONFIGS)
-DISABLED_MESSAGE = "기술엔지니어 모드는 연암(구)에서만 사용할 수 있습니다."
+LEGACY_PACKAGE = PACKAGE.with_name("electrical_qa_legacy")
+DATA_ROOT = Path(__file__).resolve().parents[3] / "pipeline" / "data"
 QUESTIONS = [
     "장비가 동작하지 않을 때 전기도면에서 무엇부터 확인해야 하나요?",
     "모터나 펌프가 작동하지 않을 때 관련 회로를 어떻게 점검하나요?",
@@ -20,14 +19,59 @@ QUESTIONS = [
 ]
 
 
-def validate_machine(machine_code):
-    if machine_code not in SUPPORTED_MACHINES:
-        raise ValueError("전기도면 고장진단 QA는 M005 · DHF8000, M051 · DHF8000 #2를 지원합니다.")
+def package_for_factory(factory_id):
+    return LEGACY_PACKAGE if factory_id == "yunam_origin" else PACKAGE
 
 
-def config_for_machine(machine_code):
-    validate_machine(machine_code)
-    return Path(os.environ.get("ELECTRICAL_QA_CONFIG", PACKAGE / MACHINE_CONFIGS[machine_code])).resolve()
+def config_for_machine(factory_id, machine_code):
+    from app.factories.machines import load_machine_info
+    from pipeline.ingestion.machine_resolver import machine_documents
+    from pipeline.ingestion.prepared_documents import document_key
+    from pipeline.import_electrical import prepare_manual_index
+
+    machines = load_machine_info(factory_id=factory_id)
+    if machine_code not in machines:
+        raise ValueError("선택한 공장에 등록되지 않은 설비입니다.")
+    root = (DATA_ROOT / factory_id).resolve()
+    names = {document_key(name) for name in machine_documents(machines[machine_code], "electrical")}
+    if factory_id == "yunam_origin":
+        path = Path(os.environ.get("ELECTRICAL_QA_CONFIG", LEGACY_PACKAGE / "config.json")).resolve()
+        legacy = json.loads(path.read_text(encoding="utf-8-sig"))
+        if machine_code not in {"M005", "M051"} or document_key(Path(legacy["pdf"]).name) not in names:
+            raise ValueError("연암(구)의 해당 설비에는 전기도면 QA가 연결되지 않았습니다.")
+        return path
+    matches = []
+    for index in sorted((root / "electrical" / "index").iterdir()) if (root / "electrical" / "index").is_dir() else ():
+        if not index.is_dir() or not index.resolve().is_relative_to(root / "electrical" / "index"):
+            continue
+        try:
+            prepare_manual_index(root, index, names)
+        except (OSError, ValueError, KeyError):
+            logging.getLogger(__name__).warning("전기도면 자동 연결 준비 실패: %s", index, exc_info=True)
+            continue
+        path = index / "qa_config.json"
+        if not path.is_file():
+            continue
+        config = json.loads(path.read_text(encoding="utf-8-sig"))
+        pdf = (path.parent / config["pdf"]).resolve()
+        if document_key(pdf.name) not in names:
+            continue
+        for key, folder in (("pdf", "inputs/electricals"), ("index_dir", "electrical"),
+                            ("profile", "electrical"), ("output_dir", "electrical")):
+            target = (path.parent / config[key]).resolve()
+            if not target.is_relative_to(root / folder):
+                raise ValueError(f"전기도면 {key} 경로는 선택한 공장의 {folder} 안에 있어야 합니다.")
+        matches.append(path)
+    if not matches:
+        raise ValueError("선택한 설비의 전기도면 인덱스 연결이 준비되지 않았습니다.")
+    if len(matches) > 1:
+        raise ValueError("여러 전기도면 인덱스가 연결되어 있습니다. 문서 선택 기능 연결이 필요합니다.")
+    path = matches[0]
+    return path
+
+
+def validate_machine(factory_id, machine_code):
+    return config_for_machine(factory_id, machine_code)
 
 
 async def electrical_response(request, events):
@@ -102,12 +146,10 @@ async def append_manual_evidence(service, machine_code, question, result):
 
 
 async def stream_electrical(machine_code, question, *, llm_config, factory_id, history=None, user_prompt=None):
-    if factory_id != "yunam_origin":
-        raise ValueError(DISABLED_MESSAGE)
-    validate_machine(machine_code)
     if not question.strip() or len(question) > 6000:
         raise ValueError("전기도면 질문은 1~6000자로 입력해 주세요.")
-    config_path = config_for_machine(machine_code)
+    config_path = config_for_machine(factory_id, machine_code)
+    package = package_for_factory(factory_id)
     environment = {key: value for key, value in os.environ.items()
                    if not key.startswith(("GRAPHRAG_", "VLLM_")) and key not in ("LLM_NAME", "PYTHONPATH")}
     environment.update(PYTHONUTF8="1", PYTHONIOENCODING="utf-8")
@@ -115,12 +157,12 @@ async def stream_electrical(machine_code, question, *, llm_config, factory_id, h
         environment["OPENAI_API_KEY"] = llm_config.api_key
     # Uvicorn's Windows reload loop cannot run asyncio subprocess transports.
     process = subprocess.Popen(
-        [sys.executable, str(PACKAGE / "integration_worker.py")],
+        [sys.executable, str(package / "integration_worker.py")],
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        cwd=PACKAGE, env=environment,
+        cwd=package, env=environment,
         **({"creationflags": subprocess.CREATE_NO_WINDOW} if os.name == "nt" else {}),
     )
-    request = json.dumps({"config_path": str(config_path), "question": question, "machine_code": machine_code,
+    request = json.dumps({"config_path": str(config_path), "question": question, "machine_code": machine_code, "factory_id": factory_id,
                           "model": llm_config.model_name, "base_url": llm_config.base_url, "max_tokens": llm_config.max_tokens,
                           "history": history or [], "user_prompt": user_prompt or ""}, ensure_ascii=False).encode("utf-8")
     stderr_task = asyncio.create_task(asyncio.to_thread(process.stderr.read))

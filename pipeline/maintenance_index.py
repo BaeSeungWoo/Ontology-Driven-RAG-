@@ -134,9 +134,10 @@ def build_index(cases, config, reset=False):
 
 
 def build_sources(config, workbook=None, tacit=None, reset=False):
-    """Explicit files, or all files in the factory/shared input folders."""
-    workbooks = [Path(workbook)] if workbook else sorted((ROOT / "pipeline/data" / config.id / "repairHistory/inputs").glob("*.xls"))
-    tacits = [Path(tacit)] if tacit else sorted((ROOT / "pipeline/data/shared/knowledge/inputs").glob("*.txt"))
+    """Explicit files, or all files in the factory's new input folders."""
+    inputs = ROOT / "pipeline/data" / config.id / "inputs"
+    workbooks = [Path(workbook)] if workbook else sorted((inputs / "repairHistory").glob("*.xls"))
+    tacits = [Path(tacit)] if tacit else sorted((inputs / "knowledge").glob("*.txt"))
     if not workbooks and not tacits:
         print("[수리 사례] 입력 파일이 없어 생략합니다.")
         return

@@ -86,13 +86,13 @@ async def recommend_questions(
 ) -> list[str]:
     logger.info("[recommendations] start machine=%s source=%s alternate=%s", machine_code, source, _alternate_topic)
     if source == "electrical":
-        from app.core.electrical_qa import QUESTIONS, SUPPORTED_MACHINES
-        if service.config.id != "yunam_origin":
+        from app.core.electrical_qa import QUESTIONS, config_for_machine
+        try:
+            config_for_machine(service.config.id, machine_code)
+        except (OSError, ValueError, KeyError):
             return []
         asked = set(asked_questions or []) | {question}
-        logger.info("[recommendations] electrical supported=%s remaining=%d", machine_code in SUPPORTED_MACHINES,
-                    sum(text not in asked for text in QUESTIONS))
-        return [text for text in QUESTIONS if text not in asked] if machine_code in SUPPORTED_MACHINES else []
+        return [text for text in QUESTIONS if text not in asked]
     machine = service.config.machines.get(machine_code, {})
     documents = build_doc_to_machine_index({machine_code: machine})
     is_cms = source == "cms_manager"

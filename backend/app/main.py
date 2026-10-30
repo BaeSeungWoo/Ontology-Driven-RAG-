@@ -25,7 +25,6 @@ from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
 from app.core.machine_readiness import require_machine_ready
-from app.core.demo_mode import execution_target
 from app.routers.promptRouter import promptRouter
 from app.routers.historyRouter import historyRouter
 from app.routers.dailyReportRouter import dailyReportRouter
@@ -118,8 +117,6 @@ def recommendation_machine_code(request, client_request, service):
         machine_code = validate_code(ctx, database.getChatSessionInfo(request.session_id))
     else:
         machine_code = session_machine_code(ctx, request.machine_code, service.config.machines)
-    target_factory, machine_code = execution_target(service.config.id, machine_code, request.source)
-    service = get_service(request.llm_model, target_factory)
     require_machine_ready(machine_code, service.config, service.config.machines, mode=request.source)
     return service, machine_code
 
@@ -184,13 +181,10 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     effective_machine_code = validate_code(ctx, session_info)
     if request.mode in {"electrical", "cms"}:
         effective_machine_code = cms_machine_code(effective_machine_code, request.machine_code, ctx, service.config.machines)
-    target_factory, effective_machine_code = execution_target(
-        service.config.id, effective_machine_code, request.mode, request.persona_type)
-    service = get_service(factory_id, target_factory)
     if request.mode == "electrical":
         from app.core.electrical_qa import validate_machine
         try:
-            validate_machine(effective_machine_code)
+            validate_machine(service.config.id, effective_machine_code)
             if not request.question.strip() or len(request.question) > 6000:
                 raise ValueError("전기도면 질문은 1~6000자로 입력해 주세요.")
         except ValueError as exc:

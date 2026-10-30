@@ -55,7 +55,7 @@ export default function Chat() {
   const [questioner, setQuestioner] = useState("");
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const { factoryId, setFactoryId, isDemo, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
+  const { factoryId, setFactoryId, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
@@ -99,13 +99,10 @@ export default function Chat() {
   const selectedMachine = machines.find(machine => machine.machine_code === selectedMachineCode);
   const machineUnavailable = machineStatus !== "ready" || !selectedMachine?.can_select;
   const featureUnavailable = !machineUnavailable && (
-    !isDemo && factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
-      ? "연암(구)을 제외한 공장에서는 현장작업자·RAG만 사용할 수 있습니다." :
-    (selectedPersonaType === "maintenance" || selectedLlmMode === "ladder") && !isDemo && !selectedMachine?.has_ladder
-      ? "래더 데이터가 준비되지 않아 설비보전 질의를 사용할 수 없습니다."
-      : (selectedPersonaType === "engineer" || selectedLlmMode === "electrical")
-        ? !isDemo && factoryId !== "yunam_origin" ? "기술엔지니어 모드는 연암(구)에서만 사용할 수 있습니다."
-          : !isDemo && !selectedMachine?.has_electrical ? "전기도면 데이터가 준비되지 않아 기술엔지니어 질의를 사용할 수 없습니다." : "" : "");
+    selectedPersonaType === "engineer" && selectedLlmMode === "electrical"
+      ? !selectedMachine?.has_electrical ? "선택한 설비의 전기도면 인덱스가 준비되지 않았습니다." : ""
+      : factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
+        ? "정비·보전·관리자 기능은 신규 공장 연결 준비 중입니다." : "");
   const isPromptRequiredMissing =
     questioner.trim().length === 0 || machineUnavailable || Boolean(featureUnavailable);
 
@@ -406,10 +403,10 @@ export default function Chat() {
                 {PERSONA_OPTIONS.map(persona => {
                   const card = PERSONA_CARDS[persona.value];
                   const Icon = card.icon;
-                  const usesDemo = factoryId !== "yunam_origin" && persona.value !== "operator";
-                  const unavailable = usesDemo ? ""
-                    : persona.value === "maintenance" && !isDemo && !selectedMachine?.has_ladder ? "래더 데이터 미준비"
-                    : persona.value === "engineer" && !selectedMachine?.has_electrical ? "전기도면 데이터 미준비" : "";
+                  const unavailable = persona.value === "engineer"
+                    ? !selectedMachine?.has_electrical ? "전기도면 데이터 미준비" : ""
+                    : factoryId !== "yunam_origin" && persona.value !== "operator" ? "신규 공장 연결 준비 중"
+                    : persona.value === "maintenance" && !selectedMachine?.has_ladder ? "래더 데이터 미준비" : "";
                   return (
                     <button key={persona.value} type="button" className={`${styles.personaCard} ${personaStyles.theme}`} data-persona={persona.value}
                       aria-pressed={selectedPersonaType === persona.value}

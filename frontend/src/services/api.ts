@@ -1,10 +1,8 @@
 import axios from "axios";
 
 export type FactoryId = "yunam" | "yulkok" | "poongsan" | "yunam_origin";
-let activePersona = "operator";
-export const setApiPersona = (persona: string) => { activePersona = persona; };
-export const executionHeaders = () => ({ "X-Factory-Id": activeFactory !== "yunam_origin" && activePersona !== "operator" ? "yunam_origin" : activeFactory });
 let activeFactory: FactoryId = "yunam_origin";
+export const executionHeaders = () => ({ "X-Factory-Id": activeFactory });
 export const factoryHeaders = () => ({ "X-Factory-Id": activeFactory });
 export const setApiFactory = (factory: FactoryId) => { activeFactory = factory; };
 

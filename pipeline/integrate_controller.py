@@ -38,8 +38,10 @@ def normalize_chunk(chunk, factory, machines):
             relative = Path(meta[key])
             if relative.is_absolute() or ".." in relative.parts:
                 raise ValueError(f"Invalid archive path: {relative}")
-            relative = Path("inputs") / relative.name if key == "source_pdf" else relative
-            meta[key] = f"{factory}/controller/{relative.as_posix()}"
+            if key == "source_pdf":
+                meta[key] = f"{factory}/inputs/controllers/{relative.name}"
+            else:
+                meta[key] = f"{factory}/controller/{relative.as_posix()}"
     return row
 
 
@@ -79,9 +81,12 @@ def integrate(factory, archive):
                 continue
             relative = Path(info.filename[len(prefix):])
             if relative.parts[0] == "original_pdfs":
-                relative = Path("inputs") / relative.name
-            target = (site / "controller" / relative).resolve()
-            if not target.is_relative_to((site / "controller").resolve()):
+                target_root = site / "inputs" / "controllers"
+                relative = Path(relative.name)
+            else:
+                target_root = site / "controller"
+            target = (target_root / relative).resolve()
+            if not target.is_relative_to(target_root.resolve()):
                 raise ValueError(info.filename)
             target.parent.mkdir(parents=True, exist_ok=True)
             with z.open(info) as src, target.open("wb") as dst:

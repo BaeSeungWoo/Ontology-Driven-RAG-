@@ -188,7 +188,7 @@ def write_kg(config: Config, chunks: list[dict[str, Any]], db_path: str, llm: Ba
             "doc_name": str(meta.get("source_doc_name") or "").strip(),
             "page_range": str(meta.get("page_range") or "").strip(),
             "text": str(chunk.get("page_content") or "").strip(),
-            "machine_code": chunk.get("machine_code") or []
+            "machine_code": meta.get("machine_code") or []
         })
     g, entity_list = kg_mod.build_kg_openie(chunk_records, results)
 

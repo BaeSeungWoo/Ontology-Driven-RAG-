@@ -1,0 +1,34 @@
+{
+  "date": "2026-10-15",
+  "release": "20261015_merged_v2",
+  "platform": "Windows",
+  "python": "3.11.9",
+  "dependencies": {
+    "numpy": "1.26.4",
+    "Pillow": "12.3.0",
+    "pypdfium2": "5.14.0"
+  },
+  "portable_tests_passed": 35,
+  "outside_project_extraction": true,
+  "data_version": "manual_merged_v1",
+  "pages": 180,
+  "addresses": 523,
+  "parts": 1482,
+  "index_json_files": 7,
+  "model": "Qwen3-VL",
+  "vision_probe": "passed",
+  "full_qa_cases_passed": 1,
+  "case": "QM45 coil 23-24 versus motor overload monitor 13-14",
+  "answer_source_pages": [
+    41,
+    80
+  ],
+  "grounding_reviewed": true,
+  "index_unchanged_after_qa": true,
+  "live_answer": "도면 연결\n1. QM45의 23-24 접점은 KM45 코일 회로에 직렬로 연결되어 있으며, L110 → KB1/KAR06 COM2-R6 → QM45 23-24 → KM45 A1로 전원이 공급됨. (p41 [chunk:1])\n2. QM45의 13-14 접점은 모터 과부하 감시 회로에 연결되어 PLC 입력 X4.2(MOL)를 통해 CE56A A11을 경유하여 모니터링됨. (p80 [chunk:3])\n\n점검 순서\n전원을 분리하고 잔류전압이 없음을 확인한 뒤, 자격을 갖춘 정비자가 점검하세요.\n1. QM45 보조접점 23-24의 외관 및 접속 상태 확인 (p41 기준) (p41 [chunk:1])\n2. QM45 보조접점 13-14의 외관 및 접속 상태 확인 (p80 기준) (p80 [chunk:3])\n\n도면 연결만으로 실제 고장 원인을 확정할 수 없습니다.\n\n검토한 도면 페이지: p41 [chunk:1] p29 [chunk:2] p80 [chunk:3]",
+  "scope_limitations": [
+    "Other imported descriptions remain partly unreviewed",
+    "Linux and another physical PC not tested",
+    "Server and model reachability must be configured on the target PC"
+  ]
+}
