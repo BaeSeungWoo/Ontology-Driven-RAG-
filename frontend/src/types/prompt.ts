@@ -5,11 +5,13 @@ export type PromptRow = {
   create_user: string;
 };
 
+export type MachineDocument = string | { filename: string; languages: ("ko" | "en" | "de" | "ja")[] };
+
 export type MachineInfo = {
   machine_name: string;
   machine_ip?: string;
   machine_ips?: string[];
-  document: { manual: readonly string[]; controller: readonly string[]; electrical: readonly string[]; ladder: readonly string[] };
+  document: { manual: readonly MachineDocument[]; controller: readonly MachineDocument[]; electrical: readonly MachineDocument[]; ladder: readonly string[]; etc: readonly MachineDocument[] };
   machine_maker: string;
   machine_controller: string;
   machine_ver: string;

@@ -5,12 +5,20 @@ import { Check, ChevronDown, LockKeyhole, CircleAlert } from "lucide-react";
 import { useMachine } from "@/components/machineProvider";
 import styles from "./machineSelect.module.css";
 
+// 사용자가 등록한 테스트 데이터 목록. 실제 검색 가능 여부는 장비 선택 후 확인한다.
+const testMachineCodes: Record<string, string[]> = {
+  yunam: ["M006", "M007", "M008", "M009", "M021", "M022", "M044", "M045", "M046"],
+  yulkok: ["M001", "M002", "M003", "M004", "M005"],
+  poongsan: ["M001", "M002", "M003", "M004", "M005"],
+};
+
 export default function MachineSelect({ value, onChange, disabled = false }: {
   value?: string;
   onChange: (code: string) => void;
   disabled?: boolean;
 }) {
-  const { machines, status, refreshMachines } = useMachine();
+  const { factoryId, machines, status, refreshMachines } = useMachine();
+  const testCodes = testMachineCodes[factoryId] ?? [];
 
   const [isOpen, setIsOpen] = useState(false);
   const controlRef = useRef<HTMLDivElement>(null);
@@ -36,6 +44,7 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
   const readinessLabel = (machine: typeof machines[number]) => machine.readiness === "no_documents" ? "준비 중 · 매뉴얼 미등록"
     : machine.readiness === "check_failed" ? "준비 상태 확인 실패" : "준비 중 · 검색 데이터 미구축";
   const sortedMachines = [...machines].sort((a, b) =>
+    Number(testCodes.includes(b.machine_code)) - Number(testCodes.includes(a.machine_code)) ||
     Number(b.can_select) - Number(a.can_select) || a.machine_code.localeCompare(b.machine_code, undefined, { numeric: true }));
   const placeholder = status === "loading" ? "장비 목록 불러오는 중"
     : status === "error" ? "장비 목록 조회 실패"
@@ -79,7 +88,7 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
       {isOpen && (
         <div className={styles.panel}>
           <div className={styles.heading}><strong>장비 목록</strong><span>{machines.length}대</span></div>
-          <p id={`${listId}-guide`} className={styles.guide}><LockKeyhole size={13} aria-hidden="true" />{isMaster ? "검색 데이터가 준비된 장비만 선택할 수 있습니다. 장비를 변경하면 새 대화를 시작합니다." : "현재 IP에 할당된 장비만 선택할 수 있습니다."}</p>
+          <p id={`${listId}-guide`} className={styles.guide}><LockKeyhole size={13} aria-hidden="true" />{isMaster ? "장비를 선택하면 해당 장비의 매뉴얼을 확인합니다. 장비를 변경하면 새 대화를 시작합니다." : "현재 IP에 할당된 장비만 선택할 수 있습니다."}</p>
           <div ref={listRef} id={listId} role="listbox" aria-label="장비" aria-describedby={`${listId}-guide`}
             tabIndex={-1} className={styles.list}
             onKeyDown={event => {
@@ -95,7 +104,7 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
             {sortedMachines.map(machine => (
               <button type="button" role="option" key={machine.machine_code}
                 aria-selected={machine.machine_code === assigned?.machine_code} disabled={disabled || !machine.can_select}
-                className={`${styles.option} ${isUnready(machine) ? styles.unready : ""}`}
+                className={`${styles.option} ${testCodes.includes(machine.machine_code) ? styles.testData : ""} ${isUnready(machine) ? styles.unready : ""}`}
                 title={isUnready(machine) ? `${readinessLabel(machine)} · 선택 및 채팅을 사용할 수 없습니다.` : !machine.can_select ? "현재 IP에 할당되지 않아 선택할 수 없습니다." : undefined}
                 onClick={() => {
                   if (machine.machine_code !== assigned?.machine_code) onChange(machine.machine_code);

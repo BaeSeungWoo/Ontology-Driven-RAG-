@@ -13,33 +13,62 @@ promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
 
 
 
+def _machine_list_item(code, info, ctx):
+    documents = set(machine_documents(info, "manual")) | set(machine_documents(info, "controller"))
+    return {
+        "machine_code": code,
+        "machine_name": info["machine_name"],
+        "machine_controller": info.get("machine_controller", ""),
+        "machine_ver": info.get("machine_ver", ""),
+        "is_assigned": code == ctx.request_machine_code,
+        "has_documents": bool(machine_documents(info)),
+        "readiness": "unchecked",
+        "searchable_document_count": 0,
+        "document_count": len(documents),
+        "has_ladder": bool(machine_documents(info, "ladder")),
+        "has_electrical": bool(machine_documents(info, "electrical")),
+        "can_select": ctx.is_main_server or code == ctx.request_machine_code,
+        "is_main_server": ctx.is_main_server,
+    }
+
+
 @promptRouter.get("/machines")
 def get_machines(client_request: Request, llm_model: str = "vllm_config"):
-    config = get_factory_config(llm_model, request_factory(client_request))
-    machines = config.machines
-    readiness = machine_readiness(config, machines)
+    machines = load_machine_info(client_request)
     ctx = resolve_request_code(
-        request=client_request,
-        machines=machines,
+        request=client_request, machines=machines,
         main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
-    return [
-        {
-            "machine_code": code,
-            "machine_name": info["machine_name"],
-            "machine_controller": info.get("machine_controller", ""),
-            "machine_ver": info.get("machine_ver", ""),
-            "is_assigned": code == ctx.request_machine_code,
-            "has_documents": bool(machine_documents(info)),
-            **readiness[code],
-            "can_select": (config.id not in {"yulkok", "poongsan"} or code in {
-                "M001", "M002", "M003", "M004", "M005",
-            }) and (ctx.is_main_server or code == ctx.request_machine_code) and (
-                readiness[code]["readiness"] in ("ready", "partial") or readiness[code]["has_electrical"]),
-            "is_main_server": ctx.is_main_server,
-        }
-        for code, info in machines.items()
-    ]
+    return [_machine_list_item(code, info, ctx) for code, info in machines.items()]
+
+
+@promptRouter.get("/machines/{machine_code}/readiness")
+def get_machine_readiness(machine_code: str, client_request: Request, llm_model: str = "vllm_config"):
+    machines = load_machine_info(client_request)
+    ctx = resolve_request_code(
+        request=client_request, machines=machines,
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    if not ctx.is_main_server and machine_code != ctx.request_machine_code:
+        raise HTTPException(403, "다른 장비에는 접근이 불가능합니다.")
+    if machine_code not in machines:
+        raise HTTPException(404, detail={"message": "등록되지 않은 장비코드입니다.", "machine_code": machine_code})
+    info = machines[machine_code]
+    result = _machine_list_item(machine_code, info, ctx)
+    if not machine_documents(info):
+        state = {"readiness": "no_documents", "searchable_document_count": 0,
+                 "document_count": 0, "has_ladder": False, "has_electrical": False}
+    else:
+        config = get_factory_config(llm_model, request_factory(client_request))
+        state = machine_readiness(config, {machine_code: info})[machine_code]
+    result.update(state)
+    result["can_select"] = state["readiness"] in ("ready", "partial") or state["has_electrical"]
+    if result["can_select"]:
+        return result
+    message = ("선택한 장비에 매뉴얼이 등록되지 않았습니다." if state["readiness"] == "no_documents"
+               else "선택한 장비의 검색 데이터를 확인할 수 없습니다. 검색 DB를 확인해 주세요."
+               if state["readiness"] == "check_failed" else "선택한 장비의 매뉴얼 검색 데이터가 없습니다.")
+    raise HTTPException(409, detail={"message": message, "machine": result})
 
 
 @promptRouter.post("/getPromptList")

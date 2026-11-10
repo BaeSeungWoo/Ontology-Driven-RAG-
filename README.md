@@ -13,19 +13,22 @@ RAG 개발
             * `data_loader.py` (멀티모달용 원본 PDF 페이지 렌더링)
         * **data/{factory}/** (공장별 원본과 빌드 결과)
             * **inputs/** (보존할 입력)
-                * **manuals/** (매뉴얼 PDF)
-                * **controllers/** (컨트롤러 PDF)
-                * **electricals/** (전기도면 PDF)
-                * **ladders/** (LST, LAD 원본)
+                * **originPDF/manual/** (매뉴얼 PDF)
+                * **originPDF/controller/** (컨트롤러 PDF)
+                * **originPDF/electrical/** (전기도면 PDF)
+                * **originPDF/etc/** (기타 PDF)
+                * **ladder/** (LST, LAD 원본)
                 * **repairHistory/** (수리이력 XLS)
                 * **knowledge/** (암묵지 TXT)
-                * **extracted/paddleocr/{문서}/** (PaddleOCR 결과와 관련 이미지)
+                * **extracted/paddleOCR/{문서}/** (PaddleOCR 결과와 관련 이미지)
                 * **extracted/docling/{문서}/** (Docling struct·asset·extract 원본)
+                * **extracted/electrical/{문서}/** (외부 전기도면 인덱스)
+                * **extracted/kg/** (향후 KG 입력용; 아직 반입·검색 연결 없음)
             * **struct/documents/** (문서별 표준 청크 JSONL)
             * **struct/ladders/** (LST 파서의 중간 결과)
             * **asset/** (서비스용 이미지·표; 멀티모달 페이지는 pages/)
             * **chroma/**, **bm25/**, **faiss/** (공용 검색 인덱스)
-            * **electrical/** (전기도면 전용 인덱스)
+            * **electrical/** (서비스 QA 설정 config/ 및 results/, previews/)
             * **kg/** (별도 지식그래프)
             * **multimodal/** (별도 페이지 이미지 검색 인덱스)
         * `build_db.py` (외부 추출물 전처리 / 표준 청크 기반 인덱싱)
@@ -183,7 +186,7 @@ python -m pipeline.build_db --factory yulkok --stage prepare
 # Docling ZIP 추가. 준비된 PaddleOCR과 Docling을 함께 전처리.
 python -m pipeline.build_db --factory yulkok --stage prepare --docling-zip C:/Ontology-Driven-RAG-/pipeline/data/yulkok/inputs/ocr/yulkok_M001_M005_Docling_missing10_20261030.zip
 
-# inputs/ladders/*.LST → struct/ladders + struct/documents
+# inputs/ladder/*.LST → struct/ladders + struct/documents
 python -m pipeline.build_db --factory yulkok --stage ladders
 
 # 준비된 전체 struct/documents → Chroma, BM25, FAISS
@@ -200,6 +203,19 @@ python -m pipeline.build_db --factory yulkok --stage multimodal --output-root C:
 KG와 멀티모달은 공용 인덱스 단계에서 자동 실행하지 않습니다.
 멀티모달은 준비된 manual/controller 문서에 대응하는 PDF만 렌더링합니다.
 전기도면의 별도 엔진은 이 명령에서 실행하지 않으며 기존 설정을 유지합니다.
+
+### 기존 인덱스로 배포할 때
+
+장비별 매뉴얼 검색에는 공장별 Chroma 컬렉션과 그 컬렉션에서 생성한 `bm25/machine_search.sqlite3`가 필요합니다. 기존 컬렉션을 배포하거나 갱신할 때는 인덱스 쓰기 작업을 마친 후 저장소 루트에서 해당 공장의 명령을 실행하세요. 저장된 임베딩을 재사용합니다.
+
+```powershell
+python -m pipeline.build_machine_search --factory yunam
+python -m pipeline.build_machine_search --factory yulkok
+python -m pipeline.build_machine_search --factory poongsan
+python -m pipeline.build_machine_search --factory waff
+```
+
+신규 빌드에서는 `pipeline.build_db --stage index`가 장비 검색 DB도 생성합니다. 와프의 현장 노하우 인덱스만 갱신할 때는 `python -m pipeline.build_db --factory waff --maintenance-only`를 실행하세요. 노하우 입력 파일은 `pipeline/data/waff/inputs/knowledge/*.txt`에 두며, 이 위치에 파일이 없으면 `pipeline/data/shared/knowledge/inputs/*.txt`를 사용합니다.
 
 ### 표준 청크와 문서 연결
 
@@ -232,7 +248,7 @@ Docling은 문서 폴더 바로 아래의 `struct/*.jsonl`을 읽고 같은 Chun
 기존 PaddleOCR 청크를 검색 대상에서 제외하지 않습니다.
 Docling 변환 보고서는 `struct/reports/docling-*.json`에 저장합니다.
 
-수동 반입은 ZIP 안의 문서 폴더를 해당 `inputs/extracted/paddleocr` 또는 `docling`에
+수동 반입은 ZIP 안의 문서 폴더를 해당 `inputs/extracted/paddleOCR` 또는 `inputs/extracted/docling`에
 그대로 풀면 됩니다. `results` 중간 폴더는 만들지 않습니다. 각 ZIP의 manifest는
 해당 종류의 `_reports`에 `manifest_M001_M005.json`, `M006.json` 등 서로 다른 이름으로
 보관하세요. 확장자가 `.json`이고 내부 `documents` 목록 형식을 유지하면 파일명은
@@ -270,12 +286,12 @@ LAD는 원본 보관 대상이며 현재 LST 파서로 읽지 않습니다.
 
 ZIP 반입 명령 없이 수동 배치할 수도 있습니다.
 
-1. ZIP의 `index/{문서폴더}` 전체를 `pipeline/data/{factory}/electrical/index/`에 복사합니다.
+1. ZIP의 `index/{문서폴더}` 전체를 `pipeline/data/{factory}/inputs/extracted/electrical/`에 복사합니다.
    `manifest.json`, `machine_mapping.json`과 manifest에 등록된 파일을 함께 보관합니다.
-2. 대응 원본 PDF를 `pipeline/data/{factory}/inputs/electricals/`에 놓습니다.
+2. 대응 원본 PDF를 `pipeline/data/{factory}/inputs/originPDF/electrical/`에 놓습니다.
 3. 현재 `machine_info_{factory}.json`의 해당 설비 `document.electrical`에 같은 문서명이 있어야 합니다.
 4. 화면에서 설비 목록을 새로 조회하면(새로고침/창 재활성화), 누락된 `qa_config.json`과
-   `qa_profile.json`을 문서 폴더에 자동 생성합니다. 전기도면 QA 요청에서도 같은 확인을 수행합니다.
+   `qa_profile.json`을 `electrical/config/{문서폴더}/`에 자동 생성합니다. 전기도면 QA 요청에서도 같은 확인을 수행합니다.
 
 별도의 상시 폴더 감시나 OCR/임베딩 재빌드는 없습니다. ZIP 루트의 `profile_*.json`은
 수동 배치 시 필요하지 않습니다. 문서명과 공통 QA 엔진 설정으로 프로필을 생성합니다.
@@ -284,8 +300,8 @@ ZIP 반입 명령 없이 수동 배치할 수도 있습니다.
 설비 번호는 `machine_mapping.json`의 과거 목록이 아니라 현재 machine_info로 연결합니다.
 
 
-원본 PDF는 `pipeline/data/{factory}/inputs/electricals`, 외부 인덱스는
-`pipeline/data/{factory}/electrical/index/{document}`에 보관합니다.
+원본 PDF는 `pipeline/data/{factory}/inputs/originPDF/electrical`, 외부 인덱스는
+`pipeline/data/{factory}/inputs/extracted/electrical/{document}`에 보관합니다.
 ZIP의 실행 코드나 OCR은 실행하지 않습니다. 기존 파일은 동일 내용이면 재사용하고,
 다른 내용이면 덮어쓰지 않고 중단합니다.
 
@@ -296,7 +312,7 @@ python -m pipeline.import_electrical --factory yulkok --zip "C:/Ontology-Driven-
 지원 ZIP에는 `index/{document}/manifest.json`, `machine_mapping.json`, 검색 JSON과
 `page_evidence.json`, 루트 `profile_*.json`이 있어야 합니다. PDF가 이미 inputs에 있으면
 그 파일의 지문을 검증하고, 없으면 ZIP의 `originals`에서 복사합니다.
-반입 시 문서별 `qa_config.json`과 `qa_profile.json`을 생성합니다.
+반입 시 `electrical/config/{문서폴더}/`에 `qa_config.json`과 `qa_profile.json`을 생성합니다.
 실행 시 현재 `machine_info_{factory}.json`의 `document.electrical` 문서명과 매칭하므로
 공유 문서는 인덱스 하나를 여러 설비에서 사용합니다. ZIP에 기록된 설비 번호는
 실제 설비 연결의 기준으로 사용하지 않습니다. 일반 임베딩 인덱스 재빌드는 필요 없습니다.
@@ -308,3 +324,13 @@ VC630은 율곡 M001·M002·M003에 연결됩니다. 기존 DHF8000 인덱스는
 확인한 뒤 기존 답변 근거 검토를 수행합니다.
 현재 한 설비에 여러 문서 인덱스가 동시에 연결되면 임의로 하나를 선택하지 않고
 문서 선택이 필요하다는 오류를 반환합니다. 복수 도면 선택·통합 질의는 후속 작업입니다.
+
+### 입력 경로 계약
+
+신규 공장(yunam, yulkok, poongsan)은 `inputs/originPDF/{manual,controller,electrical,etc}`,
+`inputs/{ladder,repairHistory,knowledge}`, `inputs/extracted/{docling,paddleOCR,electrical,kg}`를 사용합니다.
+PaddleOCR 폴더명은 `paddleOCR`이고 청크의 `source_type` 값은 기존 `paddleocr`를 유지합니다.
+설비 연결은 백엔드의 `machine_info_{factory}.json`이 기준입니다.
+전기도면 인덱스는 입력 경로에서 직접 읽고, 생성하는 QA 설정·결과·미리보기는 `electrical/`에 분리합니다.
+KG 입력 폴더는 예약만 하며 기존 `--stage kg` 자체 생성 기능과 연결하지 않습니다.
+연암(구)의 입력 및 전기도면 엔진 경로는 유지합니다.

@@ -133,6 +133,10 @@ class RAGService:
                 )
             else:
                 context, imgs, tables, chunks = retriever.get_context(query=question, machine_code=effective_machine_code)
+            if self.config.id == "waff" and mode == "rag":
+                supplement = self._get_retriever("repairHistory")
+                context, imgs, tables, chunks = await supplement.supplement(
+                    question, effective_machine_code, intent["type"], context, imgs, tables, chunks)
             m_info = self.config.machines.get(effective_machine_code, {})
 
         # if mode == "multimodal":
@@ -153,6 +157,13 @@ class RAGService:
             m_info=m_info,
             intent_type=intent["type"],
         )
+
+        if self.config.id == "waff" and mode == "rag":
+            messages[0]["content"] += (
+                "\n매뉴얼과 와프 현장 대응 노하우를 구분한다. 관련 노하우만 별도 항목으로 인용하고 "
+                "업체명·장비명·비용 등 개별 사례 정보는 노출하지 않는다. "
+                "현장 경험을 매뉴얼 지시나 확정 원인으로 제시하지 않는다."
+            )
 
         if mode == "cms":
             messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy()
@@ -379,6 +390,7 @@ class RAGService:
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         persona_type: str = "operator",
+        effective_machine_code: str = "ALL",
     ) -> dict[str, Any]:
         messages, imgs, tables, chunks, intent = await self.prepare_ask_context(
             session_id=session_id,
@@ -387,6 +399,7 @@ class RAGService:
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             persona_type=persona_type,
+            effective_machine_code=effective_machine_code,
         )
 
         answer = await self.llm.ainvoke(messages)
@@ -736,6 +749,7 @@ class JudgeRAGService(RAGService):
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         effective_machine_code: str = "ALL",
+        persona_type: str = "operator",
     ) -> dict[str, Any]:
         if not self._is_judge_mode(mode):
             return await super().ask(
@@ -744,6 +758,8 @@ class JudgeRAGService(RAGService):
                 mode=mode,
                 prompt_id=prompt_id,
                 user_prompt=user_prompt,
+                effective_machine_code=effective_machine_code,
+                persona_type=persona_type,
             )
 
         history = self.memory_manager.get_history(session_id)

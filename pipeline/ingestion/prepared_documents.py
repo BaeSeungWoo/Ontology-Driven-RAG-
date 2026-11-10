@@ -5,11 +5,13 @@ Converters write one JSONL per document under struct/documents, using the index-
 """
 import json
 from pathlib import Path
+import re
 import unicodedata
 
 
-INPUT_FOLDERS = ("manuals", "controllers", "electricals", "ladders",
-                 "repairHistory", "knowledge", "extracted/paddleocr", "extracted/docling")
+INPUT_FOLDERS = ("originPDF/manual", "originPDF/controller", "originPDF/electrical", "originPDF/etc",
+                 "ladder", "repairHistory", "knowledge", "extracted/paddleOCR",
+                 "extracted/docling", "extracted/electrical", "extracted/kg")
 OUTPUT_FOLDERS = ("struct", "asset", "bm25", "chroma", "faiss", "electrical", "kg", "multimodal")
 
 
@@ -25,7 +27,7 @@ def document_key(name: str) -> str:
     name = unicodedata.normalize("NFC", name.replace("\\", "/").rsplit("/", 1)[-1]).strip()
     if Path(name).suffix.lower() in {".pdf", ".lst", ".lad"}:
         name = name[: -len(Path(name).suffix)]
-    return name.casefold()
+    return re.sub(r"\s+", " ", name).strip().casefold()
 
 
 def document_catalog(machines: dict) -> dict:
@@ -34,8 +36,9 @@ def document_catalog(machines: dict) -> dict:
         groups = info.get("document") or {}
         if not isinstance(groups, dict):
             raise ValueError(f"{code}: 문서 종류별 machine_info가 필요합니다.")
-        for kind in ("manual", "controller", "electrical", "ladder"):
-            for name in groups.get(kind, []):
+        for kind in ("manual", "controller", "electrical", "ladder", "etc"):
+            for document in groups.get(kind, []):
+                name = document["filename"] if isinstance(document, dict) else document
                 key = document_key(name)
                 entry = catalog.setdefault(key, {"document_type": kind, "machine_code": []})
                 if entry["document_type"] != kind:
@@ -53,7 +56,7 @@ def prepare_ocr(root: Path, machines: dict) -> None:
     reports = {}
     if documents:
         reports["Docling"] = prepare_docling(root, machines, documents)
-    paddle = root / "inputs/extracted/paddleocr"
+    paddle = root / "inputs/extracted/paddleOCR"
     if paddle.exists() and any(p.is_dir() and p.name != "_reports" for p in paddle.iterdir()):
         reports["PaddleOCR"] = prepare_paddleocr(root, machines, docling_documents=documents)
     if not reports:
@@ -71,10 +74,10 @@ def prepare_ladders(root: Path, machines: dict, factory_id: str) -> None:
     from pipeline.parsers.mnemonic_ladder import build_mnemonic_files
 
     catalog = document_catalog(machines)
-    sources = sorted(p for p in (root / "inputs" / "ladders").rglob("*")
+    sources = sorted(p for p in (root / "inputs" / "ladder").rglob("*")
                      if p.is_file() and p.suffix.lower() == ".lst")
     if not sources:
-        raise FileNotFoundError("inputs/ladders에 LST 파일이 없습니다. LAD는 보관용입니다.")
+        raise FileNotFoundError("inputs/ladder에 LST 파일이 없습니다. LAD는 보관용입니다.")
     import hashlib
     targets = []
     for source in sources:

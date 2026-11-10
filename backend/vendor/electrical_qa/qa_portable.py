@@ -147,12 +147,40 @@ def validate_inputs(config):
                 raise ValueError(f'반입 인덱스 파일 지문이 다릅니다: {name}')
         from electrical.grounding import load_page_evidence
         full_pages = load_page_evidence(index, digest)
-        if full_pages is None or set(full_pages) != {str(n) for n in range(1, page_count + 1)}:
-            raise ValueError('반입 인덱스의 전체 페이지 근거가 누락되었습니다.')
+        referenced = set(read_json(index / 'parts_index2.json').get('page_devices', {}))
+        for name in ('io_index_merged.json', 'io_index_rows_merged.json'):
+            referenced.update(str(row['page']) for row in read_json(index / name)['entries'] if row.get('page'))
+        validate_evidence_scope(manifest, full_pages, page_numbers, page_count, referenced)
         # Integrity is checked; OCR records remain automatic/unreviewed. Keep final grounding review enabled.
         verified = {'sha256': digest, 'devices': [], 'verification_status': 'automatic_unverified',
-                    'index_scope': '외부 추출 인덱스입니다. PDF·파일 지문과 페이지 범위만 검증했으며 자동 판독 내용은 미검수입니다.'}
+                    'index_scope': f'원본 {page_count}쪽 중 {len(full_pages)}쪽을 포함하는 외부 추출 인덱스입니다. '
+                                   '포함하지 않은 페이지는 이 인덱스의 검색 대상이 아닙니다. '
+                                   'PDF·파일 지문과 페이지 범위만 검증했으며 자동 판독 내용은 미검수입니다.'}
     return profile, verified, full_pages, page_count
+
+
+def validate_evidence_scope(manifest, pages, title_pages, page_count, referenced_pages=()):
+    """Accept explicit partial coverage; legacy manifests still require all pages."""
+    if 'covered_pages' not in manifest:
+        expected = {str(n) for n in range(1, page_count + 1)}
+    else:
+        covered = manifest['covered_pages']
+        if (manifest.get('schema_version') != 2 or manifest.get('pdf_page_count') != page_count
+                or not isinstance(covered, list) or not covered
+                or any(not isinstance(p, str) or not p.isdigit() or str(int(p)) != p
+                       or not 1 <= int(p) <= page_count for p in covered)
+                or len(set(covered)) != len(covered)):
+            raise ValueError('부분 인덱스의 페이지 범위 선언이 올바르지 않습니다.')
+        if not (set(INDEX_FILES) | {'page_evidence.json'}).issubset(manifest['files']):
+            raise ValueError('부분 인덱스의 필수 파일 지문이 누락되었습니다.')
+        expected = set(covered)
+        if set(title_pages) | set(referenced_pages) != expected:
+            raise ValueError('선언한 페이지 범위와 제목·부품·I/O 인덱스가 다릅니다.')
+    if pages is None or set(pages) != expected:
+        raise ValueError('반입 인덱스의 선언 범위에 페이지 근거가 누락되었거나 추가되었습니다.')
+    for page, row in pages.items():
+        if not all(isinstance(row.get(key), str) for key in ('title', 'ocr_text', 'pdf_text')):
+            raise ValueError(f'페이지 근거의 텍스트 형식이 올바르지 않습니다: {page}')
 
 
 def check(config, server=False):
@@ -161,7 +189,10 @@ def check(config, server=False):
     report = {'ok': True, 'python': sys.version.split()[0], 'dependencies': dependencies,
               'machine': profile['machine'], 'pdf_pages': page_count,
               'indexed_pages': len(read_json(Path(config['index_dir']) / 'title_index.json')['pages']),
-              'verified_pdf': verified is not None, 'full_page_evidence': pages is not None,
+              'verified_pdf': verified is not None,
+              'full_page_evidence': pages is not None and len(pages) == page_count,
+              'evidence_page_count': len(pages or {}),
+              'coverage': 'full' if pages is not None and len(pages) == page_count else 'partial',
               'index_local_verified': (Path(config['index_dir']) / 'verified_evidence.json').is_file(),
               'index_scope': (verified or {}).get('index_scope') or profile.get('full_scope' if pages is not None else 'scope', ''),
               'server_checked': False}

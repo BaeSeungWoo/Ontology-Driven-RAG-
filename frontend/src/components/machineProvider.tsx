@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, createContext, useContext, useEffect, useRef, useState } from "react";
+import axios from "axios";
 import api, { setApiFactory, type FactoryId } from "@/services/api";
 import type { LlmModel } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
@@ -13,7 +14,7 @@ export type Machine = {
   is_assigned: boolean;
   can_select: boolean;
   has_documents: boolean;
-  readiness: "no_documents" | "no_search_data" | "check_failed" | "partial" | "ready";
+  readiness: "unchecked" | "no_documents" | "no_search_data" | "check_failed" | "partial" | "ready";
   searchable_document_count: number;
   document_count: number;
   has_ladder: boolean;
@@ -33,6 +34,8 @@ const MachineContext = createContext<{
   machineCode?: string;
   setMachineCode: (code: string | undefined) => void;
   status: "loading" | "ready" | "error";
+  selectionStatus: "idle" | "loading" | "ready" | "error";
+  selectionError: string;
   refreshMachines: () => void;
 } | null>(null);
 
@@ -47,6 +50,9 @@ export default function MachineProvider({ children }: { children: React.ReactNod
   const [machineCode, setMachineCode] = useState<string>();
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [revision, setRevision] = useState(0);
+  const [loadedRevision, setLoadedRevision] = useState(-1);
+  const [selection, setSelection] = useState<{ key: string; status: "ready" | "error"; error: string }>();
+  const selectionKey = `${factoryId}:${llmModel}:${machineCode}:${revision}`;
   const initialized = useRef(false);
 
   const setFactoryId = (factory: FactoryId) => {
@@ -78,6 +84,7 @@ export default function MachineProvider({ children }: { children: React.ReactNod
       setMachines(data);
       setLoadedModel(llmModel);
       setLoadedFactory(factoryId);
+      setLoadedRevision(revision);
       setStatus("ready");
     }).catch(() => {
       if (!controller.signal.aborted) setStatus("error");
@@ -86,12 +93,39 @@ export default function MachineProvider({ children }: { children: React.ReactNod
   }, [revision, llmModel, factoryId]);
 
   useEffect(() => {
+    if (!machineCode || loadedFactory !== factoryId || loadedModel !== llmModel
+      || loadedRevision !== revision || status !== "ready") return;
+    const controller = new AbortController();
+    const updateMachine = (machine: Machine) => setMachines(previous => previous.map(
+      item => item.machine_code === machine.machine_code ? machine : item));
+    api.get<Machine>(`/api/prompts/machines/${encodeURIComponent(machineCode)}/readiness`, {
+      signal: controller.signal, headers: { "X-Factory-Id": factoryId }, params: { llm_model: llmModel },
+    }).then(({ data }) => {
+      if (controller.signal.aborted) return;
+      updateMachine(data);
+      setSelection({ key: selectionKey, status: "ready", error: "" });
+    }).catch(error => {
+      if (controller.signal.aborted) return;
+      const detail = axios.isAxiosError(error) ? error.response?.data?.detail : undefined;
+      if (detail?.machine) updateMachine(detail.machine);
+      if (axios.isAxiosError(error) && error.response?.status === 404 && detail?.machine_code === machineCode) {
+        setMachines(previous => previous.filter(item => item.machine_code !== machineCode));
+      }
+      setSelection({ key: selectionKey, status: "error", error: typeof detail === "string" ? detail
+        : detail?.message ?? "선택한 장비의 데이터를 확인하지 못했습니다. 다시 시도해 주세요." });
+    });
+    return () => controller.abort();
+  }, [machineCode, factoryId, llmModel, loadedFactory, loadedModel, loadedRevision, revision, status, selectionKey]);
+
+  useEffect(() => {
     const refresh = () => setRevision(value => value + 1);
     window.addEventListener("focus", refresh);
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
   return <MachineContext.Provider value={{ factoryId, setFactoryId, executionMachineCode: machineCode, personaType, setPersonaType, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
+    selectionStatus: !machineCode ? "idle" : selection?.key === selectionKey ? selection.status : "loading",
+    selectionError: selection?.key === selectionKey ? selection.error : "",
     refreshMachines: () => {
       if (status === "error") setStatus("loading");
       setRevision(value => value + 1);

@@ -42,7 +42,7 @@ const PERSONA_CARDS = {
   manager: { icon: ChartNoAxesCombined, description: "가동 현황과 운영 지표를 한눈에 확인하세요.", mode: "cms" },
 } satisfies Record<PersonaType, { icon: typeof HardHat; description: string; mode: LlmMode }>;
 
-export default function Chat() {
+export default function Chat({ initialQuestioner }: { initialQuestioner: string }) {
   // 내부 state: 화면 접힘/선택 상태
   // 기능/목적: 좌/우 패널, 활성 답변과 선택 참조를 화면 전체에서 공유한다.
   const [isCitationCollapsed, setIsCitationCollapsed] = useState(true);
@@ -52,10 +52,10 @@ export default function Chat() {
 
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
-  const [questioner, setQuestioner] = useState("");
+  const [questioner, setQuestioner] = useState(initialQuestioner);
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
-  const { factoryId, setFactoryId, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
+  const { factoryId, setFactoryId, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, selectionStatus, selectionError, refreshMachines, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
@@ -67,13 +67,6 @@ export default function Chat() {
   const sendingRef = useRef(false);
   const isSessionResetPendingRef = useRef(false);
   const isHistorySessionSyncingRef = useRef(false);
-
-  useEffect(() => {
-    const today = new Intl.DateTimeFormat("sv-SE", {
-      timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit",
-    }).format(new Date()).replaceAll("-", "");
-    setQuestioner(`${today}-User-01`);
-  }, []);
 
   const { messages, sendQuestion, retryLastAnswer, loadSessionMessages, resetChatState, isLoading, isSessionLoading, error } = useChat({
     selectedSessionId,
@@ -97,10 +90,12 @@ export default function Chat() {
   });
 
   const selectedMachine = machines.find(machine => machine.machine_code === selectedMachineCode);
-  const machineUnavailable = machineStatus !== "ready" || !selectedMachine?.can_select;
+  const machineUnavailable = machineStatus !== "ready" || selectionStatus !== "ready" || !selectedMachine?.can_select;
   const featureUnavailable = !machineUnavailable && (
     selectedPersonaType === "engineer" && selectedLlmMode === "electrical"
       ? !selectedMachine?.has_electrical ? "선택한 설비의 전기도면 인덱스가 준비되지 않았습니다." : ""
+      : !["ready", "partial"].includes(selectedMachine?.readiness ?? "")
+        ? "선택한 장비의 매뉴얼 검색 데이터가 없습니다. 다른 장비 또는 사용 가능한 전기도면 모드를 선택해 주세요."
       : factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
         ? "정비·보전·관리자 기능은 신규 공장 연결 준비 중입니다." : "");
   const isPromptRequiredMissing =
@@ -341,7 +336,7 @@ export default function Chat() {
   // render
   return (
     <div className={`${styles.chatPage} tw-chat-page`}>
-      <AppHeader>
+      <AppHeader onStartNewChat={resetToNewSession}>
         <div className={styles.headerSettings} inert={isSending}>
           <FactorySelect disabled={isSending || isLoading || isSessionLoading || isSettingsOpen} onChange={factory => {
             resetToNewSession();
@@ -451,7 +446,9 @@ export default function Chat() {
           </section>}
 
           <section className={styles.chatQuestionPane}>
-            {machineStatus === "ready" && machineUnavailable && <p role="status">{selectedMachine?.has_documents === false
+            {selectionStatus === "loading" && <p role="status">선택한 장비의 매뉴얼을 확인하고 있습니다.</p>}
+            {selectionError && <p role="alert">{selectionError} <button type="button" onClick={refreshMachines}>다시 확인</button></p>}
+            {machineStatus === "ready" && machineUnavailable && selectionStatus !== "loading" && !selectionError && <p role="status">{selectedMachine?.has_documents === false
               ? "매뉴얼이 등록되지 않아 준비 중인 장비입니다. 채팅을 사용할 수 없습니다."
               : "검색 데이터가 준비된 사용 가능한 장비를 선택해 주세요."}</p>}
             {featureUnavailable && <p role="status">{featureUnavailable}</p>}

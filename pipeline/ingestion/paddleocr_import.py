@@ -31,7 +31,7 @@ def preserve_write(path: Path, content: bytes) -> None:
 def import_zip(archive: Path, root: Path, source_type: str = "paddleocr") -> None:
     if source_type not in {"paddleocr", "docling"}:
         raise ValueError(source_type)
-    destination = long_path(root / "inputs/extracted" / source_type)
+    destination = long_path(root / "inputs/extracted" / ("paddleOCR" if source_type == "paddleocr" else source_type))
     with zipfile.ZipFile(archive) as bundle:
         planned = []
         seen = set()
@@ -68,7 +68,7 @@ def jsonl(rows):
 
 
 def prepare_paddleocr(root: Path, machines: dict, *, docling_documents=()) -> dict:
-    source = long_path(root / "inputs/extracted/paddleocr")
+    source = long_path(root / "inputs/extracted/paddleOCR")
     catalog = document_catalog(machines)
     documents = sorted(p for p in source.iterdir() if p.is_dir() and p.name != "_reports") if source.exists() else []
     if not documents:
@@ -98,7 +98,8 @@ def prepare_paddleocr(root: Path, machines: dict, *, docling_documents=()) -> di
         pages = {}
         for path in results.glob("*_res.json"):
             match = re.fullmatch(r"(.+)_(\d+)_res\.json", path.name)
-            if not match or " ".join(match[1].split()) != " ".join(page_prefix.split()):
+            if not match or (match[1] != "page" and
+                             " ".join(match[1].split()) != " ".join(page_prefix.split())):
                 raise ValueError(f"페이지 번호를 판별할 수 없습니다: {path}")
             number = int(match[2]) + 1  # JSON page_index may restart in each OCR batch.
             if number in pages:

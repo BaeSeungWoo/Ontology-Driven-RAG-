@@ -27,11 +27,22 @@ class KnowledgeGraphSearchError(RuntimeError):
 
 def _index_settings(factory_id="yunam"):
     indexes, fingerprints = [], []
-    for name in CORPORA:
+    index_root = ROOT / "backend/data/graph_indexes"
+    if factory_id != "yunam_origin":
+        index_root = index_root / factory_id
+    registry = index_root / "indexes.json"
+    corpora = CORPORA
+    if registry.exists():
+        try:
+            corpora = json.loads(registry.read_text(encoding="utf-8"))
+            if (not isinstance(corpora, list) or not corpora
+                    or any(not isinstance(name, str) or not re.fullmatch(r"[a-z0-9_]+", name) for name in corpora)
+                    or len(set(corpora)) != len(corpora)):
+                raise ValueError("Invalid corpus registry")
+        except (OSError, ValueError) as exc:
+            raise KnowledgeGraphConfigurationError("공장별 지식그래프 인덱스 목록을 읽을 수 없습니다.") from exc
+    for name in corpora:
         variable = f"GRAPH_INDEX_{name.upper()}_DIR" if factory_id == "yunam_origin" else f"GRAPH_INDEX_{factory_id.upper()}_{name.upper()}_DIR"
-        index_root = ROOT / "backend/data/graph_indexes"
-        if factory_id != "yunam_origin":
-            index_root = index_root / factory_id
         directory = Path(os.environ.get(variable) or index_root / name).resolve()
         manifest_path = directory / "manifest.json"
         try:
@@ -48,7 +59,7 @@ def _index_settings(factory_id="yunam"):
                 f"{name.upper()} 매뉴얼 인덱스를 읽을 수 없습니다. {variable}을 manifest.json이 있는 폴더로 설정해 주세요."
             ) from exc
         indexes.append((name, directory, manifest))
-        fingerprints.append((str(directory), stat.st_mtime_ns, stat.st_size))
+        fingerprints.append((name, str(directory), stat.st_mtime_ns, stat.st_size))
     cache = Path(os.environ.get("GRAPH_INDEX_CACHE_DIR") or ROOT / "backend/data/graph_index_cache").resolve()
     return indexes, cache, (tuple(fingerprints), str(cache))
 
@@ -163,7 +174,7 @@ def build_question_graph(question: str, factory_id: str = "yunam") -> dict:
                 raise KnowledgeGraphSearchError(
                     f"{name.upper()} 매뉴얼 그래프 검색에 실패했습니다. 잠시 후 다시 시도해 주세요."
                 ) from exc
-        result = {"question": question, "corpora": list(CORPORA), "sources": sources,
+        result = {"question": question, "corpora": [name for name, _, _ in indexes], "sources": sources,
                   "html": _render_html({"datasets": datasets, "edge_semantics": semantics})}
         _RESULTS[key] = result
         while len(_RESULTS) > _CACHE_SIZE:

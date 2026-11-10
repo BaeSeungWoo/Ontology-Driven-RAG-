@@ -3,7 +3,7 @@ from pathlib import Path
 
 from fastapi import HTTPException, Request
 
-FACTORY_IDS = ("yunam", "yulkok", "poongsan", "yunam_origin")
+FACTORY_IDS = ("yunam", "yulkok", "poongsan", "waff", "yunam_origin")
 
 
 def history_factory_id(factory_id: str) -> str:

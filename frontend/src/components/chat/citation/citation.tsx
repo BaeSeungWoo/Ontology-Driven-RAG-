@@ -304,6 +304,7 @@ export default function Citation({
                     ? chunk.metadata.source_doc_name
                     : "문서명 없음";
                 const isCms = chunk?.metadata?.source_kind === "cms";
+                const knowledgeRow = chunk?.metadata?.source_kind === "waff_knowledge" ? chunk.metadata.source_row : null;
                 const score = chunk?.similarity ?? chunk?.rrf_score ?? chunk?.bm25_score;
 
                 return (
@@ -326,7 +327,7 @@ export default function Citation({
                             : "참조 문서"}
                       </span>
                       {!isCms && <span className={styles.referenceCardPage}>
-                        {getChunkPageLabel(chunk) ?? "페이지 -"}
+                        {typeof knowledgeRow === "number" ? `원문 ${knowledgeRow}행` : getChunkPageLabel(chunk) ?? "페이지 -"}
                       </span>}
                       {isExpanded ? <ChevronUp size={16} aria-hidden="true" /> : <ChevronDown size={16} aria-hidden="true" />}
                     </span>

@@ -1,0 +1,846 @@
+{
+  "M001": {
+    "machine_name": "0i-D (FANUC)",
+    "machine_ips": ["192.168.1.31"],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"]},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M002": {
+    "machine_name": "0i-D PMC (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-D PMC",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"]},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M003": {
+    "machine_name": "0i-F(MEM-B) (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-F(MEM-B)",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M004": {
+    "machine_name": "0i-MB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63832EN_01_0i-B.pdf", "languages": ["en"]},
+            {"filename": "B-63833EN_03_0i-B.pdf", "languages": ["en"]},
+            {"filename": "B-63833EN-1_02_0i-B.pdf", "languages": ["en"]},
+            {"filename": "B-63835EN_03_0i-B.pdf", "languages": ["en"]},
+            {"filename": "B-63840EN_03_0i-B.pdf", "languages": ["en"]},
+            {"filename": "B-63844EN_02_0i-MB.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M005": {
+    "machine_name": "0i-MC (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MC",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64124EN_01_0i-MC.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M006": {
+    "machine_name": "0i-MD (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MD",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M007": {
+    "machine_name": "0i-MF (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-MF",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M008": {
+    "machine_name": "0i-TC (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TC",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64114EN_01_0i-TC.pdf", "languages": ["en"]},
+            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"]},
+            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M009": {
+    "machine_name": "0i-TF (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0i-TF",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M010": {
+    "machine_name": "0M (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "0M",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-61392E_03.pdf", "languages": ["en"]},
+            {"filename": "B-61393E_06.pdf", "languages": ["en"]},
+            {"filename": "B-61393E-2_02.pdf", "languages": ["en"]},
+            {"filename": "B-61395E_07.pdf", "languages": ["en"]},
+            {"filename": "B-61404E_08.pdf", "languages": ["en"]},
+            {"filename": "B-61410E_03.pdf", "languages": ["en"]},
+            {"filename": "B-62542EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62543EN_02.PDF", "languages": ["en"]},
+            {"filename": "B-62543EN-1_01.PDF", "languages": ["en"]},
+            {"filename": "B-62545EN_02.PDF", "languages": ["en"]},
+            {"filename": "B-62574EN_02.PDF", "languages": ["en"]},
+            {"filename": "B-62580EN_01.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M011": {
+    "machine_name": "11M (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "11M",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-54815E@05_FANUC 10.100.11.110.12.120 series Maintenance.pdf", "languages": ["en"]},
+            {"filename": "B-54810E@02_FANUC 10.100.11.110.12.120 series Operator(부록).pdf", "languages": ["en"]},
+            {"filename": "B-54810J@02_FANUC 10.100.11.110.12.120 series 취급설명서.pdf", "languages": ["ja"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M012": {
+    "machine_name": "15MA (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "15M",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-61215@01_FANUC Series 15 보수설명서.pdf", "languages": ["ja"]},
+            {"filename": "B-61213@02_FANUC SERIES 15.150 결합설명서.pdf", "languages": ["ja"]},
+            {"filename": "B-61220@04_FANUC SERIES 15.150 취급설명서 부록 (파라메타).pdf", "languages": ["ja"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M013": {
+    "machine_name": "15MB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "15MB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M014": {
+    "machine_name": "160i-MB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "160i-MB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M015": {
+    "machine_name": "16i (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "16i",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M016": {
+    "machine_name": "16M (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "16M",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62764EN_01.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M017": {
+    "machine_name": "18i (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M018": {
+    "machine_name": "18i-MB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-MB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M019": {
+    "machine_name": "18i-MB 5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-MB 5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M020": {
+    "machine_name": "18i-T (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-T",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M021": {
+    "machine_name": "18i-TB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M022": {
+    "machine_name": "18i-TB 5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18i-TB 5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M023": {
+    "machine_name": "18T (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "18T",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
+            {"filename": "B-62754EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M024": {
+    "machine_name": "21i (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "21i",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63084EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63090EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63094EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
+            {"filename": "B-63604EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63610EN_01.pdf", "languages": ["en"]},
+            {"filename": "B-63614EN_01.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M025": {
+    "machine_name": "21M (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "21M",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M026": {
+    "machine_name": "21T (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "21T",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-62534E_02.pdf", "languages": ["en"]},
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M027": {
+    "machine_name": "31i (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31i",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]},
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M028": {
+    "machine_name": "31i-A5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-A5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M029": {
+    "machine_name": "31i-B5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-B5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M030": {
+    "machine_name": "31iM-A5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-A5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M031": {
+    "machine_name": "31i-MB (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-MB",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M032": {
+    "machine_name": "31iM-B5 (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31iM-B5",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M033": {
+    "machine_name": "31i-T (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "31i-T",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M034": {
+    "machine_name": "32i-B(MEM-B) (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-B(MEM-B)",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M035": {
+    "machine_name": "32i-F(MEM-B) (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "32i-F(MEM-B)",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  },
+  "M036": {
+    "machine_name": "i-Series (FANUC)",
+    "machine_ips": [],
+    "machine_maker": "화낙",
+    "machine_controller": "화낙",
+    "machine_ver": "i-Series",
+    "document": {
+        "manual": [],
+        "controller": [
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]}
+        ],
+        "electrical": [],
+        "ladder": [],
+        "etc": []
+    }
+  }
+}

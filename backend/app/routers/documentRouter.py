@@ -81,7 +81,11 @@ def resolve_document(
     page_range: str | None = None,
 ):
     asset_root = Path(getattr(request.app.state, "asset_root", DEFAULT_ASSET_ROOT))
-    matched_path = _find_pdf(source_doc_name, asset_root / request_factory(request))
+    factory = request_factory(request)
+    pdf_root = asset_root / factory
+    if factory != "yunam_origin":
+        pdf_root = pdf_root / "inputs/originPDF"
+    matched_path = _find_pdf(source_doc_name, pdf_root)
     page = _first_page(page_range)
     return {"document_name": matched_path.name,
             "asset_url": _asset_url(matched_path, asset_root, page), "page": page}

@@ -231,6 +231,14 @@ FACTORY_CONFIGS: Dict[str, FactoryConfig] = {
             fallback_system_prompt="당신은 율곡 공장의 정밀 공정 분석가입니다.",
         ),
     ),
+    "waff": FactoryConfig(
+        embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://127.0.0.1:8101/v1", provider="openai"),
+        vector_db=VectorDBConfig(stores={
+            name: StorePathConfig(db_path=f"./data/waff/{name}", search_path=f"../pipeline/data/waff/{name}")
+            for name in ("chroma", "bm25", "faiss", "kg", "multimodal")
+        }),
+        prompt=PromptConfig(fallback_system_prompt="당신은 와프 공장의 컨트롤러 기술 전문가입니다."),
+    ),
     "poongsan": FactoryConfig(
         embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://127.0.0.1:8101/v1", provider="openai"),
         vector_db=VectorDBConfig(

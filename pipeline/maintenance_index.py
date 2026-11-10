@@ -138,6 +138,12 @@ def build_sources(config, workbook=None, tacit=None, reset=False):
     inputs = ROOT / "pipeline/data" / config.id / "inputs"
     workbooks = [Path(workbook)] if workbook else sorted((inputs / "repairHistory").glob("*.xls"))
     tacits = [Path(tacit)] if tacit else sorted((inputs / "knowledge").glob("*.txt"))
+    if config.id == "waff":
+        if workbook:
+            raise ValueError("와프는 암묵지 TXT만 사용합니다.")
+        workbooks = []
+        if not tacits:
+            tacits = sorted((ROOT / "pipeline/data/shared/knowledge/inputs").glob("*.txt"))
     if not workbooks and not tacits:
         print("[수리 사례] 입력 파일이 없어 생략합니다.")
         return
@@ -169,6 +175,8 @@ def search(question, config, machine_name="", top_k=6, balance_sources=False):
     query = np.asarray(load_embeddings(config)(["query: " + question])[0], dtype=np.float32)
     keywords = bundle["bm25"].get_scores(tokenize_for_bm25(question))
     pools = ("factory_history", "company_knowledge") if balance_sources else (None,)
+    if config.id == "waff":
+        pools = ("company_knowledge",)
     results = []
     for kind in pools:
         pool = [i for i, m in enumerate(bundle["metadatas"])
@@ -200,7 +208,7 @@ def search(question, config, machine_name="", top_k=6, balance_sources=False):
                              "metadata": {**metadata, "same_machine": same}, "similarity": similarity,
                              "rrf_score": ranks[key] + (0.005 if same else 0)})
         selected.sort(key=lambda r: -r["rrf_score"])
-        results.extend(selected[:top_k // 2 if balance_sources else top_k])
+        results.extend(selected[:top_k // 2 if len(pools) > 1 else top_k])
     # Do not return evidence if a build started while the query was running.
     current = client.get_collection(config.id + "_repairHistory").metadata or {}
     if current.get("status") != "ready" or current.get("fingerprint") != meta["fingerprint"]:
