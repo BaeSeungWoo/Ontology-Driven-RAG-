@@ -204,6 +204,19 @@ KG와 멀티모달은 공용 인덱스 단계에서 자동 실행하지 않습�
 멀티모달은 준비된 manual/controller 문서에 대응하는 PDF만 렌더링합니다.
 전기도면의 별도 엔진은 이 명령에서 실행하지 않으며 기존 설정을 유지합니다.
 
+### 기존 인덱스로 배포할 때
+
+장비별 매뉴얼 검색에는 공장별 Chroma 컬렉션과 그 컬렉션에서 생성한 `bm25/machine_search.sqlite3`가 필요합니다. 기존 컬렉션을 배포하거나 갱신할 때는 인덱스 쓰기 작업을 마친 후 저장소 루트에서 해당 공장의 명령을 실행하세요. 저장된 임베딩을 재사용합니다.
+
+```powershell
+python -m pipeline.build_machine_search --factory yunam
+python -m pipeline.build_machine_search --factory yulkok
+python -m pipeline.build_machine_search --factory poongsan
+python -m pipeline.build_machine_search --factory waff
+```
+
+신규 빌드에서는 `pipeline.build_db --stage index`가 장비 검색 DB도 생성합니다. 와프의 현장 노하우 인덱스만 갱신할 때는 `python -m pipeline.build_db --factory waff --maintenance-only`를 실행하세요.
+
 ### 표준 청크와 문서 연결
 
 `prepare_ocr()`는 제공된 PaddleOCR의 `문서명_0_res.json` 및 `imgs/*.jpg`를
