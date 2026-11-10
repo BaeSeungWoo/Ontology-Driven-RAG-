@@ -215,7 +215,7 @@ python -m pipeline.build_machine_search --factory poongsan
 python -m pipeline.build_machine_search --factory waff
 ```
 
-신규 빌드에서는 `pipeline.build_db --stage index`가 장비 검색 DB도 생성합니다. 와프의 현장 노하우 인덱스만 갱신할 때는 `python -m pipeline.build_db --factory waff --maintenance-only`를 실행하세요.
+신규 빌드에서는 `pipeline.build_db --stage index`가 장비 검색 DB도 생성합니다. 와프의 현장 노하우 인덱스만 갱신할 때는 `python -m pipeline.build_db --factory waff --maintenance-only`를 실행하세요. 노하우 입력 파일은 `pipeline/data/waff/inputs/knowledge/*.txt`에 두며, 이 위치에 파일이 없으면 `pipeline/data/shared/knowledge/inputs/*.txt`를 사용합니다.
 
 ### 표준 청크와 문서 연결
 

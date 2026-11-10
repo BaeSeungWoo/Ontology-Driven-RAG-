@@ -1,7 +1,7 @@
 .control { display: flex; align-items: center; gap: 8px; }
 .trigger { min-width: 100px; }
 .panel { width: 180px; }
-.list { margin-top: 10px; }
+.list { margin-top: 10px; max-height: 65vh; overflow-y: auto; }
 .option { justify-content: space-between; font-size: 12px; }
 .option[aria-selected="true"] { margin-bottom: 4px; }
 .retry:focus-visible { outline: 2px solid #194fbd; outline-offset: 2px; }
