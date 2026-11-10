@@ -6,7 +6,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "OKUMA&HOWA",
     "machine_controller": "화낙",
@@ -21,7 +22,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "OKUMA&HOWA",
     "machine_controller": "화낙",
@@ -56,7 +58,8 @@
       "ladder": [
         "31i-B PMC.LST",
         "M005.LAD"
-      ]
+      ],
+      "etc": []
     },
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
@@ -74,7 +77,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -89,7 +93,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -104,7 +109,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -119,7 +125,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -132,7 +139,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "두산인프라코어",
     "machine_controller": "화낙",
@@ -147,7 +155,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -160,7 +169,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -173,7 +183,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "현대위아",
     "machine_controller": "화낙",
@@ -186,7 +197,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "화천기계",
     "machine_controller": "화낙",
@@ -199,7 +211,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "대우중공업",
     "machine_controller": "화낙",
@@ -212,7 +225,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "OKUMA&HOWA",
     "machine_controller": "화낙",
@@ -225,7 +239,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "OKUMA&HOWA",
     "machine_controller": "화낙",
@@ -243,7 +258,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -261,7 +277,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": ["M022.LAD"]
+      "ladder": ["M022.LAD"],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -276,7 +293,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -289,7 +307,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "GROB",
     "machine_controller": "하이덴하인",
@@ -302,7 +321,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
@@ -315,7 +335,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "두산인프라코어",
     "machine_controller": "화낙",
@@ -328,7 +349,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "두산인프라코어",
     "machine_controller": "화낙",
@@ -341,7 +363,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "화천기공",
     "machine_controller": "화낙",
@@ -354,7 +377,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "한국정밀기계",
     "machine_controller": "화낙",
@@ -367,7 +391,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "KDM",
     "machine_controller": "화낙",
@@ -380,7 +405,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "KDM",
     "machine_controller": "화낙",
@@ -396,7 +422,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -409,7 +436,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "STARRAG",
     "machine_controller": "지멘스",
@@ -426,7 +454,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "CINCINNATI",
     "machine_controller": "아크라매틱",
@@ -443,7 +472,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "CINCINNATI",
     "machine_controller": "아크라매틱",
@@ -456,7 +486,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "MAG CINCINNATI",
     "machine_controller": "지멘스",
@@ -469,7 +500,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HARTFORD",
     "machine_controller": "화낙",
@@ -485,7 +517,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "APEC",
     "machine_controller": "하이덴하인",
@@ -498,7 +531,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HARTFORD",
     "machine_controller": "화낙",
@@ -513,7 +547,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "KEN",
     "machine_controller": "하이덴하인",
@@ -526,7 +561,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "STARRAG",
     "machine_controller": "지멘스",
@@ -539,7 +575,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -552,7 +589,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -567,7 +605,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "HERMLE",
     "machine_controller": "하이덴하인",
@@ -584,7 +623,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "CINCINNATI",
     "machine_controller": "아크라매틱",
@@ -600,7 +640,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "DMG-MORI",
     "machine_controller": "하이덴하인",
@@ -623,7 +664,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "SMEC",
     "machine_controller": "화낙",
@@ -645,7 +687,8 @@
       ],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "SMEC",
     "machine_controller": "화낙",
@@ -667,7 +710,8 @@
         "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p",
         "연암3(DHF8000, DHF8000 #2) doosan  electrical circuit diagram DHF8000-180p"
       ],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "두산공작기계",
     "machine_controller": "화낙",
@@ -680,7 +724,8 @@
       "manual": [],
       "controller": [],
       "electrical": [],
-      "ladder": []
+      "ladder": [],
+      "etc": []
     },
     "machine_maker": "APEC",
     "machine_controller": "하이덴하인",

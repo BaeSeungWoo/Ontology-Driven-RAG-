@@ -68,23 +68,29 @@ class BaseRetriever(ABC):
         with bm25_path.open("rb") as f:
             return pickle.load(f)
 
+    def _bm25_bundle(self, machine_code):
+        if getattr(self, "machine_search", None) is not None:
+            return self.machine_search.bm25(machine_code)
+        return self.bm25
+
     def _bm25_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
-        if self.bm25 is None:
+        bundle = self._bm25_bundle(machine_code)
+        if bundle is None:
             return []
 
-        scores = self.bm25["bm25"].get_scores(tokenize_for_bm25(query))
+        scores = bundle["bm25"].get_scores(tokenize_for_bm25(query))
         order = np.argsort(-scores)
         items: list[dict] = []
 
         for index in order:
             index = int(index)
-            meta = self.bm25["metadatas"][index] or {}
+            meta = bundle["metadatas"][index] or {}
             if machine_code != "ALL" and not self._matches_machine(meta, machine_code):
                 continue
 
             items.append({
-                "id": self.bm25["ids"][index],
-                "document": self.bm25["documents"][index],
+                "id": bundle["ids"][index],
+                "document": bundle["documents"][index],
                 "metadata": meta,
                 "distance": None,
                 "similarity": None,
@@ -276,14 +282,14 @@ class ChromaRetriever(BaseRetriever):
     def __init__(self, config: Config, use_bm25: bool = False):
         super().__init__(config)
         self.use_bm25 = use_bm25
-        self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.get_search_path("chroma")
-        )
-        self.collection = self.chroma.get_or_create_collection(
-            name=self.config.vector_db.collection_name or self.config.id,
-            embedding_function=self.embedding_fn
-        )
-        self.bm25 = self._load_bm25() if self.use_bm25 else None
+        from app.core.machine_search import MachineSearch
+        self.machine_search = MachineSearch(config)
+        self.bm25 = None
+
+    def _query_collection(self, machine_code, **query_args):
+        if getattr(self, "machine_search", None) is not None:
+            return self.machine_search.query(machine_code, self.embedding_fn, **query_args)
+        return self.collection.query(**query_args)
 
     def _vector_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
         query_args = {
@@ -294,7 +300,7 @@ class ChromaRetriever(BaseRetriever):
         if machine_code != "ALL":
             query_args["where"] = {"machine_code": {"$contains": machine_code.strip()}}
 
-        results = self.collection.query(**query_args)
+        results = self._query_collection(machine_code, **query_args)
         items: list[dict] = []
 
         for rank, (chunk_id, doc, meta, dist) in enumerate(
@@ -355,17 +361,9 @@ class ChromaRetriever(BaseRetriever):
         items = _deduplicate_items(raw_items, top_k)
         return RetrievalResult(items=items, context="")
 
-class LadderRetriever(BaseRetriever):
+class LadderRetriever(ChromaRetriever):
     def __init__(self, config: Config):
-        super().__init__(config)
-        self.chroma = chromadb.PersistentClient(
-            path=self.config.vector_db.get_search_path("chroma")
-        )
-        self.collection = self.chroma.get_or_create_collection(
-            name=self.config.vector_db.collection_name or self.config.id,
-            embedding_function=self.embedding_fn,
-        )
-        self.bm25 = self._load_bm25()
+        super().__init__(config, use_bm25=True)
         project_root = Path(__file__).resolve().parents[3]
         structure_dir = project_root / "pipeline" / "data" / self.config.id / "ladder" / "struct"
         self.ladder_linker = LadderLinker(structure_dir)
@@ -394,7 +392,8 @@ class LadderRetriever(BaseRetriever):
         top_k: int,
         container_type: str,
     ) -> list[dict]:
-        results = self.collection.query(
+        results = self._query_collection(
+            machine_code,
             query_texts=[query],
             n_results=top_k,
             where=self._where_for_container(container_type, machine_code),
@@ -433,16 +432,17 @@ class LadderRetriever(BaseRetriever):
         top_k: int,
         container_type: str,
     ) -> list[dict]:
-        if self.bm25 is None:
+        bundle = self._bm25_bundle(machine_code)
+        if bundle is None:
             return []
 
-        scores = self.bm25["bm25"].get_scores(tokenize_for_bm25(query))
+        scores = bundle["bm25"].get_scores(tokenize_for_bm25(query))
         order = np.argsort(-scores)
         items: list[dict] = []
 
         for index in order:
             index = int(index)
-            meta = self.bm25["metadatas"][index] or {}
+            meta = bundle["metadatas"][index] or {}
             is_ladder = meta.get("container_type") == "ladder"
             if (container_type == "ladder") != is_ladder:
                 continue
@@ -450,8 +450,8 @@ class LadderRetriever(BaseRetriever):
                 continue
 
             items.append({
-                "id": self.bm25["ids"][index],
-                "document": self.bm25["documents"][index],
+                "id": bundle["ids"][index],
+                "document": bundle["documents"][index],
                 "metadata": meta,
                 "distance": None,
                 "similarity": None,
@@ -510,9 +510,9 @@ class LadderRetriever(BaseRetriever):
             else:
                 where = {"$and": [where, {"section_title": nblock}]}
 
-            result = self.collection.get(
+            result = self.machine_search.get(
+                machine_code,
                 where=where,
-                include=["documents", "metadatas"],
             )
             for chunk_id, document, metadata in zip(
                 result.get("ids", []),

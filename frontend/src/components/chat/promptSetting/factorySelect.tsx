@@ -12,6 +12,7 @@ const factories: { id: FactoryId; name: string }[] = [
   { id: "yunam", name: "연암" },
   { id: "yulkok", name: "율곡" },
   { id: "poongsan", name: "풍산" },
+  { id: "waff", name: "와프" },
 ];
 
 export default function FactorySelect({ disabled, onChange }: {

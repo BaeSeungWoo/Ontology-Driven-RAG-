@@ -19,6 +19,7 @@ import pandas as pd
 from rank_bm25 import BM25Okapi
 
 from backend.app.core.bm25_tokenizer import tokenize_for_bm25, TOKENIZER_VERSION
+from pipeline.ingestion.machine_resolver import machine_documents
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -28,7 +29,7 @@ def normalize_chunk(chunk, factory, machines):
     meta = row["metadata"]
     original = meta["original_doc_name"]
     expected = sorted(code for code, info in machines.items()
-                      if original in info["document"].get("controller", []))
+                      if original in machine_documents(info, "controller"))
     if not expected or sorted(meta["machine_code"]) != expected:
         raise ValueError(f"Controller machine mapping mismatch: {original}")
     meta["source_doc_name"] = Path(original).stem
@@ -39,7 +40,7 @@ def normalize_chunk(chunk, factory, machines):
             if relative.is_absolute() or ".." in relative.parts:
                 raise ValueError(f"Invalid archive path: {relative}")
             if key == "source_pdf":
-                meta[key] = f"{factory}/inputs/controllers/{relative.name}"
+                meta[key] = f"{factory}/inputs/originPDF/controller/{relative.name}"
             else:
                 meta[key] = f"{factory}/controller/{relative.as_posix()}"
     return row
@@ -81,7 +82,7 @@ def integrate(factory, archive):
                 continue
             relative = Path(info.filename[len(prefix):])
             if relative.parts[0] == "original_pdfs":
-                target_root = site / "inputs" / "controllers"
+                target_root = site / "inputs/originPDF/controller"
                 relative = Path(relative.name)
             else:
                 target_root = site / "controller"

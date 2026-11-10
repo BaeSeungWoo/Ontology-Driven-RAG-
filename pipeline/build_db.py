@@ -14,7 +14,7 @@ from pipeline.ingestion.prepared_documents import (
 )
 
 
-FACTORIES = ("yunam", "yulkok", "poongsan")
+FACTORIES = ("yunam", "yulkok", "poongsan", "waff")
 
 
 def resolve_build_config(factory_id: str, model_config: str | None = None):
@@ -106,12 +106,12 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
         loader.doc_to_machine = {Path(c["metadata"]["source_doc_name"]).stem:
                                  c["metadata"]["machine_code"] for c in chunks}
         images = []
-        for folder, kind in (("manuals", "manual"), ("controllers", "controller")):
+        for folder, kind in (("manual", "manual"), ("controller", "controller")):
             images.extend(loader.load_image_from(
-                {"input": str(root / "inputs" / folder)}, kind, destination / "asset",
+                {"input": str(root / "inputs/originPDF" / folder)}, kind, destination / "asset",
                 allowed_document_names=allowed))
         if not images:
-            raise ValueError("멀티모달 빌드 대상 PDF가 inputs/manuals, inputs/controllers에 없습니다.")
+            raise ValueError("멀티모달 빌드 대상 PDF가 inputs/originPDF/manual, inputs/originPDF/controller에 없습니다.")
         embedder = ColpaliEmbedder()
         try:
             write_multimodal(images, config.vector_db.get_db_path("multimodal"), embedder)
@@ -130,6 +130,9 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
     write_faiss(config, chunks, config.vector_db.get_db_path("faiss"))
     build_sources(config, workbook, tacit)
     save_embedding_meta(config)
+    from pipeline.build_machine_search import export_collection
+    export_collection(collection, config.vector_db.get_db_path("chroma"),
+                      Path(config.vector_db.get_db_path("bm25")) / "machine_search.sqlite3")
     print(f"공용 인덱스 생성 완료: {destination} ({len(chunks)} chunks)")
 
 
@@ -145,7 +148,7 @@ def main(argv=None):
     parser.add_argument("--output-root", help="인덱스를 생성할 비어 있는 별도 경로 (입력은 공장 폴더 유지)")
     parser.add_argument("--embedding-provider", choices=("ollama", "openai"), help="임베딩 API 종류")
     parser.add_argument("--embedding-url", help="임베딩 서버 주소 (OpenAI 호환은 /v1 포함)")
-    parser.add_argument("--paddleocr-zip", help="원본을 보존하며 inputs/extracted/paddleocr에 가져올 ZIP")
+    parser.add_argument("--paddleocr-zip", help="원본을 보존하며 inputs/extracted/paddleOCR에 가져올 ZIP")
     parser.add_argument("--docling-zip", help="원본을 보존하며 inputs/extracted/docling에 가져올 ZIP")
     parser.add_argument("--reset", action="store_true", help="사용 불가: 기존 데이터 보존을 위해 거부")
     parser.add_argument("--maintenance-only", action="store_true")

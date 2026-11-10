@@ -6,6 +6,7 @@ from pathlib import Path, PurePosixPath
 import zipfile
 
 from pipeline.ingestion.prepared_documents import document_key
+from pipeline.ingestion.machine_resolver import machine_documents
 
 DATA_ROOT = Path(__file__).resolve().parent / "data"
 
@@ -30,17 +31,18 @@ def prepare_manual_index(root, index, document_names):
         raise ValueError('PDF 이름에는 경로를 넣을 수 없습니다.')
     if document_key(pdf_name) not in document_names:
         return
-    profile_path = index / 'qa_profile.json'
-    config_path = index / 'qa_config.json'
+    settings = root / 'electrical/config' / index.name
+    profile_path = settings / 'qa_profile.json'
+    config_path = settings / 'qa_config.json'
     if config_path.is_file():
         existing = json.loads(config_path.read_text(encoding='utf-8-sig'))
         # Custom profiles and existing QA settings are never replaced.
-        if (index / existing['profile']).is_file():
+        if (settings / existing['profile']).is_file():
             return
         if existing['profile'] != 'qa_profile.json':
             raise ValueError('기존 QA 설정이 참조하는 프로필이 없습니다.')
     manifest = json.loads((index / 'manifest.json').read_text(encoding='utf-8-sig'))
-    pdf = root / 'inputs/electricals' / pdf_name
+    pdf = root / 'inputs/originPDF/electrical' / pdf_name
     with pdf.open('rb') as stream:
         if hashlib.file_digest(stream, 'sha256').hexdigest() != manifest['pdf_sha256']:
             raise ValueError('원본 PDF와 인덱스 지문이 다릅니다.')
@@ -53,13 +55,14 @@ def prepare_manual_index(root, index, document_names):
                 raise ValueError(f'인덱스 지문 불일치: {filename}')
     profile = {'machine': Path(pdf_name).stem, 'pdf': pdf_name,
                'engine': {'func_pages': 2, 'rev_pages': 2, 'flags': []}}
-    config = {'profile': 'qa_profile.json', 'index_dir': '.',
-              'pdf': '../../../inputs/electricals/' + pdf_name,
+    config = {'profile': 'qa_profile.json', 'index_dir': '../../../inputs/extracted/electrical/' + index.name,
+              'pdf': '../../../inputs/originPDF/electrical/' + pdf_name,
               'output_dir': '../../results', 'require_index_verified': False,
               'require_index_manifest': True, 'provider': 'vllm',
               'base_url': 'http://127.0.0.1:8100/v1', 'model': 'Qwen3-VL',
               'max_tokens': 3000, 'context_tokens': 8192, 'max_images': 1,
               'timeout_seconds': 1800}
+    settings.mkdir(parents=True, exist_ok=True)
     for path, value in [(profile_path, profile), (config_path, config)]:
         if not path.exists():
             # Exclusive creation also preserves files created by concurrent requests.
@@ -94,10 +97,10 @@ def import_zip(factory, archive):
             if Path(pdf_name).name != pdf_name:
                 raise ValueError("PDF 이름에는 경로를 넣을 수 없습니다.")
             linked = [code for code, info in machines.items()
-                      if document_key(pdf_name) in {document_key(n) for n in info.get('document', {}).get('electrical', [])}]
+                      if document_key(pdf_name) in {document_key(n) for n in machine_documents(info, 'electrical')}]
             if not linked:
                 raise ValueError(f"{factory} machine_info의 electrical에 없는 문서: {pdf_name}")
-            pdf_path = root / 'inputs/electricals' / pdf_name
+            pdf_path = root / 'inputs/originPDF/electrical' / pdf_name
             pdf = pdf_path.read_bytes() if pdf_path.exists() else z.read('originals/' + pdf_name)
             if hashlib.sha256(pdf).hexdigest() != manifest['pdf_sha256']:
                 raise ValueError("원본 PDF와 인덱스 지문이 다릅니다.")
@@ -113,9 +116,10 @@ def import_zip(factory, archive):
             # This is a QA profile, not the extraction script/config from the ZIP.
             qa_profile = {'machine': profile['machine'], 'style': profile['style'], 'pdf': pdf_name,
                           'engine': {'func_pages': 2, 'rev_pages': 2, 'flags': []}}
-            index = root / 'electrical' / prefix
-            config = {'profile': 'qa_profile.json', 'index_dir': '.',
-                      'pdf': '../../../inputs/electricals/' + pdf_name,
+            index = root / 'inputs/extracted/electrical' / PurePosixPath(prefix).relative_to('index')
+            settings = root / 'electrical/config' / index.name
+            config = {'profile': 'qa_profile.json', 'index_dir': '../../../inputs/extracted/electrical/' + index.name,
+                      'pdf': '../../../inputs/originPDF/electrical/' + pdf_name,
                       'output_dir': '../../results', 'require_index_verified': False, 'require_index_manifest': True,
                       'provider': 'vllm', 'base_url': 'http://127.0.0.1:8100/v1',
                       'model': 'Qwen3-VL', 'max_tokens': 3000, 'context_tokens': 8192,
@@ -123,9 +127,9 @@ def import_zip(factory, archive):
             pending[pdf_path] = pdf
             for n in names:
                 if n.startswith(prefix + '/') and not n.endswith('/'):
-                    pending[root / 'electrical' / n] = z.read(n)
+                    pending[index / PurePosixPath(n).relative_to(prefix)] = z.read(n)
             for filename, value in [('qa_profile.json', qa_profile), ('qa_config.json', config)]:
-                pending[index / filename] = json.dumps(value, ensure_ascii=False, indent=2).encode('utf-8')
+                pending[settings / filename] = json.dumps(value, ensure_ascii=False, indent=2).encode('utf-8')
             reports.append({'document': pdf_name, 'machines': linked, 'index': str(index)})
         # Reject conflicts before writing any imported file.
         for path, data in pending.items():

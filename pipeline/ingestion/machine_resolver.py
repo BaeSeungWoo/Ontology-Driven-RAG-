@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import Any
 
+from pipeline.ingestion.prepared_documents import document_key
+
 def machine_documents(info: dict, kind: str | None = None) -> list[str]:
     documents = info.get("document") or []
     if isinstance(documents, dict):
-        return list(documents.get(kind, [])) if kind else [
-            name for group in ("manual", "controller", "electrical", "ladder") for name in documents.get(group, [])
+        documents = list(documents.get(kind, [])) if kind else [
+            name for group in ("manual", "controller", "electrical", "ladder", "etc") for name in documents.get(group, [])
         ]
-    return list(documents)
+    return [entry["filename"] if isinstance(entry, dict) else entry for entry in documents]
 
 
 def build_doc_to_machine_index(machines: dict[str, dict[str, Any]]) -> dict[str, list[str]]:
@@ -26,8 +28,10 @@ def _resolve_machine_code(source_doc_name: str, doc_to_machine: dict[str, list[s
         return doc_to_machine[key]
 
     matched: list[str] = []
+    normalized = document_key(key)
     for doc_name, machine_codes in doc_to_machine.items():
-        if key in doc_name or doc_name in key:
+        document = document_key(doc_name)
+        if normalized in document or document in normalized:
             matched.extend(machine_codes)
 
     return sorted(set(matched))

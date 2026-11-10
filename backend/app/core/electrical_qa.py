@@ -1,5 +1,6 @@
 """Run each machine's drawing engine in an isolated process."""
 import asyncio
+from contextlib import aclosing
 import json
 import logging
 import os
@@ -23,7 +24,7 @@ def package_for_factory(factory_id):
     return LEGACY_PACKAGE if factory_id == "yunam_origin" else PACKAGE
 
 
-def config_for_machine(factory_id, machine_code):
+def configs_for_machine(factory_id, machine_code):
     from app.factories.machines import load_machine_info
     from pipeline.ingestion.machine_resolver import machine_documents
     from pipeline.ingestion.prepared_documents import document_key
@@ -39,39 +40,37 @@ def config_for_machine(factory_id, machine_code):
         legacy = json.loads(path.read_text(encoding="utf-8-sig"))
         if machine_code not in {"M005", "M051"} or document_key(Path(legacy["pdf"]).name) not in names:
             raise ValueError("연암(구)의 해당 설비에는 전기도면 QA가 연결되지 않았습니다.")
-        return path
+        return [path]
     matches = []
-    for index in sorted((root / "electrical" / "index").iterdir()) if (root / "electrical" / "index").is_dir() else ():
-        if not index.is_dir() or not index.resolve().is_relative_to(root / "electrical" / "index"):
+    index_root = root / "inputs/extracted/electrical"
+    for index in sorted(index_root.iterdir()) if index_root.is_dir() else ():
+        if not index.is_dir() or not index.resolve().is_relative_to(index_root):
             continue
         try:
             prepare_manual_index(root, index, names)
+            path = root / "electrical/config" / index.name / "qa_config.json"
+            if not path.is_file():
+                continue
+            config = json.loads(path.read_text(encoding="utf-8-sig"))
+            pdf = (path.parent / config["pdf"]).resolve()
+            if document_key(pdf.name) not in names:
+                continue
+            for key, folder in (("pdf", "inputs/originPDF/electrical"), ("index_dir", "inputs/extracted/electrical"),
+                                ("profile", "electrical"), ("output_dir", "electrical")):
+                target = (path.parent / config[key]).resolve()
+                if not target.is_relative_to(root / folder):
+                    raise ValueError(f"전기도면 {key} 경로는 선택한 공장의 {folder} 안에 있어야 합니다.")
         except (OSError, ValueError, KeyError):
             logging.getLogger(__name__).warning("전기도면 자동 연결 준비 실패: %s", index, exc_info=True)
             continue
-        path = index / "qa_config.json"
-        if not path.is_file():
-            continue
-        config = json.loads(path.read_text(encoding="utf-8-sig"))
-        pdf = (path.parent / config["pdf"]).resolve()
-        if document_key(pdf.name) not in names:
-            continue
-        for key, folder in (("pdf", "inputs/electricals"), ("index_dir", "electrical"),
-                            ("profile", "electrical"), ("output_dir", "electrical")):
-            target = (path.parent / config[key]).resolve()
-            if not target.is_relative_to(root / folder):
-                raise ValueError(f"전기도면 {key} 경로는 선택한 공장의 {folder} 안에 있어야 합니다.")
         matches.append(path)
     if not matches:
         raise ValueError("선택한 설비의 전기도면 인덱스 연결이 준비되지 않았습니다.")
-    if len(matches) > 1:
-        raise ValueError("여러 전기도면 인덱스가 연결되어 있습니다. 문서 선택 기능 연결이 필요합니다.")
-    path = matches[0]
-    return path
+    return matches
 
 
 def validate_machine(factory_id, machine_code):
-    return config_for_machine(factory_id, machine_code)
+    return configs_for_machine(factory_id, machine_code)
 
 
 async def electrical_response(request, events):
@@ -148,7 +147,59 @@ async def append_manual_evidence(service, machine_code, question, result):
 async def stream_electrical(machine_code, question, *, llm_config, factory_id, history=None, user_prompt=None):
     if not question.strip() or len(question) > 6000:
         raise ValueError("전기도면 질문은 1~6000자로 입력해 주세요.")
-    config_path = config_for_machine(factory_id, machine_code)
+    from app.factories.machines import load_machine_info
+    from pipeline.ingestion.machine_resolver import machine_documents
+    from pipeline.ingestion.prepared_documents import document_key
+    from app.core.electrical_merge import merge_answers
+
+    paths = configs_for_machine(factory_id, machine_code)
+    documents = machine_documents(load_machine_info(factory_id=factory_id)[machine_code], "electrical")
+    names = [Path(json.loads(path.read_text(encoding="utf-8-sig"))["pdf"]).name for path in paths]
+    missing = [name for name in documents if document_key(name) not in {document_key(n) for n in names}]
+    results, failed = [], []
+    for position, (path, name) in enumerate(zip(paths, names), 1):
+        yield {"type": "progress", "data": f"전기도면 {position}/{len(paths)} 조회: {name}"}
+        result = None
+        try:
+            async with aclosing(_stream_drawing(path, machine_code, question, llm_config=llm_config,
+                                               factory_id=factory_id, history=history, user_prompt=user_prompt)) as stream:
+                async for event in stream:
+                    if event["type"] == "progress":
+                        if len(paths) > 1:
+                            data = event["data"]
+                            prefix = f"[{position}/{len(paths)} {name}] "
+                            data = {**data, "message": prefix + data["message"]} if isinstance(data, dict) else prefix + data
+                            event = {**event, "data": data}
+                        yield event
+                    elif event["type"] == "result":
+                        result = event["data"]
+            if result is None:
+                raise RuntimeError("전기도면 조회 결과가 없습니다.")
+            results.append((name, result))
+        except (OSError, ValueError, RuntimeError):
+            if len(paths) == 1 and not missing:
+                raise
+            logging.getLogger(__name__).warning("전기도면 조회 실패: %s", name, exc_info=True)
+            failed.append(name)
+            yield {"type": "progress", "data": f"조회 실패: {name}. 나머지 도면 조회를 계속합니다."}
+    if not results or (len(paths) > 1 and not any(result["chunks"] for _, result in results)):
+        raise RuntimeError("조회 가능한 전기도면 근거가 없습니다. 전기도면 인덱스와 모델 연결을 확인해 주세요.")
+    if len(results) == 1:
+        result = results[0][1]
+    else:
+        yield {"type": "progress", "data": "여러 도면의 답변과 출처를 통합하고 검증하는 중"}
+        result = await merge_answers(question, results, llm_config)
+    if missing or failed:
+        notice = ["일부 전기도면만 조회한 답변입니다.", "조회한 문서: " + ", ".join(name for name, _ in results)]
+        if missing:
+            notice.append("인덱스 미연결 문서: " + ", ".join(missing))
+        if failed:
+            notice.append("조회 실패 문서: " + ", ".join(failed))
+        result = {**result, "answer": "\n\n".join(notice) + "\n\n" + result["answer"]}
+    yield {"type": "result", "data": result}
+
+
+async def _stream_drawing(config_path, machine_code, question, *, llm_config, factory_id, history=None, user_prompt=None):
     package = package_for_factory(factory_id)
     environment = {key: value for key, value in os.environ.items()
                    if not key.startswith(("GRAPHRAG_", "VLLM_")) and key not in ("LLM_NAME", "PYTHONPATH")}

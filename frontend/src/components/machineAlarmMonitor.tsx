@@ -1,6 +1,7 @@
 "use client";
 
 import { useMachine } from "@/components/machineProvider";
+import { factoryHeaders } from "@/services/api";
 
 import { useEffect, useState } from "react";
 import { Siren, X } from "lucide-react";
@@ -48,6 +49,7 @@ function SelectedMachineAlarmMonitor({ machineCode }: { machineCode: string }) {
       reading = true;
       try {
         const response = await fetch(`/local-api/alarms?machine_code=${encodeURIComponent(machineCode)}`,  {
+          headers: factoryHeaders(),
           cache: "no-store",
           signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]),
         });

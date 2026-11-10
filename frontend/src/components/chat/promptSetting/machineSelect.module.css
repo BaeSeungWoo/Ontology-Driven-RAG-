@@ -67,6 +67,9 @@
 .machineText strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
 .machineText > span { font-size: 11px; color: #7a8699; }
 .option:disabled .machineText > span { color: #9ba4b2; }
+.option.testData { background: #e0f2ec; }
+.option.testData:hover:not(:disabled) { background: #cce9df; }
+.option.testData:disabled:hover { background: #e0f2ec; }
 .trigger:focus-visible, .option:focus-visible, .list:focus-visible { outline: 2px solid #1659c7; outline-offset: -2px; }
 
 @media (max-width: 600px) {

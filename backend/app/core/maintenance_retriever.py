@@ -30,6 +30,10 @@ class MaintenanceRetriever:
 
     async def get_context(self, query: str, machine_code: str = "ALL", intent_type: str = "troubleshooting"):
         manual_context, images, tables, manual_chunks = self.manual_retriever.get_context(query, machine_code)
+        return await self.supplement(query, machine_code, intent_type, manual_context, images, tables, manual_chunks)
+
+    async def supplement(self, query, machine_code, intent_type, manual_context, images, tables, manual_chunks):
+        source_label = "현장 대응 노하우" if self.config.id == "waff" else "수리 사례"
         chunks = [{**chunk, "metadata": {**chunk["metadata"], "source_kind": "manual"}}
                   for chunk in manual_chunks]
         context = ["[매뉴얼 근거]\n" + (manual_context or "해당 질문의 매뉴얼 근거를 찾지 못했습니다.")]
@@ -44,7 +48,7 @@ class MaintenanceRetriever:
             results = search(query, self.config, machine, top_k=4, balance_sources=True)
         except Exception:
             logging.getLogger(__name__).exception("Supplementary repair retrieval failed")
-            context.append("[수리 사례 검색 상태]\n검색 오류로 수리 사례를 확인하지 못했습니다. 매뉴얼 근거만 사용하세요.")
+            context.append(f"[{source_label} 검색 상태]\n검색 오류로 {source_label} 검색에 실패했습니다. 매뉴얼 근거만 사용하세요.")
             return "\n\n".join(context), images, tables, chunks
 
         # Candidate cutoff only; the answer must still check symptom/part/code relevance.
@@ -70,12 +74,12 @@ class MaintenanceRetriever:
                 results = [r for i, r in enumerate(results, 1) if i in indices]
             except Exception:
                 logging.getLogger(__name__).exception("Repair relevance selection failed")
-                context.append("[수리 사례 검색 상태]\n사례 관련성 확인에 실패했습니다. 매뉴얼 근거만 사용하세요.")
+                context.append(f"[{source_label} 검색 상태]\n관련성 확인에 실패했습니다. 매뉴얼 근거만 사용하세요.")
                 return "\n\n".join(context), images, tables, chunks
         results.sort(key=lambda record: (record["metadata"]["case_type"] != "factory_history",
                                          not record["metadata"]["same_machine"]))
         if not results:
-            context.append("[수리 사례 검색 상태]\n관련 수리 사례를 확인하지 못했습니다.")
+            context.append(f"[{source_label} 검색 상태]\n관련 {source_label} 근거가 없습니다.")
         offset = max((chunk["index"] for chunk in chunks), default=0)
         previous_type = None
         for index, record in enumerate(results, offset + 1):
