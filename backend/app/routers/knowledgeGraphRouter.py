@@ -52,8 +52,9 @@ def load_question(message_id: int, request: Request) -> str:
 
 
 def search_question(question: str, factory_id: str = "yunam"):
+    from app.factories.machines import source_factory_id
     try:
-        result = build_question_graph(question, factory_id)
+        result = build_question_graph(question, source_factory_id(factory_id))
     except KnowledgeGraphConfigurationError as exc:
         logger.exception("Manual graph configuration is unavailable")
         raise HTTPException(503, "매뉴얼 그래프 인덱스를 사용할 수 없습니다. 서버의 인덱스 경로 설정을 확인해 주세요.") from exc

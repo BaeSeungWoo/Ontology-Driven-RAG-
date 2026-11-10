@@ -134,7 +134,7 @@ export default function PromptListModal({
                     checked={selectedLlmMode === option.value}
                     onChange={() => onSelectLlmMode(option.value)}
                   />
-                  <span>{factoryId === "waff" && option.value === "rag" ? "RAG + 현장 노하우" : option.label}{disabled && " (선택 불가)"}</span>
+                  <span>{(factoryId === "waff" || factoryId === "waff_test") && option.value === "rag" ? "RAG + 현장 노하우" : option.label}{disabled && " (선택 불가)"}</span>
                 </label>
               );
             })}
@@ -147,7 +147,7 @@ export default function PromptListModal({
           <p id="electrical-mode-restriction" className={styles.llmGuideDesc}>
             현장 작업자·RAG와 전기도면 데이터가 준비된 설비의 기술 엔지니어·전기도면 QA를 지원합니다. 정비·보전과 관리자 기능은 준비 중입니다.
           </p>
-          {factoryId === "waff" && selectedLlmMode === "rag" && (
+          {(factoryId === "waff" || factoryId === "waff_test") && selectedLlmMode === "rag" && (
             <p className={styles.llmGuideDesc}>매뉴얼 근거로 먼저 답변하고, 관련 현장 사례가 있으면 당시 증상과 조치를 답변 끝에 표시합니다.</p>
           )}
           {selectedLlmMode === "repairHistory" && (

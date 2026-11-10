@@ -3,7 +3,12 @@ from pathlib import Path
 
 from fastapi import HTTPException, Request
 
-FACTORY_IDS = ("yunam", "yulkok", "poongsan", "waff", "yunam_origin")
+TEST_FACTORIES = {f"{factory}_test": factory for factory in ("yunam", "yulkok", "poongsan", "waff")}
+FACTORY_IDS = ("yunam", "yulkok", "poongsan", "waff", "yunam_origin", *TEST_FACTORIES)
+
+
+def source_factory_id(factory_id: str) -> str:
+    return TEST_FACTORIES.get(factory_id, factory_id)
 
 
 def history_factory_id(factory_id: str) -> str:
@@ -21,6 +26,7 @@ def load_machine_info(request: Request | None = None, *, factory_id: str | None 
     factory_id = factory_id or request_factory(request)
     if factory_id not in FACTORY_IDS:
         raise HTTPException(400, "등록되지 않은 공장입니다.")
+    factory_id = source_factory_id(factory_id)
     filename = "machine_info.json" if factory_id == "yunam_origin" else f"machine_info_{factory_id}.json"
     path = Path(__file__).parent / filename
     with path.open(encoding="utf-8-sig") as stream:

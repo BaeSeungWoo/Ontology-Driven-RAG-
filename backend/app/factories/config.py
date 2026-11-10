@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, replace
 from typing import Dict, Optional
 from pathlib import Path
 import json
-from .machines import load_machine_info
+from .machines import load_machine_info, source_factory_id
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -106,6 +106,7 @@ class Config:
     prompt: PromptConfig       = field(default_factory=PromptConfig)
     graph_db_url: Optional[str] = None
     machines: dict[str, dict] = field(default_factory=dict)
+    experimental_answers: bool = False
 
     def get_embedding_base_url(self) -> str:
         return self.embedding.resolve_base_url(self.llm.base_url)
@@ -281,6 +282,8 @@ FACTORY_CONFIGS["yunam_origin"] = replace(
 
 def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
     from fastapi import HTTPException
+    experimental_answers = factory_id == "yunam_test"
+    factory_id = source_factory_id(factory_id)
     if factory_id not in FACTORY_CONFIGS:
         raise HTTPException(400, "등록되지 않은 공장입니다.")
     if model_key not in CONFIGS:
@@ -299,5 +302,6 @@ def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
         raise ValueError("공장 검색 인덱스와 임베딩 설정이 일치하지 않습니다.")
     collection_name = "yunam" if factory_id == "yunam_origin" else factory_id
     return Config(id=factory_id, llm=model.llm, embedding=embedding, prompt=factory.prompt,
+                   experimental_answers=experimental_answers,
                    vector_db=replace(factory.vector_db, stores=stores, collection_name=settings.get("collection", collection_name)),
                    machines=load_machine_info(factory_id=factory_id))

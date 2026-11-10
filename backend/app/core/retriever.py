@@ -182,7 +182,7 @@ class BaseRetriever(ABC):
 
         return value
 
-    def _with_page_figures(self, items: list[RetrievalItem], machine_code: str, query: str = "") -> list[RetrievalItem]:
+    def with_page_figures(self, items: list[RetrievalItem], machine_code: str, query: str = "") -> list[RetrievalItem]:
         """Restore OCR page context; offer legacy figures as separate evidence."""
         from app.core.ocr_page_context import expand_paddle_pages
         items = expand_paddle_pages(items, Path(__file__).resolve().parents[3] / "pipeline/data", self.config.id)
@@ -239,7 +239,11 @@ class BaseRetriever(ABC):
 
     def get_context(self, query: str, machine_code: str = "ALL") -> tuple[str, list[str], list[str], list[dict]]:
         result = self.search(query=query, machine_code=machine_code)
-        result.items = self._with_page_figures(result.items, machine_code, query)
+        return self.format_context(result, query, machine_code)
+
+    def format_context(self, result: RetrievalResult, query: str, machine_code: str, *, pages_ready: bool = False) -> tuple[str, list[str], list[str], list[dict]]:
+        if not pages_ready:
+            result.items = self.with_page_figures(result.items, machine_code, query)
 
         context_parts = []
         imgs = []
@@ -583,7 +587,7 @@ class LadderRetriever(ChromaRetriever):
             intent_type=intent_type,
         )
         grouped_items = {
-            "document": self._with_page_figures(
+            "document": self.with_page_figures(
                 [item for item in result.items if item.extra.get("retrieval_group") == "document"], machine_code, query),
             "ladder": [item for item in result.items if item.extra.get("retrieval_group") == "ladder"],
         }

@@ -18,7 +18,8 @@ export default function MachineSelect({ value, onChange, disabled = false }: {
   disabled?: boolean;
 }) {
   const { factoryId, machines, status, refreshMachines } = useMachine();
-  const testCodes = testMachineCodes[factoryId] ?? [];
+  const sourceFactory = factoryId.replace(/_test$/, "");
+  const testCodes = testMachineCodes[sourceFactory] ?? [];
 
   const [isOpen, setIsOpen] = useState(false);
   const controlRef = useRef<HTMLDivElement>(null);

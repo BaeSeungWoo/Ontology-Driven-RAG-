@@ -34,3 +34,7 @@ Thumbs.db
 # 데이터 / DB
 data/
 *.chroma
+
+output
+tests
+.playwright-cli

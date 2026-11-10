@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export type FactoryId = "yunam" | "yulkok" | "poongsan" | "waff" | "yunam_origin";
+export type FactoryId = "yunam" | "yulkok" | "poongsan" | "waff" | "yunam_origin"
+  | "yunam_test" | "yulkok_test" | "poongsan_test" | "waff_test";
 let activeFactory: FactoryId = "yunam_origin";
 export const executionHeaders = () => ({ "X-Factory-Id": activeFactory });
 export const factoryHeaders = () => ({ "X-Factory-Id": activeFactory });

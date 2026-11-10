@@ -52,7 +52,11 @@ def format_alarm_time(value: str | None) -> str:
 def manual_retriever(factory_id="yunam"):
     from app.factories.config import get_factory_config
     from app.core.retriever import ChromaRetriever
-    return ChromaRetriever(get_factory_config("vllm_config", factory_id), use_bm25=True)
+    config = get_factory_config("vllm_config", factory_id)
+    if config.experimental_answers:
+        from app.experimental.retriever import ExperimentalChromaRetriever
+        return ExperimentalChromaRetriever(config, use_bm25=True)
+    return ChromaRetriever(config, use_bm25=True)
 
 
 def search_manuals(req: AlarmRequest, factory_id="yunam"):

@@ -11,7 +11,7 @@ import httpx
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, field_validator
 from app.ladder.document import load_lad
-from app.factories.machines import load_machine_info, request_factory
+from app.factories.machines import load_machine_info, request_factory, source_factory_id
 from pipeline.ingestion.machine_resolver import machine_documents
 
 ladderRouter = APIRouter(prefix="/api/ladder", tags=["ladder"])
@@ -30,7 +30,7 @@ def ladder_document(request: Request, machine_code: str | None = None):
     code = test_machine_code() if machine_code is None else machine_code
     if not re.fullmatch(r"[A-Za-z0-9_-]+", code):
         raise HTTPException(422, "장비 코드 형식이 올바르지 않습니다.")
-    factory_id = request_factory(request)
+    factory_id = source_factory_id(request_factory(request))
     machine = load_machine_info(factory_id=factory_id).get(code)
     if machine is None:
         raise HTTPException(404, "해당 공장에 등록되지 않은 장비입니다.")

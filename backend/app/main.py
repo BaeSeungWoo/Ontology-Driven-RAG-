@@ -69,7 +69,12 @@ services: dict[tuple[str, str], JudgeRAGService] = {}
 def get_service(model_key: str, factory_id: str = "yunam") -> JudgeRAGService:
     key = (factory_id, model_key)
     if key not in services:
-        services[key] = JudgeRAGService(get_factory_config(model_key, factory_id))
+        config = get_factory_config(model_key, factory_id)
+        if config.experimental_answers:
+            from app.experimental.service import ExperimentalJudgeRAGService
+            services[key] = ExperimentalJudgeRAGService(config)
+        else:
+            services[key] = JudgeRAGService(config)
     return services[key]
 
 # nginx 등 리버스 프록시 대응

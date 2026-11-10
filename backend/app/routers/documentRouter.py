@@ -3,7 +3,7 @@ from pathlib import Path
 from urllib.parse import quote
 
 from fastapi import APIRouter, HTTPException, Request
-from app.factories.machines import request_factory
+from app.factories.machines import request_factory, source_factory_id
 
 documentRouter = APIRouter(prefix="/api/documents", tags=["documents"])
 
@@ -81,7 +81,7 @@ def resolve_document(
     page_range: str | None = None,
 ):
     asset_root = Path(getattr(request.app.state, "asset_root", DEFAULT_ASSET_ROOT))
-    factory = request_factory(request)
+    factory = source_factory_id(request_factory(request))
     pdf_root = asset_root / factory
     if factory != "yunam_origin":
         pdf_root = pdf_root / "inputs/originPDF"
