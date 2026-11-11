@@ -1,5 +1,6 @@
 'use client';
 
+import { useId } from 'react';
 import { layoutNet } from '../utils/ladderLayoutUtils.js';
 import { LABEL_FONT_SIZE, WIRE_OFFSET, ROW_HEIGHT, TABLE_COLUMNS, TABLE_ROW_HEIGHT } from '../constants/ladderLayoutConstants.js';
 
@@ -63,9 +64,9 @@ function Selectable({ el, selKey, selected, onSelect, onJump, children, classNam
     return (
         <g
             className={`${className}${selected ? ' is-selected' : ''}`}
-            role="button"
-            tabIndex={0}
-            aria-label={`${el.address} ${el.symbol || ''} 선택`}
+            role={onSelect ? "button" : undefined}
+            tabIndex={onSelect ? 0 : undefined}
+            aria-label={onSelect ? `${el.address} ${el.symbol || ''} 선택` : undefined}
             data-sel-key={selKey}
             onClick={() => onSelect?.(el)}
             onDoubleClick={() => onJump?.(el)}
@@ -286,11 +287,11 @@ function computePower(elements, energizedSet, knownSet, leftRailX) {
  * =====================================================
  */
 export default function LadderNetSvg({
-    net, energizedSet, knownSet, railGap, zoom = 1, displayMode = 'both', selectedKey, selectedAddress = "", onSelect, onJump, highlighted = false,
+    net, energizedSet, knownSet, railGap, zoom = 1, displayMode = 'both', selectedKey, selectedAddress = "", coilDescription = "", onSelect, onJump, highlighted = false,
 }) {
     const { width, height, elements, leftRailX, rightRailX } = layoutNet(net, railGap);
     const hasWarning = net.warnings && net.warnings.length > 0;
-    const glowId = `ladder-glow-${net.netIndex}`;
+    const glowId = `ladder-glow-${useId()}`;
     const { powered, vwireOn } = computePower(elements, energizedSet, knownSet, leftRailX);
 
     // 이벤트에 원소 인덱스를 실어 보내려고 원소별로 감싼다
@@ -326,19 +327,20 @@ export default function LadderNetSvg({
             {elements.map((el, i) => {
                 const on = isOn(el, energizedSet, knownSet);
                 const selKey = selectionKey(net, i);
-                const selected = selectedAddress ? el.address === selectedAddress : selectedKey === selKey;
+                const selected = (selectedAddress ? el.address === selectedAddress : selectedKey === selKey)
+                    || (coilDescription && el.kind === 'coil' && el.comment?.trim() === coilDescription);
                 switch (el.kind) {
                     case 'contact':
                         return (
                             <ContactGlyph key={i} el={el} on={on} powerIn={powered[i]} displayMode={displayMode}
                                 glowId={glowId} selKey={selKey} selected={selected}
-                                onSelect={selectHandler(i)} onJump={jumpHandler(i)} />
+                                onSelect={onSelect && selectHandler(i)} onJump={jumpHandler(i)} />
                         );
                     case 'coil':
                         return (
                             <CoilGlyph key={i} el={el} on={on} powerIn={powered[i]} displayMode={displayMode}
                                 glowId={glowId} selKey={selKey} selected={selected}
-                                onSelect={selectHandler(i)} onJump={jumpHandler(i)} />
+                                onSelect={onSelect && selectHandler(i)} onJump={jumpHandler(i)} />
                         );
                     case 'function':
                         return <FunctionGlyph key={i} el={el} />;

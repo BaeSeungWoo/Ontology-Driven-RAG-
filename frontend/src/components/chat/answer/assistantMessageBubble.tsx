@@ -14,9 +14,12 @@ import type { AnswerMessage } from "@/types/chat";
 import LadderDiagrams from "./ladderDiagram";
 import AnswerFeedback from "./answerFeedback";
 import AssetPanel from "../assetPanel";
-import { getReferenceItems } from "../citation/citationUtils";
+import { getLadderChunks, getReferenceItems } from "../citation/citationUtils";
+import { SignalButton, signalButtons } from "../ladderAnswer";
+import { useLadderAnalysis } from "../figureExplanationProvider";
 
 type AssistantMessageBubbleProps = {
+  ladderAddresses?: ReadonlySet<string>;
   canExplainFigure?: boolean;
   message: AnswerMessage;
   isActive?: boolean;
@@ -28,6 +31,7 @@ type AssistantMessageBubbleProps = {
 };
 
 export default function AssistantMessageBubble({
+  ladderAddresses,
   message,
   isActive = false,
   isGenerating = false,
@@ -41,6 +45,7 @@ export default function AssistantMessageBubble({
   // state
   // =========================
   const normalizedText = message.text.trim();
+  const { openAnswerSignal } = useLadderAnalysis();
   // 빈 답변 placeholder와 실제 스트리밍 중 상태를 분리해 spinner 유지 시간을 제어한다.
   const isPlaceholderLoading =
     normalizedText.length === 0 || normalizedText === "(응답 생성 중...)";
@@ -182,7 +187,10 @@ export default function AssistantMessageBubble({
           <div className={styles.markdownContent}>
             <ReactMarkdown
               remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkAnswerFormatting, remarkAnswerCallouts]}
+              rehypePlugins={ladderAddresses && openAnswerSignal && Number.isFinite(Number(message.id)) ? [signalButtons(ladderAddresses)] : []}
               components={{
+                button: ({ value, children }) => <SignalButton address={String(value)}
+                  onSelect={address => openAnswerSignal?.(address, Number(message.id), getLadderChunks(message.metadata))}>{children}</SignalButton>,
                 section: ({ node, children }) => (
                   <AnswerCallout
                     title={String(node?.properties["data-callout-title"] ?? "")}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-react";
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
@@ -7,6 +7,7 @@ import KnowledgeGraphPanel from "./knowledgeGraphPanel";
 import CmsEvidence, { getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
   getActiveMessage,
+  getLadderChunks,
   getCitationDocumentRequest,
   getChunkPageLabel,
   getDisplayedAssetChunks,
@@ -59,6 +60,7 @@ export default function Citation({
   const latestAssistant = messages.findLast(message => message.role === "assistant");
   const isActiveMessageGenerating = isLoading && activeMessage?.message_id === latestAssistant?.message_id;
   const activeMetadata: ChatMetadata | undefined = activeMessage?.metadata;
+  const ladderChunks = useMemo(() => getLadderChunks(activeMetadata), [activeMetadata]);
   const selectedMessage = getSelectedMessage(messages, selectedCitation);
   const selectedChunk = getSelectedChunk(messages, selectedCitation);
   const selectedAlarmCode = selectedChunk?.metadata?.source_kind === "cms"
@@ -270,14 +272,14 @@ export default function Citation({
               </button>;
             })}
           </div>
-          {activeMessage && activeTab === "도면·래더" && visibleCards.some(card => card.chunk?.metadata.ladder_diagram) && <>
+          {activeMessage && activeTab === "도면·래더" && ladderChunks.length > 0 && <>
             <button type="button" className={styles.ladderSignalButton} aria-haspopup="dialog"
               onClick={() => setLadderSignalMessageId(activeMessage.message_id)}>
               <Workflow size={17} aria-hidden="true" />
               연결 장비 래더 신호 확인
             </button>
-            {ladderSignalMessageId === activeMessage.message_id && <LadderSignalOverlay
-              chunks={visibleCards.flatMap(card => card.chunk ? [card.chunk] : [])}
+            {ladderSignalMessageId === activeMessage.message_id && <LadderSignalOverlay key={activeMessage.message_id} messageId={activeMessage.message_id}
+              chunks={ladderChunks}
               onClose={() => setLadderSignalMessageId(null)}
             />}
           </>}

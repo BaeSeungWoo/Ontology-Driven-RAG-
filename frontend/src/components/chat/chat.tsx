@@ -429,6 +429,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
             <div className={styles.chatAnswerSplit}>
               <div className={styles.chatAnswerMain}>
                 <Answer
+                  ladderMode={selectedPersonaType === "maintenance" && selectedLlmMode === "ladder"}
                   messageJump={messageJump}
                   canExplainFigure={selectedLlmModel === "vllm_config"}
                   recommendations={messages.length === 0 ? recommendations : null}
