@@ -86,7 +86,10 @@ def machine_readiness(config, machines):
 
 
 def require_machine_ready(code, config, machines, mode=None, persona=None):
-    if config.id != "yunam_origin" and (persona not in (None, "operator", "engineer") or mode not in (None, "rag", "manual", "electrical")):
+    allowed_modes = (None, "rag", "manual", "electrical")
+    if persona == "operator" and config.id in ("yunam", "yulkok", "poongsan"):
+        allowed_modes += ("repairHistory",)
+    if config.id != "yunam_origin" and (persona not in (None, "operator", "engineer") or mode not in allowed_modes):
         raise HTTPException(409, "정비·보전·관리자 기능은 신규 공장 연결 준비 중입니다.")
     if code == "ALL":
         raise HTTPException(409, "검색 가능한 장비를 선택해 주세요.")

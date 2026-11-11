@@ -14,6 +14,7 @@ import type { HistoryItem } from "./history/historyCard";
 import PromptSetting from "./promptSetting/promptSetting";
 import FactorySelect from "./promptSetting/factorySelect";
 import {
+  isOperatorRagMode,
   LLM_MODEL_OPTIONS,
   LLM_MODE_OPTIONS,
   type LlmModel,
@@ -96,7 +97,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
       ? !selectedMachine?.has_electrical ? "선택한 설비의 전기도면 인덱스가 준비되지 않았습니다." : ""
       : !["ready", "partial"].includes(selectedMachine?.readiness ?? "")
         ? "선택한 장비의 매뉴얼 검색 데이터가 없습니다. 다른 장비 또는 사용 가능한 전기도면 모드를 선택해 주세요."
-      : factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || selectedLlmMode !== "rag")
+      : factoryId !== "yunam_origin" && (selectedPersonaType !== "operator" || !isOperatorRagMode(factoryId, selectedLlmMode))
         ? "정비·보전·관리자 기능은 신규 공장 연결 준비 중입니다." : "");
   const isPromptRequiredMissing =
     questioner.trim().length === 0 || machineUnavailable || Boolean(featureUnavailable);
