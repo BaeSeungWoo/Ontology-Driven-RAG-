@@ -15,10 +15,23 @@
   overflow: hidden;
 }
 .window[hidden] { display: none; }
+.ladderWindow { width: min(1060px, calc(100vw - 48px)); }
+.ladderLayout { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); }
+@media (max-width: 760px) {
+  .ladderLayout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 3fr) minmax(0, 2fr); }
+}
 .pdfWindow { width: min(760px, calc(100vw - 48px)); }
 .alarmWindow { width: min(620px, calc(100vw - 48px)); z-index: 10001; }
 .dock.alarmDock { z-index: 10002; }
 .expanded { width: min(1180px, calc(100vw - 48px)); height: calc(100dvh - 110px); }
+@media (min-width: 761px) {
+  .ladderWindow.expanded {
+    width: max-content;
+    min-width: min(1180px, calc(100vw - 48px));
+    max-width: calc(100vw - 48px);
+  }
+  .ladderWindow.expanded .ladderLayout { grid-template-columns: min(630px, 46vw) minmax(0, 1fr); }
+}
 .header { display: flex; align-items: center; gap: 4px; padding: 10px 12px; border-bottom: 1px solid #dce5f0; background: #f5f8ff; }
 .header strong { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
 .header button, .saved button { display: inline-flex; align-items: center; justify-content: center; border: 0; border-radius: 6px; padding: 7px; color: #31588e; background: transparent; cursor: pointer; }
@@ -26,7 +39,7 @@
 .header button:focus-visible, .saved button:focus-visible { outline: 2px solid #1254c4; outline-offset: -2px; }
 .content { flex: 1; min-height: 0; }
 .content > div { height: 100%; }
-.window:not(.expanded):not(.pdfWindow) .content > div { grid-template-columns: 1fr; grid-template-rows: 28% minmax(0, 1fr); }
+.window:not(.expanded):not(.pdfWindow):not(.ladderWindow) .content > div { grid-template-columns: 1fr; grid-template-rows: 28% minmax(0, 1fr); }
 .dock { position: fixed; right: 88px; bottom: 16px; z-index: 1201; display: flex; gap: 8px; max-width: calc(100vw - 112px); overflow-x: auto; padding: 4px; }
 .saved { display: flex; flex-shrink: 0; border: 1px solid #bfd0eb; border-radius: 10px; background: #edf4ff; box-shadow: 0 2px 8px #15305b1a; }
 .saved button:first-child { display: inline-flex; gap: 8px; max-width: min(290px, calc(100vw - 152px)); font-size: 12px; }

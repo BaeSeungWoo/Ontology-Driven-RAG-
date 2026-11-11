@@ -13,8 +13,11 @@ import { getDateKey } from "./chatDate";
 import ChatDateDivider from "./chatDateDivider";
 import UserMessageBubble from "./userMessageBubble";
 import AssistantMessageBubble from "./assistantMessageBubble";
+import { useMachine } from "@/components/machineProvider";
+import { getMachineSignals, getTestLadder } from "@/services/ladderApi";
 
 type AnswerProps = {
+  ladderMode?: boolean;
   messageJump?: { messageId: number } | null;
   canExplainFigure?: boolean;
   messages: MessageItem[];
@@ -35,6 +38,7 @@ const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option
 const LLM_MODE_SET = new Set<LlmMode>(LLM_MODE_OPTIONS.map((option) => option.value));
 
 export default function Answer({
+  ladderMode = false,
   messageJump,
   messages,
   selectedCitation,
@@ -47,6 +51,19 @@ export default function Answer({
   recommendations,
   canExplainFigure = false,
 }: AnswerProps) {
+  const { factoryId, executionMachineCode, status } = useMachine();
+  const machine = ladderMode && status === "ready" && executionMachineCode !== "ALL" ? executionMachineCode : undefined;
+  const [ladderIndex, setLadderIndex] = useState<{ factoryId: string; machine: string; addresses: Set<string> } | null>(null);
+  useEffect(() => {
+    setLadderIndex(null);
+    if (!machine) return;
+    const controller = new AbortController();
+    void getTestLadder(controller.signal, machine).then(document => {
+      if (!controller.signal.aborted) setLadderIndex({ factoryId, machine,
+        addresses: new Set(getMachineSignals(document.ladders.flatMap(program => program.nets))) });
+    }).catch(() => { /* 래더를 확인할 수 없으면 주소를 일반 텍스트로 표시한다. */ });
+    return () => controller.abort();
+  }, [factoryId, machine]);
   // =========================
   // state
   // =========================
@@ -273,6 +290,8 @@ export default function Answer({
                     <UserMessageBubble message={message} />
                   ) : (
                     <AssistantMessageBubble
+                      ladderAddresses={ladderIndex && ladderIndex.factoryId === factoryId && ladderIndex.machine === machine
+                        && (!message.llmMode || message.llmMode === "ladder") ? ladderIndex.addresses : undefined}
                       canExplainFigure={canExplainFigure}
                       message={message}
                       isActive={message.id === activeAssistantMessageId}

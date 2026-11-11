@@ -1130,6 +1130,13 @@
 .ladderCircuitPanel { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 8px; padding: 16px; overflow: auto; }
 .ladderNavigatorPanel { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; gap: 12px; min-height: 0; padding: 16px 12px; border-left: 1px solid var(--chat-pane-border); overflow: auto; }
 .ladderNavigatorPanel .ladderFileToolbar strong { flex-basis: 100%; }
+.ladderSignalSearch { position: relative; display: flex; flex-basis: 100%; gap: 6px; }
+.ladderSignalSearch input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: var(--chat-pane-bg); color: var(--chat-text-color); }
+.signalOptions { position: absolute; z-index: 3; top: calc(100% + 3px); inset-inline: 0; max-height: 190px; overflow-y: auto; margin: 0; padding: 3px; list-style: none; border: 1px solid var(--chat-pane-border); border-radius: 6px; background: var(--chat-pane-bg); box-shadow: 0 4px 12px #24385322; }
+.signalOptions li { padding: 5px 8px; }
+.signalOptions [role="option"] { cursor: pointer; font-family: Consolas, monospace; }
+.signalOptions [role="option"]:hover, .signalOptions [aria-selected="true"] { background: #edf5ff; color: #1455c5; }
+.ladderSignalSearch button { display: grid; place-items: center; }
 .ladderNavigatorPanel .ladderNavigation { align-items: stretch; flex-direction: column; }
 .ladderNavigatorPanel .ladderNavigation button { text-align: left; overflow-wrap: anywhere; }
 .ladderFileToolbar, .ladderCanvasActions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 12px; }
@@ -1175,8 +1182,40 @@
 .ladderNavigation { flex-shrink: 0; padding: 8px 10px; border: 1px solid #d5dfed; border-radius: 6px; font-size: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .ladderNavigation button { padding: 4px 8px; border: 1px solid #c5d2e5; border-radius: 4px; background: white; color: #243853; cursor: pointer; }
 .ladderNavigation button[aria-pressed="true"] { border-color: #b75b00; background: #fff4e6; }
+.ladderNavigation[data-highlighted="true"] {
+  border-color: #b75b00;
+  background: #fff4e6;
+  box-shadow: inset 3px 0 #b75b00;
+}
+.ladderNavigation[data-highlighted="true"] > strong { color: #843e00; }
 .ladderUsageList { display: flex; flex-direction: column; gap: 6px; width: 100%; }
-.machineCanvas :global(.is-selected) > rect { stroke: #cf7100 !important; stroke-width: 2; fill: #ffad321a !important; }
+@media (hover: hover) {
+  .ladderEvidenceList button:hover,
+  .ladderUsageList button:hover {
+    box-shadow: inset 3px 0 #4178b9;
+  }
+  .ladderEvidenceList button:not([aria-pressed="true"]):hover,
+  .ladderSignalSearch button:hover,
+  .ladderCanvasActions select:enabled:hover,
+  .ladderFileToolbar select:enabled:hover,
+  .ladderFileToolbar > button:enabled:hover,
+  .ladderNavigation[role="region"] > button:hover,
+  .ladderUsageList button:not([aria-pressed="true"]):hover {
+    border-color: #82a5d2;
+    background: #edf5ff;
+  }
+  .machineCanvas :global(.ladder-contact:not(.is-selected):hover) > rect:first-of-type,
+  .machineCanvas :global(.ladder-coil:not(.is-selected):hover) > rect:first-of-type {
+    fill: #edf5ff !important;
+    stroke: #4178b9 !important;
+  }
+  .machineCanvas :global(.ladder-contact:hover .ladder-addr-label),
+  .machineCanvas :global(.ladder-coil:hover .ladder-addr-label) {
+    fill: #1455c5;
+    text-decoration: underline;
+  }
+}
+.machineCanvas :global(.is-selected) > rect:first-of-type { stroke: #cf7100 !important; stroke-width: 2; fill: #ffad321a !important; }
 
 /* 헤더에 상태/조작을 모아 회로 위의 세로 여백을 줄인다. */
 .ladderHeaderStatus { flex: 1; min-width: 0; margin: 0 20px; }
@@ -1199,5 +1238,28 @@
 /* 동일 주소 전체 표시와 실제 탐색 위치를 구분한다. 파란 근거 배경은 유지한다. */
 .ladderNetFrame { position: relative; }
 .ladderFocusBadge { position: absolute; top: 0; right: 8px; z-index: 1; padding: 2px 6px; border-radius: 4px; background: #a65000; color: white; font-size: 11px; pointer-events: none; }
-.machineCanvas .ladderNetFrame[data-focused="false"] :global(.is-selected) > rect { stroke: #c6af91 !important; stroke-width: 1; stroke-dasharray: 3 3; fill: transparent !important; }
-.machineCanvas .ladderNetFrame[data-focused="true"] :global(.is-selected) > rect { stroke: #bd5700 !important; stroke-width: 3; fill: #ffad3226 !important; }
+.machineCanvas .ladderNetFrame[data-focused="false"] :global(.is-selected) > rect:first-of-type { stroke: #c6af91 !important; stroke-width: 1; stroke-dasharray: 3 3; fill: transparent !important; }
+.machineCanvas .ladderNetFrame[data-focused="true"] :global(.is-selected) > rect:first-of-type { stroke: #bd5700 !important; stroke-width: 3; fill: #ffad3226 !important; }
+@media (hover: hover) {
+  .machineCanvas .ladderNetFrame[data-focused="false"] :global(.is-selected:hover) > rect:first-of-type {
+    fill: #fff1dc !important;
+    stroke: #d28a42 !important;
+  }
+  .machineCanvas .ladderNetFrame[data-focused="true"] :global(.is-selected:hover) > rect:first-of-type {
+    fill: #ffdfb2 !important;
+  }
+  .machineCanvas :global(.is-selected:hover .ladder-addr-label) { fill: #924500; }
+}
+
+.ladderAnalysis { margin-top: auto; position: sticky; bottom: 0; background: var(--chat-pane-bg); }
+.ladderAnalysis button:disabled { opacity: .6; cursor: default; }
+
+.analysisCircuits { min-width: 0; min-height: 0; overflow: auto; padding: 14px; border: 1px solid #dce5f0; background: #f8faff; }
+.analysisCircuits figure { margin: 0 0 14px; }
+.analysisCircuits figcaption, .analysisCircuits small { display: block; margin: 4px 0; color: #425674; font-size: 12px; }
+.analysisCircuits .snapshotNote { margin: 0 0 12px; }
+.analysisCircuitCanvas:enabled { cursor: pointer; }
+.analysisCircuitCanvas:enabled:hover, .analysisCircuitCanvas:focus-visible { outline: 2px solid #82a5d2; outline-offset: -2px; }
+.machineCanvas.analysisCircuitCanvas { width: 100%; min-height: 0; padding: 8px 4px; border-color: #d5dfed; }
+.analysisCircuitCanvas :global(.ladder-net-svg) { pointer-events: none; }
+.analysisCircuitCanvas :global(.ladder-coil) > rect:first-of-type { fill: #fff3e3 !important; stroke: #bd5700 !important; }

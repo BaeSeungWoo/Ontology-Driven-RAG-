@@ -130,13 +130,19 @@ function LadderCircuit({ diagram, values, symbols }: {
 }) {
   const viewport = useRef<HTMLDivElement>(null);
   const [availableWidth, setAvailableWidth] = useState(0);
+  const [commentWidth, setCommentWidth] = useState(0);
   useEffect(() => {
     const element = viewport.current;
     if (!element) return;
-    const observer = new ResizeObserver(([entry]) => setAvailableWidth(entry.contentRect.width));
+    const observer = new ResizeObserver(([entry]) => {
+      setAvailableWidth(entry.contentRect.width);
+      const lines = element.querySelectorAll("tspan");
+      const longest = Math.max(0, ...Array.from(lines, line => line.getComputedTextLength()));
+      setCommentWidth(longest > 0 ? 12 + Math.ceil(longest) : 0);
+    });
     observer.observe(element);
     return () => observer.disconnect();
-  }, []);
+  }, [diagram, symbols]);
   if (diagram.status !== "supported") return <p className={styles.note}>이 근거는 회로 미리보기를 지원하지 않습니다.</p>;
   const layout = measure(diagram.logic);
   const coils = diagram.coils ?? [diagram.coil];
@@ -146,7 +152,6 @@ function LadderCircuit({ diagram, values, symbols }: {
     const entry = symbols?.[normalizeAddress(coil.addr)];
     return descriptionLines(coil.description.trim() || entry?.comment?.trim() || entry?.short?.trim() || "");
   });
-  const commentWidth = descriptions.some(lines => lines.length) ? 250 : 0;
   const width = Math.max(availableWidth, layout.width + 240 + commentWidth);
   const rightRail = width - commentWidth - 20;
   const rowHeight = Math.max(112, ...descriptions.map(lines => lines.length * 16 + 32));

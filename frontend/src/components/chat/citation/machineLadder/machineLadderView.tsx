@@ -1,9 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
+import SignalSearch from "./signalSearch";
 import { useMachine } from "@/components/machineProvider";
 import { createPortal } from "react-dom";
-import { getMachineNodeSignals, getMachineSignals, getTestLadder, type MachineLadderDocument, type MachineLadderNet } from "@/services/ladderApi";
+import { getLadderSignals, getMachineNodeSignals, getMachineSignals, getTestLadder, type MachineLadderNode, type MachineLadderDocument, type MachineLadderNet } from "@/services/ladderApi";
 import useLadderSignals from "@/hooks/useLadderSignals";
+import { LadderEvidence, useLadderAnalysis } from "../../figureExplanationProvider";
+import LadderExplanation from "./ladderExplanation";
 import LadderNetSvg from "./components/LadderNetSvg";
 import { requiredRailGap } from "./utils/ladderLayoutUtils";
 import styles from "../citation.module.css";
@@ -12,11 +15,12 @@ const NETS_PER_PAGE = 10;
 type SelectedSignal = { address: string; symbol: string; comment: string };
 type Destination = { netIndex: number; revision: number };
 
-function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIndex, onAddressSelect, destination, headerHost, paused, onTogglePaused }: {
+function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIndex, coilDescription, onAddressSelect, destination, headerHost, paused, onTogglePaused }: {
   paused: boolean; onTogglePaused: () => void;
   headerHost: HTMLDivElement | null;
   nets: MachineLadderNet[]; highlightedNetIndexes: number[]; selectedAddress: string;
   focusedNetIndex: number | null;
+  coilDescription?: string;
   onAddressSelect: (address: string, netIndex: number) => void; destination: Destination | null;
 }) {
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -36,7 +40,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
   const knownSet = new Set(snapshot?.signals.filter(item => item.value !== null).map(item => item.address));
   const energizedSet = new Set(snapshot?.signals.filter(item => item.value === 1).map(item => item.address));
   const values = new Map(snapshot?.signals.map(item => [item.address, item]));
-  const railGap = Math.max(900, ...nets.map(requiredRailGap));
+  const railGap = Math.max(900, ...nets.map(net => requiredRailGap(net)));
   const selectedValue = selected ? values.get(selected.address)?.value : null;
   const state = paused ? "일시정지 · 마지막 수신 상태" : isReading ? "갱신 중"
     : !snapshot ? "연결 대기" : knownSet.size === addresses.length ? "실시간 수신 중" : "일부 신호 미확인";
@@ -62,10 +66,11 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
     </>, headerHost)}
     <div ref={canvasRef} className={styles.machineCanvas} role="region" aria-label="장비 전체 래더 실시간 신호" tabIndex={0}>
       {nets.map(net => <div key={net.netIndex} data-net={net.netIndex}
-        className={styles.ladderNetFrame} data-focused={Boolean(selectedAddress && focusedNetIndex === net.netIndex)}>
+        className={styles.ladderNetFrame} data-focused={Boolean((selectedAddress || coilDescription) && focusedNetIndex === net.netIndex)}>
         {selectedAddress && focusedNetIndex === net.netIndex && <span className={styles.ladderFocusBadge}>현재 탐색 · NET {net.netIndex} · {selectedAddress}</span>}
         <LadderNetSvg net={net} energizedSet={energizedSet} knownSet={knownSet}
         railGap={railGap} zoom={zoom} displayMode="both" selectedKey={null} selectedAddress={selectedAddress}
+        coilDescription={focusedNetIndex === net.netIndex ? coilDescription : undefined}
         highlighted={highlightedNetIndexes.includes(net.netIndex)}
         onSelect={(element: SelectedSignal) => {
           const deselect = selectedAddress === element.address && focusedNetIndex === net.netIndex;
@@ -74,7 +79,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
         }}
         onJump={undefined} /></div>)}
     </div>
-    {selected && selectedAddress && <p className={styles.ladderSelectedSignal}><strong>{selected.address} · {selected.symbol}</strong>
+    {selected && selected.address === selectedAddress && <p className={styles.ladderSelectedSignal}><strong>{selected.address} · {selected.symbol}</strong>
       {` — ${selectedValue === 1 ? "ON · 1" : selectedValue === 0 ? "OFF · 0" : "미확인"}`} · {selected.comment}</p>}
     <details className={styles.ladderSource}>
       <summary>주소별 수신값 ({addresses.length})</summary>
@@ -90,7 +95,7 @@ function LiveCanvas({ nets, highlightedNetIndexes, selectedAddress, focusedNetIn
   </>;
 }
 
-type ViewProps = { relatedAddresses: string[]; headerHost: HTMLDivElement | null };
+type ViewProps = { messageId: number; relatedAddresses: string[]; onUsageSelect: () => void; headerHost: HTMLDivElement | null };
 
 export default function MachineLadderView(props: ViewProps) {
   const { executionMachineCode: machineCode, status } = useMachine();
@@ -98,7 +103,8 @@ export default function MachineLadderView(props: ViewProps) {
   return <SelectedMachineLadder key={machineCode} {...props} machineCode={machineCode} />;
 }
 
-function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: ViewProps & { machineCode: string }) {
+function SelectedMachineLadder({ messageId, relatedAddresses, onUsageSelect, headerHost, machineCode }: ViewProps & { machineCode: string }) {
+  const { navigation, clearNavigation } = useLadderAnalysis();
   const [document, setDocument] = useState<MachineLadderDocument | null>(null);
   const [error, setError] = useState("");
   const [retry, setRetry] = useState(0);
@@ -107,22 +113,75 @@ function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: Vi
   const [programIndex, setProgramIndex] = useState(0);
   const [page, setPage] = useState(0);
   const [selectedAddress, setSelectedAddress] = useState("");
-  const [focusedNet, setFocusedNet] = useState<{ programIndex: number; netIndex: number } | null>(null);
+  const [focusedNet, setFocusedNet] = useState<{ programIndex: number; netIndex: number; highlightRow?: boolean; coilDescription?: string } | null>(null);
   const [destination, setDestination] = useState<Destination | null>(null);
   const addressKey = [...relatedAddresses].sort().join(",");
   const locations = useMemo(() => document?.ladders.flatMap((program, programIndex) =>
     program.nets.filter(net => net.outputs.length > 0).map((net, index) => ({
       programIndex, label: program.label, page: Math.floor(index / NETS_PER_PAGE), net,
     }))) ?? [], [document]);
-  // 파란 배경과 자동 이동은 근거의 전체 주소 집합으로만 결정한다(논리 동등성 검증은 아님).
+  const documentAddresses = useMemo(() => new Set(getMachineSignals(locations.map(item => item.net))), [locations]);
+  const chunks = useContext(LadderEvidence);
+  const evidenceNets = useMemo(() => {
+    const writers = new Map<string, { net: MachineLadderNet; output: MachineLadderNode }[]>();
+    for (const { net } of locations) {
+      for (const output of net.outputs) {
+        for (const coil of [output, ...(output.coils ?? [])]) {
+          if (!coil.address) continue;
+          const entries = writers.get(coil.address) ?? [];
+          entries.push({ net, output });
+          writers.set(coil.address, entries);
+        }
+      }
+    }
+    const traced = new Map<MachineLadderNet, Set<MachineLadderNode>>();
+    const queue: MachineLadderNode[] = [];
+    function include(net: MachineLadderNet, output: MachineLadderNode) {
+      const outputs = traced.get(net) ?? new Set<MachineLadderNode>();
+      if (outputs.has(output)) return;
+      outputs.add(output);
+      traced.set(net, outputs);
+      queue.push(output);
+    }
+    // 질문 검색 순서대로 장비 LAD에서 출력과 입출력 주소 집합이 일치하는 기능을 찾는다.
+    for (const chunk of chunks) {
+      const diagram = chunk.metadata.ladder_diagram;
+      if (diagram?.status !== "supported") continue;
+      const expected = getLadderSignals(diagram).map(signal => signal.address).sort().join(",");
+      const candidates = new Map<MachineLadderNet, Set<MachineLadderNode>>();
+      for (const coil of diagram.coils ?? [diagram.coil]) {
+        for (const { net, output } of writers.get(coil.addr) ?? []) {
+          const outputs = candidates.get(net) ?? new Set<MachineLadderNode>();
+          outputs.add(output);
+          candidates.set(net, outputs);
+        }
+      }
+      for (const [net, outputs] of candidates) {
+        if (getMachineNodeSignals([...outputs]).sort().join(",") === expected) {
+          for (const output of outputs) include(net, output);
+        }
+      }
+      if (queue.length) break;
+    }
+    // 입력을 쓰는 출력이 더 없을 때까지 추적한다. 자기유지·순환 회로는 같은 출력을 한 번만 방문한다.
+    for (const output of queue) {
+      const inputs = getMachineNodeSignals([...(output.input ? [output.input] : []),
+        ...(output.inputs ?? []).map(port => port.input)]);
+      for (const address of inputs) {
+        for (const driver of writers.get(address) ?? []) include(driver.net, driver.output);
+      }
+    }
+    return [...traced].map(([net, outputs]) => ({ ...net, outputs: [...outputs] }));
+  }, [chunks, locations]);
+  // 근거 일치는 전체 주소 집합으로 결정한다(논리 동등성 검증은 아님).
   const exactMatches = useMemo(() => locations.filter(({ net }) => addressKey && (
     getMachineNodeSignals(net.outputs).sort().join(",") === addressKey
     || net.outputs.some(output => getMachineNodeSignals([output]).sort().join(",") === addressKey)
   )), [locations, addressKey]);
   // 주황 강조는 별도의 선택 주소이며, 근거 일치 결과를 변경하지 않는다.
   const usages = locations.filter(({ net }) => selectedAddress && getMachineSignals([net]).includes(selectedAddress));
-  const jump = (location: typeof locations[number]) => {
-    setFocusedNet({ programIndex: location.programIndex, netIndex: location.net.netIndex });
+  const jump = (location: typeof locations[number], highlightRow = false, coilDescription?: string) => {
+    setFocusedNet({ programIndex: location.programIndex, netIndex: location.net.netIndex, highlightRow, coilDescription });
     setProgramIndex(location.programIndex);
     setPage(location.page);
     // 같은 NET을 다시 선택해도 스크롤을 되돌릴 수 있도록 이동 요청을 구분한다.
@@ -132,7 +191,10 @@ function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: Vi
   const [previousMatches, setPreviousMatches] = useState(exactMatches);
   if (previousMatches !== exactMatches) {
     setPreviousMatches(exactMatches);
-    setSelectedAddress("");
+    if (addressKey || !focusedNet?.highlightRow) {
+      setFocusedNet(null);
+      setSelectedAddress("");
+    }
     const first = exactMatches[0];
     if (first) {
       setProgramIndex(first.programIndex);
@@ -140,6 +202,40 @@ function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: Vi
       setDestination(value => ({ netIndex: first.net.netIndex, revision: (value?.revision ?? 0) + 1 }));
     }
   }
+  const [handledNavigation, setHandledNavigation] = useState<typeof navigation>(null);
+  const [searchRevision, setSearchRevision] = useState(0);
+  const usagePanel = useRef<HTMLDivElement>(null);
+  if (document && navigation && navigation !== handledNavigation) {
+    setHandledNavigation(navigation);
+    setSelectedAddress(navigation.address);
+    if (navigation.net) {
+      const target = navigation.net;
+      const match = locations.find(({ net }) => net.program === target.program && net.netIndex === target.netIndex);
+      if (match) jump(match, true);
+    } else {
+      const matches = locations.filter(({ net }) => getMachineSignals([net]).includes(navigation.address));
+      if (matches.length === 1) jump(matches[0]);
+      else setFocusedNet(null);
+    }
+  }
+  useEffect(() => {
+    const panel = usagePanel.current;
+    if (!handledNavigation && !searchRevision) return;
+    clearNavigation();
+    if (!panel) return;
+    panel.focus();
+    panel.querySelector("strong")?.scrollIntoView?.({ block: "nearest" });
+    panel.dataset.highlighted = "true";
+    const dialog = panel.closest("dialog");
+    function dismissHighlight() {
+      dialog?.removeEventListener("click", dismissHighlight, true);
+      dialog?.removeEventListener("focusin", dismissHighlight, true);
+      if (panel) delete panel.dataset.highlighted;
+    }
+    dialog?.addEventListener("click", dismissHighlight, true);
+    dialog?.addEventListener("focusin", dismissHighlight, true);
+    return dismissHighlight;
+  }, [handledNavigation, searchRevision, clearNavigation]);
   const program = document?.ladders[programIndex];
   const nets = useMemo(() => program?.nets.filter(net => net.outputs.length > 0) ?? [], [program]);
   const visibleNets = useMemo(() => nets.slice(page * NETS_PER_PAGE, page * NETS_PER_PAGE + NETS_PER_PAGE), [nets, page]);
@@ -170,15 +266,26 @@ function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: Vi
             <span>NET {nets.length ? page * NETS_PER_PAGE + 1 : 0}–{Math.min(page * NETS_PER_PAGE + NETS_PER_PAGE, nets.length)} / {nets.length}</span>
             <button type="button" disabled={page === 0} onClick={() => setPage(value => value - 1)}>이전 회로</button>
             <button type="button" disabled={(page + 1) * NETS_PER_PAGE >= nets.length} onClick={() => setPage(value => value + 1)}>다음 회로</button>
+            <SignalSearch addresses={documentAddresses} locations={locations} onCircuitSelect={(net, description) => {
+              const location = locations.find(item => item.net === net);
+              if (!location) return;
+              onUsageSelect();
+              setSelectedAddress("");
+              jump(location, true, description);
+            }} onSearch={address => {
+              setSelectedAddress(address);
+              setFocusedNet(null);
+              setSearchRevision(value => value + 1);
+            }} />
           </div>
           {addressKey && <div className={styles.ladderNavigation} aria-label="근거 일치 회로">
             <span>{exactMatches.length ? `주소 집합 일치 ${exactMatches.length}곳 · 논리 동일 여부는 별도 확인` : "주소 집합이 일치하는 회로가 없습니다."}</span>
             {exactMatches.map(location => <button type="button" key={`${location.programIndex}:${location.net.netIndex}`}
               onClick={() => { setSelectedAddress(""); jump(location); }}>{location.label} · NET {location.net.netIndex}</button>)}
           </div>}
-          {selectedAddress && <div className={styles.ladderNavigation} role="region" aria-label="신호 사용처 탐색">
+          {selectedAddress && <div key={selectedAddress} ref={usagePanel} tabIndex={-1} className={styles.ladderNavigation} role="region" aria-label="신호 사용처 탐색">
             <strong>{selectedAddress} 사용처 · {usages.length}곳</strong>
-            <span>진한 주황: 현재 탐색 위치 · 옅은 점선: 다른 회로의 같은 주소. 출력은 다른 접점 조건에도 영향을 받습니다.</span>
+            <span>{usages.length ? "진한 주황: 현재 탐색 위치 · 옅은 점선: 다른 회로의 같은 주소. 출력은 다른 접점 조건에도 영향을 받습니다." : "장비 전체 래더에서 이 주소의 사용처를 찾지 못했습니다."}</span>
             <button type="button" onClick={() => setSelectedAddress("")}>탐색 닫기</button>
             <div className={styles.ladderUsageList}>{usages.map(location => {
               const written = location.net.outputs.some(output => output.address === selectedAddress || output.coils?.some(coil => coil.address === selectedAddress));
@@ -187,17 +294,22 @@ function SelectedMachineLadder({ relatedAddresses, headerHost, machineCode }: Vi
               ]).includes(selectedAddress));
               return <button type="button" key={`${location.programIndex}:${location.net.netIndex}`}
                 aria-pressed={focusedNet?.programIndex === location.programIndex && focusedNet.netIndex === location.net.netIndex}
-                onClick={() => jump(location)}>{location.label} · NET {location.net.netIndex} · {read ? "접점 사용" : ""}{read && written ? " / " : ""}{written ? "출력" : ""}
+                onClick={() => { onUsageSelect(); jump(location, true); }}>{location.label} · NET {location.net.netIndex} · {read ? "접점 사용" : ""}{read && written ? " / " : ""}{written ? "출력" : ""}
                 {` → ${location.net.outputs.filter(output => getMachineNodeSignals([output]).includes(selectedAddress)).map(output => output.address || output.subName || "기능 명령").join(", ")}`}</button>;
             })}</div>
           </div>}
           {!selectedAddress && <p className={styles.ladderLiveNote}>회로의 접점이나 코일을 선택하면 전체 사용처가 여기에 표시됩니다.</p>}
+          <div className={styles.ladderAnalysis}><LadderExplanation addresses={documentAddresses} messageId={messageId}
+            nets={evidenceNets} paused={paused} /></div>
         </aside>
         <div className={styles.ladderCircuitPanel}>
           {nets.length ? <LiveCanvas key={`${programIndex}-${page}`} nets={visibleNets} headerHost={headerHost}
             paused={paused} onTogglePaused={() => setPaused(value => !value)}
-            highlightedNetIndexes={exactMatches.filter(location => location.programIndex === programIndex).map(location => location.net.netIndex)}
+            highlightedNetIndexes={focusedNet?.highlightRow && focusedNet.programIndex === programIndex
+              ? [focusedNet.netIndex]
+              : exactMatches.filter(location => location.programIndex === programIndex).map(location => location.net.netIndex)}
             selectedAddress={selectedAddress} focusedNetIndex={focusedNet?.programIndex === programIndex ? focusedNet.netIndex : null}
+            coilDescription={focusedNet?.coilDescription}
             onAddressSelect={(address, netIndex) => {
               setSelectedAddress(address);
               setFocusedNet(address ? { programIndex, netIndex } : null);

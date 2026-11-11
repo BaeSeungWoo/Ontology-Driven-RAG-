@@ -1,6 +1,12 @@
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import { electricalClaimText } from "./electricalEvidence";
 
+export function getLadderChunks(metadata?: ChatMetadata) {
+  const chunks = metadata?.chunks?.length ? metadata.chunks : metadata?.used_chunks ?? [];
+  return chunks.filter(chunk => chunk.metadata.ladder_diagram)
+    .sort((a, b) => (a.retrieval_rank ?? a.index) - (b.retrieval_rank ?? b.index));
+}
+
 export type SelectedCitation = {
   messageId: string;
   chunkIndex: number;

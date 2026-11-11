@@ -3,6 +3,7 @@ import { Workflow, X } from "lucide-react";
 import type { LadderNode } from "@/types/ladder";
 import type { ChatChunk } from "@/types/chatApi";
 import { getLadderSignals } from "@/services/ladderApi";
+import { LadderEvidence, useLadderAnalysis } from "../figureExplanationProvider";
 import MachineLadderView from "./machineLadder/machineLadderView";
 import styles from "./citation.module.css";
 
@@ -13,12 +14,14 @@ function inputAddresses(node: LadderNode): string[] {
   return node.children.flatMap(inputAddresses);
 }
 
-export default function LadderSignalOverlay({ chunks, onClose }: {
-  chunks: ChatChunk[]; onClose: () => void;
+export default function LadderSignalOverlay({ chunks, messageId, onClose }: {
+  chunks: ChatChunk[]; messageId: number; onClose: () => void;
 }) {
   const [headerHost, setHeaderHost] = useState<HTMLDivElement | null>(null);
+  const { setHost, navigation } = useLadderAnalysis();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  if (navigation?.net && selectedIndex !== null) setSelectedIndex(null);
   const selected = chunks.find(chunk => chunk.index === selectedIndex);
   const relatedAddresses = getLadderSignals(selected?.metadata.ladder_diagram).map(item => item.address);
 
@@ -37,6 +40,7 @@ export default function LadderSignalOverlay({ chunks, onClose }: {
 
   return <dialog ref={dialogRef} className={styles.ladderSignalDialog} aria-labelledby="ladder-signal-title"
     onCancel={event => { event.preventDefault(); onClose(); }}>
+    <div ref={setHost} />
     <div className={styles.ladderSignalContent}>
       <header className={styles.ladderSignalHeader}>
         <h2 id="ladder-signal-title">연결 장비 래더 신호 확인</h2>
@@ -67,7 +71,8 @@ export default function LadderSignalOverlay({ chunks, onClose }: {
             <details><summary>근거 원문</summary><p>{selected.document}</p></details>
           </div>}
         </aside>
-        <MachineLadderView relatedAddresses={relatedAddresses} headerHost={headerHost} />
+        <LadderEvidence.Provider value={chunks}><MachineLadderView messageId={messageId} relatedAddresses={relatedAddresses}
+          onUsageSelect={() => setSelectedIndex(null)} headerHost={headerHost} /></LadderEvidence.Provider>
       </div>
     </div>
   </dialog>;

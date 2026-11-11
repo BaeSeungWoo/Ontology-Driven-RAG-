@@ -131,13 +131,13 @@ function groupOutputs(outputs) {
 }
 
 /** 이 net을 그리는 데 필요한 최소 레일 간격 - 호출부에서 화면의 모든 net 중 최대값으로 통일한다. */
-export function requiredRailGap(net) {
+export function requiredRailGap(net, minGap = MIN_RAIL_GAP) {
     const groups = groupOutputs(net.outputs || []);
     const widths = groups.map(g => g.outputs[0].inputs
         ? Math.max(0, ...g.outputs[0].inputs.map(port => measure(port.input).width)) + 48 + FUNCTION_WIDTH + CELL_WIDTH
         : (g.input ? measure(g.input).width : 0)
             + Math.max(...g.outputs.map(output => output.type === 'function' ? FUNCTION_WIDTH : CELL_WIDTH)));
-    return Math.max(MIN_RAIL_GAP, ...widths.map(width => width + OUTPUT_BRANCH_GAP + 40));
+    return Math.max(minGap, ...widths.map(width => width + OUTPUT_BRANCH_GAP + 40));
 }
 
 /**
