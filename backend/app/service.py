@@ -159,10 +159,10 @@ class RAGService:
         )
 
         if self.config.id == "waff" and mode == "rag":
+            from app.core.maintenance_retriever import WAFF_KNOWHOW_POLICY
             messages[0]["content"] += (
                 "\n매뉴얼과 와프 현장 대응 노하우를 구분한다. 관련 노하우만 별도 항목으로 인용하고 "
-                "업체명·장비명·비용 등 개별 사례 정보는 노출하지 않는다. "
-                "현장 경험을 매뉴얼 지시나 확정 원인으로 제시하지 않는다."
+                f"관련 기록이 없으면 노하우 항목을 생략한다. {WAFF_KNOWHOW_POLICY}"
             )
 
         if mode == "cms":

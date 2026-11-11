@@ -5,7 +5,7 @@ import { useMachine } from "@/components/machineProvider";
 import { usePrompt } from "@/hooks/usePrompt";
 import type { MachineInfo } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
-import { LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
+import { isOperatorRagMode, LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
 import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
 import MachineInfoPanel from "./machineInfoPanel";
 import styles from "./promptSetting.module.css";
@@ -122,7 +122,8 @@ export default function PromptListModal({
               const disabled = legacyFactory
                 ? (option.value === "electrical" && !electricalAvailable) || (option.value === "cms" && selectedPersonaType !== "manager")
                 : selectedPersonaType === "engineer"
-                ? option.value !== "electrical" || !electricalAvailable : option.value !== "rag";
+                ? option.value !== "electrical" || !electricalAvailable
+                : !(selectedPersonaType === "operator" && isOperatorRagMode(factoryId, option.value));
               return (
                 <label key={option.value} className={`${styles.llmRadioItem} ${disabled ? styles.llmRadioItemDisabled : ""}`}>
                   <input

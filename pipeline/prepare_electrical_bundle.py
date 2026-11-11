@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pypdfium2
 
+from backend.app.factories.machines import read_machine_info
 from pipeline.ingestion.prepared_documents import document_key
 from pipeline.ingestion.machine_resolver import machine_documents
 
@@ -36,7 +37,7 @@ def write_new(path, value):
 
 def prepare(bundle, data_root, machines_root):
     sources = read(bundle / 'source_pdfs.json')
-    machines = {f: read(machines_root / f'machine_info_{f}.json')
+    machines = {f: read_machine_info(machines_root / f'machine_info_{f}.json')
                 for f in ('yunam', 'yulkok', 'poongsan')}
     with (bundle / 'MANIFEST.tsv').open(encoding='utf-8-sig', newline='') as stream:
         inventory = list(csv.DictReader(stream, delimiter='\t'))

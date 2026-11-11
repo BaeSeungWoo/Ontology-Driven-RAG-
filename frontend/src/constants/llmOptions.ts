@@ -5,6 +5,8 @@
  * Out: LlmModel, LlmMode, LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS
  */
 
+import type { FactoryId } from "@/services/api";
+
 export type LlmModel = "ollama_config" | "vllm_config" | "openai_config" | "anthropic_config" | "google_config";
 // export type LlmMode = "base" | "rag" | "graph";
 export type LlmMode = "base" | "rag" | "graph" | "chroma" | "faiss" | "kg" | "ladder" | "multimodal" | "judge" | "cms" | "paddleocr" | "repairHistory" | "electrical";
@@ -18,6 +20,10 @@ export type LlmModeOption = {
   value: LlmMode;
   label: string;
 };
+
+export function isOperatorRagMode(factory: FactoryId, mode: LlmMode) {
+  return mode === "rag" || (mode === "repairHistory" && ["yunam_origin", "yunam", "yulkok", "poongsan"].includes(factory));
+}
 
 export const LLM_MODEL_OPTIONS: LlmModelOption[] = [
   { value: "ollama_config", label: "Ollama" },

@@ -152,7 +152,7 @@ def build_sources(config, workbook=None, tacit=None, reset=False):
     build_index(cases, config, reset=reset)
 
 
-def search(question, config, machine_name="", top_k=6, balance_sources=False):
+def search(question, config, machine_name="", top_k=6, balance_sources=False, *, machine_aliases=()):
     import chromadb
     from backend.app.embeddings import load_embeddings
     from backend.app.core.bm25_tokenizer import tokenize_for_bm25
@@ -178,6 +178,8 @@ def search(question, config, machine_name="", top_k=6, balance_sources=False):
     if config.id == "waff":
         pools = ("company_knowledge",)
     results = []
+    selected_names = {normalize(name) for name in (machine_name, *machine_aliases) if name}
+    selected_names.discard("")
     for kind in pools:
         pool = [i for i, m in enumerate(bundle["metadatas"])
                 if m["factory_id"] in {config.id, "shared"} and (kind is None or m["case_type"] == kind)]
@@ -203,7 +205,7 @@ def search(question, config, machine_name="", top_k=6, balance_sources=False):
             similarity = float(np.dot(query, embedding) / (np.linalg.norm(query) * np.linalg.norm(embedding)))
             if similarity < 0.60:
                 continue
-            same = bool(machine_name) and metadata["factory_id"] == config.id and normalize(metadata["machine_name"]) == normalize(machine_name)
+            same = metadata["factory_id"] == config.id and normalize(metadata["machine_name"]) in selected_names
             selected.append({"id": key, "document": document.removeprefix("passage: "),
                              "metadata": {**metadata, "same_machine": same}, "similarity": similarity,
                              "rrf_score": ranks[key] + (0.005 if same else 0)})
