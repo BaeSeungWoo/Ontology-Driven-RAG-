@@ -1,4 +1,4 @@
-import { authorizeMachine } from "../../machineAccess";
+import { authorizeLadderRead } from "../../machineAccess";
 
 export const runtime = "nodejs";
 
@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     return Response.json({ detail: "PMC 주소를 1~128개 입력하세요. 예: X8.4" }, { status: 422 });
   }
 
-  const code = await authorizeMachine(request, requestedCode);
+  const code = await authorizeLadderRead(request, requestedCode);
   if (typeof code !== "string") return code;
   const base = (process.env.LADDER_AGENT_URL || "http://127.0.0.1:5001").replace(/\/+$/, "");
   const path = `${base}/api/agent/fanuc/machines/${code}`;

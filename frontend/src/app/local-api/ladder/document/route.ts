@@ -1,9 +1,9 @@
-import { authorizeMachine } from "../../machineAccess";
+import { authorizeLadderRead } from "../../machineAccess";
 
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const code = await authorizeMachine(request, new URL(request.url).searchParams.get("machine_code"));
+  const code = await authorizeLadderRead(request, new URL(request.url).searchParams.get("machine_code"));
   if (typeof code !== "string") return code;
   const base = (process.env.NEXT_PUBLIC_API_URL || process.env.API_PROXY_TARGET || "http://127.0.0.1:8000").replace(/\/+$/, "");
   try {

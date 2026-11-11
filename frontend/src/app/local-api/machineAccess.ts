@@ -1,4 +1,12 @@
-// Local Agent requests keep the same IP-based machine scope as the remote chat API.
+export async function authorizeLadderRead(request: Request, requestedCode: unknown): Promise<string | Response> {
+  if (process.env.SHARE_YUNAM_ORIGIN_M005_LADDER === "true"
+    && request.headers.get("X-Factory-Id") === "yunam_origin" && requestedCode === "M005") {
+    return "M005";
+  }
+  return authorizeMachine(request, requestedCode);
+}
+
+// Default machine access uses the same IP scope as the remote chat API.
 export async function authorizeMachine(request: Request, requestedCode: unknown): Promise<string | Response> {
   const code = typeof requestedCode === "string" ? requestedCode.trim() : "";
   if (!/^[A-Za-z0-9_-]+$/.test(code) || code === "ALL") {
