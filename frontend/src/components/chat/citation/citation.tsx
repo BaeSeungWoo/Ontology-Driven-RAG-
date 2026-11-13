@@ -3,6 +3,8 @@ import { ChevronDown, ChevronUp, FileText, Network, Workflow } from "lucide-reac
 import type { ChatChunk, ChatMetadata, MessageItem } from "@/types/chatApi";
 import ChunkAsset from "./chunkAsset";
 import LadderSignalOverlay from "./ladderSignalOverlay";
+import { toCitationDisplayText } from "../answer/citationText";
+import { formatCmsDateTime } from "@/utils/formatCmsDateTime";
 import KnowledgeGraphPanel from "./knowledgeGraphPanel";
 import CmsEvidence, { getAlarmManualDescription, getAlarmManualDefinition, parseCmsEvidence } from "./cmsEvidence";
 import {
@@ -286,6 +288,10 @@ export default function Citation({
           {activeTab === "지식그래프" ? <KnowledgeGraphPanel
             key={activeMessage?.message_id ?? "new-question"}
             messageId={isNewQuestion ? undefined : activeMessage?.message_id}
+            originalAnswer={activeMessage ? toCitationDisplayText(
+              activeMessage.llm_mode === "cms" ? formatCmsDateTime(activeMessage.content) : activeMessage.content,
+              activeMessage.metadata ?? undefined,
+            ) : ""}
             isGenerating={isActiveMessageGenerating}
           /> : visibleCards.length === 0 && <div className={styles.emptyEvidence} role="status">
             <EmptyIcon size={50} strokeWidth={1.6} aria-hidden="true" />

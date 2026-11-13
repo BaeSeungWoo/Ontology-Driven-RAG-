@@ -1,15 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { LoaderCircle, Maximize2, Network, X } from "lucide-react";
+import { ChevronDown, LoaderCircle, Maximize2, Network, X } from "lucide-react";
 import { getKnowledgeGraph, getKnowledgeGraphError, type KnowledgeGraphResult } from "@/services/knowledgeGraphApi";
 import KnowledgeGraphAnswer from "./knowledgeGraphAnswer";
 import styles from "./knowledgeGraphPanel.module.css";
 
 type KnowledgeGraphPanelProps = {
   messageId?: number;
+  originalAnswer: string;
   isGenerating: boolean;
 };
 
-function GraphViewer({ html, messageId, question }: { html: string; messageId: number; question: string }) {
+function GraphViewer({ html, messageId, question, snapshot, corpora, originalAnswer }: KnowledgeGraphResult & { messageId: number; originalAnswer: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [answerRequested, setAnswerRequested] = useState(false);
   const [answerVisible, setAnswerVisible] = useState(false);
@@ -70,19 +71,26 @@ function GraphViewer({ html, messageId, question }: { html: string; messageId: n
     aria-label={isExpanded ? "지식그래프 크게 보기" : undefined}
     onCancel={event => { event.preventDefault(); setExpanded(false); }}>
     <header className={styles.viewerHeader}>
-      <h2 hidden={!isExpanded}>지식그래프</h2>
+      {isExpanded && <h2><Network size={22} aria-hidden="true" />지식그래프</h2>}
+      {isExpanded && answerRequested && !answerVisible && <button type="button" title="답변 펼치기" aria-label="답변 펼치기" onClick={() => setAnswerVisible(true)}>
+        <ChevronDown size={18} aria-hidden="true" />
+      </button>}
       <button ref={buttonRef} type="button" onClick={() => setExpanded(!isExpanded)}
+        title={isExpanded ? "지식그래프 닫기" : "지식그래프 크게 보기"}
         aria-label={isExpanded ? "지식그래프 닫기" : "지식그래프 크게 보기"}
         aria-haspopup={isExpanded ? undefined : "dialog"} aria-expanded={isExpanded}>
         {isExpanded ? <X size={18} aria-hidden="true" /> : <Maximize2 size={16} aria-hidden="true" />}
-        {isExpanded ? "닫기" : "크게 보기"}
+        {!isExpanded && "크게 보기"}
       </button>
     </header>
     <div className={`${styles.workspace} ${isExpanded && answerVisible ? styles.withAnswer : ""}`}>
       <iframe ref={frameRef} className={styles.frame} title="선택한 질문의 매뉴얼 검색 지식그래프"
         srcDoc={viewerHtml} sandbox="allow-scripts" />
       {answerRequested && <div className={styles.answerContainer} hidden={!isExpanded || !answerVisible}>
-        <KnowledgeGraphAnswer messageId={messageId} question={question} onClose={() => {
+        <KnowledgeGraphAnswer messageId={messageId} question={question} snapshot={snapshot} corpora={corpora}
+          originalAnswer={originalAnswer} onSelectSource={source => frameRef.current?.contentWindow?.postMessage({
+            type: "knowledge-graph:source", corpus: source.corpus, nodeId: source.node_id,
+          }, "*")} onClose={() => {
           setAnswerVisible(false);
           buttonRef.current?.focus({ preventScroll: true });
         }} />
@@ -91,7 +99,7 @@ function GraphViewer({ html, messageId, question }: { html: string; messageId: n
   </dialog>;
 }
 
-export default function KnowledgeGraphPanel({ messageId, isGenerating }: KnowledgeGraphPanelProps) {
+export default function KnowledgeGraphPanel({ messageId, isGenerating, originalAnswer }: KnowledgeGraphPanelProps) {
   const [result, setResult] = useState<KnowledgeGraphResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
@@ -126,7 +134,7 @@ export default function KnowledgeGraphPanel({ messageId, isGenerating }: Knowled
     </div> : result ? <>
       <p className={styles.question}>{result.question}</p>
       <p className={styles.corpora}>검색 매뉴얼: {result.corpora.map(corpus => corpus.toUpperCase()).join(" · ")}</p>
-      <GraphViewer html={result.html} messageId={messageId} question={result.question} />
+      <GraphViewer {...result} messageId={messageId} originalAnswer={originalAnswer} />
     </> : <div className={styles.state} role="status">
       <LoaderCircle className={styles.spinner} size={28} aria-hidden="true" />
       <p>질문과 관련된 매뉴얼과 지식 연결을 찾고 있어요.<br />처음 검색할 때는 시간이 걸릴 수 있습니다.</p>

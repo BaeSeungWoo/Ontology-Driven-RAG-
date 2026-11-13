@@ -6,6 +6,7 @@ export type KnowledgeGraphResult = {
   question: string;
   corpora: string[];
   html: string;
+  snapshot?: string;
 };
 
 export async function getKnowledgeGraph(messageId: number, signal: AbortSignal) {
@@ -16,9 +17,9 @@ export async function getKnowledgeGraph(messageId: number, signal: AbortSignal) 
 }
 
 export function streamKnowledgeGraphAnswer(
-  messageId: number, signal: AbortSignal, onUpdate: (result: Explanation) => void,
+  messageId: number, signal: AbortSignal, onUpdate: (result: Explanation) => void, snapshot?: string,
 ) {
-  return streamExplanation("/api/knowledge-graph/answer", { message_id: messageId }, signal, onUpdate,
+  return streamExplanation("/api/knowledge-graph/answer", { message_id: messageId, snapshot }, signal, onUpdate,
     process.env.NEXT_PUBLIC_GRAPH_API_URL ?? API_BASE_URL);
 }
 

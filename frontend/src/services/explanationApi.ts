@@ -1,6 +1,7 @@
 import { API_BASE_URL, factoryHeaders } from "@/services/api";
 
-export type ManualSource = { index: number; document_name: string; page: string; excerpt: string };
+export type ManualSource = { index: number; document_name: string; page: string; excerpt: string; corpus?: string; node_id?: string;
+  rows?: { text: string; rowspan?: number; colspan?: number }[][] };
 export type Explanation = { answer: string; sources: ManualSource[] };
 
 export async function streamExplanation(

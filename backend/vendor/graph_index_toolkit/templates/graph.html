@@ -26,7 +26,10 @@
     #kg-trace-20261016 .kg-link.dimmed{opacity:.1}
     #kg-trace-20261016 .kg-caption{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
     #kg-trace-20261016 .kg-detail{margin-top:14px}
-    #kg-trace-20261016 .kg-detail pre{white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:0;font-family:inherit}
+    #kg-trace-20261016 [data-content]{white-space:pre-wrap;overflow-wrap:anywhere;overflow-x:auto;margin-top:1em}
+    #kg-trace-20261016 [data-content] table{border-collapse:collapse;width:100%;line-height:1.5}
+    #kg-trace-20261016 [data-content] :is(th,td){padding:6px 9px;border:1px solid var(--border);text-align:left;vertical-align:top}
+    #kg-trace-20261016 [data-content] th{background:#eef4fa}
     #kg-trace-20261016 .kg-detail[hidden]{display:none}
     #kg-trace-20261016 .kg-field{min-width:0;flex:1}
     #kg-trace-20261016 .kg-field select{width:100%}
@@ -60,7 +63,7 @@
   <div class="text-small">실선: 저장된 연결 · 점선: 질문 유사도 · 단계별 상위 결과와 주변 연결</div>
   <div class="viz-controls kg-detail"><label class="form-label kg-field">노드 원문<select class="form-select" data-node><option value="">노드 선택</option></select></label></div>
   <div class="card kg-detail" data-detail id="kg-trace-detail" aria-live="polite" hidden>
-    <div class="text-small" data-kind></div><h3 data-label></h3><div class="text-small" data-source></div><div class="text-small tabular-nums" data-scores></div><pre data-content></pre>
+    <div class="text-small" data-kind></div><h3 data-label></h3><div class="text-small" data-source></div><div class="text-small tabular-nums" data-scores></div><div data-content></div>
   </div>
   <script type="application/json" data-graph-data>__GRAPH_DATA_JSON__</script>
   <script>
@@ -105,7 +108,29 @@
       if(node.cosine!==undefined)info.push(`질문 유사도 ${node.cosine.toFixed(3)}`);
       if(node.ppr_score!==undefined)info.push(`탐색 점수 ${node.ppr_score.toExponential(2)}`);
       root.querySelector('[data-scores]').textContent=info.join(' · ');
-      root.querySelector('[data-content]').textContent=node.content;
+      const content=root.querySelector('[data-content]');
+      content.textContent=node.content;
+      if(node.kind!=='table')return;
+      const lines=node.content.trim().split(/\r?\n/);
+      if(lines[0]===(node.caption||node.label))lines.shift();
+      const rows=node.rows||lines.map(line=>line.trim().replace(/^\||\|$/g,'').split(/(?<!\\)\|/).map(cell=>({text:cell.trim().replace(/\\\|/g,'|')})));
+      if(!rows.length)return;
+      if(!node.rows&&rows[1]?.every(cell=>/^:?-{3,}:?$/.test(cell.text)))rows.splice(1,1);
+      const table=document.createElement('table');
+      table.setAttribute('aria-label',node.caption||node.label||'표 발췌');
+      const body=table.createTBody();
+      rows.forEach((cells,i)=>{
+        const row=body.insertRow();
+        for(const value of cells){
+          const cell=document.createElement(i===0?'th':'td');
+          if(i===0)cell.scope='col';
+          cell.rowSpan=value.rowspan||1;
+          cell.colSpan=value.colspan||1;
+          cell.textContent=value.text.replace(/\\n/g,'\n');
+          row.append(cell);
+        }
+      });
+      content.replaceChildren(table);
     }
     function selectNode(id,save=true){
       state.selected=id;nodePicker.value=id;
@@ -152,10 +177,12 @@
       transform={x:0,y:0,k:1};updateGeometry();
     }
     function render(){
-      const data=dataset(),view=data.views[state.view];
+      const data=dataset();
+      if(!data.views[state.view])state.view="overall";
+      const view=data.views[state.view];
       picker.value=state.dataset;root.querySelector('[data-question-text]').textContent=data.question;
       const counts=data.index_counts;root.querySelector('[data-total]').textContent=`${state.dataset.toUpperCase()} · 표본 부분 그래프`;
-      for(const b of root.querySelectorAll('[data-view]'))b.setAttribute('aria-pressed',String(b.dataset.view===state.view));
+      for(const b of root.querySelectorAll('[data-view]')){b.hidden=!data.views[b.dataset.view];b.setAttribute('aria-pressed',String(b.dataset.view===state.view))}
       shown=data.nodes.filter(n=>view.nodes.includes(n.id));links=data.edges.filter(e=>view.edges.includes(e.id));
       width=Math.max(280,root.querySelector('.kg-plot').getBoundingClientRect().width);height=width<480?640:490;
       svg.setAttribute('viewBox',`0 0 ${width} ${height}`);svg.setAttribute('height',height);drawing.replaceChildren();nodeEls=new Map();lineEls=[];
@@ -179,6 +206,13 @@
       }
       layout();if(!shown.some(n=>n.id===state.selected))state.selected='';selectNode(state.selected,false);
     }
+    window.addEventListener('message', event => {
+      if(event.source!==parent || event.data?.type!=='knowledge-graph:source')return;
+      const data=DATA.datasets.find(d=>d.id===event.data.corpus);
+      if(!data?.nodes.some(n=>n.final && n.id===event.data.nodeId))return;
+      state.dataset=data.id;state.view='overall';state.selected=event.data.nodeId;
+      render();persist();
+    });
     picker.addEventListener('change',()=>{state.dataset=picker.value;state.selected='';render();persist()});
     root.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{state.view=b.dataset.view;state.selected='';render();persist()}));
     nodePicker.addEventListener('change',()=>selectNode(nodePicker.value));

@@ -131,6 +131,8 @@ def _answer_sources(corpus, results, start_index):
             "document_name": f"{corpus.upper()} · {metadata.get('source_doc_name') or '문서명 미상'}",
             "page": str(metadata.get("page_range") or ""),
             "excerpt": content,
+            **({"rows": [[{"text": str(cell)} for cell in row] for row in [table["header"], *table["rows"]]]}
+               if item["type"] == "table" else {}),
         })
     return sources
 
