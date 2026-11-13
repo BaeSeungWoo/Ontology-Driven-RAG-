@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export type FactoryId = "yunam" | "yulkok" | "poongsan" | "waff" | "yunam_origin";
-let activeFactory: FactoryId = "yunam_origin";
+export type FactoryId = string;
+let activeFactory = "";
 export const executionHeaders = () => ({ "X-Factory-Id": activeFactory });
 export const factoryHeaders = () => ({ "X-Factory-Id": activeFactory });
 export const setApiFactory = (factory: FactoryId) => { activeFactory = factory; };
@@ -20,7 +20,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(config => {
-  if (!config.headers.has("X-Factory-Id")) config.headers.set("X-Factory-Id", activeFactory);
+  if (activeFactory && !config.headers.has("X-Factory-Id")) config.headers.set("X-Factory-Id", activeFactory);
   return config;
 });
 

@@ -5,7 +5,7 @@ from pathlib import Path, PurePosixPath
 import re
 
 from pipeline.ingestion.chunk_refiner import ChunkRefiner
-from pipeline.ingestion.paddleocr_import import jsonl, long_path, preserve_write
+from pipeline.ingestion.paddleocr_import import input_revision, jsonl, long_path, preserve_write, write_generated
 from pipeline.ingestion.prepared_documents import document_catalog, document_key
 
 
@@ -32,7 +32,7 @@ def prepare_docling(root: Path, machines: dict, documents: dict) -> dict:
     report = {"documents": [], "skipped": []}
     for key, (folder, info) in documents.items():
         if key not in catalog:
-            raise ValueError(f"machine_info에 연결되지 않은 문서: {info['document']}")
+            continue
         entry = catalog[key]
         if entry["document_type"] not in {"manual", "controller"}:
             report["skipped"].append(info["document"])
@@ -40,8 +40,13 @@ def prepare_docling(root: Path, machines: dict, documents: dict) -> dict:
         sources = list((folder / "struct").glob("*.jsonl"))
         if len(sources) != 1:
             raise ValueError(f"문서별 struct JSONL 1개가 필요합니다: {folder}")
-        rows = [json.loads(line) for line in sources[0].read_text(encoding="utf-8-sig").splitlines() if line.strip()]
         ident = hashlib.sha256(key.encode()).hexdigest()[:20]
+        revision = input_revision(folder, info)
+        marker = root / f"struct/reports/docling-{ident}.revision"
+        output = root / f"struct/documents/docling-{ident}.jsonl"
+        if output.is_file() and marker.is_file() and marker.read_text() == revision:
+            continue
+        rows = [json.loads(line) for line in sources[0].read_text(encoding="utf-8-sig").splitlines() if line.strip()]
         assets, ids = {}, set()
         repeated_ids = 0
         for position, row in enumerate(rows):
@@ -85,16 +90,11 @@ def prepare_docling(root: Path, machines: dict, documents: dict) -> dict:
             chunk["metadata"].update(site_id=root.name, source_type="docling")
         outputs = {root / f"struct/docling/{ident}.jsonl": jsonl(rows),
                    root / f"struct/documents/docling-{ident}.jsonl": jsonl(chunks)}
-        for target, content in outputs.items():
-            if target.exists() and target.read_bytes() != content:
-                raise FileExistsError(f"기존 변환 결과를 보존합니다: {target}")
         for target, original in assets.items():
-            if target.exists() and target.read_bytes() != original.read_bytes():
-                raise FileExistsError(f"기존 자산을 보존합니다: {target}")
-        for target, original in assets.items():
-            preserve_write(target, original.read_bytes())
+            write_generated(target, original.read_bytes())
         for target, content in outputs.items():
-            preserve_write(target, content)
+            write_generated(target, content)
+        write_generated(marker, revision.encode())
         report["documents"].append({"document": info["document"], "pages": info["pages"],
                                     "chunks": len(chunks), "assets": len(assets), "machines": entry["machine_code"],
                                     "repeated_source_ids": repeated_ids})

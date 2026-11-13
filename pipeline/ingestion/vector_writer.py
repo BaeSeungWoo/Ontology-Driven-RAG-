@@ -116,6 +116,16 @@ def _embed_in_batches(embedding, texts: list[str], progress_label: str, batch_si
     faiss.normalize_L2(embs)
     return embs
 
+def _build_passage(chunk: dict[str, Any]) -> str:
+    metadata = chunk.get("metadata") or {}
+    section_title = str(metadata.get("section_title") or "").strip()
+    page_content = str(chunk.get("page_content") or "").strip()
+
+    if section_title:
+        return f"passage: {section_title}\n{page_content}"
+    return f"passage: {page_content}"
+
+
 def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
     faiss_path = Path(db_path)
     faiss_path.mkdir(parents=True, exist_ok=True)
@@ -128,15 +138,6 @@ def write_faiss(config: Config, chunks: list[dict[str, Any]], db_path: str):
         return
 
     chunks_df = pd.DataFrame(chunks)
-
-    def _build_passage(chunk: dict[str, Any]) -> str:
-        metadata = chunk.get("metadata") or {}
-        section_title = str(metadata.get("section_title") or "").strip()
-        page_content = str(chunk.get("page_content") or "").strip()
-
-        if section_title:
-            return f"passage: {section_title}\n{page_content}"
-        return f"passage: {page_content}"
 
     passages = [_build_passage(chunk) for chunk in chunks]
 

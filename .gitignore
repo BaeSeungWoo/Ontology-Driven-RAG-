@@ -33,4 +33,9 @@ Thumbs.db
 
 # 데이터 / DB
 data/
+!pipeline/data/
+pipeline/data/*
+!pipeline/data/*/
+pipeline/data/*/*
+!pipeline/data/*/factory.json
 *.chroma

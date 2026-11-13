@@ -18,7 +18,7 @@ def _json_default(value):
 
 
 def get_report(report_date: date = REPORT_DATE):
-    factory_id = os.environ["FACTORY_ID"]
+    factory_id = os.environ["REPORT_FACTORY_ID"]
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
@@ -48,7 +48,7 @@ def get_report(report_date: date = REPORT_DATE):
 
 def claim_report(config: str, model_name: str, force: bool = False, report_date: date = REPORT_DATE):
     """Reserve one generation across processes; return its DB timestamp as an ownership token."""
-    factory_id = os.environ["FACTORY_ID"]
+    factory_id = os.environ["REPORT_FACTORY_ID"]
     with get_db_connection() as conn:
         conn.autocommit = False
         cursor = conn.cursor()
@@ -89,7 +89,7 @@ def claim_report(config: str, model_name: str, force: bool = False, report_date:
 
 
 def save_report(token, report, views, completed=False, report_date: date = REPORT_DATE):
-    factory_id = os.environ["FACTORY_ID"]
+    factory_id = os.environ["REPORT_FACTORY_ID"]
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
@@ -106,7 +106,7 @@ def save_report(token, report, views, completed=False, report_date: date = REPOR
 
 
 def fail_report(token, message, report_date: date = REPORT_DATE):
-    factory_id = os.environ["FACTORY_ID"]
+    factory_id = os.environ["REPORT_FACTORY_ID"]
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:
@@ -119,7 +119,7 @@ def fail_report(token, message, report_date: date = REPORT_DATE):
 
 
 def set_model(token, config, model_name, report_date: date = REPORT_DATE):
-    factory_id = os.environ["FACTORY_ID"]
+    factory_id = os.environ["REPORT_FACTORY_ID"]
     with get_db_connection() as conn:
         cursor = conn.cursor()
         try:

@@ -1,4 +1,4 @@
-﻿# backend/app/main.py
+# backend/app/main.py
 
 import json
 import uvicorn
@@ -12,7 +12,6 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-import dotenv
 import os
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -38,7 +37,7 @@ from app.routers.voiceRouter import voiceRouter
 from app.routers.ladderRouter import ladderRouter
 from app.routers.knowledgeGraphRouter import knowledgeGraphRouter
 
-dotenv.load_dotenv("app/.env.back")
+
 
 from .database import database
 from .database.thread_pool_manager import initialize_thread_pools, get_db_thread_pool, get_api_thread_pool

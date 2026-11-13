@@ -4,7 +4,7 @@ from dataclasses import dataclass, field, replace
 from typing import Dict, Optional
 from pathlib import Path
 import json
-from .machines import load_machine_info
+from .machines import load_machine_info, factory_ids
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -273,6 +273,7 @@ FACTORY_CONFIGS: Dict[str, FactoryConfig] = {
         ),
     ),
 }
+FACTORY_CONFIGS["3way"] = FACTORY_CONFIGS["yunam"]
 FACTORY_CONFIGS["yunam_origin"] = replace(
     FACTORY_CONFIGS["yunam"],
     embedding=EmbeddingConfig(model="qwen3-embedding:8b", base_url="http://192.168.1.179:11434"),
@@ -281,11 +282,11 @@ FACTORY_CONFIGS["yunam_origin"] = replace(
 
 def get_factory_config(model_key: str, factory_id: str = "yunam") -> Config:
     from fastapi import HTTPException
-    if factory_id not in FACTORY_CONFIGS:
+    if factory_id not in factory_ids():
         raise HTTPException(400, "등록되지 않은 공장입니다.")
     if model_key not in CONFIGS:
         raise HTTPException(404, "해당 모델 설정을 찾을 수 없습니다.")
-    factory = FACTORY_CONFIGS[factory_id]
+    factory = FACTORY_CONFIGS.get(factory_id) or replace(FACTORY_CONFIGS["yunam"], prompt=PromptConfig())
     model = CONFIGS[model_key]
     embedding = factory.embedding
     root = Path(__file__).resolve().parents[3]

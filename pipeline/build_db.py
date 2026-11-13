@@ -14,19 +14,18 @@ from pipeline.ingestion.prepared_documents import (
 )
 
 
-FACTORIES = ("yunam", "yulkok", "poongsan", "waff")
+from backend.app.factories.machines import factory_ids
 
 
 def resolve_build_config(factory_id: str, model_config: str | None = None):
     from backend.app.factories.config import CONFIGS, FACTORY_CONFIGS, get_factory_config
 
-    if factory_id not in FACTORIES:
+    if factory_id not in factory_ids():
         raise ValueError(f"지원하지 않는 공장: {factory_id}")
-    model_key = model_config or FACTORY_CONFIGS[factory_id].default_model
+    model_key = model_config or (FACTORY_CONFIGS.get(factory_id) or FACTORY_CONFIGS["yunam"]).default_model
     if model_key not in CONFIGS:
         raise ValueError(f"지원하지 않는 모델 설정: {model_key}")
     config = deepcopy(get_factory_config(model_key, factory_id))
-    config.vector_db.collection_name = factory_id
     for name, store in config.vector_db.stores.items():
         store.db_path = str(PIPELINE_ROOT / "data" / factory_id / name)
         store.search_path = store.db_path
@@ -49,6 +48,14 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
     if embedding_url:
         config.embedding.base_url = embedding_url
     root = PIPELINE_ROOT / "data" / config.id
+    from filelock import FileLock
+    destination = Path(output_root).resolve() if output_root else root
+    root.mkdir(parents=True, exist_ok=True)
+    with FileLock(str(root / ".manual-build.lock"), timeout=0):
+        _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip)
+
+
+def _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip):
     if paddleocr_zip:
         if stage not in {"prepare", "all"} or maintenance_only:
             raise ValueError("--paddleocr-zip은 prepare/all 단계에서 사용하세요.")
@@ -63,7 +70,6 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
         initialize_layout(root)
         print(f"폴더 준비 완료 (기존 데이터 유지): {root}")
         return
-    destination = Path(output_root).resolve() if output_root else root
     if stage == "ladders":
         prepare_ladders(root, config.machines, config.id)
         return
@@ -73,9 +79,9 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
         if stage == "prepare":
             return
     chunks = None if maintenance_only else load_prepared_chunks(root, config.machines, config.id)
-    require_empty_indexes(destination, ("multimodal", "asset/pages") if stage == "multimodal" else
-                          ("kg",) if stage == "kg" else
-                          ("chroma", "bm25") if maintenance_only else ("chroma", "bm25", "faiss"))
+    if stage in {"multimodal", "kg"}:
+        require_empty_indexes(destination, ("multimodal", "asset/pages") if stage == "multimodal" else
+                          ("kg",))
     for name, store in config.vector_db.stores.items():
         store.db_path = str(destination / name)
 
@@ -119,20 +125,12 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
             embedder.unload()
         return
 
-    from backend.app.embeddings import save_embedding_meta
-    from pipeline.ingestion.vector_writer import (
-        create_vector_collection, write_chroma, write_bm25, write_faiss,
-    )
-
-    collection = create_vector_collection(config)
-    write_chroma(collection, chunks, config.id, config.vector_db.get_db_path("chroma"))
-    write_bm25(config, chunks)
-    write_faiss(config, chunks, config.vector_db.get_db_path("faiss"))
+    from pipeline.ingestion.sync_indexes import sync_indexes
+    from pipeline.ingestion.document_graph import sync_graph
+    sync_indexes(config, chunks, destination)
+    if stage == "all":
+        sync_graph(root, destination, chunks)
     build_sources(config, workbook, tacit)
-    save_embedding_meta(config)
-    from pipeline.build_machine_search import export_collection
-    export_collection(collection, config.vector_db.get_db_path("chroma"),
-                      Path(config.vector_db.get_db_path("bm25")) / "machine_search.sqlite3")
     print(f"공용 인덱스 생성 완료: {destination} ({len(chunks)} chunks)")
 
 
@@ -140,12 +138,12 @@ def main(argv=None):
     from backend.app.factories.config import CONFIGS
 
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--factory", required=True, choices=FACTORIES,
+    parser.add_argument("--factory", required=True, choices=factory_ids(),
                         help="입력·출력 폴더와 machine_info를 선택할 공장")
     parser.add_argument("--model-config", choices=CONFIGS,
                         help="답변 생성 LLM 선택 (기본 vllm_config, 임베딩은 공장 설정 유지)")
     parser.add_argument("--stage", choices=("init", "prepare", "ladders", "index", "kg", "multimodal", "all"), default="all")
-    parser.add_argument("--output-root", help="인덱스를 생성할 비어 있는 별도 경로 (입력은 공장 폴더 유지)")
+    parser.add_argument("--output-root", help="인덱스를 생성·갱신할 별도 경로 (입력은 공장 폴더 유지)")
     parser.add_argument("--embedding-provider", choices=("ollama", "openai"), help="임베딩 API 종류")
     parser.add_argument("--embedding-url", help="임베딩 서버 주소 (OpenAI 호환은 /v1 포함)")
     parser.add_argument("--paddleocr-zip", help="원본을 보존하며 inputs/extracted/paddleOCR에 가져올 ZIP")

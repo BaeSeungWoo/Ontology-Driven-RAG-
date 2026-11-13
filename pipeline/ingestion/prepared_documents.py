@@ -59,7 +59,7 @@ def prepare_ocr(root: Path, machines: dict) -> None:
     paddle = root / "inputs/extracted/paddleOCR"
     if paddle.exists() and any(p.is_dir() and p.name != "_reports" for p in paddle.iterdir()):
         reports["PaddleOCR"] = prepare_paddleocr(root, machines, docling_documents=documents)
-    if not reports:
+    if not reports and not (root / "struct/documents").is_dir():
         raise FileNotFoundError("inputs/extracted에 추출 결과가 없습니다.")
     for name, report in reports.items():
         print(f"{name} 변환: {len(report['documents'])}개 문서, "
@@ -110,7 +110,7 @@ def load_prepared_chunks(root: Path, machines: dict, factory_id: str) -> list[di
                     preferred.add(document_key(json.loads(line)["metadata"]["source_doc_name"]))
                     break
     catalog = document_catalog(machines)
-    chunks, ids, unknown = [], set(), set()
+    chunks, ids = [], set()
     for path in sorted((root / "struct" / "documents").glob("*.jsonl")):
         for line in path.read_text(encoding="utf-8-sig").splitlines():
             if not line.strip():
@@ -122,7 +122,6 @@ def load_prepared_chunks(root: Path, machines: dict, factory_id: str) -> list[di
                 continue
             entry = catalog.get(document_key(source))
             if entry is None:
-                unknown.add(source)
                 continue
             if entry["document_type"] == "electrical":
                 continue
@@ -135,10 +134,12 @@ def load_prepared_chunks(root: Path, machines: dict, factory_id: str) -> list[di
             meta["chunk_id"] = row["id"]
             meta["site_id"] = factory_id
             chunks.append({"id": row["id"], "page_content": row["page_content"], "metadata": meta})
-    if unknown:
-        raise ValueError("machine_info에 연결되지 않은 문서: " + ", ".join(sorted(unknown)))
-    if not chunks:
+    if not chunks and any(e["document_type"] in {"manual", "controller", "ladder"} for e in catalog.values()):
         raise ValueError("공용 인덱스에 넣을 표준 청크가 없습니다: struct/documents/*.jsonl")
+    missing = {key for key, entry in catalog.items() if entry["document_type"] in {"manual", "controller"}} - {
+        document_key(row["metadata"]["source_doc_name"]) for row in chunks}
+    if missing:
+        print("추출물이 없어 검색에 포함되지 않은 연결 문서: " + ", ".join(sorted(missing)), flush=True)
     return chunks
 
 

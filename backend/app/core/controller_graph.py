@@ -65,7 +65,7 @@ def _load(directory):
         entities=len(entities), passages=len(passages), tables=len(tables))
 
 
-@lru_cache(maxsize=1)
+@lru_cache(maxsize=8)
 def _equipment_index(path, modified):
     import numpy as np
     from scipy import sparse
@@ -87,10 +87,12 @@ def _equipment_index(path, modified):
         nodes[node] = dict(kind="table", label=table["label"], content=table["content"], rows=table.get("rows"),
                            pages=str(table["page"]), document=data["document"])
         links.append((page_ids[table["page"]], node))
-    left, right = zip(*links)
+    left, right = zip(*links) if links else ((), ())
     adjacency = sparse.csr_matrix((np.ones(2 * len(links), dtype=np.float32),
                                    (left + right, right + left)), shape=(len(nodes), len(nodes)))
-    vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(2, 4), sublinear_tf=True, dtype=np.float32)
+    max_length = max((len(node["content"].strip()) for node in nodes.values()), default=0)
+    vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(min(2, max(1, max_length)), 4),
+                                 sublinear_tf=True, dtype=np.float32)
     contexts = np.array([i for i, node in nodes.items() if node["content"].strip()])
     # Dot-leader entries repeat procedure titles in the contents pages.
     terms = vectorizer.fit_transform(
@@ -194,6 +196,37 @@ def _controller_graph(question, model_key, equipment, modified):
                 question=question, corpora=[d["id"] for d in datasets], sources=sources,
                 snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
                 html=_render_html({"datasets": datasets}))
+
+
+def factory_graph(question, model_key, factory_id, machine):
+    folder = ROOT / "pipeline/data" / factory_id / "graph"
+    path = folder / "catalog.json"
+    if not path.exists():
+        return None
+    catalog = json.loads(path.read_text(encoding="utf8"))
+    ids = catalog["machines"].get(machine, [])
+    return _factory_graph(question, model_key, folder, tuple((key, catalog["documents"][key]) for key in ids))
+
+
+@lru_cache(maxsize=8)
+def _factory_graph(question, model_key, folder, documents):
+    datasets, sources, targets = [], [], {}
+    try:
+        scope, ko, en, code, symptom, ko_fault, en_fault = _search_terms(question, model_key)
+    except Exception as exc:
+        raise KnowledgeGraphSearchError("매뉴얼 검색어를 생성하지 못했습니다.") from exc
+    fault = tuple(list(a) + list(b) for a, b in zip(ko_fault, en_fault))
+    for key, name in documents:
+        path = folder / "documents" / (key + ".json")
+        index = _equipment_index(path, key)
+        dataset, evidence = _rank(index, question, ko + " " + en, name, name, len(sources), scope, code, fault)
+        datasets.append(dataset)
+        sources.extend(evidence)
+        targets[name] = fault[0]
+    return dict(scope=scope, symptom=symptom, alarm=code, targets=targets,
+                question=question, corpora=[d["id"] for d in datasets], sources=sources,
+                snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
+                html=_render_html({"datasets": datasets}) if datasets else "<p>연결된 매뉴얼이 없습니다.</p>")
 
 
 def _term_pattern(terms):
