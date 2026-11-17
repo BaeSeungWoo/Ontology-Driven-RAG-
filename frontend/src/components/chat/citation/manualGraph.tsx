@@ -46,17 +46,21 @@ export default function ManualGraph({ expanded, datasets, question, manual, view
   const selected = nodes.find(n => n.id === node);
   const relation = edges.find(e => e.kind === "relation" && e.id === node);
   const counts = data?.index_counts;
+  const manualPicker = <label className={styles.field}>매뉴얼<select value={data?.id ?? ""} title={data?.title} disabled={!data} onChange={e => onManual(e.target.value)}>
+      {!data && <option value="">연결 근거 없음</option>}
+      {linked.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
+    </select><ChevronDown size={15} aria-hidden="true" /></label>;
   if (!expanded) return data
-    ? <GraphCanvas nodes={nodes} edges={edges} view={active} selected="" />
+    ? <div className={`${styles.board} ${styles.preview}`}>
+        {manualPicker}
+        <GraphCanvas key={data.id} nodes={nodes} edges={edges} view={active} selected="" />
+      </div>
     : <p className={styles.board} role="status">이 질문에 연결된 근거가 있는 매뉴얼이 없습니다.</p>;
   return <section className={styles.board} aria-label="질문에서 근거까지">
     <div className={styles.controls}>
     <div className={styles.bar}><h3>질문에서 근거까지</h3>{data && <small>{data.id.toUpperCase()} · 표본 부분 그래프</small>}</div>
     <div className={styles.question}><strong>질문</strong>{question}</div>
-    <label className={styles.field}>매뉴얼<select value={data?.id ?? ""} disabled={!data} onChange={e => onManual(e.target.value)}>
-      {!data && <option value="">연결 근거 없음</option>}
-      {linked.map(d => <option key={d.id} value={d.id}>{d.title}</option>)}
-    </select><ChevronDown size={15} aria-hidden="true" /></label>
+    {manualPicker}
     {!!unlinked.length && <details className={styles.unlinked}><summary>연결 근거 없는 매뉴얼 {unlinked.length}개</summary>
       <ul>{unlinked.map(d => <li key={d.id}>{d.title}</li>)}</ul></details>}
     {data && counts ? <>

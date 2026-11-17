@@ -57,9 +57,9 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
       const at = { x: event.clientX - box.left - box.width / 2, y: event.clientY - box.top - box.height / 2 };
       setCamera(camera => zoomAt(camera, at, event.deltaY < 0 ? 1.12 : 1 / 1.12, 3 / fit));
     }
-    if (onSelect) element.addEventListener("wheel", wheel, { passive: false });
+    element.addEventListener("wheel", wheel, { passive: false });
     return () => { observer.disconnect(); element.removeEventListener("wheel", wheel); };
-  }, [fit, onSelect]);
+  }, [fit]);
   const neighbors = new Set([selected]);
   for (const e of edges) {
     if (e.source === selected) neighbors.add(e.target);
@@ -69,10 +69,10 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
   return <>
     <svg ref={svg} className={styles.canvas} viewBox={`0 0 ${width} ${height}`} role={onSelect ? "group" : "img"} aria-label="매뉴얼 검색 그래프"
       onPointerDown={event => {
-        if (!onSelect || event.button !== 0) return;
+        if (event.button !== 0) return;
         const target = event.target as Element;
-        if (target.closest("[data-relation]")) return;
-        const id = target.closest("[data-node]")?.getAttribute("data-node") ?? undefined;
+        if (onSelect && target.closest("[data-relation]")) return;
+        const id = onSelect ? target.closest("[data-node]")?.getAttribute("data-node") ?? undefined : undefined;
         event.currentTarget.setPointerCapture(event.pointerId);
         drag.current = { start: { x: event.clientX, y: event.clientY }, id, initial: id ? point(id) : pan, moved: false };
       }}
@@ -115,11 +115,11 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
         })}
       </g>
     </svg>
-    {onSelect && <div className={styles.bar}><small>{counts}</small><div className={styles.zoom} role="group" aria-label="그래프 확대 및 축소">
+    <div className={styles.bar}>{counts && <small>{counts}</small>}<div className={styles.zoom} role="group" aria-label="그래프 확대 및 축소">
       <button aria-label="축소" disabled={zoom <= 1} onClick={() => setCamera(c => zoomAt(c, origin, 1 / 1.12, 3 / fit))}>−</button>
       <output>{Math.round(100 * zoom)}%</output>
       <button aria-label="확대" disabled={fit * zoom >= 3} onClick={() => setCamera(c => zoomAt(c, origin, 1.12, 3 / fit))}>+</button>
-      <button onClick={() => { setCamera({ zoom: 1, pan: origin }); setDragged({}); onSelect(""); }}>초기 화면으로 복원</button>
-    </div></div>}
+      <button aria-label="초기 화면으로 복원" onClick={() => { setCamera({ zoom: 1, pan: origin }); setDragged({}); onSelect?.(""); }}>{onSelect ? "초기 화면으로 복원" : "초기화"}</button>
+    </div></div>
   </>;
 }

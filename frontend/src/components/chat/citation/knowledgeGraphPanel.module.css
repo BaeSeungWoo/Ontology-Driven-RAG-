@@ -87,6 +87,7 @@
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
 .expanded .workspace { flex: 1; min-height: 0; }
 .expanded .frame { min-height: 0; height: 100%; }
+.viewer:not(.expanded) .frame { container-type: inline-size; height: auto; }
 .withAnswer { grid-template-columns: var(--graph-width) 14px minmax(0, 1fr); }
 .divider { display: grid; place-items: center; touch-action: none; cursor: col-resize; }
 .divider::after { content: ""; width: 3px; height: 42px; border-radius: 2px; background: var(--chat-pane-border); }
@@ -133,7 +134,6 @@
   min-width: 0;
   flex-shrink: 0;
   width: 100%;
-  height: clamp(200px, 34dvh, 320px);
   border: 1px solid var(--chat-pane-border);
   border-radius: 8px;
   background: #fff;
