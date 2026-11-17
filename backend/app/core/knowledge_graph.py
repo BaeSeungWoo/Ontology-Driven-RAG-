@@ -1,6 +1,5 @@
 """Search the delivered manual indexes without changing the answer pipeline."""
 from collections import OrderedDict
-import html
 import json
 import os
 from pathlib import Path
@@ -9,7 +8,6 @@ from threading import Lock
 
 
 ROOT = Path(__file__).resolve().parents[3]
-TEMPLATE = ROOT / "backend/vendor/graph_index_toolkit/templates/graph.html"
 CORPORA = ("dhf8000", "fanuc")
 _LOCK = Lock()
 _RESULTS = OrderedDict()
@@ -69,38 +67,12 @@ def _load_toolkit():
     try:
         from vendor.graph_index_toolkit.graphindex import get_search
         from vendor.graph_index_toolkit.query import embed_question
-        from vendor.graph_index_toolkit.trace import EDGE_SEMANTICS, export_trace
+        from vendor.graph_index_toolkit.trace import export_trace
     except ImportError as exc:
         raise KnowledgeGraphConfigurationError(
             "매뉴얼 그래프 검색 의존성이 없습니다. backend/requirements.txt를 설치해 주세요."
         ) from exc
-    return get_search, embed_question, export_trace, EDGE_SEMANTICS
-
-
-def _render_html(data):
-    payload = json.dumps(data, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
-    options = "\n".join(
-        '<option value="' + html.escape(item["id"], quote=True) + '">'
-        + html.escape(item["title"]) + "</option>" for item in data["datasets"]
-    )
-    replacements = {"__GRAPH_DATA_JSON__": payload, "__GRAPH_DATA_OPTIONS__": options}
-    fragment = re.sub("__GRAPH_DATA_JSON__|__GRAPH_DATA_OPTIONS__",
-                      lambda match: replacements[match[0]], TEMPLATE.read_text(encoding="utf-8"))
-    return """<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
-<title>질문에서 근거까지</title><style>
-:root{--background:#fff;--foreground:#172d55;--muted-foreground:#60728f;--border:#cfd9e8;--ring:#1b55cf;--viz-series-1:#a34796;--viz-series-2:#247bbd;--viz-series-3:#2e9271;--viz-series-4:#c27724}
-*{box-sizing:border-box}body{margin:0;padding:14px;background:var(--background);color:var(--foreground);font:14px/1.55 system-ui,sans-serif}
-h2{margin:0;font-size:19px}h3{font-size:16px;overflow-wrap:anywhere}.text-small{font-size:12px;color:var(--muted-foreground)}
-.viz-controls,.viz-row{display:flex;gap:8px;flex-wrap:wrap}.form-label{display:block;font-weight:600}
-.form-select{display:block;margin-top:5px;min-height:38px;padding:7px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--foreground);font:inherit}
-.btn{min-height:36px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:#fff;color:var(--foreground);font:inherit;cursor:pointer}
-.btn[aria-pressed=true]{background:#e8f0ff;border-color:#1b55cf;color:#174fbb}.btn:focus-visible,.form-select:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
-.card{padding:12px;border:1px solid var(--border);border-radius:8px}.cursor-interaction{cursor:pointer}.tabular-nums{font-variant-numeric:tabular-nums}
-body #kg-trace-20261016 .kg-top{padding-right:0;margin-bottom:12px;gap:4px}#kg-trace-20261016 .kg-detail{overflow-wrap:anywhere}
-@media(max-width:480px){body{padding:10px}.kg-stage .btn{font-size:12px;flex:1 1 42%}.kg-legend{font-size:11px}}
-</style></head><body>""" + fragment + "</body></html>"
+    return get_search, embed_question, export_trace
 
 
 def _answer_sources(corpus, results, start_index):
@@ -148,7 +120,7 @@ def build_question_graph(question: str, factory_id: str = "yunam") -> dict:
         if key in _RESULTS:
             _RESULTS.move_to_end(key)
             return _RESULTS[key]
-        get_search, embed_question, export_trace, semantics = _load_toolkit()
+        get_search, embed_question, export_trace = _load_toolkit()
         vectors, datasets, sources = {}, [], []
         for name, directory, manifest in indexes:
             embedding_key = (manifest["embedding_base_url"], manifest["embedding_model"],
@@ -177,7 +149,7 @@ def build_question_graph(question: str, factory_id: str = "yunam") -> dict:
                     f"{name.upper()} 매뉴얼 그래프 검색에 실패했습니다. 잠시 후 다시 시도해 주세요."
                 ) from exc
         result = {"question": question, "corpora": [name for name, _, _ in indexes], "sources": sources,
-                  "html": _render_html({"datasets": datasets, "edge_semantics": semantics})}
+                  "datasets": datasets}
         _RESULTS[key] = result
         while len(_RESULTS) > _CACHE_SIZE:
             _RESULTS.popitem(last=False)

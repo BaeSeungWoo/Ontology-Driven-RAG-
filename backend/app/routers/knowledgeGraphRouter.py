@@ -74,7 +74,7 @@ def search_question(question: str, machine: str, model_key: str, factory_id: str
 def knowledge_graph(req: KnowledgeGraphRequest, request: Request):
     result = search_question(*load_question(req.message_id, request), request_factory(request))
     return JSONResponse(
-        {key: result[key] for key in ("question", "corpora", "html", "snapshot") if key in result},
+        {key: result[key] for key in ("question", "corpora", "datasets", "snapshot") if key in result},
         headers={"Cache-Control": "no-store"},
     )
 
@@ -89,7 +89,7 @@ async def answer_knowledge_graph(req: KnowledgeGraphRequest, request: Request):
     if req.snapshot and result.get("snapshot") != req.snapshot:
         raise HTTPException(409, "검색 결과가 변경되었습니다. 지식그래프 탭을 다시 열어 주세요.")
     sources = result["sources"]
-    if not sources and "snapshot" in result:
+    if not sources and "snapshot" in result and not result.get("items"):
         return explanation_response(answer="매뉴얼에서 이 질문에 사용할 근거를 찾지 못했습니다.")
     missing = [name.upper() for name in result["corpora"]
                if not any(source["corpus"] == name for source in sources)]
@@ -132,8 +132,21 @@ async def answer_knowledge_graph(req: KnowledgeGraphRequest, request: Request):
         )
     try:
         excerpts = [{key: value for key, value in source.items() if key != "rows"} for source in sources]
-        answer = await grounded_graph_answer(config, question, excerpts, instructions,
-                                             symptom=result.get("symptom"), alarm=result.get("alarm"), targets=result.get("targets"))
+        if result.get("items"):
+            from app.core.graph_answer import answer_manual_items
+            answer = await answer_manual_items(config, question, result["items"], excerpts)
+        elif result.get("scope") == "action":
+            from pathlib import Path
+            from pipeline.ingestion.machine_resolver import machine_documents
+            from app.core.graph_answer import manual_action_answer
+            machine_info = load_machine_info(request).get(machine, {})
+            manuals = {Path(name).stem.casefold() for name in machine_documents(machine_info, "manual")}
+            for source in excerpts:
+                source["equipment_manual"] = (source["document_name"].casefold() in manuals or source["corpus"] == "dhf8000")
+            answer = await manual_action_answer(config, question, excerpts)
+        else:
+            answer = await grounded_graph_answer(config, question, excerpts, instructions,
+                                                 symptom=result.get("symptom"), alarm=result.get("alarm"), targets=result.get("targets"))
     except Exception as exc:
         logger.exception("Graph answer generation failed")
         raise HTTPException(502, "근거와 적용 조건을 확인한 답변을 생성하지 못했습니다. 다시 시도해 주세요.") from exc

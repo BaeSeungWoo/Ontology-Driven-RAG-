@@ -12,9 +12,9 @@ import remarkAnswerCallouts from "../answer/remarkAnswerCallouts";
 import answerStyles from "../answer/answer.module.css";
 import styles from "./knowledgeGraphPanel.module.css";
 
-export default function KnowledgeGraphAnswer({ messageId, question, snapshot, corpora, originalAnswer, onSelectSource, onClose }: {
-  corpora: string[]; snapshot?: string; originalAnswer: string; onSelectSource: (source: ManualSource) => void;
-  messageId: number; question: string; onClose: () => void;
+export default function KnowledgeGraphAnswer({ messageId, snapshot, originalAnswer, onSelectSource, onClose }: {
+  snapshot?: string; originalAnswer: string; onSelectSource: (source: ManualSource) => void;
+  messageId: number; onClose: () => void;
 }) {
   const [result, setResult] = useState<Explanation>({ answer: "", sources: [] });
   const [selected, setSelected] = useState<number | null>(null);
@@ -60,14 +60,14 @@ export default function KnowledgeGraphAnswer({ messageId, question, snapshot, co
   }, [ask]);
 
   const cited = new Set(Array.from(result.answer.matchAll(/\[근거\s+(\d+)\]/g), match => Number(match[1])));
-  const citedCount = result.sources.filter(source => cited.has(source.index)).length;
+  const citedSources = result.sources.filter(source => cited.has(source.index));
+  const otherSources = result.sources.filter(source => !cited.has(source.index));
   return <section className={styles.answerPanel} aria-label="지식그래프 기반 답변">
     <header className={styles.answerHeader}>
-      <div><h3>지식그래프 기반 답변</h3><p>{corpora.map(name => name.toUpperCase()).join(" · ")} 매뉴얼 근거</p></div>
+      <h3>지식그래프 기반 답변</h3>
       <button type="button" title="답변 접기" aria-label="지식그래프 답변 접기" onClick={onClose}><ChevronUp size={18} aria-hidden="true" /></button>
     </header>
     <div className={styles.answerBody}>
-      <p className={styles.answerQuestion}>{question}</p>
       {snapshot && <details className={styles.comparison}><summary>같은 질문의 기존 답변</summary>
         <div className={answerStyles.markdownContent}>
           <ReactMarkdown remarkPlugins={[[remarkGfm, { singleTilde: false }], remarkAnswerFormatting, remarkAnswerCallouts]}
@@ -92,9 +92,11 @@ export default function KnowledgeGraphAnswer({ messageId, question, snapshot, co
         <p>{error}</p><button type="button" onClick={() => void ask()}>다시 시도</button>
       </div>}
       {result.sources.length > 0 && <details className={styles.answerSources}>
-        <summary>검색 근거 {result.sources.length}개 · 답변에서 인용한 근거 {citedCount}개</summary>
-        {result.sources.map(source => <details key={source.index}>
-          <summary onClick={() => { if (source.node_id) selectSource(source); }}>{cited.has(source.index) && <strong className={styles.cited}>인용됨</strong>}[근거 {source.index}] {source.document_name}{source.page ? ` · p.${source.page}` : ""}</summary>
+        <summary>검색 근거 {result.sources.length}개 · 답변에서 인용한 근거 {citedSources.length}개</summary>
+        {[...citedSources, ...otherSources].map(source => <details key={source.index}>
+          <summary className={cited.has(source.index) ? styles.cited : undefined}
+            aria-description={cited.has(source.index) ? "답변에서 인용한 근거" : undefined}
+            onClick={() => { if (source.node_id) selectSource(source); }}>[근거 {source.index}] {source.document_name}{source.page ? ` · p.${source.page}` : ""}</summary>
           {source.rows?.length ? <ManualSourceTable rows={source.rows} label={`근거 ${source.index} 원문 표`} /> : <p>{source.excerpt}</p>}
         </details>)}
       </details>}

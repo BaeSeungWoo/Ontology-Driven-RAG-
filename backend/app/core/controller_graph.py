@@ -8,7 +8,7 @@ import re
 from threading import Lock
 from pydantic import BaseModel
 
-from .knowledge_graph import ROOT, KnowledgeGraphConfigurationError, KnowledgeGraphSearchError, _render_html
+from .knowledge_graph import ROOT, KnowledgeGraphConfigurationError, KnowledgeGraphSearchError
 
 
 @lru_cache(maxsize=1)
@@ -65,6 +65,41 @@ def _load(directory):
         entities=len(entities), passages=len(passages), tables=len(tables))
 
 
+def _node_title(titles, blocks, fallback):
+    # Some PDF outline strings contain binary control characters even when the page text is intact.
+    def readable(text):
+        return not re.search(r"[\x00-\x08\x0b-\x1f\x7f-\x9f\ufffd]", text)
+
+    valid = [title for title in titles if title.strip() and readable(title)]
+    if valid:
+        return " · ".join(valid)
+    if any(titles):
+        for block in blocks:
+            for line in block.splitlines():
+                if line.strip() and readable(line):
+                    return line.strip()[:120]
+    return fallback
+
+
+def _coordinate_rows(content):
+    """Decode the Rn | Cn: text representation used by controller manuals."""
+    rows = []
+    for line in content.strip().splitlines():
+        match = re.fullmatch(r"R\d+\s*\|\s*C(\d+):\s*(.*)", line.strip())
+        if not match:
+            return None
+        fields = [match[1], *re.split(r"\s*\|\s*C(\d+):\s*", match[2])]
+        row = []
+        for column, value in zip(fields[::2], fields[1::2]):
+            index = int(column)
+            if index < len(row):
+                return None
+            row.extend({"text": ""} for _ in range(index - len(row)))
+            row.append({"text": value.strip()})
+        rows.append(row)
+    return rows
+
+
 @lru_cache(maxsize=8)
 def _equipment_index(path, modified):
     import numpy as np
@@ -78,13 +113,27 @@ def _equipment_index(path, modified):
         number = page["page"]
         node = len(nodes)
         page_ids[number] = node
-        nodes[node] = dict(kind="passage", label=" · ".join(page["titles"]) or f"본문 {number}",
+        nodes[node] = dict(kind="passage", label=_node_title(page["titles"], page["blocks"], f"본문 {number}"),
                            content="\n".join(page["blocks"]), pages=str(number), document=data["document"])
         if number - 1 in page_ids:
             links.append((page_ids[number - 1], node))
     for table in data["tables"]:
         node = len(nodes)
-        nodes[node] = dict(kind="table", label=table["label"], content=table["content"], rows=table.get("rows"),
+        content, rows = table["content"], table.get("rows")
+        if re.search(r"<(?:table|tr)\b", content, re.I):
+            if not rows:
+                from bs4 import BeautifulSoup
+                markup = BeautifulSoup(content, "html.parser")
+                rows = [[dict(text=cell.get_text(" ", strip=True),
+                              rowspan=int(cell.get("rowspan") or 1), colspan=int(cell.get("colspan") or 1))
+                         for cell in tr.find_all(["th", "td"], recursive=False)] for tr in markup.select("tr")]
+                rows = [row for row in rows if row]
+        elif not rows:
+            rows = _coordinate_rows(content)
+        if rows:
+            content = "\n".join(" | ".join(cell["text"] for cell in row) for row in rows)
+        label = _node_title([table["label"]], [], f"표 {table['page']}")
+        nodes[node] = dict(kind="table", label=label, content=content, rows=rows,
                            pages=str(table["page"]), document=data["document"])
         links.append((page_ids[table["page"]], node))
     left, right = zip(*links) if links else ((), ())
@@ -114,10 +163,42 @@ class ManualQuery(BaseModel):
     states_en: list[str]
 
 
+class ActionQuery(BaseModel):
+    action_requested: bool
+    situation_ko: list[str]
+    situation_en: list[str]
+    goal: str
+
+
+class SearchItem(BaseModel):
+    label: str
+    english_noun: str
+    synonyms: list[str]
+
+
+class ItemQuery(BaseModel):
+    condition_ko: str
+    condition_en: str
+    items: list[SearchItem]
+
+
 def _search_terms(question, model_key):
     import asyncio
     from app.core.graph_model import graph_completion
     from app.factories.config import CONFIGS
+    if re.search(r"각각|각 항목|[,·、]|[?？]\s*\S|및\s|(?:와|과|하고|이랑|랑)\s|그리고|\band\b|\beach\b", question, re.I):
+        reply, _ = asyncio.run(graph_completion(CONFIGS[model_key], [
+            {"role": "system", "content": "Identify independently requested answer subjects in a manual question. "
+             "If only one result is requested, including one procedure, fault or a difference between two concepts, return empty items. "
+             "For multiple subjects, copy each subject verbatim from the question as label. Supply its short Korean and English manual "
+             "names, including singular/plural (e.g. axis, axes). english_noun is the English head noun alone. condition_ko and "
+             "condition_en are the short equivalent names of the common event (e.g. power failure), not whole clauses or operator "
+             "verbs. If there is no common event use empty strings. Do not predict outcomes."},
+            {"role": "user", "content": question}], ItemQuery))
+        parts = ItemQuery.model_validate_json(reply)
+        items = {i.label.strip(): [i.label, i.english_noun, *i.synonyms] for i in parts.items if i.label.strip() and i.label.strip() in question}
+        if len(items) > 1:
+            return "items", question, parts.condition_en, "", "", ([], []), ([], []), (items, [parts.condition_ko, parts.condition_en])
     messages = [{"role": "system", "content":
                 "Classify the user's CNC manual search. Output JSON with scope, ko, en, alarm, symptom, "
                 "targets_ko, targets_en, states_ko, states_en. "
@@ -148,6 +229,21 @@ def _search_terms(question, model_key):
             code = numbers[0]
     if code:
         scope = "specific"
+    if re.search(r"어떻|어떡|어찌|해야|조치|대처|방법|절차|순서|주의할|주의점|유의사항|복구|재가동|"
+                   r"(?:무엇|뭘|무슨|어떤).{0,16}(?:확인|누르|점검|조작|해야)|"
+                   r"다시\s*(?:시작|가동)|how (?:do|can|should|to)|what (?:to do|should)|precautions|procedure", question, re.I):
+        intent, _ = asyncio.run(graph_completion(CONFIGS[model_key], [
+            {"role": "system", "content": "Does the user explicitly ask what the operator should DO, how to perform a task, "
+             "or which precautions and steps to follow in a stated situation? For a bare symptom report, a definition, "
+             "comparison, number, indicator meaning, required access level, or what happens when a button is pressed, "
+             "return action_requested=false. For an action request give equivalent short Korean and English terms for "
+             "the initiating event or component ONLY, excluding the goal, unrelated faults, and broader synonyms. "
+             "goal is the requested action and its short manual search terms in both languages. Do not give instructions."},
+            {"role": "user", "content": question}], ActionQuery))
+        action = ActionQuery.model_validate_json(intent)
+        if action.action_requested:
+            return ("action", question + " " + plan["ko"] + " " + action.goal, question + " " + plan["en"] + " " + action.goal, code, "",
+                    (action.situation_ko, []), (action.situation_en, []), None)
     ko = question if scope == "other" else question + " " + plan["ko"]
     symptom = str(plan.get("symptom") or "").strip()
     if scope != "specific" or symptom.casefold() not in question.casefold():
@@ -157,7 +253,7 @@ def _search_terms(question, model_key):
             return (), ()
         return plan[f"targets_{lang}"], plan[f"states_{lang}"]
 
-    return scope, ko, question + " " + plan["en"], code, symptom, fault_terms("ko"), fault_terms("en")
+    return scope, ko, question + " " + plan["en"], code, symptom, fault_terms("ko"), fault_terms("en"), None
 
 
 
@@ -181,21 +277,21 @@ def _controller_graph(question, model_key, equipment, modified):
     except (ImportError, OSError, KeyError, ValueError) as exc:
         raise KnowledgeGraphConfigurationError("FANUC GraphIndexing 인덱스를 읽지 못했습니다.") from exc
     try:
-        scope, korean_query, english_query, code, symptom, korean_fault, english_fault = _search_terms(question, model_key)
+        scope, korean_query, english_query, code, symptom, korean_fault, english_fault, item_query = _search_terms(question, model_key)
     except Exception as exc:
         raise KnowledgeGraphSearchError("영문 매뉴얼 검색어를 생성하지 못했습니다.") from exc
     datasets, sources = [], []
     if machine:
-        dataset, evidence = _rank(machine, question, korean_query, "dhf8000", "DHF8000 장비 조작설명서", 0, scope, code, korean_fault)
+        dataset, evidence = _rank(machine, question, korean_query, "dhf8000", "DHF8000 장비 조작설명서", 0, scope, code, korean_fault, item_query)
         datasets.append(dataset)
         sources.extend(evidence)
-    dataset, evidence = _rank(controller, question, english_query, "fanuc", "FANUC 제어기 매뉴얼", len(sources), scope, code, english_fault)
+    dataset, evidence = _rank(controller, question, english_query, "fanuc", "FANUC 제어기 매뉴얼", len(sources), scope, code, english_fault, item_query)
     datasets.append(dataset)
     sources.extend(evidence)
-    return dict(scope=scope, symptom=symptom, alarm=code, targets={"dhf8000": korean_fault[0], "fanuc": english_fault[0]},
+    return dict(scope=scope, items=item_query[0] if item_query else {}, symptom=symptom, alarm=code, targets={"dhf8000": korean_fault[0], "fanuc": english_fault[0]},
                 question=question, corpora=[d["id"] for d in datasets], sources=sources,
                 snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
-                html=_render_html({"datasets": datasets}))
+                datasets=datasets)
 
 
 def factory_graph(question, model_key, factory_id, machine):
@@ -212,21 +308,21 @@ def factory_graph(question, model_key, factory_id, machine):
 def _factory_graph(question, model_key, folder, documents):
     datasets, sources, targets = [], [], {}
     try:
-        scope, ko, en, code, symptom, ko_fault, en_fault = _search_terms(question, model_key)
+        scope, ko, en, code, symptom, ko_fault, en_fault, item_query = _search_terms(question, model_key)
     except Exception as exc:
         raise KnowledgeGraphSearchError("매뉴얼 검색어를 생성하지 못했습니다.") from exc
     fault = tuple(list(a) + list(b) for a, b in zip(ko_fault, en_fault))
     for key, name in documents:
         path = folder / "documents" / (key + ".json")
         index = _equipment_index(path, key)
-        dataset, evidence = _rank(index, question, ko + " " + en, name, name, len(sources), scope, code, fault)
+        dataset, evidence = _rank(index, question, ko + " " + en, name, name, len(sources), scope, code, fault, item_query)
         datasets.append(dataset)
         sources.extend(evidence)
         targets[name] = fault[0]
-    return dict(scope=scope, symptom=symptom, alarm=code, targets=targets,
+    return dict(scope=scope, items=item_query[0] if item_query else {}, symptom=symptom, alarm=code, targets=targets,
                 question=question, corpora=[d["id"] for d in datasets], sources=sources,
                 snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
-                html=_render_html({"datasets": datasets}) if datasets else "<p>연결된 매뉴얼이 없습니다.</p>")
+                datasets=datasets)
 
 
 def _term_pattern(terms):
@@ -244,11 +340,41 @@ def _term_pattern(terms):
     return re.compile("|".join(patterns), re.I) if patterns else None
 
 
-def _rank(index, question, query, corpus, title, start, scope, code, fault):
+def _action_column(rows, target):
+    """Read the chosen condition down a comparison table, including merged cells."""
+    if not any(target.fullmatch(cell["text"].strip()) for row in rows[:3] for cell in row[1:]):
+        return ""
+    spans = {}
+    for r, row in enumerate(rows):
+        col = 0
+        for cell in row:
+            while (r, col) in spans:
+                col += 1
+            for dy in range(cell.get("rowspan", 1)):
+                for dx in range(cell.get("colspan", 1)):
+                    spans[r + dy, col + dx] = cell["text"]
+            col += cell.get("colspan", 1)
+    width = 1 + max(c for _, c in spans)
+    grid = [[spans.get((r, c), "") for c in range(width)] for r in range(len(rows))]
+    for i, row in enumerate(grid[:3]):
+        for col, header in enumerate(row[1:], 1):
+            if target.fullmatch(header.strip()) and i + 1 < len(grid):
+                first_value = next((j for j, value in enumerate(row) if value != row[0]), col)
+                lines = [header]
+                for line in grid[i+1:]:
+                    label = " · ".join(dict.fromkeys(line[:first_value]))
+                    lines.append(f"{label} | {line[col]}")
+                return "\n".join(lines)
+    return ""
+
+
+def _rank(index, question, query, corpus, title, start, scope, code, fault, item_query=None):
     import numpy as np
     nodes, contexts, vectorizer, terms, transition, counts = index
     weights = (terms @ vectorizer.transform([query]).T).toarray().ravel()
     excerpts = {}
+    action_evidence = {}
+    item_hits = {}
     target, state = map(_term_pattern, fault)
     if code:
         pattern = re.compile(r"(?<![#a-z0-9])" + re.escape(code) + r"(?![a-z0-9])", re.I)
@@ -269,6 +395,55 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault):
                     excerpts[i] = body[begin:begin + 1100]
             else:
                 weights[pos] = 0
+    elif scope == "action" and target:
+        message = re.search(r"\b[A-Za-z]+(?:[ \t]+[A-Za-z]+){2,}\b", question)
+        for pos, i in enumerate(contexts):
+            node = nodes[i]
+            body = node["content"]
+            exact_message = message and re.search(re.escape(message.group()).replace(r"\ ", r"\s+"), body, re.I)
+            match = exact_message or target.search(body)
+            if not match:
+                continue
+            rows = node.get("rows") or []
+            column = _action_column(rows, target)
+            step_table = rows and re.search(r"순서|절차|step", body.splitlines()[0], re.I)
+            section = re.sub(r"^[\d.()\s]+", "", node["label"])
+            # The initiating condition belongs to the procedure itself, not a later incidental step.
+            applicable_steps = step_table and (target.match(section) or any(
+                len(row) > 1 and target.match(row[1]["text"].strip()) for row in rows[1:3]))
+            line = next((line for line in body.splitlines() if target.search(line) and re.search(
+                r"반드시|확인한\s*후|확인하신\s*후|확인하고|before proceeding|make sure", line, re.I)), "")
+            detail = next((s for s in re.split(r"(?<=[.!?])\s+|\n", body) if target.search(s) and re.search(
+                r"(?:해제|복귀|조작)할\s*때(?:는|에).*(?:버튼|스위치)", s)), "") if not rows else ""
+            start_at = max(0, match.start() - 160) if not step_table else 0
+            text = column or (body if applicable_steps else body[start_at:start_at + 1400])
+            if not column and not step_table and re.search(r"\.{3,}\s*\d+", text):
+                weights[pos] = 0
+                continue
+            excerpts[i] = node["label"] + "\n" + text
+            if exact_message:
+                weights[pos] += 4
+                if rows:
+                    # Message tables may contain several numbered alarms on a single page.
+                    header = re.compile(r"^\s*\d+\s*\|")
+                    lines = body.splitlines()
+                    for n, value in enumerate(lines):
+                        if header.match(value) and message.group().casefold() in value.casefold():
+                            end = next((j for j in range(n + 1, len(lines)) if header.match(lines[j])), len(lines))
+                            excerpts[i] = "\n".join(lines[n:end])
+                            action_evidence[i] = "message"
+                            break
+            if detail:
+                action_evidence[i] = "operation_detail"
+                excerpts[i] = detail
+                weights[pos] += 2
+            elif column or applicable_steps or (line and not rows):
+                action_evidence[i] = "comparison" if column else "steps" if applicable_steps else "precaution"
+                if line and not rows:
+                    excerpts[i] = section + "\n" + line
+                weights[pos] += 2
+            elif re.search(r"주의|확인|해제|준비|반드시|caution|check|release", text, re.I):
+                weights[pos] += 0.18
     elif target or state:
         keyword = target or state
         for pos, i in enumerate(contexts):
@@ -319,7 +494,42 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault):
                              if corpus == "dhf8000" else query + " stop the machine abnormal condition emergency stop")
             similarities = vectorizer.transform(blocks) @ vectorizer.transform([general_query]).T
             weights[owners] = similarities.toarray().ravel()
-    positions = np.argsort(-weights, kind="stable")[:5]
+    if item_query:
+        items, condition_terms = item_query
+        # The manual can separate the event name from its verb (e.g. "press ... button").
+        en_words = condition_terms[-1].split()
+        condition = _term_pattern([*condition_terms, *(" ".join(pair) for pair in zip(en_words, en_words[1:]))])
+        item_patterns = [_term_pattern(aliases) for aliases in items.values()]
+        for label, term in zip(items, item_patterns):
+            best = []
+            for pos, i in enumerate(contexts):
+                body = nodes[i]["content"]
+                if not term.search(body) or (condition and not condition.search(body)):
+                    continue
+                best_excerpt = ""
+                coverage = 0
+                for hit in term.finditer(body):
+                    begin = max(0, hit.start() - 650)
+                    end = min(len(body), hit.end() + 500)
+                    excerpt = body[begin:end]
+                    if condition and not condition.search(excerpt):
+                        continue
+                    # Prefer passages that also cover the other subjects under the same condition.
+                    count = sum(bool(p.search(excerpt)) for p in item_patterns)
+                    if count > coverage:
+                        coverage, best_excerpt = count, excerpt
+                    if count == len(items):
+                        break
+                if best_excerpt:
+                    best.append((weights[pos] + coverage, pos, best_excerpt))
+            for score, pos, excerpt in sorted(best, key=lambda hit: -hit[0])[:2]:
+                item_hits.setdefault(pos, {})[label] = excerpt
+        positions = list(item_hits)
+        for pos, matches in item_hits.items():
+            weights[pos] += len(matches)
+            excerpts[contexts[pos]] = "\n".join(dict.fromkeys(matches.values()))
+    else:
+        positions = np.argsort(-weights, kind="stable")[:5]
     direct = [int(contexts[p]) for p in positions if weights[p] > 0]
     seed = np.zeros(len(nodes), dtype=np.float32)
     scores = seed.copy()
@@ -337,6 +547,8 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault):
                 break
         final = [int(contexts[p]) for p in np.argsort(-scores[contexts], kind="stable")[:5]
                  if scores[contexts[p]] > 0 and (not (code or target or state or scope == "general_incident") or weights[p] > 0)]
+        if item_query:
+            final = sorted(direct, key=lambda i: -scores[i])
 
     shown = set(direct + final)
     for node in final:
@@ -363,6 +575,10 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault):
                     page=str(nodes[i]["pages"]), excerpt=excerpts.get(i, nodes[i]["content"][:1100]))
                for n, i in enumerate(final, 1)]
     for source, node_id in zip(sources, final):
+        if item_query:
+            source["item_hits"] = next(matches for pos, matches in item_hits.items() if contexts[pos] == node_id)
+        if node_id in action_evidence:
+            source["action_evidence"] = action_evidence[node_id]
         if source["kind"] == "table":
             node = nodes[node_id]
             rows = node.get("rows")

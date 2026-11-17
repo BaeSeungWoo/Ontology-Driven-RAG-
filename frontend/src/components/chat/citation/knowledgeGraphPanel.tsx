@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, useCallback, useEffect, useRef, useState } from "react";
 import { ChevronDown, LoaderCircle, Maximize2, Network, X } from "lucide-react";
 import { getKnowledgeGraph, getKnowledgeGraphError, type KnowledgeGraphResult } from "@/services/knowledgeGraphApi";
 import KnowledgeGraphAnswer from "./knowledgeGraphAnswer";
+import ManualGraph from "./manualGraph";
 import styles from "./knowledgeGraphPanel.module.css";
 
 type KnowledgeGraphPanelProps = {
@@ -10,31 +11,20 @@ type KnowledgeGraphPanelProps = {
   isGenerating: boolean;
 };
 
-function GraphViewer({ html, messageId, question, snapshot, corpora, originalAnswer }: KnowledgeGraphResult & { messageId: number; originalAnswer: string }) {
+function GraphViewer({ datasets, question, messageId, snapshot, originalAnswer }: KnowledgeGraphResult & { messageId: number; originalAnswer: string }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [answerRequested, setAnswerRequested] = useState(false);
   const [answerVisible, setAnswerVisible] = useState(false);
+  const [manual, setManual] = useState(datasets.find(d => d.nodes.some(n => n.kind !== "query"))?.id);
+  const [view, setView] = useState("overall");
+  const [node, setNode] = useState("");
+  const [graphPercent, setGraphPercent] = useState(55);
+  const resizeGraph = (value: number) => setGraphPercent(Math.round(Math.max(30, Math.min(70, value))));
   const dialogRef = useRef<HTMLDialogElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const frameRef = useRef<HTMLIFrameElement>(null);
-  // Keyboard events inside the sandboxed frame do not reach the parent dialog.
-  const viewerHtml = useMemo(() => html.replace("</body>", `<script>
-    const answerButton = document.createElement("button");
-    answerButton.type = "button";
-    answerButton.className = "btn";
-    answerButton.textContent = "지식그래프 기반으로 답변받기";
-    answerButton.style.cssText = "border-color:var(--ring);color:var(--ring);font-weight:600";
-    answerButton.addEventListener("click", () => parent.postMessage("knowledge-graph:answer", "*"));
-    document.querySelector('[data-view="ppr"]').after(answerButton);
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape" && !event.defaultPrevented) parent.postMessage("knowledge-graph:escape", "*");
-    });
-  </script></body>`), [html]);
-
   const setExpanded = useCallback((expanded: boolean) => {
     const dialog = dialogRef.current;
     if (!dialog || dialog.matches(":modal") === expanded) return;
-    // Keep the same iframe mounted so its selected manual and node survive resizing.
     dialog.close();
     if (expanded) dialog.showModal();
     else dialog.show();
@@ -48,23 +38,6 @@ function GraphViewer({ html, messageId, question, snapshot, corpora, originalAns
     document.body.style.overflow = "hidden";
     return () => { document.body.style.overflow = previousOverflow; };
   }, [isExpanded]);
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.source !== frameRef.current?.contentWindow) return;
-      if (event.data === "knowledge-graph:escape" && isExpanded) {
-        setExpanded(false);
-      } else if (event.data === "knowledge-graph:answer") {
-        setExpanded(true);
-        setAnswerRequested(true);
-        setAnswerVisible(true);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => {
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [isExpanded, setExpanded]);
 
   return <dialog ref={dialogRef} open className={`${styles.viewer} ${isExpanded ? styles.expanded : ""}`}
     role={isExpanded ? "dialog" : "presentation"} aria-modal={isExpanded || undefined}
@@ -83,14 +56,38 @@ function GraphViewer({ html, messageId, question, snapshot, corpora, originalAns
         {!isExpanded && "크게 보기"}
       </button>
     </header>
-    <div className={`${styles.workspace} ${isExpanded && answerVisible ? styles.withAnswer : ""}`}>
-      <iframe ref={frameRef} className={styles.frame} title="선택한 질문의 매뉴얼 검색 지식그래프"
-        srcDoc={viewerHtml} sandbox="allow-scripts" />
+    <div style={{ "--graph-width": `${graphPercent}%` } as CSSProperties} className={`${styles.workspace} ${isExpanded && answerVisible ? styles.withAnswer : ""}`}>
+      <div className={styles.frame}>
+        <ManualGraph datasets={datasets} question={question} manual={manual} view={view} node={node}
+          onManual={id => { setManual(id); setNode(""); }} onView={next => { setView(next); setNode(""); }}
+          onNode={setNode} onAnswer={() => { setExpanded(true); setAnswerRequested(true); setAnswerVisible(true); }} />
+      </div>
+      {isExpanded && answerVisible && <div className={styles.divider} role="separator" tabIndex={0}
+        aria-label="그래프와 답변 너비 조절" aria-orientation="vertical" aria-valuemin={30} aria-valuemax={70}
+        aria-valuenow={graphPercent} aria-valuetext={`그래프 ${graphPercent}%`}
+        onPointerDown={event => {
+          if (event.button !== 0) return;
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={event => {
+          if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+          const bounds = event.currentTarget.parentElement!.getBoundingClientRect();
+          resizeGraph(100 * (event.clientX - bounds.left - event.currentTarget.offsetWidth / 2) / bounds.width);
+        }}
+        onKeyDown={event => {
+          if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+          event.preventDefault();
+          resizeGraph(graphPercent + (event.key === "ArrowLeft" ? -2 : 2));
+        }} />}
       {answerRequested && <div className={styles.answerContainer} hidden={!isExpanded || !answerVisible}>
-        <KnowledgeGraphAnswer messageId={messageId} question={question} snapshot={snapshot} corpora={corpora}
-          originalAnswer={originalAnswer} onSelectSource={source => frameRef.current?.contentWindow?.postMessage({
-            type: "knowledge-graph:source", corpus: source.corpus, nodeId: source.node_id,
-          }, "*")} onClose={() => {
+        <KnowledgeGraphAnswer messageId={messageId} snapshot={snapshot}
+          originalAnswer={originalAnswer} onSelectSource={source => {
+            const dataset = datasets.find(d => d.id === source.corpus);
+            if (!dataset?.nodes.some(n => n.id === source.node_id && n.final)) return;
+            setManual(dataset.id);
+            setView("overall");
+            setNode(source.node_id!);
+          }} onClose={() => {
           setAnswerVisible(false);
           buttonRef.current?.focus({ preventScroll: true });
         }} />
@@ -134,7 +131,7 @@ export default function KnowledgeGraphPanel({ messageId, isGenerating, originalA
     </div> : result ? <>
       <p className={styles.question}>{result.question}</p>
       <p className={styles.corpora}>검색 매뉴얼: {result.corpora.map(corpus => corpus.toUpperCase()).join(" · ")}</p>
-      <GraphViewer {...result} messageId={messageId} originalAnswer={originalAnswer} />
+      <GraphViewer key={messageId} {...result} messageId={messageId} originalAnswer={originalAnswer} />
     </> : <div className={styles.state} role="status">
       <LoaderCircle className={styles.spinner} size={28} aria-hidden="true" />
       <p>질문과 관련된 매뉴얼과 지식 연결을 찾고 있어요.<br />처음 검색할 때는 시간이 걸릴 수 있습니다.</p>
