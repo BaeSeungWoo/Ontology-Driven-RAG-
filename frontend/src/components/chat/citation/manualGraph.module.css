@@ -22,6 +22,7 @@
 .legend i { width: 10px; height: 10px; border-radius: 50%; }
 .canvas { display: block; width: 100%; min-height: 120px; max-height: 360px; flex: 1 0 120px; touch-action: none; user-select: none; font-size: 12px; }
 .canvas [data-node], .canvas [data-relation] { cursor: pointer; }
+.canvas[role="img"] { height: 100%; touch-action: auto; pointer-events: none; }
 .caption { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; overflow-wrap: anywhere; font: 12px/14px system-ui, sans-serif; }
 .zoom { gap: 4px; }
 .zoom output { min-width: 5ch; text-align: center; }

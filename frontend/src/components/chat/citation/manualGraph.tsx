@@ -32,8 +32,8 @@ function NodeDetail({ node }: { node: GraphNode }) {
   </article>;
 }
 
-export default function ManualGraph({ datasets, question, manual, view, node, onManual, onView, onNode, onAnswer }: {
-  datasets: GraphDataset[]; question: string; manual?: string; view: string; node: string;
+export default function ManualGraph({ expanded, datasets, question, manual, view, node, onManual, onView, onNode, onAnswer }: {
+  expanded: boolean; datasets: GraphDataset[]; question: string; manual?: string; view: string; node: string;
   onManual: (id: string) => void; onView: (view: string) => void; onNode: (id: string) => void; onAnswer: () => void;
 }) {
   const linked = datasets.filter(d => d.nodes.some(n => n.kind !== "query"));
@@ -46,6 +46,9 @@ export default function ManualGraph({ datasets, question, manual, view, node, on
   const selected = nodes.find(n => n.id === node);
   const relation = edges.find(e => e.kind === "relation" && e.id === node);
   const counts = data?.index_counts;
+  if (!expanded) return data
+    ? <GraphCanvas nodes={nodes} edges={edges} view={active} selected="" />
+    : <p className={styles.board} role="status">이 질문에 연결된 근거가 있는 매뉴얼이 없습니다.</p>;
   return <section className={styles.board} aria-label="질문에서 근거까지">
     <div className={styles.controls}>
     <div className={styles.bar}><h3>질문에서 근거까지</h3>{data && <small>{data.id.toUpperCase()} · 표본 부분 그래프</small>}</div>

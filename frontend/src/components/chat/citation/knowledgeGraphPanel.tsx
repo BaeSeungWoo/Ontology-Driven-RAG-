@@ -44,6 +44,7 @@ function GraphViewer({ datasets, question, messageId, snapshot, originalAnswer }
     aria-label={isExpanded ? "지식그래프 크게 보기" : undefined}
     onCancel={event => { event.preventDefault(); setExpanded(false); }}>
     <header className={styles.viewerHeader}>
+      {!isExpanded && <h3>지식그래프 미리보기</h3>}
       {isExpanded && <h2><Network size={22} aria-hidden="true" />지식그래프</h2>}
       {isExpanded && answerRequested && !answerVisible && <button type="button" title="답변 펼치기" aria-label="답변 펼치기" onClick={() => setAnswerVisible(true)}>
         <ChevronDown size={18} aria-hidden="true" />
@@ -58,9 +59,9 @@ function GraphViewer({ datasets, question, messageId, snapshot, originalAnswer }
     </header>
     <div style={{ "--graph-width": `${graphPercent}%` } as CSSProperties} className={`${styles.workspace} ${isExpanded && answerVisible ? styles.withAnswer : ""}`}>
       <div className={styles.frame}>
-        <ManualGraph datasets={datasets} question={question} manual={manual} view={view} node={node}
+        <ManualGraph expanded={isExpanded} datasets={datasets} question={question} manual={manual} view={view} node={node}
           onManual={id => { setManual(id); setNode(""); }} onView={next => { setView(next); setNode(""); }}
-          onNode={setNode} onAnswer={() => { setExpanded(true); setAnswerRequested(true); setAnswerVisible(true); }} />
+          onNode={setNode} onAnswer={() => { setAnswerRequested(true); setAnswerVisible(true); }} />
       </div>
       {isExpanded && answerVisible && <div className={styles.divider} role="separator" tabIndex={0}
         aria-label="그래프와 답변 너비 조절" aria-orientation="vertical" aria-valuemin={30} aria-valuemax={70}
@@ -113,10 +114,6 @@ export default function KnowledgeGraphPanel({ messageId, isGenerating, originalA
   }, [messageId, isGenerating, attempt]);
 
   return <section className={styles.panel} aria-label="질문 관련 매뉴얼 검색">
-    <div className={styles.heading}>
-      <h3>질문 관련 매뉴얼 검색</h3>
-      <p>선택한 질문으로 매뉴얼을 추가 검색한 결과입니다.</p>
-    </div>
     {!messageId ? <div className={styles.state} role="status">
       <Network size={40} strokeWidth={1.6} aria-hidden="true" />
       <p>질문하고 답변을 선택하면 관련 매뉴얼의 지식그래프를 확인할 수 있어요.</p>
@@ -128,11 +125,9 @@ export default function KnowledgeGraphPanel({ messageId, isGenerating, originalA
       <button type="button" onClick={() => { setError(null); setResult(null); setAttempt(value => value + 1); }}>
         다시 시도
       </button>
-    </div> : result ? <>
-      <p className={styles.question}>{result.question}</p>
-      <p className={styles.corpora}>검색 매뉴얼: {result.corpora.map(corpus => corpus.toUpperCase()).join(" · ")}</p>
+    </div> : result ?
       <GraphViewer key={messageId} {...result} messageId={messageId} originalAnswer={originalAnswer} />
-    </> : <div className={styles.state} role="status">
+    : <div className={styles.state} role="status">
       <LoaderCircle className={styles.spinner} size={28} aria-hidden="true" />
       <p>질문과 관련된 매뉴얼과 지식 연결을 찾고 있어요.<br />처음 검색할 때는 시간이 걸릴 수 있습니다.</p>
     </div>}

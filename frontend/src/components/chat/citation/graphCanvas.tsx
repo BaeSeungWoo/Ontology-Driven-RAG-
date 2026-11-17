@@ -31,8 +31,8 @@ function zoomAt(camera: Camera, point: Point, factor: number, max: number): Came
 }
 
 export default function GraphCanvas({ nodes, edges, selected, onSelect, view, counts }: {
-  nodes: GraphNode[]; edges: GraphEdge[]; selected: string; view: string; counts: string;
-  onSelect: (id: string) => void;
+  nodes: GraphNode[]; edges: GraphEdge[]; selected: string; view: string; counts?: string;
+  onSelect?: (id: string) => void;
 }) {
   const svg = useRef<SVGSVGElement>(null);
   const arrow = useId();
@@ -57,9 +57,9 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
       const at = { x: event.clientX - box.left - box.width / 2, y: event.clientY - box.top - box.height / 2 };
       setCamera(camera => zoomAt(camera, at, event.deltaY < 0 ? 1.12 : 1 / 1.12, 3 / fit));
     }
-    element.addEventListener("wheel", wheel, { passive: false });
+    if (onSelect) element.addEventListener("wheel", wheel, { passive: false });
     return () => { observer.disconnect(); element.removeEventListener("wheel", wheel); };
-  }, [fit]);
+  }, [fit, onSelect]);
   const neighbors = new Set([selected]);
   for (const e of edges) {
     if (e.source === selected) neighbors.add(e.target);
@@ -67,9 +67,9 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
   }
   const nodeSelected = positions.has(selected);
   return <>
-    <svg ref={svg} className={styles.canvas} viewBox={`0 0 ${width} ${height}`} role="group" aria-label="매뉴얼 검색 그래프"
+    <svg ref={svg} className={styles.canvas} viewBox={`0 0 ${width} ${height}`} role={onSelect ? "group" : "img"} aria-label="매뉴얼 검색 그래프"
       onPointerDown={event => {
-        if (event.button !== 0) return;
+        if (!onSelect || event.button !== 0) return;
         const target = event.target as Element;
         if (target.closest("[data-relation]")) return;
         const id = target.closest("[data-node]")?.getAttribute("data-node") ?? undefined;
@@ -86,7 +86,7 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
         else setCamera({ zoom, pan: { x: active.initial.x + dx, y: active.initial.y + dy } });
       }}
       onPointerUp={() => {
-        if (drag.current?.id && !drag.current.moved) onSelect(drag.current.id);
+        if (drag.current?.id && !drag.current.moved) onSelect?.(drag.current.id);
         drag.current = null;
       }} onLostPointerCapture={() => { drag.current = null; }}>
       <defs><marker id={arrow} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0 L10 5 L0 10 Z" fill="#a34796" /></marker></defs>
@@ -100,14 +100,14 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
             <line x1={a.x} y1={a.y} x2={b.x - (b.x - a.x) * offset} y2={b.y - (b.y - a.y) * offset}
               stroke={relation ? colors.fact : "#cfd9e8"} strokeDasharray={["direct", "fact_match"].includes(edge.kind) ? "5 5" : undefined}
               strokeWidth={relation ? 2 : 1.2} markerEnd={relation ? `url(#${arrow})` : undefined}
-              data-relation={relation || undefined} onClick={relation ? () => onSelect(edge.id) : undefined} />
+              data-relation={relation || undefined} onClick={relation && onSelect ? () => onSelect(edge.id) : undefined} />
             {relation && view === "triple" && <text x={(a.x+b.x)/2} y={(a.y+b.y)/2} textAnchor="middle">{edge.label}</text>}
           </g>;
         })}
         {nodes.map(node => {
           const { x, y } = point(node.id);
-          return <g key={node.id} data-node={node.id} role="button" tabIndex={0} aria-label={`${kindLabel[node.kind]} ${node.label}`}
-            onKeyDown={event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelect(node.id); } }}
+          return <g key={node.id} data-node={node.id} role={onSelect ? "button" : undefined} tabIndex={onSelect ? 0 : undefined} aria-label={`${kindLabel[node.kind]} ${node.label}`}
+            onKeyDown={event => { if (onSelect && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); onSelect(node.id); } }}
             transform={`translate(${x} ${y})`} opacity={nodeSelected && !neighbors.has(node.id) ? 0.24 : 1}
             stroke={node.id === selected ? "currentColor" : "#cfd9e8"} strokeWidth={node.id === selected ? 2 : 1}>
             <NodeMark node={node} />
@@ -115,11 +115,11 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
         })}
       </g>
     </svg>
-    <div className={styles.bar}><small>{counts}</small><div className={styles.zoom} role="group" aria-label="그래프 확대 및 축소">
+    {onSelect && <div className={styles.bar}><small>{counts}</small><div className={styles.zoom} role="group" aria-label="그래프 확대 및 축소">
       <button aria-label="축소" disabled={zoom <= 1} onClick={() => setCamera(c => zoomAt(c, origin, 1 / 1.12, 3 / fit))}>−</button>
       <output>{Math.round(100 * zoom)}%</output>
       <button aria-label="확대" disabled={fit * zoom >= 3} onClick={() => setCamera(c => zoomAt(c, origin, 1.12, 3 / fit))}>+</button>
       <button onClick={() => { setCamera({ zoom: 1, pan: origin }); setDragged({}); onSelect(""); }}>초기 화면으로 복원</button>
-    </div></div>
+    </div></div>}
   </>;
 }
