@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent, type MouseEvent } from "react";
 import { createPortal } from "react-dom";
+import { LoaderCircle, Pin, PinOff } from "lucide-react";
 
 import { PERSONA_OPTIONS } from "@/constants/personaOptions";
 
@@ -23,18 +24,23 @@ export type HistoryItem = {
   recentAt: string;
   recentAtTimestamp: number;
   isActive?: boolean;
+  isPinned?: boolean;
 };
 
 type HistoryCardProps = {
+  generating: boolean;
+  unread: boolean;
   item: HistoryItem;
   onSelect: (chatId: number) => void;
   onDelete: (chatId: number) => Promise<void>;
+  onPin: (item: HistoryItem) => Promise<void>;
 };
 
-export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardProps) {
+export default function HistoryCard({ item, generating, unread, onSelect, onDelete, onPin }: HistoryCardProps) {
   // 내부 state
   // 기능/목적: 대화 삭제 확인 모달의 열림 상태를 관리한다.
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [savingPin, setSavingPin] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<{ left: number; top: number } | null>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLParagraphElement>(null);
@@ -117,15 +123,28 @@ export default function HistoryCard({ item, onSelect, onDelete }: HistoryCardPro
       onClick={handleSelect}
       onKeyDown={handleCardKeyDown}
     >
+      <button type="button" className={`${styles.cardDeleteButton} ${styles.pinButton}`} disabled={savingPin}
+        aria-label={item.isPinned ? "대화 고정 해제" : "대화 고정"} title={item.isPinned ? "고정 해제" : "고정"}
+        onClick={async event => {
+          event.stopPropagation();
+          setTooltipPosition(null);
+          setSavingPin(true);
+          try { await onPin(item); } finally { setSavingPin(false); }
+        }}>
+        {item.isPinned ? <PinOff size={14} /> : <Pin size={14} />}
+      </button>
       <button
         type="button"
         className={styles.cardDeleteButton}
+        disabled={generating}
         aria-label="대화 삭제"
         title="대화 삭제"
         onClick={handleDeleteClick}
       >
         <span aria-hidden="true">×</span>
       </button>
+      {generating && <LoaderCircle size={14} className={styles.generatingSpinner} role="img" aria-label="답변 생성 중" />}
+      {!generating && unread && <span className={styles.completionDot} role="img" aria-label="확인하지 않은 답변" title="답변 완료" />}
       <p ref={titleRef} className={styles.cardTitle}><span>{item.title}</span></p>
 
       {tooltipPosition && createPortal(

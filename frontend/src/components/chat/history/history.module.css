@@ -121,7 +121,7 @@
 .historyCard {
   position: relative;
   width: 100%;
-  padding: 8px 26px 8px 4px;
+  padding: 8px 52px 8px 4px;
   border-radius: 8px;
   cursor: pointer;
 }
@@ -146,6 +146,25 @@
   background: #124db5;
   content: "";
   pointer-events: none;
+}
+
+.completionDot {
+  float: left;
+  width: 8px;
+  height: 8px;
+  margin: 6px 8px 0 3px;
+  border-radius: 50%;
+  background: var(--chat-accent);
+}
+.generatingSpinner {
+  float: left;
+  margin: 3px 5px 0 0;
+  color: var(--chat-accent);
+  animation: historySpin 1s linear infinite;
+}
+@keyframes historySpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .generatingSpinner { animation: none; }
 }
 
 .cardTitle {
@@ -262,6 +281,12 @@
 
 .cardDeleteButton:hover {
   background: #fbe7eb;
+}
+.cardDeleteButton.pinButton { right: 28px; color: var(--chat-accent); }
+.pinButton:not(:disabled):hover,
+.pinButton:focus-visible {
+  background: var(--chat-accent);
+  color: #fff;
 }
 
 .newChatButton:focus-visible, .searchButton:focus-visible,

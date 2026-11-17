@@ -17,6 +17,8 @@ import { useMachine } from "@/components/machineProvider";
 import { getMachineSignals, getTestLadder } from "@/services/ladderApi";
 
 type AnswerProps = {
+  unreadMessageId?: number;
+  onAnswerRead?: (sessionId: number, messageId: number) => void;
   ladderMode?: boolean;
   messageJump?: { messageId: number } | null;
   canExplainFigure?: boolean;
@@ -29,6 +31,7 @@ type AnswerProps = {
   onActiveAssistantChange?: (messageId: string | null) => void;
   onCitationSelect?: (messageId: string, chunkIndex: number) => void;
   isGenerating?: boolean;
+  onStop?: () => void;
   onRetry?: () => void;
   showHeader?: boolean;
   recommendations?: ReactNode;
@@ -38,6 +41,8 @@ const LLM_MODEL_SET = new Set<LlmModel>(LLM_MODEL_OPTIONS.map((option) => option
 const LLM_MODE_SET = new Set<LlmMode>(LLM_MODE_OPTIONS.map((option) => option.value));
 
 export default function Answer({
+  unreadMessageId,
+  onAnswerRead,
   ladderMode = false,
   messageJump,
   messages,
@@ -46,6 +51,7 @@ export default function Answer({
   onActiveAssistantChange,
   onCitationSelect,
   isGenerating = false,
+  onStop,
   onRetry,
   showHeader = true,
   recommendations,
@@ -68,6 +74,30 @@ export default function Answer({
   // state
   // =========================
   const scrollRef = useRef<HTMLElement | null>(null);
+  const unreadSessionId = messages.find(message => message.message_id === unreadMessageId)?.session_id;
+  useEffect(() => {
+    if (unreadSessionId === undefined || unreadMessageId === undefined || !onAnswerRead) return;
+    const answer = scrollRef.current?.querySelector(`[data-message-id="${unreadMessageId}"]`);
+    if (!answer) return;
+    let visible = false;
+    const acknowledge = () => {
+      if (visible && document.visibilityState === "visible" && document.hasFocus()) {
+        onAnswerRead(unreadSessionId, unreadMessageId);
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting && entry.intersectionRect.height > 0;
+      acknowledge();
+    });
+    observer.observe(answer);
+    document.addEventListener("visibilitychange", acknowledge);
+    window.addEventListener("focus", acknowledge);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", acknowledge);
+      window.removeEventListener("focus", acknowledge);
+    };
+  }, [unreadMessageId, unreadSessionId, onAnswerRead]);
   const shouldAutoScrollRef = useRef(true);
   const appliedJumpRef = useRef<typeof messageJump>(null);
   const [selectedAssistantMessage, setSelectedAssistantMessage] = useState<{
@@ -296,6 +326,7 @@ export default function Answer({
                       message={message}
                       isActive={message.id === activeAssistantMessageId}
                       isGenerating={shouldShowGenerating}
+                      onStop={shouldShowGenerating ? onStop : undefined}
                       onRetry={!isGenerating && messageIndex === normalizedMessages.length - 1 ? onRetry : undefined}
                       selectedCitationChunkIndex={
                         selectedCitation?.messageId === message.id

@@ -52,6 +52,7 @@ export function toHistoryItem(row: HistoryResponse, selectedSessionId: number | 
     personaType: row.personaType,
     recentAt: formatDateTime(row.updatedAt ?? row.createdAt),
     recentAtTimestamp: Date.parse(row.updatedAt ?? row.createdAt),
+    isPinned: row.isPinned,
     isActive: selectedSessionId === id,
   };
 }

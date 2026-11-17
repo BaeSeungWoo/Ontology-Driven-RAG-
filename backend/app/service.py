@@ -2,6 +2,7 @@
 import asyncio
 from contextlib import aclosing
 import json
+import logging
 import re
 from typing import Any
 from datetime import date, datetime
@@ -20,7 +21,8 @@ from app.core.prompt_manager import PromptManager
 from app.core.question_recommendations import InitialQuestionCache
 from app.core.cms_context import build_cms_context, cms_answer_policy
 from app.core.cms_report_chat import answer_demo_report_question
-from app.core.memory_manager import MemoryManager
+from app.core.manual_query import manual_query_messages
+from app.core.memory_manager import MemoryManager, completed_history
 from app.core.judge import judge_triple
 from app.database import database
 
@@ -83,6 +85,21 @@ class RAGService:
         )
         return messages, imgs, tables, chunks, intent
 
+    async def _manual_search_query(self, question: str, history: list | None) -> str:
+        if not history:
+            return question
+        try:
+            raw = await self.llm.ainvoke(manual_query_messages(question, history))
+            matched = re.search(r'\{.*\}', raw, re.DOTALL)
+            query = json.loads(matched.group(0) if matched else raw).get("query")
+            if isinstance(query, str) and query.strip():
+                return query.strip()
+        except (ValueError, AttributeError, TypeError):
+            pass
+        except Exception:
+            logging.getLogger(__name__).warning("Manual query rewrite unavailable", exc_info=True)
+        return question
+
     # ask/ask_stream의 공통 준비함수
     # session_id 기준으로 휘발성 memory history를 가져오고, RAG context/user_prompt와 함께 messages를 조립한다.
     async def prepare_ask_context(
@@ -104,7 +121,7 @@ class RAGService:
                   if mode == "cms" else await self._resolve_intent(question, persona_type))
 
         if restore_memory and not history:
-            restored_history = self._load_recent_history_from_db(session_id, question)
+            restored_history = self._load_recent_history_from_db(session_id)
             self.memory_manager.set_history(session_id, restored_history)
             await self._compress_memory(session_id, force=True)
             history = self.memory_manager.get_history(session_id)
@@ -122,21 +139,23 @@ class RAGService:
             context, imgs, tables, chunks = await build_cms_context(effective_machine_code)
             m_info = self.config.machines.get(effective_machine_code, {})
         if retriever:
+            search_query = await self._manual_search_query(question, history)
+            intent = {**intent, "search_query": search_query}
             if mode == "repairHistory":
                 context, imgs, tables, chunks = await retriever.get_context(
-                    query=question, machine_code=effective_machine_code, intent_type=intent["type"])
+                    query=search_query, machine_code=effective_machine_code, intent_type=intent["type"])
             elif mode == "ladder":
                 context, imgs, tables, chunks = retriever.get_context(
-                    query=question,
+                    query=search_query,
                     machine_code=effective_machine_code,
                     intent_type=intent["type"],
                 )
             else:
-                context, imgs, tables, chunks = retriever.get_context(query=question, machine_code=effective_machine_code)
+                context, imgs, tables, chunks = retriever.get_context(query=search_query, machine_code=effective_machine_code)
             if self.config.id == "waff" and mode == "rag":
                 supplement = self._get_retriever("repairHistory")
                 context, imgs, tables, chunks = await supplement.supplement(
-                    question, effective_machine_code, intent["type"], context, imgs, tables, chunks)
+                    search_query, effective_machine_code, intent["type"], context, imgs, tables, chunks)
             m_info = self.config.machines.get(effective_machine_code, {})
 
         # if mode == "multimodal":
@@ -189,7 +208,7 @@ class RAGService:
             from app.factories.config import CONFIGS
             history = self.memory_manager.get_history(session_id)
             if restore_memory and not history:
-                history = self._load_recent_history_from_db(session_id, question)
+                history = self._load_recent_history_from_db(session_id)
                 self.memory_manager.set_history(session_id, history)
             async with aclosing(stream_electrical(effective_machine_code, question,
                                                  llm_config=CONFIGS["vllm_config"].llm, factory_id=self.config.id,
@@ -467,6 +486,7 @@ class JudgeRAGService(RAGService):
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         history: list | None = None,
+        search_query: str | None = None,
     ) -> dict[str, Any]:
         context = ""
         imgs: list[str] = []
@@ -479,17 +499,17 @@ class JudgeRAGService(RAGService):
             if mode == "repairHistory":
                 intent = await self._resolve_intent(question, "operator")
                 context, imgs, tables, chunks = await retriever.get_context(
-                    query=question, machine_code=effective_machine_code, intent_type=intent["type"])
+                    query=search_query or question, machine_code=effective_machine_code, intent_type=intent["type"])
             elif mode == "ladder":
                 intent = await self._resolve_intent(question, "operator")
                 context, imgs, tables, chunks = retriever.get_context(
-                    query=question,
+                    query=search_query or question,
                     machine_code=effective_machine_code,
                     intent_type=intent["type"],
                 )
             else:
                 context, imgs, tables, chunks = retriever.get_context(
-                    query=question,
+                    query=search_query or question,
                     machine_code=effective_machine_code,
                 )
 
@@ -526,6 +546,7 @@ class JudgeRAGService(RAGService):
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         history: list | None = None,
+        search_query: str | None = None,
     ) -> dict[str, Any]:
         return await self._answer_branch(
             question=question,
@@ -534,6 +555,7 @@ class JudgeRAGService(RAGService):
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             history=history,
+            search_query=search_query,
         )
 
     async def _answer_kg(
@@ -543,6 +565,7 @@ class JudgeRAGService(RAGService):
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         history: list | None = None,
+        search_query: str | None = None,
     ) -> dict[str, Any]:
         return await self._answer_branch(
             question=question,
@@ -551,6 +574,7 @@ class JudgeRAGService(RAGService):
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             history=history,
+            search_query=search_query,
         )
 
     async def _answer_multimodal(
@@ -560,6 +584,7 @@ class JudgeRAGService(RAGService):
         prompt_id: str = "tech_expert",
         user_prompt: str | None = None,
         history: list | None = None,
+        search_query: str | None = None,
     ) -> dict[str, Any]:
         return await self._answer_branch(
             question=question,
@@ -568,6 +593,7 @@ class JudgeRAGService(RAGService):
             prompt_id=prompt_id,
             user_prompt=user_prompt,
             history=history,
+            search_query=search_query,
         )
 
     def _merge_branch_lists(self, *lists: list[Any]) -> list[Any]:
@@ -593,6 +619,7 @@ class JudgeRAGService(RAGService):
         history: list | None = None,
         judge_prompt_id: str = "judge",
     ) -> dict[str, Any]:
+        search_query = await self._manual_search_query(question, history)
         graph_out, doc_out, mm_out = await asyncio.gather(
             self._answer_kg(
                 question=question,
@@ -600,6 +627,7 @@ class JudgeRAGService(RAGService):
                 prompt_id=prompt_id,
                 user_prompt=user_prompt,
                 history=history,
+                search_query=search_query,
             ),
             self._answer_doc(
                 question=question,
@@ -607,6 +635,7 @@ class JudgeRAGService(RAGService):
                 prompt_id=prompt_id,
                 user_prompt=user_prompt,
                 history=history,
+                search_query=search_query,
             ),
             self._answer_multimodal(
                 question=question,
@@ -614,6 +643,7 @@ class JudgeRAGService(RAGService):
                 prompt_id=prompt_id,
                 user_prompt=user_prompt,
                 history=history,
+                search_query=search_query,
             ),
         )
 
@@ -670,6 +700,7 @@ class JudgeRAGService(RAGService):
         return {
             "answer": verdict.final_answer,
             "metadata": {
+                "intent": {"search_query": search_query},
                 "choice": verdict.choice,
                 "reason": verdict.reason,
                 "sources": verdict.sources,
@@ -714,7 +745,7 @@ class JudgeRAGService(RAGService):
         history = self.memory_manager.get_history(session_id)
 
         if restore_memory and not history:
-            restored_history = self._load_recent_history_from_db(session_id, question)
+            restored_history = self._load_recent_history_from_db(session_id)
             self.memory_manager.set_history(session_id, restored_history)
             await self._compress_memory(session_id, force=True)
             history = self.memory_manager.get_history(session_id)
@@ -776,34 +807,9 @@ class JudgeRAGService(RAGService):
         self.memory_manager.add_turn(session_id, question, result["answer"])
         return result
     
-    def _load_recent_history_from_db(self, session_id: str, current_question: str) -> list:
+    def _load_recent_history_from_db(self, session_id: str) -> list:
         rows = database.getChatMessagesBySession(int(session_id))
-
-        messages = []
-        for row in rows:
-            role = row[2]
-            content = row[3]
-
-            if role not in ("user", "assistant"):
-                continue
-            if not content:
-                continue
-            try:
-                metadata = json.loads(row[8]) if row[8] else {}
-            except (TypeError, ValueError):
-                metadata = {}
-            if role == "assistant" and isinstance(metadata, dict) and metadata.get("request_failed"):
-                continue
-
-            messages.append({"role": role, "content": content})
-
-        # 프론트가 /chat 호출 전에 현재 user message를 DB에 먼저 저장하므로,
-        # 마지막 user가 현재 질문이면 메모리 복원 대상에서 제외한다.
-        if messages and messages[-1]["role"] == "user" and messages[-1]["content"] == current_question:
-            messages.pop()
-
-        max_messages = self.memory_manager.window_turns * 2
-        return messages[-max_messages:]
+        return completed_history(rows)[-self.memory_manager.window_turns * 2:]
 
     async def _compress_memory(self, session_id: str, force: bool = False):
         history = self.memory_manager.get_history(session_id)

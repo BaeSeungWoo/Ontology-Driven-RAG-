@@ -60,22 +60,19 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
   const [messageJump, setMessageJump] = useState<{ messageId: number } | null>(null);
   const [historyRefreshKey, setHistoryRefreshKey] = useState(0);
   const [composerEpoch, setComposerEpoch] = useState(0);
-  const [isSending, setIsSending] = useState(false);
   const [recommendationsEnabled, setRecommendationsEnabled] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const settingsAtOpenRef = useRef<{ mode: LlmMode; persona: PersonaType } | null>(null);
-  const [recommendationSendError, setRecommendationSendError] = useState("");
-  const sendingRef = useRef(false);
   const isSessionResetPendingRef = useRef(false);
   const isHistorySessionSyncingRef = useRef(false);
 
-  const { messages, sendQuestion, retryLastAnswer, loadSessionMessages, resetChatState, isLoading, isSessionLoading, error } = useChat({
+  const { messages, sendQuestion, stopAnswer, retryLastAnswer, loadSessionMessages, resetChatState, pendingSessions, unreadAnswers, markAnswerRead, historyRevision, isLoading, isSessionLoading, error } = useChat({
     selectedSessionId,
     onSessionId: (id) => {
       setSelectedSessionId(id);
       isSessionResetPendingRef.current = false;
     },
-    onHistoryRefresh: () => setHistoryRefreshKey((prev) => prev + 1),
+    factoryId,
   });
 
   const previousSettingsRef = useRef<{
@@ -106,9 +103,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
   // 기능/목적: 새 질문 시작과 질문 전송 시 세션 생성 정책을 한곳에서 처리한다.
   // In: QuestionPayload / Out: 메시지 전송, 세션 상태 초기화 또는 갱신
   const resetToNewSession = () => {
-    if (sendingRef.current) return;
     setIsCitationCollapsed(true);
-    setRecommendationSendError("");
     setComposerEpoch(previous => previous + 1);
     setSelectedSessionId(null);
     setActiveAssistantMessageId(null);
@@ -137,58 +132,36 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
   };
 
   const handleDeleteSession = (sessionId: number) => {
+    const unread = unreadAnswers.get(sessionId);
+    if (unread !== undefined) markAnswerRead(sessionId, unread);
     if (selectedSessionId !== sessionId) return;
     resetToNewSession();
   };
 
   const handleSendQuestion = async (payload: QuestionPayload) => {
-    if (sendingRef.current || isSessionLoading || isPromptRequiredMissing) return false;
+    if (isLoading || isSessionLoading || isPromptRequiredMissing) return false;
     setIsCitationCollapsed(false);
-    setRecommendationSendError("");
-    sendingRef.current = true;
-    setIsSending(true);
-    try {
-      const shouldForceNewSession = isSessionResetPendingRef.current;
-      const isSuccess = await sendQuestion({
-        ...payload,
-        machineCode: selectedMachineCode,
-        forceNewSession: shouldForceNewSession,
-      });
-
-      if (isSuccess && shouldForceNewSession) {
-        isSessionResetPendingRef.current = false;
-      }
-      return isSuccess;
-    } finally {
-      sendingRef.current = false;
-      setIsSending(false);
-    }
+    return sendQuestion({
+      ...payload,
+      machineCode: selectedMachineCode,
+      forceNewSession: isSessionResetPendingRef.current,
+    });
   };
 
   const handleRetryAnswer = async () => {
-    if (sendingRef.current || isSessionLoading || isPromptRequiredMissing) return;
-    sendingRef.current = true;
-    setIsSending(true);
-    setRecommendationSendError("");
-    try {
-      await retryLastAnswer({
-        llmModel: selectedLlmModel, llmMode: selectedLlmMode, personaType: selectedPersonaType,
-      });
-    } finally {
-      sendingRef.current = false;
-      setIsSending(false);
-    }
+    if (isLoading || isSessionLoading || isPromptRequiredMissing) return;
+    await retryLastAnswer({
+      llmModel: selectedLlmModel, llmMode: selectedLlmMode, personaType: selectedPersonaType,
+    });
   };
 
   // 함수: 히스토리 세션 복원
   // 기능/목적: 선택한 히스토리의 메시지와 질문 설정을 현재 화면에 동기화한다.
   // In: sessionId, sessionMeta / Out: 세션 메시지 로드 및 설정 state 갱신
   const handleSelectSession = async (sessionId: number, sessionMeta?: HistorySessionMeta) => {
-    if (sendingRef.current) return;
     setMessageJump(null);
     setIsCitationCollapsed(false);
     setRecommendationsEnabled(false);
-    setRecommendationSendError("");
     setComposerEpoch(previous => previous + 1);
     isHistorySessionSyncingRef.current = true;
     isSessionResetPendingRef.current = false;
@@ -300,7 +273,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
     previousSettingsRef.current = nextSettings;
   }, [questioner, selectedLlmModel, selectedLlmMode, selectedPersonaType, selectedSessionId, isSettingsOpen]);
 
-  const isWelcome = messages.length === 0 && selectedSessionId === null && !isSessionLoading;
+  const isWelcome = messages.length === 0 && selectedSessionId === null && !isSessionLoading && !isLoading;
   const lastUserMessage = messages.findLast(message => message.role === "user");
   const lastAnswerMessage = messages.findLast(message => message.role === "assistant");
   const recommendationSource = isWelcome ? ({ operator: "manual", maintenance: "ladder", engineer: "electrical", manager: "cms_manager" } as const)[selectedPersonaType]
@@ -309,7 +282,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
     : selectedLlmMode === "electrical" ? "electrical"
     : selectedLlmMode === "cms" && selectedPersonaType === "manager" ? "cms_manager" : null;
   const prepareRecommendations = isWelcome || (recommendationsEnabled || (isSettingsOpen && messages.length === 0 && selectedSessionId === null)) &&
-    !isSending && !isLoading && !isSessionLoading && !error &&
+    !isLoading && !isSessionLoading && !error && !lastAnswerMessage?.metadata?.request_failed &&
     (selectedLlmModel === "ollama_config" || selectedLlmModel === "vllm_config") && recommendationSource !== null;
   const recommendations = !machineUnavailable && !featureUnavailable && prepareRecommendations && recommendationSource ? (
     <RecommendedQuestions
@@ -322,14 +295,13 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
       sessionId={selectedSessionId}
       question={lastUserMessage?.content ?? ""}
       answer={lastAnswerMessage?.content ?? ""}
-      canSend={!isPromptRequiredMissing && !isSending && !isLoading && !isSessionLoading}
+      canSend={!isPromptRequiredMissing && !isLoading && !isSessionLoading}
       onSelect={async question => {
         if (isPromptRequiredMissing) return;
-        const success = await handleSendQuestion({
+        await handleSendQuestion({
           question, questioner,
           llmModel: selectedLlmModel, llmMode: selectedLlmMode, personaType: selectedPersonaType,
         });
-        if (!success) setRecommendationSendError("추천질문을 전송하지 못했습니다. 질문 입력창에서 다시 시도해 주세요.");
       }}
     />
   ) : null;
@@ -338,17 +310,17 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
   return (
     <div className={`${styles.chatPage} tw-chat-page`}>
       <AppHeader onStartNewChat={resetToNewSession}>
-        <div className={styles.headerSettings} inert={isSending}>
-          <FactorySelect disabled={isSending || isLoading || isSessionLoading || isSettingsOpen} onChange={factory => {
+        <div className={styles.headerSettings}>
+          <FactorySelect disabled={isSessionLoading || isSettingsOpen} onChange={factory => {
             resetToNewSession();
             setRecommendationsEnabled(true);
             setFactoryId(factory);
           }} />
           <PromptSetting
             selectedMachineCode={selectedMachineCode}
-            machineSelectionDisabled={isSending || isLoading || isSessionLoading}
+            machineSelectionDisabled={isSessionLoading}
             onSelectMachineCode={code => {
-              if (sendingRef.current || isSessionLoading || !machines.some(machine => machine.machine_code === code && machine.can_select)) return;
+              if (isSessionLoading || !machines.some(machine => machine.machine_code === code && machine.can_select)) return;
               resetToNewSession();
               setSelectedMachineCode(code);
             }}
@@ -367,7 +339,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
       </AppHeader>
 
       <ResizableChatLayout isCitationCollapsed={isCitationCollapsed} isWelcome={isWelcome}>
-        <aside className="tw-chat-left" inert={isSending || machineStatus !== "ready"}>
+        <aside className="tw-chat-left" inert={machineStatus !== "ready"}>
           <section
             className={styles.chatHistoryPane}
           >
@@ -378,7 +350,9 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
               onStartNewChat={resetToNewSession}
               onDeleteSession={handleDeleteSession}
               onHistoryRefresh={() => setHistoryRefreshKey((prev) => prev + 1)}
-              refreshKey={historyRefreshKey}
+              refreshKey={historyRefreshKey + historyRevision}
+              pendingSessions={pendingSessions}
+              unreadAnswers={unreadAnswers}
             />
           </section>
 
@@ -406,7 +380,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
                   return (
                     <button key={persona.value} type="button" className={`${styles.personaCard} ${personaStyles.theme}`} data-persona={persona.value}
                       aria-pressed={selectedPersonaType === persona.value}
-                      disabled={isSending || isLoading || (machineUnavailable || Boolean(unavailable))}
+                      disabled={machineUnavailable || Boolean(unavailable)}
                       title={unavailable || undefined}
                       onClick={() => {
                         setSelectedPersonaType(persona.value);
@@ -431,6 +405,8 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
               <div className={styles.chatAnswerMain}>
                 <Answer
                   ladderMode={selectedPersonaType === "maintenance" && selectedLlmMode === "ladder"}
+                  unreadMessageId={selectedSessionId === null ? undefined : unreadAnswers.get(selectedSessionId)}
+                  onAnswerRead={markAnswerRead}
                   messageJump={messageJump}
                   canExplainFigure={selectedLlmModel === "vllm_config"}
                   recommendations={messages.length === 0 ? recommendations : null}
@@ -440,6 +416,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
                   onActiveAssistantChange={handleActiveAssistantChange}
                   onCitationSelect={handleCitationSelect}
                   isGenerating={isLoading}
+                  onStop={stopAnswer}
                   onRetry={handleRetryAnswer}
                   showHeader={false}
                 />
@@ -456,11 +433,10 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
             {featureUnavailable && <p role="status">{featureUnavailable}</p>}
             {selectedMachine?.readiness === "partial" && <p role="status">일부 미구축 · 등록 문서 {selectedMachine.document_count}개 중 {selectedMachine.searchable_document_count}개 검색 가능</p>}
             {error && <p role="alert">{error}</p>}
-            {recommendationSendError && <p role="alert">{recommendationSendError}</p>}
             <Question
               key={composerEpoch}
               welcome={isWelcome}
-              isBusy={isSending || isLoading || isSessionLoading || machineUnavailable || Boolean(featureUnavailable)}
+              isBusy={isLoading || isSessionLoading || machineUnavailable || Boolean(featureUnavailable)}
               questioner={questioner}
               selectedLlmModel={selectedLlmModel}
               selectedLlmMode={selectedLlmMode}

@@ -1,6 +1,9 @@
 """Search manual graphs for the question belonging to a selected answer."""
+import asyncio
+import json
 import logging
 import os
+from functools import lru_cache
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import JSONResponse
@@ -13,6 +16,8 @@ from app.core.knowledge_graph import (
     build_question_graph,
 )
 from app.core.controller_graph import controller_graph, factory_graph
+from app.core.manual_query import manual_query_messages
+from app.core.memory_manager import completed_history
 from app.database import database
 from app.factories.machines import load_machine_info, request_factory
 from app.routers.explanation_stream import explanation_response
@@ -28,7 +33,23 @@ class KnowledgeGraphRequest(BaseModel):
     snapshot: str | None = Field(default=None, max_length=64)
 
 
-def load_question(message_id: int, request: Request) -> tuple[str, str, str]:
+class ManualSearchQuestion(BaseModel):
+    query: str = Field(min_length=1)
+
+
+@lru_cache(maxsize=64)
+def restore_graph_query(question, model_key, history):
+    from app.core.graph_model import graph_completion
+    from app.factories.config import CONFIGS
+    messages = manual_query_messages(question, [{"role": role, "content": text} for role, text in history])
+    try:
+        content, _ = asyncio.run(graph_completion(CONFIGS[model_key], messages, ManualSearchQuestion))
+        return ManualSearchQuestion.model_validate_json(content).query.strip() or question
+    except Exception as exc:
+        raise HTTPException(502, "이전 대화에서 검색 문맥을 복원하지 못했습니다. 다시 시도해 주세요.") from exc
+
+
+def load_question(message_id: int, request: Request) -> tuple[str, str, str, str]:
     ctx = resolve_request_code(
         request, load_machine_info(request), {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
     )
@@ -37,7 +58,8 @@ def load_question(message_id: int, request: Request) -> tuple[str, str, str]:
         raise HTTPException(404, "선택한 답변을 찾을 수 없습니다.")
     machine = validate_code(ctx, database.getChatSessionInfo(session_id))
     question = None
-    for row in database.getChatMessagesBySession(session_id):
+    rows = database.getChatMessagesBySession(session_id)
+    for pos, row in enumerate(rows):
         if row[0] == message_id:
             if row[2] != "assistant":
                 raise HTTPException(400, "답변을 선택한 뒤 지식그래프를 열어 주세요.")
@@ -48,9 +70,23 @@ def load_question(message_id: int, request: Request) -> tuple[str, str, str]:
             from app.factories.config import CONFIGS
             if row[6] not in CONFIGS:
                 raise HTTPException(400, "기존 답변의 모델 설정을 찾을 수 없습니다.")
-            return question.strip(), machine, row[6]
+            try:
+                metadata = json.loads(row[8]) if isinstance(row[8], str) else row[8]
+            except ValueError:
+                metadata = None
+            intent = metadata.get("intent") if isinstance(metadata, dict) else None
+            query = intent.get("search_query") if isinstance(intent, dict) else None
+            if isinstance(query, str) and query.strip():
+                query = query.strip()
+            else:
+                history = completed_history(rows[:question_pos])[-10:]
+                query = restore_graph_query(question, row[6], tuple((m["role"], m["content"]) for m in history)) if history else question.strip()
+            if len(query) > 10000:
+                raise HTTPException(400, "지식그래프 검색은 10,000자 이내의 질문을 지원합니다.")
+            return question.strip(), query, machine, row[6]
         if row[2] == "user":
             question = row[3]
+            question_pos = pos
     raise HTTPException(404, "선택한 답변을 찾을 수 없습니다.")
 
 
@@ -72,18 +108,19 @@ def search_question(question: str, machine: str, model_key: str, factory_id: str
 
 @knowledgeGraphRouter.post("")
 def knowledge_graph(req: KnowledgeGraphRequest, request: Request):
-    result = search_question(*load_question(req.message_id, request), request_factory(request))
+    original, query, machine, model_key = load_question(req.message_id, request)
+    result = search_question(query, machine, model_key, request_factory(request))
     return JSONResponse(
-        {key: result[key] for key in ("question", "corpora", "datasets", "snapshot") if key in result},
+        {"question": original, **{key: result[key] for key in ("corpora", "datasets", "snapshot") if key in result}},
         headers={"Cache-Control": "no-store"},
     )
 
 
 @knowledgeGraphRouter.post("/answer")
 async def answer_knowledge_graph(req: KnowledgeGraphRequest, request: Request):
-    question, machine, model_key = await run_in_threadpool(load_question, req.message_id, request)
+    original, question, machine, model_key = await run_in_threadpool(load_question, req.message_id, request)
     # Leave room for both manuals and the response in the configured 8,192-token model.
-    if len(question) > 1500:
+    if max(len(original), len(question)) > 1500:
         raise HTTPException(400, "지식그래프 기반 답변은 1,500자 이내의 질문을 지원합니다. 질문을 간추려 다시 질문해 주세요.")
     result = await run_in_threadpool(search_question, question, machine, model_key, request_factory(request))
     if req.snapshot and result.get("snapshot") != req.snapshot:

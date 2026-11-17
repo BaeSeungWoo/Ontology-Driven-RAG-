@@ -4,6 +4,8 @@ from typing import Literal
 import json
 import traceback
 import os
+from fastapi.responses import StreamingResponse
+from app.core import answer_jobs
 from app.database import database
 from app.factories.config import get_factory_config
 from app.factories.machines import load_machine_info, request_factory
@@ -100,6 +102,7 @@ def _row_to_history_json(row):
         "createdAt": row[6],
         "updatedAt": row[7],
         "promptName": row[8],
+        "isPinned": bool(row[9]),
     }
 
 
@@ -142,6 +145,7 @@ def getHistoryPagination(req: HistoryPaginationRequest, client_request: Request)
     try:
         page, page_size = _sanitize_page(req.page, req.page_size)
         histories = _history_rows_to_json(database.getHistoryList(machine_code, request_factory(client_request)), client_request)
+        histories.sort(key=lambda row: row["isPinned"], reverse=True)
         rows, total_count, total_pages, safe_page = _paginate_rows(histories, page, page_size)
         safe_page_size = page_size
 
@@ -282,8 +286,25 @@ def createSession(req: CreateSessionRequest, client_request: Request):
         raise HTTPException(status_code=500, detail=f"newSession error: {str(e)}")
 
 
+class SessionPinRequest(BaseModel):
+    is_pinned: bool
+
+
+@historyRouter.put("/sessions/{session_id}/pin")
+def setSessionPinned(session_id: int, req: SessionPinRequest, client_request: Request):
+    ctx = resolve_request_code(
+        request=client_request,
+        machines=load_machine_info(client_request),
+        main_server_ips={os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")},
+    )
+    validate_code(ctx, database.getChatSessionInfo(session_id))
+    if not database.setSessionPinned(session_id, req.is_pinned):
+        raise HTTPException(status_code=404, detail="세션을 찾을 수 없습니다.")
+    return {"isPinned": req.is_pinned}
+
+
 @historyRouter.delete("/sessions/{session_id}")
-def deleteChatSession(session_id: int, client_request: Request):
+async def deleteChatSession(session_id: int, client_request: Request):
     machine_info = load_machine_info(client_request)
     ctx = resolve_request_code(
         request=client_request,
@@ -294,6 +315,9 @@ def deleteChatSession(session_id: int, client_request: Request):
     session_info = database.getChatSessionInfo(session_id)
     validate_code(ctx, session_info)
 
+    if session_id in answer_jobs.active:
+        raise HTTPException(409, "답변 생성을 중단한 뒤 대화를 삭제해 주세요.")
+
     try:
         database.deleteChatSession(session_id)
         return {"result": "success"}
@@ -301,6 +325,36 @@ def deleteChatSession(session_id: int, client_request: Request):
         print("[history/sessions] delete error:", e)
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"deleteChatSession error: {str(e)}")
+
+
+def authorized_job(session_id, client_request):
+    ctx = resolve_request_code(client_request, load_machine_info(client_request),
+                               {os.getenv("MAIN_SERVER_URL", "MSSQL_HOST")})
+    validate_code(ctx, database.getChatSessionInfo(session_id))
+    return answer_jobs.active.get(session_id)
+
+
+@historyRouter.get("/sessions/{session_id}/answers/{message_id}")
+async def watch_answer(session_id: int, message_id: int, client_request: Request):
+    job = authorized_job(session_id, client_request)
+    if job and job.message_id == message_id:
+        return StreamingResponse(job.stream(), media_type="application/x-ndjson",
+                                 headers={"Cache-Control": "no-store", "X-Accel-Buffering": "no"})
+    rows = database.getChatMessagesBySession(session_id)
+    row = next((r for r in rows if r[0] == message_id and r[2] == "assistant"), None)
+    if not row:
+        raise HTTPException(404, "답변을 찾을 수 없습니다.")
+    meta = json.loads(row[8] or "{}")
+    return {"message_id": message_id, "content": row[3], "metadata": meta,
+            "status": meta.get("generation_status", "failed")}
+
+
+@historyRouter.post("/sessions/{session_id}/answers/{message_id}/stop")
+async def stop_answer(session_id: int, message_id: int, generation_id: str, client_request: Request):
+    job = authorized_job(session_id, client_request)
+    if job and job.message_id == message_id and job.metadata["generation_id"] == generation_id:
+        job.stop()
+    return {"result": "success"}
 
 
 @historyRouter.post("/getMessages")
@@ -328,13 +382,17 @@ def getMessages(req: GetMessagesRequest, client_request: Request):
                 except (TypeError, ValueError, json.JSONDecodeError):
                     metadata = None
 
+            job = answer_jobs.active.get(req.session_id)
+            running = job and job.message_id == row[0]
+            if running:
+                metadata = {**job.metadata, "generation_status": "running"}
             json_data.append(
                 {
                     "message_id": row[0],
                     "session_id": row[1],
                     "machine_code": session_info["machine_code"],
                     "role": row[2],
-                    "content": row[3],
+                    "content": job.content if running else row[3],
                     "created_at": created_at,
                     "questioner": row[5],
                     "model": row[6],
