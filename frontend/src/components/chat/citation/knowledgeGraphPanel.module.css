@@ -87,7 +87,9 @@
 .workspace { display: grid; grid-template-columns: minmax(0, 1fr); min-width: 0; }
 .expanded .workspace { flex: 1; min-height: 0; }
 .expanded .frame { min-height: 0; height: 100%; }
-.viewer:not(.expanded) .frame { container-type: inline-size; height: auto; }
+.viewer:not(.expanded) { flex-shrink: 1; min-height: 0; }
+.viewer:not(.expanded) .workspace { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+.viewer:not(.expanded) .frame { display: grid; grid-template-rows: minmax(0, 1fr); min-height: 0; container-type: inline-size; }
 .withAnswer { grid-template-columns: var(--graph-width) 14px minmax(0, 1fr); }
 .divider { display: grid; place-items: center; touch-action: none; cursor: col-resize; }
 .divider::after { content: ""; width: 3px; height: 42px; border-radius: 2px; background: var(--chat-pane-border); }

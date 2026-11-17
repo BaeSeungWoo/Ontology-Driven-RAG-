@@ -22,11 +22,13 @@
 .legend i { width: 10px; height: 10px; border-radius: 50%; }
 .canvas { display: block; width: 100%; min-height: 120px; max-height: 360px; flex: 1 0 120px; touch-action: none; user-select: none; font-size: 12px; }
 .canvas [data-node], .canvas [data-relation] { cursor: pointer; }
-.preview { padding: 10px; }
+.preview { display: flex; flex-direction: column; min-height: 0; padding: 10px; }
 .preview .field { margin: 0; font-size: 12px; }
 .preview .field select { min-width: 0; font-size: 13px; }
-.preview .canvas { min-height: 180px; max-height: none; }
+.preview .field, .preview .bar { flex: none; }
+.preview .canvas { flex: 0 1 auto; min-height: 0; max-height: 360px; margin-block: 6px; overflow: hidden; }
 .preview .canvas, .preview .canvas * { cursor: grab; }
+.preview .canvas:active, .preview .canvas:active * { cursor: grabbing; }
 .preview .bar { justify-content: center; }
 .preview .zoom button { padding: 3px 8px; min-height: 28px; font-size: 12px; }
 .caption { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; overflow-wrap: anywhere; font: 12px/14px system-ui, sans-serif; }
