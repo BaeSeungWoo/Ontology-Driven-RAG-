@@ -25,7 +25,7 @@
 .preview { padding: 10px; }
 .preview .field { margin: 0; font-size: 12px; }
 .preview .field select { min-width: 0; font-size: 13px; }
-.preview .canvas { height: clamp(185px, 72cqw, min(340px, 44dvh)); }
+.preview .canvas { min-height: 180px; max-height: none; }
 .preview .canvas, .preview .canvas * { cursor: grab; }
 .preview .bar { justify-content: center; }
 .preview .zoom button { padding: 3px 8px; min-height: 28px; font-size: 12px; }

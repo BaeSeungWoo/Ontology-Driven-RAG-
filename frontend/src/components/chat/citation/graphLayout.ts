@@ -2,7 +2,7 @@ import type { GraphNode, GraphEdge } from "@/services/knowledgeGraphApi";
 
 export type Point = { x: number; y: number };
 
-export function graphLayout(nodes: GraphNode[], edges: GraphEdge[], width: number, height: number) {
+export function graphLayout(nodes: GraphNode[], edges: GraphEdge[], width: number, height: number, preview = false) {
   const positions = new Map<string, Point>();
   const center = nodes.find(node => node.kind === "query") ?? nodes[0];
   if (!center) return { positions, fit: 1 };
@@ -28,7 +28,8 @@ export function graphLayout(nodes: GraphNode[], edges: GraphEdge[], width: numbe
   if (disconnected.length) rings.push(disconnected);
   positions.set(center.id, { x: 0, y: 0 });
   const angles = new Map<string, number>();
-  const ry = Math.max(70, height / 2 - 48);
+  // Preview height follows the labels, so lay out its rings independently of the measured height.
+  const ry = Math.max(70, (preview ? Math.min(width, 320) : height) / 2 - 48);
   const rx = Math.max(80, width / 2 - 72);
   rings.slice(1).forEach((ring, index) => {
     const step = 2 * Math.PI / ring.length;
@@ -39,7 +40,7 @@ export function graphLayout(nodes: GraphNode[], edges: GraphEdge[], width: numbe
       dx += Math.cos(angle - i * step);
       dy += Math.sin(angle - i * step);
     });
-    const start = Math.hypot(dx, dy) > 0.001 ? Math.atan2(dy, dx) : -Math.PI / 2;
+    const start = Math.hypot(dx, dy) > 0.001 ? Math.atan2(dy, dx) : preview && ring.length <= 2 ? 0 : -Math.PI / 2;
     const fraction = (index + 1) / (rings.length - 1);
     ring.forEach((id, i) => {
       const angle = start + i * step;
@@ -70,6 +71,18 @@ export function graphLayout(nodes: GraphNode[], edges: GraphEdge[], width: numbe
       }
     });
     if (!moved) break;
+  }
+  if (preview) {
+    const left = Math.min(...boxes.map(b => b.point.x - b.width / 2));
+    const right = Math.max(...boxes.map(b => b.point.x + b.width / 2));
+    const top = Math.min(...boxes.map(b => b.point.y - 20));
+    const bottom = Math.max(...boxes.map(b => b.point.y + 56));
+    const fit = Math.min(1.15, (width - 12) / (right - left));
+    for (const point of positions.values()) {
+      point.x -= (left + right) / 2;
+      point.y -= (top + bottom) / 2;
+    }
+    return { positions, fit, previewHeight: Math.ceil((bottom - top) * fit + 20) };
   }
   const maxX = Math.max(...boxes.map(b => Math.abs(b.point.x) + b.width / 2));
   const maxY = Math.max(...boxes.map(b => Math.max(20 - b.point.y, b.point.y + 56)));

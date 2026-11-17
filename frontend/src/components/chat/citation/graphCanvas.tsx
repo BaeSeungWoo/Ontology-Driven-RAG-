@@ -41,7 +41,8 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
   const [dragged, setDragged] = useState<Record<string, Point>>({});
   const drag = useRef<{ start: Point; id?: string; initial: Point; moved: boolean } | null>(null);
   const { width, height } = size;
-  const { positions, fit } = useMemo(() => graphLayout(nodes, edges, width, height), [nodes, edges, width, height]);
+  const preview = !onSelect;
+  const { positions, fit, previewHeight } = useMemo(() => graphLayout(nodes, edges, width, height, preview), [nodes, edges, width, height, preview]);
   const point = (id: string) => dragged[id] ?? positions.get(id)!;
   useEffect(() => {
     const element = svg.current!;
@@ -67,7 +68,8 @@ export default function GraphCanvas({ nodes, edges, selected, onSelect, view, co
   }
   const nodeSelected = positions.has(selected);
   return <>
-    <svg ref={svg} className={styles.canvas} viewBox={`0 0 ${width} ${height}`} role={onSelect ? "group" : "img"} aria-label="매뉴얼 검색 그래프"
+    <svg ref={svg} className={styles.canvas} style={preview ? { height: previewHeight } : undefined}
+      viewBox={`0 0 ${width} ${height}`} role={onSelect ? "group" : "img"} aria-label="매뉴얼 검색 그래프"
       onPointerDown={event => {
         if (event.button !== 0) return;
         const target = event.target as Element;
