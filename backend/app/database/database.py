@@ -133,12 +133,12 @@ def getHistoryList(machine_code, factory_id):
                 """
                 SELECT CH.SESSION_ID, CH.QUESTIONER, CH.TITLE, CH.LLM_MODEL,
                        CH.LLM_MODE, CH.PROMPT_NO, CH.CREATED_AT, CH.UPDATED_AT,
-                       p.PROMPT_NAME
+                       p.PROMPT_NAME, CH.IS_PINNED
                 FROM dbo.CHAT_HISTORY CH
                 LEFT JOIN dbo.PROMPT_TB p ON CH.PROMPT_NO = p.PROMPT_NO
                 WHERE CH.FACTORY = ?
                   AND (? = 'ALL' OR ? IS NULL OR CH.MACHINE_CODE = ?)
-                ORDER BY CH.UPDATED_AT DESC
+                ORDER BY CH.UPDATED_AT DESC, CH.SESSION_ID DESC
                 """,
                 (history_factory_id(factory_id), machine_code, machine_code, machine_code),
             )
@@ -393,6 +393,18 @@ def getHistoryAnswers(session_ids, feedback=None):
 
 # 세션 id 및 소속 장비코드
 @with_thread_pool("db")
+def setSessionPinned(session_id, is_pinned):
+    with get_db_connection() as conn:
+        conn.autocommit = True
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "UPDATE dbo.CHAT_HISTORY SET IS_PINNED = ? OUTPUT inserted.SESSION_ID WHERE SESSION_ID = ?",
+                (is_pinned, session_id),
+            )
+            return cursor.fetchone() is not None
+
+
+@with_thread_pool("db")
 def getChatSessionInfo(session_id):
     with get_db_connection() as conn:
         conn.autocommit = True
@@ -426,6 +438,24 @@ def getChatSessionInfo(session_id):
     }
 
 # CHAT_MESSAGE 질문 / 답변(Temp) 저장
+@with_thread_pool("db")
+def createAnswerTurn(session_id, question):
+    with get_db_connection() as conn:
+        conn.autocommit = False
+        try:
+            with conn.cursor() as cursor:
+                insert = ("INSERT INTO dbo.CHAT_MESSAGE (SESSION_ID, ROLE, CONTENT) "
+                          "OUTPUT INSERTED.MESSAGE_ID VALUES (?, ?, ?)")
+                user_id = cursor.execute(insert, session_id, "user", question).fetchone()[0]
+                answer_id = cursor.execute(insert, session_id, "assistant", "").fetchone()[0]
+                cursor.execute("UPDATE dbo.CHAT_HISTORY SET UPDATED_AT = SYSDATETIME() WHERE SESSION_ID = ?", session_id)
+            conn.commit()
+            return user_id, answer_id
+        except Exception:
+            conn.rollback()
+            raise
+
+
 @with_thread_pool("db")
 def createChatMessage(session_id, role, content):
     conn = None

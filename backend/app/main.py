@@ -1,4 +1,4 @@
-﻿# backend/app/main.py
+# backend/app/main.py
 
 import json
 import uvicorn
@@ -12,7 +12,6 @@ from fastapi.responses import Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-import dotenv
 import os
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
@@ -21,6 +20,8 @@ if str(ROOT_DIR) not in sys.path:
 
 from app.factories.config import CONFIGS, get_factory_config
 from app.factories.machines import request_factory
+from app.core.memory_manager import completed_history
+from app.core import answer_jobs
 from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
@@ -38,7 +39,7 @@ from app.routers.voiceRouter import voiceRouter
 from app.routers.ladderRouter import ladderRouter
 from app.routers.knowledgeGraphRouter import knowledgeGraphRouter
 
-dotenv.load_dotenv("app/.env.back")
+
 
 from .database import database
 from .database.thread_pool_manager import initialize_thread_pools, get_db_thread_pool, get_api_thread_pool
@@ -88,6 +89,8 @@ def get_client_ip_nginx(request: Request) -> str:
     return request.client.host if request.client else "Unknown IP"
 
 class ChatRequest(BaseModel):
+    background: bool = False
+    retry_message_id: int | None = None
     machine_code: str | None = None
     session_id: str
     question: str
@@ -140,9 +143,8 @@ async def recommendation_endpoint(request: RecommendationRequest, client_request
         conversation = []
         if request.session_id is not None:
             rows = database.getChatMessagesBySession(request.session_id)
-            asked_questions = [row[3] for row in rows if row[2] == "user" and row[3]]
-            conversation = [{"role": row[2], "content": row[3]} for row in rows
-                            if row[2] in ("user", "assistant") and row[3]]
+            conversation = completed_history(rows)
+            asked_questions = [message["content"] for message in conversation if message["role"] == "user"]
         if not request.question and not request.answer and not asked_questions:
             generation = service.initial_question_cache.get(service, machine_code, source=request.source)
         else:
@@ -209,6 +211,10 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code
         )
+
+    if request.background:
+        return answer_jobs.start(int(request.session_id), request.question, request.mode,
+                                 request.persona_type, request.retry_message_id, answer_events)
 
     async def event_generator():
         async for event in answer_events():

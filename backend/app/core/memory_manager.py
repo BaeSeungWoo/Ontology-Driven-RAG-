@@ -1,9 +1,31 @@
 # app/core/memory_manager.py
 
+import json
 from collections import OrderedDict, defaultdict
 
 
 SUMMARY_PREFIX = "[이전 대화 요약]"
+
+
+def completed_history(rows):
+    """Build model context from adjacent user/assistant pairs in database order."""
+    messages = []
+    for question, answer in zip(rows, rows[1:]):
+        if question[2] != "user" or answer[2] != "assistant" or not question[3] or not answer[3]:
+            continue
+        metadata = answer[8]
+        if isinstance(metadata, str):
+            try:
+                metadata = json.loads(metadata)
+            except ValueError:
+                metadata = None
+        if isinstance(metadata, dict) and (
+            metadata.get("request_failed") or metadata.get("generation_status", "completed") != "completed"
+        ):
+            continue
+        messages.extend(({"role": "user", "content": question[3]},
+                         {"role": "assistant", "content": answer[3]}))
+    return messages
 
 
 class MemoryManager:

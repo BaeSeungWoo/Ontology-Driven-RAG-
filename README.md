@@ -173,6 +173,23 @@ SSH 터널은 `ssh -N -p 10521 -L 8100:127.0.0.1:8000 -L 8101:127.0.0.1:8001 wor
 `--embedding-provider openai --embedding-url http://127.0.0.1:8101/v1`을 사용할 수 있습니다.
 이 옵션은 운영 검색 설정을 자동 변경하지 않으므로 검색도 빌드와 같은 모델·API로 맞춰야 합니다.
 
+백엔드의 `backend/app/.env.back`에서 `FACTORY_IDS`를 표시할 순서대로 지정합니다.
+각 ID의 표시명은 `pipeline/data/{id}/factory.json`의 `display_name`에서 읽습니다.
+단독 배포에서는 예를 들어 `FACTORY_IDS=test`와 `{"display_name":"테스트 공장"}`을 설정합니다.
+보고서 DB의 기존 `FACTORY_ID` 설정값은 `REPORT_FACTORY_ID`로 옮깁니다.
+프런트엔드 설정 파일은 `frontend/.env.local`입니다.
+
+일반 공장의 장비 문서 연결은 `backend/app/factories/machine_info_{id}.json`에서 관리합니다.
+매뉴얼 원본과 추출물을 해당 공장 inputs에 넣은 뒤 다음 명령으로 최초 빌드 및 변경 반영을 수행합니다.
+
+```powershell
+python -m pipeline.build_db --factory test --stage all
+```
+
+Chroma와 FAISS는 본문이 같은 청크의 벡터를 재사용합니다. 변경 시 FAISS 파일과 BM25 및 장비 검색 SQLite를 갱신합니다.
+문서의 마지막 장비 연결을 삭제하면 검색에서도 제외합니다. 페이지·표 그래프는 공장 폴더의 `graph/documents`에 문서당 한 번 저장하고
+`graph/catalog.json`에서 장비별 문서를 찾습니다. PDF만 추가한 경우에는 먼저 해당 PDF의 OCR 추출물을 준비하세요.
+
 ```powershell
 # 폴더만 생성. 기존 파일은 그대로 유지.
 python -m pipeline.build_db --factory yulkok --stage init
@@ -200,7 +217,7 @@ python -m pipeline.build_db --factory yulkok --stage multimodal --output-root C:
 `--output-root`는 출력만 변경합니다. 입력과 struct는 원래 공장 폴더에서 읽습니다.
 공용 인덱스 생성 후 `inputs/repairHistory/*.xls`, `inputs/knowledge/*.txt`도
 기존 수리사례 인덱서로 처리합니다. `--maintenance-only`로 이 단계만 실행할 수 있습니다.
-KG와 멀티모달은 공용 인덱스 단계에서 자동 실행하지 않습니다.
+OpenIE KG와 멀티모달은 별도 단계입니다. 매뉴얼 페이지·표 그래프는 `--stage all`에서 갱신합니다.
 멀티모달은 준비된 manual/controller 문서에 대응하는 PDF만 렌더링합니다.
 전기도면의 별도 엔진은 이 명령에서 실행하지 않으며 기존 설정을 유지합니다.
 
@@ -233,7 +250,7 @@ electrical도 공용 전처리 대상에서 제외합니다. ZIP 보고서·숨�
 그림 JPG와 HTML 표 내용을 담은 MD는 `asset/paddleocr/<문서ID>/`에 보존합니다.
 머리말·꼬리말 등은 검색 청크에서 제외하되 전체 블록에는 보존합니다.
 변환 통계와 찾지 못한 그림은 `struct/reports/paddleocr-*.json`에 기록합니다.
-같은 결과 재실행은 기존 파일을 변경하지 않고, 내용이 다르면 덮어쓰지 않고 중단합니다.
+입력 폴더의 파일 목록·크기·수정 시각과 manifest가 같으면 해당 문서의 재변환을 건너뜁니다.
 Docling은 문서 폴더 바로 아래의 `struct/*.jsonl`을 읽고 같은 ChunkRefiner를 사용합니다.
 원시 batch/merge JSON을 다시 파싱하지 않습니다. manifest의 문서명과 원본 SHA256을
 대조하여 별칭 문서명을 연결하고, 서버 절대 자산 경로는 ZIP 내 실제 파일을 확인한 뒤
@@ -257,8 +274,7 @@ Docling 변환 보고서는 `struct/reports/docling-*.json`에 저장합니다.
 빌드에서는 모든 manifest를 함께 읽고 같은 문서는 하나로 합칩니다. 설비 목록은
 manifest의 과거 references가 아니라 현재 machine_info를 사용합니다. 같은 문서의
 폴더명·페이지 수·원본 PDF 해시가 충돌하면 중단합니다. Windows에서 추출물을
-덮어쓸 때 이전 파일이 남아 섞이지 않도록 주의하세요. 기존 생성 결과와 달라진
-추출물은 기존 결과 보호 규칙에 따라 덮어쓰기가 거부되며, 자동 증분 교체는 하지 않습니다.
+덮어쓸 때 이전 파일이 남아 섞이지 않도록 주의하세요. 변경된 추출물을 직접 배치한 뒤 통합 빌드를 실행하면 해당 문서의 변환 결과를 갱신합니다. ZIP 가져오기는 기존 입력 파일과 내용이 충돌하면 중단합니다.
 LAD는 원본 보관 대상이며 현재 LST 파서로 읽지 않습니다.
 
 표준 JSONL은 한 줄에 다음 형태의 청크를 저장합니다. 이것은 외부 OCR의 요구
@@ -273,14 +289,8 @@ LAD는 원본 보관 대상이며 현재 LST 파서로 읽지 않습니다.
 인덱싱 시 `machine_info_{factory}.json`에서 문서 종류와 모든 설비 코드를 다시
 연결하여 `document_type`, `machine_code`, `site_id`, `chunk_id`를 채웁니다.
 확장자와 대소문자, Unicode NFC만 정규화하며 부분 문자열로 연결하지 않습니다.
-공유 문서는 한 번 저장하고 여러 설비에 연결합니다. 미연결 문서, 분류 충돌,
-중복 청크 ID는 빌드를 중단하고 보고합니다. electrical은 공용 인덱스와 KG에서 제외합니다.
-
-기존 인덱스가 있는 출력 경로는 거부하고 `--reset`도 삭제하지 않고 오류를 냅니다.
-전체 struct를 대상으로 새 인덱스를 생성하며, 증분 임베딩 재사용은 아직 구현하지
-않았습니다. 문서 종류 메타데이터는 보존하지만
-이번 변경은 빌드 범위이며, 페르소나별 검색 제한 적용은 별도 작업입니다.
-
+공유 문서는 한 번 저장하고 여러 설비에 연결합니다. 연결이 끊어진 문서는 검색에서 제외합니다.
+문서 분류 충돌과 중복 청크 ID는 빌드를 중단하고 보고합니다. 전기도면은 별도 엔진에서 처리합니다.
 
 ### 공장별 전기도면 인덱스 반입
 
@@ -344,3 +354,13 @@ KG 입력 폴더는 예약만 하며 기존 `--stage kg` 자체 생성 기능과
 | M009 | HERMLE C40 | HERMLE C40#1, HERMLE C-40#2, HERMLE C-40#3 | M009에 해당하는 호기 번호 |
 | M016 | HI-TECH 300S | 화천H-T300 (탭), 화천HI-TECH300 (제목) | 엑셀에서 모델 끝의 S를 생략했는지 여부 |
 | M048 | DMU160 | DMU160P (탭과 제목) | 모델 끝의 P가 같은 장비를 가리키는지 여부 |
+
+### 연암(구) DHF8000의 그래프 기반 답변
+
+연암(구) M005 채팅의 **인용 근거 → 지식그래프 → 지식그래프 기반으로 답변받기**에서 기존 질문을 DHF 장비 조작설명서와 FANUC 제어기 매뉴얼로 다시 검색합니다. 기존 답변은 비교 패널에서 펼칠 수 있습니다. 그래프 답변의 인용 번호를 누르면 해당 본문·표 노드와 같은 번호를 인용한 문장이 함께 강조됩니다.
+
+백엔드는 GraphIndexing의 실제 `index/controller_manuals` 디렉터리를 읽습니다. Git LFS로 복원한 이 디렉터리를 `GRAPH_INDEX_M005_CONTROLLER_DIR`로 지정하거나 `backend/data/graph_indexes/yunam_origin/M005/controller_manuals`에 배치합니다. 인덱스 데이터는 Git에서 제외됩니다. 이 경로는 본문·개체 Parquet의 `content` 열만 사용하며, 같은 행 순서로 추출한 `chunk_content.parquet` 및 `entity_content.parquet`도 인덱스 루트에서 읽을 수 있습니다.
+
+저장소 루트에서 `python pipeline/build_dhf_graph.py`를 실행하면 일반 RAG의 OCR 추출본으로 DHF 장비 인덱스를 만듭니다. 장비 그래프는 이웃 페이지와 각 표의 원본 페이지를 연결하고 한국어 질문으로 검색합니다. 장비 인덱스가 없으면 FANUC만 검색합니다.
+
+검색어 추출과 그래프 답변 생성에는 기존 채팅 세션에 저장된 모델 설정을 사용합니다. DHF는 한국어, FANUC은 영어 검색어를 사용하며, 증상 질문은 대상 기능·부품과 상태를 나누어 검색합니다. 본문·표에서 TF-IDF로 시작 후보를 찾고 원본 통합 그래프의 Personalized PageRank 상위 다섯 근거를 답변에 전달합니다. GraphIndexing의 평가 파이프라인에서 사용하는 OpenAI 임베딩과 fact reranking은 이 검색 경로에 포함되지 않습니다.

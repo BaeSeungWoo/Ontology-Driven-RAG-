@@ -7,19 +7,11 @@ import type { FactoryId } from "@/services/api";
 import styles from "./factorySelect.module.css";
 import listStyles from "./machineSelect.module.css";
 
-const factories: { id: FactoryId; name: string }[] = [
-  { id: "yunam_origin", name: "연암(구)" },
-  { id: "yunam", name: "연암" },
-  { id: "yulkok", name: "율곡" },
-  { id: "poongsan", name: "풍산" },
-  { id: "waff", name: "와프" },
-];
-
 export default function FactorySelect({ disabled, onChange }: {
   disabled: boolean;
   onChange: (factory: FactoryId) => void;
 }) {
-  const { factoryId, status, refreshMachines } = useMachine();
+  const { factories, factoryId, status, refreshMachines } = useMachine();
   const [isOpen, setIsOpen] = useState(false);
   const controlRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -36,6 +28,7 @@ export default function FactorySelect({ disabled, onChange }: {
     return () => document.removeEventListener("pointerdown", closeOutside);
   }, [isOpen]);
 
+  if (factories.length === 1) return <strong>{factories[0].name}</strong>;
   return <div className={styles.control}>
     <div ref={controlRef} className={listStyles.control}
       onBlur={event => {

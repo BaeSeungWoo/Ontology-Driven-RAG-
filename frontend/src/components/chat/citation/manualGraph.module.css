@@ -1,0 +1,43 @@
+.board { padding: 14px; color: var(--chat-title-color); font: 14px/1.55 system-ui, sans-serif; }
+.controls { display: flex; flex-direction: column; height: calc(100cqh - 28px); min-height: min-content; }
+.controls > * { flex-shrink: 0; }
+.board h3 { margin: 0; font-size: 19px; font-weight: 700; }
+.bar, .actions, .legend, .zoom { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.bar { justify-content: space-between; }
+.board small, .legend, .zoom output { font-size: 12px; color: var(--chat-muted-text); }
+.question { display: flex; gap: 10px; align-items: baseline; margin: 8px 0 12px; padding: 8px 12px; border-radius: 5px; background: var(--chat-accent-soft); border-inline-start: 3px solid #1b55cf; font-weight: 600; overflow-wrap: anywhere; }
+.question strong { color: #1b55cf; font-size: 12px; flex: none; }
+.field { display: block; position: relative; margin-top: 10px; font-weight: 600; }
+.field svg { position: absolute; right: 14px; bottom: 11px; pointer-events: none; }
+.field select, .board button { border: 1px solid var(--chat-pane-border, #cfd9e8); background: var(--chat-pane-bg, white); color: inherit; border-radius: 6px; font: inherit; }
+.field select { appearance: none; display: block; width: 100%; padding: 7px 36px 7px 10px; margin-top: 5px; min-height: 38px; text-overflow: ellipsis; }
+.board button { padding: 7px 10px; cursor: pointer; }
+.board button:focus-visible, .field select:focus-visible { outline: 2px solid #1b55cf; }
+.board button:disabled { opacity: .45; cursor: default; }
+.actions { margin: 12px 0; }
+.actions button[aria-pressed=true] { background: var(--chat-accent-soft); border-color: #1b55cf; color: #174fbb; }
+.actions button:last-child { border-color: #1b55cf; color: #174fbb; font-weight: 600; }
+.legend { gap: 6px 14px; margin: 10px 0; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; }
+.canvas { display: block; width: 100%; min-height: 120px; max-height: 360px; flex: 1 0 120px; touch-action: none; user-select: none; font-size: 12px; }
+.canvas [data-node], .canvas [data-relation] { cursor: pointer; }
+.preview { display: flex; flex-direction: column; min-height: 0; padding: 10px; }
+.preview .field { margin: 0; font-size: 12px; }
+.preview .field select { min-width: 0; font-size: 13px; }
+.preview .field, .preview .bar { flex: none; }
+.preview .canvas { flex: 0 1 auto; min-height: 0; max-height: 360px; margin-block: 6px; overflow: hidden; }
+.preview .canvas, .preview .canvas * { cursor: grab; }
+.preview .canvas:active, .preview .canvas:active * { cursor: grabbing; }
+.preview .bar { justify-content: center; }
+.preview .zoom button { padding: 3px 8px; min-height: 28px; font-size: 12px; }
+.caption { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; text-align: center; overflow-wrap: anywhere; font: 12px/14px system-ui, sans-serif; }
+.zoom { gap: 4px; }
+.zoom output { min-width: 5ch; text-align: center; }
+.unlinked { margin-top: 6px; border-radius: 6px; background: #f2f4f7; color: #475569; font-size: 12px; }
+.unlinked summary { padding: 6px 10px; cursor: pointer; }
+.unlinked ul { padding: 0 16px 8px 28px; max-height: 10rem; overflow: auto; }
+.detail { margin-top: 14px; border: 1px solid var(--chat-pane-border); border-radius: 8px; padding: 12px; overflow-wrap: anywhere; }
+.detail h4 { margin: 12px 0; font-size: 16px; font-weight: 700; }
+.detail small { display: block; }
+.detail p { white-space: pre-wrap; margin-top: 12px; }

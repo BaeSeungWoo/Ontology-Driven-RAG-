@@ -1,11 +1,31 @@
 import axios from "axios";
 import api, { API_BASE_URL } from "@/services/api";
 import { streamExplanation, type Explanation } from "@/services/explanationApi";
+import type { ManualSource } from "./explanationApi";
+
+export type GraphNode = {
+  id: string; kind: "query" | "entity" | "passage" | "table"; label: string; content: string;
+  document?: string; pages?: string; caption?: string; rows?: ManualSource["rows"];
+  dense?: boolean; ppr?: boolean; fact?: boolean; final?: boolean;
+  dense_rank?: number; ppr_rank?: number; cosine?: number; ppr_score?: number;
+};
+
+export type GraphEdge = {
+  id: string; source: string; target: string; kind: string; label?: string; cosine?: number;
+  sources?: { document: string; pages: string }[];
+};
+
+export type GraphDataset = {
+  id: string; title: string; nodes: GraphNode[]; edges: GraphEdge[];
+  views: Record<string, { nodes: string[]; edges: string[] }>;
+  index_counts: { entities: number; passages: number; tables: number };
+};
 
 export type KnowledgeGraphResult = {
   question: string;
   corpora: string[];
-  html: string;
+  datasets: GraphDataset[];
+  snapshot?: string;
 };
 
 export async function getKnowledgeGraph(messageId: number, signal: AbortSignal) {
@@ -16,9 +36,9 @@ export async function getKnowledgeGraph(messageId: number, signal: AbortSignal) 
 }
 
 export function streamKnowledgeGraphAnswer(
-  messageId: number, signal: AbortSignal, onUpdate: (result: Explanation) => void,
+  messageId: number, signal: AbortSignal, onUpdate: (result: Explanation) => void, snapshot?: string,
 ) {
-  return streamExplanation("/api/knowledge-graph/answer", { message_id: messageId }, signal, onUpdate,
+  return streamExplanation("/api/knowledge-graph/answer", { message_id: messageId, snapshot }, signal, onUpdate,
     process.env.NEXT_PUBLIC_GRAPH_API_URL ?? API_BASE_URL);
 }
 

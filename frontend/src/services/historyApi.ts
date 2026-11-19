@@ -39,6 +39,10 @@ export async function getHistoryQuestionerCounts(): Promise<HistoryQuestionerCou
   return response.data;
 }
 
+export async function setHistoryPin(sessionId: number, isPinned: boolean): Promise<void> {
+  await api.put(`/api/history/sessions/${sessionId}/pin`, { is_pinned: isPinned });
+}
+
 export async function deleteHistorySession(sessionId: number): Promise<void> {
   await api.delete(`/api/history/sessions/${sessionId}`);
 }

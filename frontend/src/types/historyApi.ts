@@ -1,4 +1,5 @@
 ﻿export type HistoryResponse = {
+  isPinned: boolean;
   sessionId: number;
   machineCode?: string;
   machineName?: string | null;

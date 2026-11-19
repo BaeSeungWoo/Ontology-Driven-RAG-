@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ChevronRight, Plus, Search } from "lucide-react";
 import { formatHistoryDateGroup } from "./historyTime";
 import { useHistoryPanel } from "@/hooks/useHistoryPanel";
-import { deleteHistorySession } from "@/services/historyApi";
+import { deleteHistorySession, setHistoryPin } from "@/services/historyApi";
 import HistoryCard, { type HistoryItem } from "./historyCard";
 import HistorySearch from "./historySearch";
 import styles from "./history.module.css";
@@ -13,11 +13,14 @@ type HistoryProps = {
   onStartNewChat?: () => void;
   onDeleteSession?: (sessionId: number) => void;
   onHistoryRefresh?: () => void;
+  unreadAnswers: ReadonlyMap<number, number>;
+  pendingSessions: Pick<ReadonlyMap<number, unknown>, "has">;
   refreshKey?: number;
 };
 
 export default function History({ selectedSessionId, onSelectSession, onStartNewChat,
-  onDeleteSession, onHistoryRefresh, refreshKey = 0 }: HistoryProps) {
+  onDeleteSession, onHistoryRefresh, pendingSessions, unreadAnswers, refreshKey = 0 }: HistoryProps) {
+  const [pinError, setPinError] = useState("");
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(() => new Set());
   const [now, setNow] = useState(() => Date.now());
@@ -49,9 +52,18 @@ export default function History({ selectedSessionId, onSelectSession, onStartNew
     onDeleteSession?.(sessionId);
     onHistoryRefresh?.();
   };
+  const handlePin = async (item: HistoryItem) => {
+    setPinError("");
+    try {
+      await setHistoryPin(item.id, !item.isPinned);
+      onHistoryRefresh?.();
+    } catch {
+      setPinError("대화 고정 상태를 저장하지 못했습니다. 다시 시도해 주세요.");
+    }
+  };
   const historyGroups = new Map<string, HistoryItem[]>();
   for (const item of historyItems) {
-    const label = formatHistoryDateGroup(item.recentAtTimestamp, now);
+    const label = item.isPinned ? "고정된 대화" : formatHistoryDateGroup(item.recentAtTimestamp, now);
     const group = historyGroups.get(label) ?? [];
     group.push(item);
     historyGroups.set(label, group);
@@ -68,10 +80,11 @@ export default function History({ selectedSessionId, onSelectSession, onStartNew
           <Search size={18} aria-hidden="true" />
         </button>
       </div>
+      {pinError && <p role="alert">{pinError}</p>}
       <div ref={listRef} className={styles.historyList} aria-label="질문 이력 목록" tabIndex={0}>
         {Array.from(historyGroups, ([label, items]) => {
           const timestamp = items[0].recentAtTimestamp;
-          const dateKey = Number.isFinite(timestamp)
+          const dateKey = items[0].isPinned ? "pinned" : Number.isFinite(timestamp)
             ? new Intl.DateTimeFormat("sv-SE", { timeZone: "Asia/Seoul" }).format(timestamp)
             : "unknown";
           const isCollapsed = collapsedDates.has(dateKey);
@@ -80,10 +93,6 @@ export default function History({ selectedSessionId, onSelectSession, onStartNew
             <section key={dateKey} className={styles.dateGroup} aria-label={label}>
               <h3 className={styles.dateHeading}>
                 <button type="button" className={styles.dateToggle} aria-expanded={!isCollapsed} aria-controls={listId}
-                  tabIndex={-1}
-                  onKeyDown={event => {
-                    if (event.key === "Enter" || event.key === " ") event.preventDefault();
-                  }}
                   onClick={() => setCollapsedDates(previous => {
                     const next = new Set(previous);
                     if (next.has(dateKey)) next.delete(dateKey);
@@ -96,7 +105,7 @@ export default function History({ selectedSessionId, onSelectSession, onStartNew
               </h3>
               <div id={listId} hidden={isCollapsed}>
                 {items.map(item => (
-                  <HistoryCard key={item.id} item={item} onSelect={() => onSelectSession(item.id, item)} onDelete={handleDeleteChat} />
+                  <HistoryCard unread={unreadAnswers.has(item.id)} generating={pendingSessions.has(item.id)} key={item.id} item={item} onSelect={() => onSelectSession(item.id, item)} onDelete={handleDeleteChat} onPin={handlePin} />
                 ))}
               </div>
             </section>

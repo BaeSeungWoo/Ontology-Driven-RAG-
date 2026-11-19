@@ -23,6 +23,7 @@ export type Machine = {
 };
 
 const MachineContext = createContext<{
+  factories: { id: string; name: string }[];
   factoryId: FactoryId;
   setFactoryId: (factory: FactoryId) => void;
   executionMachineCode?: string;
@@ -40,7 +41,8 @@ const MachineContext = createContext<{
 } | null>(null);
 
 export default function MachineProvider({ children }: { children: React.ReactNode }) {
-  const [factoryId, setFactory] = useState<FactoryId>("yunam_origin");
+  const [factoryId, setFactory] = useState<FactoryId>("");
+  const [factories, setFactories] = useState<{ id: string; name: string }[]>([]);
   const [personaType, setPersona] = useState<PersonaType>("operator");
 
   const [loadedFactory, setLoadedFactory] = useState<FactoryId>();
@@ -72,6 +74,15 @@ export default function MachineProvider({ children }: { children: React.ReactNod
 
   useEffect(() => {
     const controller = new AbortController();
+    if (!factoryId) {
+      api.get<{id: string; name: string}[]>("/api/prompts/factories", { signal: controller.signal }).then(({data}) => {
+        if (controller.signal.aborted) return;
+        setApiFactory(data[0].id);
+        setFactories(data);
+        setFactory(data[0].id);
+      }).catch(() => { if (!controller.signal.aborted) setStatus("error"); });
+      return () => controller.abort();
+    }
     api.get<Machine[]>("/api/prompts/machines", { signal: controller.signal, headers: { "X-Factory-Id": factoryId }, params: { llm_model: llmModel } }).then(({ data }) => {
       if (controller.signal.aborted) return;
       const assigned = data.find(machine => machine.is_assigned && machine.can_select)?.machine_code;
@@ -123,7 +134,10 @@ export default function MachineProvider({ children }: { children: React.ReactNod
     return () => window.removeEventListener("focus", refresh);
   }, []);
 
-  return <MachineContext.Provider value={{ factoryId, setFactoryId, executionMachineCode: machineCode, personaType, setPersonaType, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
+  if (!factoryId) return status === "error"
+    ? <button onClick={() => setRevision(value => value + 1)}>공장 목록 다시 불러오기</button>
+    : <p>공장 목록을 불러오는 중입니다.</p>;
+  return <MachineContext.Provider value={{ factories, factoryId, setFactoryId, executionMachineCode: machineCode, personaType, setPersonaType, machines, machineCode, setMachineCode, llmModel, setLlmModel, status: (loadedModel !== llmModel || loadedFactory !== factoryId) && status !== "error" ? "loading" : status,
     selectionStatus: !machineCode ? "idle" : selection?.key === selectionKey ? selection.status : "loading",
     selectionError: selection?.key === selectionKey ? selection.error : "",
     refreshMachines: () => {

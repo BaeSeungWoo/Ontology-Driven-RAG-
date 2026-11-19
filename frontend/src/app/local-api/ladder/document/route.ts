@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   const base = (process.env.NEXT_PUBLIC_API_URL || process.env.API_PROXY_TARGET || "http://127.0.0.1:8000").replace(/\/+$/, "");
   try {
     const response = await fetch(`${base}/api/ladder/test-document?machine_code=${encodeURIComponent(code)}`, {
-      headers: { "X-Factory-Id": request.headers.get("X-Factory-Id") || "yunam" },
+      headers: request.headers.has("X-Factory-Id") ? { "X-Factory-Id": request.headers.get("X-Factory-Id")! } : {},
       cache: "no-store",
       signal: AbortSignal.any([request.signal, AbortSignal.timeout(12000)]),
     });

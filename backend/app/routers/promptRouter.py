@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from app.database import database
 from app.factories.config import get_factory_config
-from app.factories.machines import load_machine_info, request_factory
+from app.factories.machines import factory_options, load_machine_info, request_factory
 from app.core.machine_readiness import machine_readiness
 from pipeline.ingestion.machine_resolver import machine_documents
 from app.security.validate_code import resolve_request_code, session_machine_code
@@ -30,6 +30,11 @@ def _machine_list_item(code, info, ctx):
         "can_select": ctx.is_main_server or code == ctx.request_machine_code,
         "is_main_server": ctx.is_main_server,
     }
+
+
+@promptRouter.get("/factories")
+def get_factories():
+    return factory_options()
 
 
 @promptRouter.get("/machines")

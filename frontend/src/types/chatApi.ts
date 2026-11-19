@@ -4,18 +4,6 @@ import type { LadderDiagram } from "@/types/ladder";
 
 export type ChatRole = "user" | "assistant";
 
-export type AskRequest = {
-  sessionId: number;
-  question: string;
-  llmModel: LlmModel;
-  llmMode: LlmMode;
-  personaType: PersonaType;
-  restoreMemory?: boolean;
-  onChunk?: (chunk: string) => void;
-  onProgress?: (message: string, detail?: string) => void;
-  onRetry?: (attempt: number) => void;
-};
-
 export type ChatChunk = {
   index: number;
   retrieval_rank?: number;
@@ -43,11 +31,6 @@ export type ChatMetadata = Record<string, unknown> & {
   used_chunks?: ChatChunk[];
 };
 
-export type AskResponse = {
-  answer: string;
-  metadata?: ChatMetadata;
-};
-
 export type ResolvedDocument = {
   document_name: string;
   asset_url: string;
@@ -66,26 +49,6 @@ export type CreateSessionPayload = {
 export type CreateSessionResponse = {
   result: string;
   session_id: number;
-};
-
-export type CreateMessagePayload = {
-  session_id: number;
-  role: ChatRole;
-  content: string;
-};
-
-export type CreateMessageResponse = {
-  result: string;
-  message_id: number;
-};
-
-export type UpdateMessagePayload = {
-  content: string;
-  metadata?: ChatMetadata;
-};
-
-export type UpdateMessageResponse = {
-  result: string;
 };
 
 export type MessageFeedback = "도움됨" | "틀림" | "부분도움";

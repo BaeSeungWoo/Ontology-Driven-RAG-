@@ -28,6 +28,24 @@ def preserve_write(path: Path, content: bytes) -> None:
         stream.write(content)
 
 
+def write_generated(path: Path, content: bytes) -> None:
+    if path.is_file() and path.read_bytes() == content:
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temp = path.with_suffix(path.suffix + ".tmp")
+    temp.write_bytes(content)
+    temp.replace(path)
+
+
+def input_revision(folder, info):
+    stamp = hashlib.sha256(json.dumps(info, sort_keys=True).encode())
+    for path in sorted(folder.rglob("*")):
+        if path.is_file():
+            stat = path.stat()
+            stamp.update(str((path.relative_to(folder), stat.st_size, stat.st_mtime_ns)).encode())
+    return stamp.hexdigest()
+
+
 def import_zip(archive: Path, root: Path, source_type: str = "paddleocr") -> None:
     if source_type not in {"paddleocr", "docling"}:
         raise ValueError(source_type)
@@ -89,10 +107,16 @@ def prepare_paddleocr(root: Path, machines: dict, *, docling_documents=()) -> di
                 page_prefix = aliases[0]["folder"]
                 key = document_key(source_name)
         if key not in catalog:
-            raise ValueError(f"machine_info에 연결되지 않은 문서: {folder.name}")
+            continue
         entry = catalog[key]
         if entry["document_type"] not in {"manual", "controller"} or key in docling_documents:
             skipped.append({"document": folder.name, "type": entry["document_type"]})
+            continue
+        ident = hashlib.sha256(key.encode()).hexdigest()[:20]
+        revision = input_revision(folder, declared.get(key, {}))
+        marker = root / f"struct/reports/paddleocr-{ident}.revision"
+        output = root / f"struct/documents/paddleocr-{ident}.jsonl"
+        if output.is_file() and marker.is_file() and marker.read_text() == revision:
             continue
         results = folder
         pages = {}
@@ -108,11 +132,9 @@ def prepare_paddleocr(root: Path, machines: dict, *, docling_documents=()) -> di
         expected = declared.get(key, {}).get("original_pdf_pages", max(pages, default=0))
         if not pages or set(pages) != set(range(1, expected + 1)):
             raise ValueError(f"페이지 누락 또는 범위 오류: {folder.name}")
-        plans.append((folder, source_name, entry, pages, hashlib.sha256(key.encode()).hexdigest()[:20]))
-    if not plans:
-        raise ValueError("변환할 manual PaddleOCR 결과가 없습니다.")
+        plans.append((folder, source_name, entry, pages, ident, marker, revision))
     report = {"documents": [], "skipped": skipped}
-    for folder, source_name, entry, pages, ident in plans:
+    for folder, source_name, entry, pages, ident, marker, revision in plans:
         raw, assets, missing = [], {}, []
         for page, path in sorted(pages.items()):
             data = json.loads(path.read_text(encoding="utf-8-sig"))
@@ -156,12 +178,9 @@ def prepare_paddleocr(root: Path, machines: dict, *, docling_documents=()) -> di
             chunk["metadata"].update(site_id=root.name, source_type="paddleocr")
         outputs = {root / "struct" / f"{ident}.jsonl": jsonl(raw),
                    root / "struct/documents" / f"paddleocr-{ident}.jsonl": jsonl(chunks), **assets}
-        # Check the entire document before publishing any of its outputs.
         for target, content in outputs.items():
-            if target.exists() and target.read_bytes() != content:
-                raise FileExistsError(f"기존 변환 결과를 덮어쓰지 않습니다: {target}")
-        for target, content in outputs.items():
-            preserve_write(target, content)
+            write_generated(target, content)
+        write_generated(marker, revision.encode())
         report["documents"].append({"document": folder.name, "pages": len(pages), "chunks": len(chunks),
                                     "assets": len(assets), "machines": entry["machine_code"],
                                     "missing_images": missing})

@@ -24,6 +24,7 @@ type AssistantMessageBubbleProps = {
   message: AnswerMessage;
   isActive?: boolean;
   isGenerating?: boolean;
+  onStop?: () => void;
   onRetry?: () => void;
   selectedCitationChunkIndex?: number | null;
   onActivate?: (assistantMessageId: string) => void;
@@ -35,6 +36,7 @@ export default function AssistantMessageBubble({
   message,
   isActive = false,
   isGenerating = false,
+  onStop,
   onRetry,
   selectedCitationChunkIndex = null,
   onActivate,
@@ -145,6 +147,9 @@ export default function AssistantMessageBubble({
             <span aria-hidden="true"> · </span>
             <span aria-label={`인용 청크 ${citedChunkCount}개`}>{citedChunkCount} chunks</span>
           </span>
+        )}
+        {isThinking && onStop && (
+          <button type="button" className={styles.retryButton} onClick={onStop}>답변 생성 중단</button>
         )}
         <span
           className={`${styles.messageSelectBadge} ${
