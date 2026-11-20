@@ -94,10 +94,14 @@ class AnswerJob:
         if self.metadata.get("chunks"):
             used = {int(i) for i in re.findall(r"\[chunk:(\d+)\]", self.content, re.I)}
             self.metadata["used_chunks"] = [c for c in self.metadata["chunks"] if c.get("index") in used]
+        saved_metadata = dict(self.metadata)
+        action = saved_metadata.pop("ui_action", None)
+        if status == "completed" and action and action["type"] == "open_document":
+            saved_metadata["opened_document"] = action["document"]
         for attempt in range(3):
             try:
                 await asyncio.to_thread(database.updateChatMessage, self.message_id, self.content,
-                                        json.dumps(self.metadata, ensure_ascii=False))
+                                        json.dumps(saved_metadata, ensure_ascii=False))
                 break
             except Exception:
                 logging.exception("Could not save answer %s", self.message_id)

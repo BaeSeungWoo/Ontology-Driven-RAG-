@@ -73,8 +73,8 @@ class BaseRetriever(ABC):
             return self.machine_search.bm25(machine_code)
         return self.bm25
 
-    def _bm25_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
-        bundle = self._bm25_bundle(machine_code)
+    def _bm25_search(self, query: str, machine_code: str, top_k: int, filenames=()) -> list[dict]:
+        bundle = self.machine_search.bm25(machine_code, filenames) if filenames else self._bm25_bundle(machine_code)
         if bundle is None:
             return []
 
@@ -256,7 +256,8 @@ class BaseRetriever(ABC):
             kind = (f"[그림 근거 후보: 설명과 직접 관련될 때만 인용]\n"
                     f"[절: {safe_meta.get('section_title', '')}; 페이지: {safe_meta.get('page_range', '')}]\n"
                     if container_type == "pictures" else "")
-            context_parts.append(f"[chunk:{index}]\n[문서: {source}]\n{kind}{item.text}")
+            page = f" · PDF {safe_meta['page_range']}쪽" if item.extra.get("manual_scope") and safe_meta.get("page_range") else ""
+            context_parts.append(f"[chunk:{index}]\n[문서: {source}{page}]\n{kind}{item.text}")
 
             chunks.append({
                 "index": index,
@@ -291,7 +292,7 @@ class ChromaRetriever(BaseRetriever):
             return self.machine_search.query(machine_code, self.embedding_fn, **query_args)
         return self.collection.query(**query_args)
 
-    def _vector_search(self, query: str, machine_code: str, top_k: int) -> list[dict]:
+    def _vector_search(self, query: str, machine_code: str, top_k: int, filenames=()) -> list[dict]:
         query_args = {
             "query_texts": [query],
             "n_results": top_k,
@@ -299,6 +300,8 @@ class ChromaRetriever(BaseRetriever):
         }
         if machine_code != "ALL":
             query_args["where"] = {"machine_code": {"$contains": machine_code.strip()}}
+        if filenames:
+            query_args["filenames"] = filenames
 
         results = self._query_collection(machine_code, **query_args)
         items: list[dict] = []
@@ -327,14 +330,47 @@ class ChromaRetriever(BaseRetriever):
 
         return items
 
-    def search(self, query: str, top_k: int = 5, machine_code: str = "ALL",**kwargs) -> RetrievalResult:
+    def search(self, query: str, top_k: int = 5, machine_code: str = "ALL", *, source_files=None, **kwargs) -> RetrievalResult:
         top_k = top_k or self.config.vector_db.retrieval_k
         candidate_k = max(top_k * 4, 20)
 
-        vector_items = self._vector_search(query, machine_code, candidate_k)
+        machine = self.config.machines.get(machine_code, {})
+        docs = machine.get("document")
+        docs = docs if isinstance(docs, dict) else {}
+        controller = re.search(r"컨트롤러|제어기|CNC|FANUC|화낙", query, re.I)
+        group = "controller" if controller else "manual"
+        if re.search(r"보수\s*(?:매뉴얼|메뉴얼|설명서)", query):
+            purpose = "maintenance"
+        elif re.search(r"(?:장비|기계)\s*(?:매뉴얼|메뉴얼|설명서|파라미터)", query):
+            group, purpose = "manual", "any"
+        elif re.search(r"파라미터|파라메[터타]|매개변수|parameter", query, re.I):
+            group, purpose = "controller", "parameter"
+        elif re.search(r"조작|운전\s*순서", query):
+            purpose = "operation"
+        else:
+            purpose = None
+        filenames = [doc["filename"] for doc in docs.get(group, []) if isinstance(doc, dict)
+                     and doc.get("manual_type") and purpose in ("any", doc["manual_type"])]
+        if source_files is not None:
+            if not source_files:
+                return RetrievalResult(items=[], context="")
+            filenames = source_files
+        vector_items = self._vector_search(query, machine_code, candidate_k, filenames)
+        note = ""
+        label = ""
+        if source_files is None and filenames and vector_items:
+            label = "컨트롤러" if group == "controller" else "장비"
+            if purpose == "parameter":
+                label += " 파라미터"
+            note = (f"{machine['machine_name']} ({machine['machine_controller']} {machine['machine_ver']}) "
+                    f"{label} 매뉴얼 기준임을 밝히고, 본문이 뒷받침하는 내용만 인용하세요.")
+        elif source_files is None and filenames:
+            note = "지정한 매뉴얼의 검색 근거가 없어 다른 문서를 검색했습니다. 실제 문서의 종류와 출처를 명시하세요."
+            filenames = []
+            vector_items = self._vector_search(query, machine_code, candidate_k)
 
         if self.use_bm25:
-            bm25_items = self._bm25_search(query, machine_code, candidate_k)
+            bm25_items = self._bm25_search(query, machine_code, candidate_k, filenames)
             merged_items = self._rrf_merge(vector_items, bm25_items)
         else:
             merged_items = vector_items
@@ -348,6 +384,7 @@ class ChromaRetriever(BaseRetriever):
                     score=item.get("similarity"),
                     metadata=item.get("metadata", {}),
                     extra={
+                        **({"manual_scope": label} if label else {}),
                         "distance": item.get("distance"),
                         "similarity": item.get("similarity"),
                         "vector_rank": item.get("vector_rank"),
@@ -359,7 +396,25 @@ class ChromaRetriever(BaseRetriever):
             )
 
         items = _deduplicate_items(raw_items, top_k)
-        return RetrievalResult(items=items, context="")
+        if filenames and purpose == "parameter":
+            # Indexed tables and illustrations can omit the bit number or the conditions beside them.
+            import pymupdf
+            from app.factories.machines import DATA_ROOT
+            for filename in filenames:
+                path = DATA_ROOT / self.config.id / "inputs/originPDF/controller" / Path(filename).name
+                if not path.is_file():
+                    continue
+                with pymupdf.open(path) as pdf:
+                    for hit in items:
+                        meta = hit.metadata
+                        page = re.fullmatch(r"(\d+)(?:-\1)?", str(meta.get("page_range", "")))
+                        if meta.get("source_doc_name") != path.stem or not page or not 1 <= int(page[1]) <= len(pdf):
+                            continue
+                        body = pdf[int(page[1]) - 1].get_text(sort=True).strip()
+                        if body:
+                            hit.text = body
+                            hit.metadata = {**meta, "container_type": "texts", "asset_path": "", "context_scope": "pdf_page"}
+        return RetrievalResult(items=items, context=note)
 
 class LadderRetriever(ChromaRetriever):
     def __init__(self, config: Config):

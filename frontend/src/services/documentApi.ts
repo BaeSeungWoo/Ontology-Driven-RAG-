@@ -1,7 +1,7 @@
 import api, { API_BASE_URL, executionHeaders } from "@/services/api";
 import type { ResolvedDocument } from "@/types/chatApi";
 
-function toBackendUrl(path: string) {
+export function toBackendUrl(path: string) {
   if (/^https?:\/\//i.test(path)) return path;
   return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }

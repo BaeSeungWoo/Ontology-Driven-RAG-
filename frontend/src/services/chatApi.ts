@@ -23,9 +23,10 @@ export type AnswerSnapshot = {
 };
 
 export async function startAnswer(factoryId: string, model: string, sessionId: number,
-  question: string, mode: string, persona: string, restoreMemory: boolean, retryId?: number) {
+  question: string, mode: string, persona: string, restoreMemory: boolean, retryId?: number,
+  selectedCitation?: { message_id: number; chunk_index: number }) {
   const { data } = await api.post<AnswerSnapshot & { user_message_id: number }>(`/api/chat/${model}`, {
-    background: true, session_id: String(sessionId), question, mode, persona_type: persona,
+    selected_citation: selectedCitation, background: true, session_id: String(sessionId), question, mode, persona_type: persona,
     prompt_id: "tech_expert", restore_memory: restoreMemory, retry_message_id: retryId,
   }, { headers: { "X-Factory-Id": factoryId } });
   return data;

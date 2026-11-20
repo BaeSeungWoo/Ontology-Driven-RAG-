@@ -1,14 +1,16 @@
-﻿import { useRef, useState, useSyncExternalStore } from "react";
+﻿import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { startAnswer, stopAnswer, watchAnswer, createSession, getMessages } from "@/services/chatApi";
 import { factoryHeaders } from "@/services/api";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import type { PersonaType } from "@/constants/personaOptions";
-import type { MessageItem } from "@/types/chatApi";
+import type { MessageItem, ResolvedDocument } from "@/types/chatApi";
 
 type UseChatParams = {
   selectedSessionId: number | null;
   onSessionId: (id: number) => void;
   factoryId?: string;
+  onDocument?: (document: ResolvedDocument) => void;
+  selectedCitation?: { message_id: number; chunk_index: number };
 };
 
 export type SendQuestionParams = {
@@ -69,18 +71,23 @@ function subscribe(listener: () => void) {
 const snapshot = () => revision;
 const serverSnapshot = () => 0;
 
-export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHeaders()["X-Factory-Id"] }: UseChatParams) => {
+export const useChat = ({ selectedSessionId, onSessionId, onDocument, selectedCitation, factoryId = factoryHeaders()["X-Factory-Id"] }: UseChatParams) => {
   useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const view = useRef<Conversation>(emptyConversation());
   const [isSessionLoading, setIsSessionLoading] = useState(false);
 
+  const viewEpoch = useRef(0);
+  useEffect(() => () => { viewEpoch.current++; }, [factoryId]);
+
   const resetChatState = () => {
+    viewEpoch.current++;
     view.current = emptyConversation();
     setIsSessionLoading(false);
     publish();
   };
 
   const loadSessionMessages = async (sessionId: number, promptName?: string | null) => {
+    viewEpoch.current++;
     const running = pending.get(sessionId);
     const conversation = running ?? emptyConversation();
     view.current = conversation;
@@ -128,6 +135,7 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
     personaType,
     forceNewSession = false,
   }: SendQuestionParams) => {
+    const epoch = viewEpoch.current;
     const normalizedQuestion = question.trim();
     if (!normalizedQuestion) return false;
 
@@ -165,7 +173,8 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
     const now = new Date().toISOString();
     let started;
     try {
-      started = await startAnswer(factoryId, llmModel, sessionId, normalizedQuestion, llmMode, personaType, conversation.restoreMemory);
+      started = await startAnswer(factoryId, llmModel, sessionId, normalizedQuestion, llmMode, personaType, conversation.restoreMemory,
+        undefined, forceNewSession ? undefined : selectedCitation);
     } catch (err) {
       conversation.error = err instanceof Error ? err.message : "답변을 시작하지 못했습니다.";
       finish(conversation, sessionId);
@@ -199,14 +208,16 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
     conversation.messages = [...conversation.messages, userMessage, assistantPlaceholder];
     publish();
 
-    return observeAnswer(conversation, sessionId, assistantMessageId, String(started.metadata.generation_id));
+    return observeAnswer(conversation, sessionId, assistantMessageId, String(started.metadata.generation_id), epoch);
   };
 
-  const observeAnswer = async (conversation: Conversation, sessionId: number, messageId: number, generationId: string) => {
+  const observeAnswer = async (conversation: Conversation, sessionId: number, messageId: number, generationId: string, epoch?: number) => {
+    let cancelled = false;
     pending.set(sessionId, conversation);
     conversation.busy = true;
     conversation.error = null;
     const stop = async () => {
+      cancelled = true;
       conversation.stop = undefined;
       publish();
       try {
@@ -229,6 +240,15 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
       });
       conversation.restoreMemory = saved.status !== "completed";
       if (saved.status === "completed") {
+        if (!cancelled && epoch === viewEpoch.current && conversation === view.current
+            && saved.message_id === messageId && saved.metadata.generation_id === generationId) {
+          const action = saved.metadata.ui_action;
+          if (action?.type === "open_document" && typeof action.document?.document_name === "string"
+              && typeof action.document.asset_url === "string" && action.document.asset_url.startsWith("/assets/")
+              && Number.isSafeInteger(action.document.page) && Number(action.document.page) > 0) {
+            onDocument?.(action.document);
+          }
+        }
         unreadAnswers.set(sessionId, messageId);
         saveUnreadAnswers();
       } else if (saved.status === "save_failed") {
@@ -246,6 +266,7 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
 
   const retryLastAnswer = async (settings: Pick<SendQuestionParams, "llmModel" | "llmMode" | "personaType">) => {
     const conversation = view.current;
+    const epoch = viewEpoch.current;
     const { messages } = conversation;
     if (conversation.busy || isSessionLoading) return false;
     const assistant = messages[messages.length - 1];
@@ -264,8 +285,8 @@ export const useChat = ({ selectedSessionId, onSessionId, factoryId = factoryHea
     publish();
     try {
       const started = await startAnswer(factoryId, assistant.model || settings.llmModel, assistant.session_id,
-        user.content, mode, persona, true, assistant.message_id);
-      return await observeAnswer(conversation, assistant.session_id, assistant.message_id, String(started.metadata.generation_id));
+        user.content, mode, persona, true, assistant.message_id, selectedCitation);
+      return await observeAnswer(conversation, assistant.session_id, assistant.message_id, String(started.metadata.generation_id), epoch);
     } catch {
       conversation.error = "답변을 다시 시작하지 못했습니다.";
       finish(conversation, assistant.session_id);

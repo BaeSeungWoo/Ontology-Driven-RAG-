@@ -615,6 +615,20 @@ def updateChatMessageReason(message_id, reason):
 
 
 @with_thread_pool("db")
+def documentHistory(session_id, selected_message_id):
+    with get_db_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("""
+                SELECT MESSAGE_ID, ROLE, CONTENT, METADATA FROM dbo.CHAT_MESSAGE
+                WHERE SESSION_ID = ? AND (MESSAGE_ID = ? OR MESSAGE_ID IN (
+                    SELECT TOP (20) MESSAGE_ID FROM dbo.CHAT_MESSAGE
+                    WHERE SESSION_ID = ? ORDER BY MESSAGE_ID DESC))
+                ORDER BY MESSAGE_ID
+            """, (session_id, selected_message_id, session_id))
+            return cursor.fetchall()
+
+
+@with_thread_pool("db")
 def getChatMessagesBySession(session_id):
     conn = None
     cursor = None

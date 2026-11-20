@@ -7,20 +7,20 @@
     "machine_ver": "31i-B5",
     "document": {
         "manual": [
-            {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p.pdf", "languages": ["en", "ko"]},
