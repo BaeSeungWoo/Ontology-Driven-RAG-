@@ -8,15 +8,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -32,15 +32,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"},
+            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -56,15 +56,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -80,12 +80,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63832EN_01_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63833EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63833EN-1_02_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63835EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63840EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63844EN_02_0i-MB.pdf", "languages": ["en"]}
+            {"filename": "B-63832EN_01_0i-B.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63833EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63833EN-1_02_0i-B.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63835EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63840EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63844EN_02_0i-MB.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -101,12 +101,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64124EN_01_0i-MC.pdf", "languages": ["en"]}
+            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-64124EN_01_0i-MC.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -122,14 +122,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -145,14 +145,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -168,12 +168,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64114EN_01_0i-TC.pdf", "languages": ["en"]},
-            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"]},
-            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"]}
+            {"filename": "B-64112EN_01_0i-C.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64113EN_03_0i-C.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64113EN-1_01_0i-C.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64114EN_01_0i-TC.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-64115EN_03_0i-C.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-64120EN_02_0i-C.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -189,14 +189,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -212,18 +212,18 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-61392E_03.pdf", "languages": ["en"]},
-            {"filename": "B-61393E_06.pdf", "languages": ["en"]},
-            {"filename": "B-61393E-2_02.pdf", "languages": ["en"]},
-            {"filename": "B-61395E_07.pdf", "languages": ["en"]},
-            {"filename": "B-61404E_08.pdf", "languages": ["en"]},
-            {"filename": "B-61410E_03.pdf", "languages": ["en"]},
-            {"filename": "B-62542EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62543EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62543EN-1_01.PDF", "languages": ["en"]},
-            {"filename": "B-62545EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62574EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62580EN_01.PDF", "languages": ["en"]}
+            {"filename": "B-61392E_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-61393E_06.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-61393E-2_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-61395E_07.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-61404E_08.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-61410E_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62542EN_01.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62543EN_02.PDF", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62543EN-1_01.PDF", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62545EN_02.PDF", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62574EN_02.PDF", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62580EN_01.PDF", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -239,9 +239,9 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-54815E@05_FANUC 10.100.11.110.12.120 series Maintenance.pdf", "languages": ["en"]},
-            {"filename": "B-54810E@02_FANUC 10.100.11.110.12.120 series Operator(부록).pdf", "languages": ["en"]},
-            {"filename": "B-54810J@02_FANUC 10.100.11.110.12.120 series 취급설명서.pdf", "languages": ["ja"]}
+            {"filename": "B-54815E@05_FANUC 10.100.11.110.12.120 series Maintenance.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-54810E@02_FANUC 10.100.11.110.12.120 series Operator(부록).pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-54810J@02_FANUC 10.100.11.110.12.120 series 취급설명서.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -257,9 +257,9 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-61215@01_FANUC Series 15 보수설명서.pdf", "languages": ["ja"]},
-            {"filename": "B-61213@02_FANUC SERIES 15.150 결합설명서.pdf", "languages": ["ja"]},
-            {"filename": "B-61220@04_FANUC SERIES 15.150 취급설명서 부록 (파라메타).pdf", "languages": ["ja"]}
+            {"filename": "B-61215@01_FANUC Series 15 보수설명서.pdf", "languages": ["ja"], "manual_type": "maintenance"},
+            {"filename": "B-61213@02_FANUC SERIES 15.150 결합설명서.pdf", "languages": ["ja"], "manual_type": "connection"},
+            {"filename": "B-61220@04_FANUC SERIES 15.150 취급설명서 부록 (파라메타).pdf", "languages": ["ja"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -275,12 +275,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -296,12 +296,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -317,20 +317,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -346,11 +346,11 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
-            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62760EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62764EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62764EN_01.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -366,20 +366,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -395,12 +395,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -416,12 +416,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -437,18 +437,18 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -464,12 +464,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -485,13 +485,13 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -507,11 +507,11 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
-            {"filename": "B-62754EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62760EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62754EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -527,20 +527,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63084EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63090EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63094EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63604EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63610EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63614EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63084EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63090EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63094EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63604EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63610EN_01.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63614EN_01.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -556,12 +556,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -577,12 +577,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62534E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62534E_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -598,22 +598,22 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]},
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"},
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -629,14 +629,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -652,15 +652,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -676,14 +676,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -699,14 +699,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -722,14 +722,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -745,14 +745,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -768,15 +768,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -792,22 +792,22 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -823,20 +823,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],

@@ -187,6 +187,14 @@ class RAGService:
         if mode == "cms":
             messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy()
 
+        if chunks and chunks[0].get("manual_scope"):
+            scope = chunks[0]["manual_scope"]
+            messages[0]["content"] += (
+                f"\n답변 첫 문장에 {m_info['machine_name']}의 {m_info['machine_controller']} "
+                f"{m_info['machine_ver']} · {scope} 매뉴얼 기준임을 밝히세요. "
+                "각 파라미터의 용도 옆에 해당 [chunk:N]을 인용하세요. "
+                "기계 원점과 작업 좌표계 원점 오프셋을 구분하고, 장비의 현재 설정값은 추정하지 마세요."
+            )
         return messages, imgs, tables, chunks, intent
 
     # Chat에서 실제 사용하는 정식 스트리밍 함수

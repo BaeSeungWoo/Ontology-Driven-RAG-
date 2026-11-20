@@ -50,7 +50,7 @@ class MachineSearch:
             return tuple(conn.execute(
                 "SELECT machine, source, kind FROM documents WHERE machine = ?", (machine_code,)))
 
-    def _rows(self, machine_code, vectors=False):
+    def _rows(self, machine_code, vectors=False, filenames=()):
         if not machine_code or machine_code == "ALL" or machine_code not in self.config.machines:
             raise ValueError("검색할 장비를 선택해 주세요.")
         with closing(connect(self.path)) as conn:
@@ -61,6 +61,9 @@ class MachineSearch:
             sources = [source for (source,) in conn.execute(
                 "SELECT DISTINCT source FROM documents WHERE machine = ?", (machine_code,))
                 if any(key in document_key(source) or document_key(source) in key for key in linked)]
+            if filenames:
+                selected = {document_key(name) for name in filenames}
+                sources = [source for source in sources if document_key(source) in selected]
             if not sources:
                 return
             columns = "c.id, c.document, c.metadata" + (", c.vector" if vectors else "")
@@ -72,13 +75,13 @@ class MachineSearch:
             while batch := cursor.fetchmany(64):
                 yield batch
 
-    def bm25(self, machine_code):
+    def bm25(self, machine_code, filenames=()):
         from rank_bm25 import BM25Okapi
         from app.core.bm25_tokenizer import tokenize_for_bm25
 
         bundle = {"ids": [], "documents": [], "metadatas": []}
         tokens = []
-        for batch in self._rows(machine_code):
+        for batch in self._rows(machine_code, filenames=filenames):
             for ident, text, metadata in batch:
                 bundle["ids"].append(ident)
                 bundle["documents"].append(text)
@@ -101,7 +104,7 @@ class MachineSearch:
         return result
 
     def query(self, machine_code, embedding_fn, *, query_texts, n_results, where=None,
-              where_document=None, include=None):
+              where_document=None, include=None, filenames=()):
         import numpy as np
 
         if len(query_texts) != 1:
@@ -112,7 +115,7 @@ class MachineSearch:
             raise ValueError("질문 임베딩이 올바르지 않습니다.")
         vector = vector / norm
         best = []
-        for batch in self._rows(machine_code, vectors=True):
+        for batch in self._rows(machine_code, vectors=True, filenames=filenames):
             rows = []
             for ident, text, metadata, blob in batch:
                 meta = json.loads(metadata)

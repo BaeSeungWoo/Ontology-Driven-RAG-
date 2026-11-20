@@ -7,18 +7,18 @@
     "machine_ver": "31iM-A5",
     "document": {
         "manual": [
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"]},
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"]}
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf", "languages": ["en", "ko"]}
@@ -38,18 +38,18 @@
     "machine_ver": "31iM-A5",
     "document": {
         "manual": [
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"]},
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"]}
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf", "languages": ["en", "ko"]}
@@ -69,18 +69,18 @@
     "machine_ver": "31iM-A5",
     "document": {
         "manual": [
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"]},
-            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"]}
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 취급 설명서 VC630 5AX, 130p.pdf", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 조작 설명서 VC630 5AX, 212p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡4(VC630_5AX #C1, VC630_5AX #C2, VC630_5AX #C3) 두산중공업 Electrical Circuit Diagram VC630 5AX, 138p.pdf", "languages": ["en", "ko"]}
@@ -100,18 +100,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -130,7 +130,7 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU70 evolution) DECKEL MAHO Operating Instructions DMU70eVolution iTNC 530 , 1114p.pdf", "languages": ["en", "de", "ja"]}
+            {"filename": "율곡4(DMU70 evolution) DECKEL MAHO Operating Instructions DMU70eVolution iTNC 530 , 1114p.pdf", "languages": ["en", "de", "ja"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [
@@ -149,18 +149,18 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-61392E_03.pdf", "languages": ["en"]},
-            {"filename": "B-61393E_06.pdf", "languages": ["en"]},
-            {"filename": "B-61393E-2_02.pdf", "languages": ["en"]},
-            {"filename": "B-61395E_07.pdf", "languages": ["en"]},
-            {"filename": "B-61404E_08.pdf", "languages": ["en"]},
-            {"filename": "B-61410E_03.pdf", "languages": ["en"]},
-            {"filename": "B-62542EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62543EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62543EN-1_01.PDF", "languages": ["en"]},
-            {"filename": "B-62545EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62574EN_02.PDF", "languages": ["en"]},
-            {"filename": "B-62580EN_01.PDF", "languages": ["en"]}
+            {"filename": "B-61392E_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-61393E_06.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-61393E-2_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-61395E_07.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-61404E_08.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-61410E_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62542EN_01.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62543EN_02.PDF", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62543EN-1_01.PDF", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62545EN_02.PDF", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62574EN_02.PDF", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62580EN_01.PDF", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -176,9 +176,9 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-54815E@05_FANUC 10.100.11.110.12.120 series Maintenance.pdf", "languages": ["en"]},
-            {"filename": "B-54810E@02_FANUC 10.100.11.110.12.120 series Operator(부록).pdf", "languages": ["en"]},
-            {"filename": "B-54810J@02_FANUC 10.100.11.110.12.120 series 취급설명서.pdf", "languages": ["ja"]}
+            {"filename": "B-54815E@05_FANUC 10.100.11.110.12.120 series Maintenance.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-54810E@02_FANUC 10.100.11.110.12.120 series Operator(부록).pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-54810J@02_FANUC 10.100.11.110.12.120 series 취급설명서.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -195,17 +195,17 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"]}
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"], "manual_type": "operation"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
 
@@ -224,17 +224,17 @@
     "machine_ver": "15MA",
     "document": {
         "manual": [
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 2, A3 62P.pdf", "languages": ["en", "ja"]},
-            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 3, A3 34P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 4, A3 48p.pdf", "languages": ["en", "ja"]}
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"], "manual_type": "operation"},
+            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 2, A3 62P.pdf", "languages": ["en", "ja"], "manual_type": "electrical_diagram"},
+            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 3, A3 34P.pdf", "languages": ["ja"], "manual_type": "electrical_diagram"},
+            {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 4, A3 48p.pdf", "languages": ["en", "ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-61215@01_FANUC Series 15 보수설명서.pdf", "languages": ["ja"]},
-            {"filename": "B-61213@02_FANUC SERIES 15.150 결합설명서.pdf", "languages": ["ja"]},
-            {"filename": "B-61220@04_FANUC SERIES 15.150 취급설명서 부록 (파라메타).pdf", "languages": ["ja"]}
+            {"filename": "B-61215@01_FANUC Series 15 보수설명서.pdf", "languages": ["ja"], "manual_type": "maintenance"},
+            {"filename": "B-61213@02_FANUC SERIES 15.150 결합설명서.pdf", "languages": ["ja"], "manual_type": "connection"},
+            {"filename": "B-61220@04_FANUC SERIES 15.150 취급설명서 부록 (파라메타).pdf", "languages": ["ja"], "manual_type": "parameter"}
         ],
         "electrical": [
             {"filename": "율곡4(VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC VMP8 1p 2p 6p 2, A3 62P.pdf", "languages": ["en", "ja"]},
@@ -255,17 +255,17 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"]},
-            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"]}
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 취급설명서,128P.pdf", "languages": ["ja"], "manual_type": "operation"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 1, 128P.pdf", "languages": ["ja"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(VMP8-1P, VMP8-2P, VMP8-6P) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 VMP8 1p 2p 6p 2, 134p.pdf", "languages": ["ja"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
 
@@ -291,14 +291,14 @@
             {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 5, 159p.pdf", "languages": ["ja"]},
             {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 기계 6, 162p.pdf", "languages": ["ja"]},
             {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 1 152p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 전기보수 설명서, 52p.pdf", "languages": ["ja"]}
+            {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 전기보수 설명서, 52p.pdf", "languages": ["ja"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
-            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62760EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62764EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62764EN_01.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "율곡4(MILLAC-1000HV) 생산 장비 manual YMMCT 20 MILLAC 1000HV 전기 PLC 3, 108p.pdf", "languages": ["en", "ja"]},
@@ -320,12 +320,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -341,12 +341,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -362,12 +362,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -383,12 +383,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62702EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-62704EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62705EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-62710EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-62702EN_03.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-62703EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62703EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62704EN_03.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62705EN_03.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62710EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -404,20 +404,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63084EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63090EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63094EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63604EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63610EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63614EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63084EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63090EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63094EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63604EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63610EN_01.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63614EN_01.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -433,12 +433,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "율곡4(KT MODU LINE #1, KT MODU LINE #3) K&T 1,3호기 MODULINE MACHINE 전기 PLC 도면, 830p.pdf", "languages": ["en"]}
@@ -459,12 +459,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "율곡4(KT MODU LINE #1, KT MODU LINE #3) K&T 1,3호기 MODULINE MACHINE 전기 PLC 도면, 830p.pdf", "languages": ["en"]}
@@ -485,20 +485,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -514,20 +514,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63014EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63014EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -543,12 +543,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -564,12 +564,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "율곡4(KT MODU LINE #2) K&T 2호기 MODULINE MACHINE 전기 PLC, 534p.pdf", "languages": ["en", "ko"]}
@@ -589,15 +589,15 @@
     "machine_ver": "18i-TB",
     "document": {
         "manual": [
-            {"filename": "율곡4(MP2150) CONTROL TECHNIQUES KT공용 user guide Mentor MP 298p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(MP2150) CONTROL TECHNIQUES KT공용 user guide Mentor MP 298p.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -613,12 +613,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -634,12 +634,12 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -655,13 +655,13 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63534EN_02.pdf", "languages": ["en"]}
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63534EN_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [],
         "ladder": [],
@@ -677,14 +677,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -700,14 +700,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-1_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -723,20 +723,20 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -751,18 +751,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -781,18 +781,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -811,18 +811,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -841,18 +841,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -871,18 +871,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -901,18 +901,18 @@
     "machine_ver": "31i",
     "document": {
         "manual": [
-            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"]},
-            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"]}
+            {"filename": "율곡(MD6700)_EN 두산 조작설명서 MD6700 476p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡(MD6700)_EN 두산 취급설명서 MD6700 154p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡(MD6700)_EN 두산 electrical circuit diagram vm90h31ua05s69 218p.pdf", "languages": ["en", "ko"]}
@@ -933,28 +933,28 @@
         "manual": [
             {"filename": "율곡5(HU80A-5X) 삼정정기 설명서 FANUC 30iM 31iM DM3034AE03, 202p.pdf", "languages": ["ja"]},
             {"filename": "율곡5(HU80A-5X) 삼정정기 NC 장비 F30 31l-0001, 16p.pdf", "languages": ["en", "ja"]},
-            {"filename": "율곡5(HU80A-5X) 삼정정기 HU80A 5X 보수설명서 , 222p.pdf", "languages": ["ja"]},
-            {"filename": "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X, 56p.pdf", "languages": ["ja"]},
-            {"filename": "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X,  2번 56p.pdf", "languages": ["ja"]},
+            {"filename": "율곡5(HU80A-5X) 삼정정기 HU80A 5X 보수설명서 , 222p.pdf", "languages": ["ja"], "manual_type": "maintenance"},
+            {"filename": "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X, 56p.pdf", "languages": ["ja"], "manual_type": "maintenance"},
+            {"filename": "율곡5(HU80A-5X) 삼정전기  보수설명서 전기편 HU80A 5X,  2번 56p.pdf", "languages": ["ja"], "manual_type": "maintenance"},
             {"filename": "율곡5(HU80A-5X) 삼정전기 공구 계측 장비 보족설명서 F30 31i, 16p.pdf", "languages": ["en", "ja"]},
-            {"filename": "율곡5(HU80A-5X) 삼정기계 기본조작설명서 FANUC 30iM 31iM, 120p.pdf", "languages": ["ja"]},
+            {"filename": "율곡5(HU80A-5X) 삼정기계 기본조작설명서 FANUC 30iM 31iM, 120p.pdf", "languages": ["ja"], "manual_type": "operation"},
             {"filename": "율곡5(HU80A-5X) 기타 봉투,97p.pdf", "languages": ["en", "ko", "ja"]},
-            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI MACHINING C4NTER MAINTENANCE MANUAL ELECTRICAL VOLUMEHU80A 5X NC FANUC, 56p.pdf", "languages": ["en"]},
-            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO PROGRAMMING MANUAL HORIZONTAL SPINDLE MACHINING CENTERS WITH FANUC 30iM 31iM,202p.pdf", "languages": ["en"]},
-            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO HORIZONTAL MACHINING CENTER BASIC OPERATION MANUAL FANUC 30iM 31iM, 120p.pdf", "languages": ["en"]},
-            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO 5 AXES HORIZONTAL MACHINING CENTER HU80A 5X MAINTENANCE MANUAL,280p.pdf", "languages": ["en", "de"]},
+            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI MACHINING C4NTER MAINTENANCE MANUAL ELECTRICAL VOLUMEHU80A 5X NC FANUC, 56p.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO PROGRAMMING MANUAL HORIZONTAL SPINDLE MACHINING CENTERS WITH FANUC 30iM 31iM,202p.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO HORIZONTAL MACHINING CENTER BASIC OPERATION MANUAL FANUC 30iM 31iM, 120p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "율곡5(HU80A-5X) MITSUI SEIKI KOGYO 5 AXES HORIZONTAL MACHINING CENTER HU80A 5X MAINTENANCE MANUAL,280p.pdf", "languages": ["en", "de"], "manual_type": "maintenance"},
             {"filename": "율곡5(HU80A-5X) MITSU SEIKI SUPPLEMENTS FOR LASER TOOL MEASURING INSTRUMENT NC Unit F30 31i, 22p.pdf", "languages": ["en"]},
-            {"filename": "율곡5(HU80A-5X) EBA KOHYO INSTRUCTION MANUAL PALLET POOL RPP80 8TEL, 31p.pdf", "languages": ["en", "ja"]}
+            {"filename": "율곡5(HU80A-5X) EBA KOHYO INSTRUCTION MANUAL PALLET POOL RPP80 8TEL, 31p.pdf", "languages": ["en", "ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "율곡5(HU80A-5X) 에바공업 첨부도면일람표 , 21p.pdf", "languages": ["ja"]},
@@ -976,14 +976,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -999,14 +999,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -1022,14 +1022,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -1044,11 +1044,11 @@
     "machine_ver": "840D",
     "document": {
         "manual": [
-            {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf", "languages": ["en"]},
+            {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf", "languages": ["en"], "manual_type": "maintenance"},
             {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB H5 1000XT (#605) 553p.pdf", "languages": ["en"]}
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡4(H5-1000 #1, H5-1000 #2) H5 1000XT Infinite table, 202p.pdf", "languages": ["en"]}
@@ -1065,11 +1065,11 @@
     "machine_ver": "840D",
     "document": {
         "manual": [
-            {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf", "languages": ["en"]},
+            {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB Parts and service manual H5 1000XT (#605), 506p.pdf", "languages": ["en"], "manual_type": "maintenance"},
             {"filename": "율곡4(H5-1000 #1, H5-1000 #2) CINCINNATI LAMB H5 1000XT (#605) 553p.pdf", "languages": ["en"]}
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡4(H5-1000 #1, H5-1000 #2) H5 1000XT Infinite table, 202p.pdf", "languages": ["en"]}
@@ -1086,12 +1086,12 @@
     "machine_ver": "840D",
     "document": {
         "manual": [
-            {"filename": "율곡5(ECOSPEED FHT 1010) Programming Instruction DST A800137, 121p.pdf", "languages": ["en", "de"]},
+            {"filename": "율곡5(ECOSPEED FHT 1010) Programming Instruction DST A800137, 121p.pdf", "languages": ["en", "de"], "manual_type": "programming"},
             {"filename": "율곡5(ECOSPEED FHT 1010) Documentation of Sub Suppliers file 1 A800137, 804p  .pdf", "languages": ["en", "de"]},
-            {"filename": "율곡5(ECOSPEED FHT 1010) a3 22쪽 Maintenance and Instruction Manual DST with Diagrams and Plans A800137, A3 22p A4 127P .pdf", "languages": ["en", "de"]}
+            {"filename": "율곡5(ECOSPEED FHT 1010) a3 22쪽 Maintenance and Instruction Manual DST with Diagrams and Plans A800137, A3 22p A4 127P .pdf", "languages": ["en", "de"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -1109,7 +1109,7 @@
 
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf", "languages": ["en", "de"]}
@@ -1131,7 +1131,7 @@
 
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf", "languages": ["en", "de"]}
@@ -1153,7 +1153,7 @@
 
         ],
         "controller": [
-            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"]}
+            {"filename": "율곡5(H5-1000 #1, H5-1000 #2, ECOSPEED FHT 1010, ZS-500 #1, ZS-500 #2, ZS-500 #3) Programming Instruction Advanced Siemens 840D A800137 , 666p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡5(ZS-500 #1, ZS-500 #2, ZS-500 #3) ZS500 전기도면 Hydraulic diagram Pneumatic diagram, 166p.pdf", "languages": ["en", "de"]}
@@ -1172,7 +1172,7 @@
     "machine_ver": "TNC430",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU100T) DECKEL MAHO DMU100T TNC430 Machine manual, 554p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(DMU100T) DECKEL MAHO DMU100T TNC430 Machine manual, 554p.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1190,7 +1190,7 @@
     "machine_ver": "TNC430",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "controller": [],
         "electrical": [
@@ -1208,7 +1208,7 @@
     "machine_ver": "TNC430",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(DMU125P #1, DMU125P #2) DECHEL MAHO Machine manual parts catalog Machin parameter, 918p.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "controller": [],
         "electrical": [],
@@ -1224,8 +1224,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1243,8 +1243,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2) DECKEL MAHO Machine manual parts catalog TNC 430 530, 666p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1263,7 +1263,7 @@
     "document": {
         "manual": [
             {"filename": "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1282,7 +1282,7 @@
     "document": {
         "manual": [
             {"filename": "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1301,7 +1301,7 @@
     "document": {
         "manual": [
             {"filename": "율곡 (DMC60T#1, #2, #3)DECKEL MAHO DMC 60T Control 722p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1319,8 +1319,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMC125U) DECKEL MAHO DMC 125 U OPERATORS MANUAL, 1070(확인)p.pdf", "languages": ["en", "de"]},
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]}
+            {"filename": "율곡4(DMC125U) DECKEL MAHO DMC 125 U OPERATORS MANUAL, 1070(확인)p.pdf", "languages": ["en", "de"], "manual_type": "operation"},
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -1340,9 +1340,9 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"]},
-            {"filename": "율곡4(DMC105V) DECKEL MAHO DMC105V OPERATING INSTRUCTIONS, 572p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(DMC105V) DECKEL MAHO Operators Manual DMC 105Vlin iTNC 530, 477p.pdf", "languages": ["en", "ko", "ja"]}
+            {"filename": "율곡4(DMU60T #1, DMU60T #2, DMC60T #1, DMC60T #2, DMC60T #3, DMC125U, DMC105V) DECKEL MAHO Machine manual parts catalog, 610p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"},
+            {"filename": "율곡4(DMC105V) DECKEL MAHO DMC105V OPERATING INSTRUCTIONS, 572p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "율곡4(DMC105V) DECKEL MAHO Operators Manual DMC 105Vlin iTNC 530, 477p.pdf", "languages": ["en", "ko", "ja"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [
@@ -1360,14 +1360,14 @@
     "machine_ver": "Matrix 2",
     "document": {
         "manual": [
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf", "languages": ["ko"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Electric diagram, 310p.pdf", "languages": ["en", "ja"]}
@@ -1387,14 +1387,14 @@
     "machine_ver": "Matrix 2",
     "document": {
         "manual": [
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Maintenance manual, 176p.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual Parameter, Alarm, M-code List, 649p.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Operating manual, 1034p.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf", "languages": ["ko"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf", "languages": ["en"]},
-            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf", "languages": ["en"]}
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Matrix Operating manual, 208p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual EIA ISO Program, 676p.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Programming manual MAZATROL Program, 638p.pdf", "languages": ["en"], "manual_type": "programming"}
         ],
         "electrical": [
             {"filename": "율곡4(INTEGREX i-200, INTEGREX i-400) MAZAK Electric diagram, 310p.pdf", "languages": ["en", "ja"]}
