@@ -16,7 +16,7 @@ import AlarmExplanation from "./alarmExplanation";
 import figureStyles from "./figureExplanation.module.css";
 import styles from "./figureExplanationProvider.module.css";
 import PdfDocumentViewer from "./citation/pdfDocumentViewer";
-import { resolveDocument } from "@/services/documentApi";
+import { resolveDocument, toBackendUrl } from "@/services/documentApi";
 import type { ResolvedDocument } from "@/types/chatApi";
 import type { CitationDocumentRequest } from "./citation/citationUtils";
 
@@ -49,7 +49,7 @@ export function useLadderAnalysis() {
 
 const AlarmContext = createContext<((alarm: AlarmAnalysis) => void) | null>(null);
 const FigureContext = createContext<((figure: Figure) => void) | null>(null);
-const PdfContext = createContext<((request: CitationDocumentRequest) => Promise<void>) | null>(null);
+const PdfContext = createContext<((request: CitationDocumentRequest, resolved?: ResolvedDocument) => Promise<void>) | null>(null);
 
 export function useAlarmExplanation() {
   const open = useContext(AlarmContext);
@@ -120,11 +120,14 @@ export default function FigureExplanationProvider({ children }: { children: Reac
     setActiveId(id);
   }, []);
 
-  const openPdf = useCallback(async (request: CitationDocumentRequest) => {
-    const document = await resolveDocument(request.sourceDocName, request.pageRange);
-    const id = `pdf:${request.documentKey}`;
+  const openPdf = useCallback(async (request: CitationDocumentRequest, resolved?: ResolvedDocument) => {
+    const document = resolved ? { ...resolved, asset_url: toBackendUrl(resolved.asset_url) }
+      : await resolveDocument(request.sourceDocName, request.pageRange);
+    const id = `pdf:${document.asset_url.split("#")[0]}`;
     const label = `${document.document_name} · ${request.pageLabel ?? "PDF"}`;
-    setFigures(current => current.some(item => item.id === id) ? current : [...current, { ...request, kind: "pdf", document, id, label }]);
+    const entry: SavedPdf = { ...request, kind: "pdf", document, id, label };
+    setFigures(current => current.some(item => item.id === id)
+      ? current.map(item => item.id === id ? entry : item) : [...current, entry]);
     setActiveId(id);
   }, []);
 

@@ -345,6 +345,8 @@ async def watch_answer(session_id: int, message_id: int, client_request: Request
     if not row:
         raise HTTPException(404, "답변을 찾을 수 없습니다.")
     meta = json.loads(row[8] or "{}")
+    if document := meta.get("opened_document"):
+        meta["ui_action"] = {"type": "open_document", "document": document}
     return {"message_id": message_id, "content": row[3], "metadata": meta,
             "status": meta.get("generation_status", "failed")}
 

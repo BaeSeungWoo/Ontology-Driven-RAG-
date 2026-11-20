@@ -18,6 +18,7 @@ export type ChatChunk = {
 };
 
 export type ChatMetadata = Record<string, unknown> & {
+  ui_action?: { type: "open_document"; document: ResolvedDocument };
   progress_history?: { message: string; detail?: string; at: number }[];
   progress_started_at?: number;
   progress_updated_at?: number;

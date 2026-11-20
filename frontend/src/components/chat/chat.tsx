@@ -68,6 +68,13 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
 
   const { messages, sendQuestion, stopAnswer, retryLastAnswer, loadSessionMessages, resetChatState, pendingSessions, unreadAnswers, markAnswerRead, historyRevision, isLoading, isSessionLoading, error } = useChat({
     selectedSessionId,
+    selectedCitation: selectedCitation ? { message_id: Number(selectedCitation.messageId), chunk_index: selectedCitation.chunkIndex } : undefined,
+    onDocument: document => {
+      void handleDocumentOpen({
+        documentKey: document.asset_url.split("#")[0], sourceDocName: document.document_name,
+        pageRange: String(document.page), pageLabel: `p.${document.page}`, chunkText: "", referenceLabel: document.document_name,
+      }, document);
+    },
     onSessionId: (id) => {
       setSelectedSessionId(id);
       isSessionResetPendingRef.current = false;

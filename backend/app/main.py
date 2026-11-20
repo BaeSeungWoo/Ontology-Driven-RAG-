@@ -1,6 +1,7 @@
 # backend/app/main.py
 
 import json
+from contextlib import aclosing
 import uvicorn
 import sys
 from pathlib import Path
@@ -22,6 +23,7 @@ from app.factories.config import CONFIGS, get_factory_config
 from app.factories.machines import request_factory
 from app.core.memory_manager import completed_history
 from app.core import answer_jobs
+from app.core.document_action import document_reply
 from app.service import JudgeRAGService
 from app.core.question_recommendations import recommend_questions, run_until_disconnect
 from app.security.validate_code import cms_machine_code, session_machine_code, resolve_request_code, validate_code
@@ -88,7 +90,13 @@ def get_client_ip_nginx(request: Request) -> str:
     # 프록시 헤더 x 시 기존 ip 출력
     return request.client.host if request.client else "Unknown IP"
 
+class SelectedCitation(BaseModel):
+    message_id: int
+    chunk_index: int
+
+
 class ChatRequest(BaseModel):
+    selected_citation: SelectedCitation | None = None
     background: bool = False
     retry_message_id: int | None = None
     machine_code: str | None = None
@@ -200,8 +208,14 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     if request.prompt_no is not None:
         user_prompt = database.getUserPrompt(request.prompt_no)
 
-    def answer_events():
-        return service.ask_stream(
+    async def answer_events():
+        reply = await document_reply(service, request, effective_machine_code, ASSET_ROOT, database.documentHistory)
+        if reply is not None:
+            metadata, content = reply
+            yield {"type": "metadata", "data": metadata}
+            yield {"type": "token", "data": content}
+            return
+        events = service.ask_stream(
             session_id=request.session_id,
             question=request.question,
             mode=request.mode,
@@ -211,6 +225,9 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code
         )
+        async with aclosing(events) as stream:
+            async for event in stream:
+                yield event
 
     if request.background:
         return answer_jobs.start(int(request.session_id), request.question, request.mode,
