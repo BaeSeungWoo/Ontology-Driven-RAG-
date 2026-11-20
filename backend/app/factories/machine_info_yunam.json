@@ -7,15 +7,15 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"]}
+            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf", "languages": ["en", "ja"]}
@@ -34,16 +34,16 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "연암(OKUMA#4)_JPY  OCUMA #4 VMP_10 보수설명서-162P.pdf", "languages": ["ja"]},
-            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"]}
+            {"filename": "연암(OKUMA#4)_JPY  OCUMA #4 VMP_10 보수설명서-162P.pdf", "languages": ["ja"], "manual_type": "maintenance"},
+            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf", "languages": ["en", "ja"]},
@@ -98,10 +98,10 @@
     "machine_ver": "iTNC640",
     "document": {
         "manual": [
-            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [
 
@@ -123,8 +123,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006  eg부록 2 1A 1061P.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane  spare parts diagrams-458p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006  eg부록 2 1A 1061P.pdf", "languages": ["en", "ko"], "manual_type": "machine_manual"},
+            {"filename": "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane  spare parts diagrams-458p.pdf", "languages": ["en", "de"], "manual_type": "parts_catalog"}
         ],
         "controller": [],
         "electrical": [
@@ -142,8 +142,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(HERMLE C30)_EN  HERMLE C30UOperating manual  iTNC 530 1050p.pdf", "languages": ["en"]},
-            {"filename": "연암(HERMLE C30)_GER  HERMLE YP6 M 취급설명서 C 30 U 714P.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(HERMLE C30)_EN  HERMLE C30UOperating manual  iTNC 530 1050p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(HERMLE C30)_GER  HERMLE YP6 M 취급설명서 C 30 U 714P.pdf", "languages": ["en", "de"], "manual_type": "parts_catalog"}
         ],
         "controller": [],
         "electrical": [
@@ -161,8 +161,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(HERMLE C40)_EN  HERMLE C40U Operating manual  iTNC 530 1004p.pdf", "languages": ["en"]},
-            {"filename": "연암(HERMLE C40)_EN HERMLE C-40 List spare parts and wearing parts 662p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(HERMLE C40)_EN  HERMLE C40U Operating manual  iTNC 530 1004p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(HERMLE C40)_EN HERMLE C-40 List spare parts and wearing parts 662p.pdf", "languages": ["en", "de"], "manual_type": "parts_catalog"}
         ],
         "controller": [],
         "electrical": [
@@ -181,14 +181,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-2_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -203,7 +203,7 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(DMU125P#1)_EN vDMU 125 P duoBLOCK 1호기 장비메뉴얼 682p.pdf", "languages": ["en"]}
+            {"filename": "연암(DMU125P#1)_EN vDMU 125 P duoBLOCK 1호기 장비메뉴얼 682p.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [],
@@ -235,18 +235,18 @@
     "machine_ver": "0i-D",
     "document": {
         "manual": [
-            {"filename": "연암3(WIA L280) 현대 위아 Machine Tools NC선반 S280-L 취급설명서 1018p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(WIA L280) 현대 위아 Machine Tools NC선반 S280-L 취급설명서 1018p.pdf", "languages": ["ko"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64304KO-1_02.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -262,18 +262,18 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-63002EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN_04.pdf", "languages": ["en"]},
-            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"]},
-            {"filename": "B-63004EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63005EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63010EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63522EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN_03.pdf", "languages": ["en"]},
-            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"]},
-            {"filename": "B-63524EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-63525EN_02.pdf", "languages": ["en"]},
-            {"filename": "B-63530EN_03.pdf", "languages": ["en"]}
+            {"filename": "B-63002EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63003EN_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63003EN-1_02.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63004EN_02.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63005EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63010EN_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63522EN_02.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63523EN_03.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63523EN-1_03.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63524EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63525EN_02.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63530EN_03.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [],
         "ladder": [],
@@ -289,11 +289,11 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-62753EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"]},
-            {"filename": "B-62754EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62755EN_01.pdf", "languages": ["en"]},
-            {"filename": "B-62760EN_01.pdf", "languages": ["en"]}
+            {"filename": "B-62753EN_01.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62753EN-1_01.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62754EN_01.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-62755EN_01.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62760EN_01.pdf", "languages": ["en"], "manual_type": "parameter"}
         ],
         "electrical": [
             {"filename": "연암3(PUMA 350LB) 대우 ELECTRICA DIAGRAM-69p.pdf", "languages": ["en"]}
@@ -312,15 +312,15 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"]}
+            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf", "languages": ["en", "ja"]}
@@ -339,15 +339,15 @@
     "machine_ver": "15MB",
     "document": {
         "manual": [
-            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"]}
+            {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY  OKUMA VMP T180  yA2 N 기본조작설명서 245P.pdf", "languages": ["ja"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-62073E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62073E-1_04.pdf", "languages": ["en"]},
-            {"filename": "B-62075E_04.pdf", "languages": ["en"]},
-            {"filename": "B-62560E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E_02.pdf", "languages": ["en"]},
-            {"filename": "B-62564E-1_02.pdf", "languages": ["en"]}
+            {"filename": "B-62073E_04.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-62073E-1_04.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-62075E_04.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-62560E_02.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-62564E_02.pdf", "languages": ["en"], "manual_type": "programming"},
+            {"filename": "B-62564E-1_02.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "연암(OKUMA#1, OKUMA#4, OKUMA#6, OKUMA#8)_JPY 전기회로도 VMP 8 DA52000B YA2 E 1 전기도면 73p.pdf", "languages": ["en", "ja"]}
@@ -366,10 +366,10 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -389,10 +389,10 @@
     "machine_ver": "iTNC640",
     "document": {
         "manual": [
-            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"]},
-            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(DMU85)_EN DMG MORI  DMU 85_95(FD)Operating  instruction(사용 설명서) mono block milling-882p.pdf", "languages": ["en", "de"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_EN DMG MORI DMU 85 (기계설명2)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway 339p .pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(DMU85)_EN-Operating instructions DMU 85 Milling-834p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(DMU85)_GER DMG MORI DMU 85 (기계설명1)MILLING Bihl Wiedemanm .12A AS-i 3.0 PROFIBUGateway-744p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -412,7 +412,7 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(DMU60 EVO)_EN DMU 60eVo Heidenhain iTMC 530 장비매뉴얼 588p.pdf", "languages": ["en"]}
+            {"filename": "연암(DMU60 EVO)_EN DMU 60eVo Heidenhain iTMC 530 장비매뉴얼 588p.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -446,18 +446,18 @@
     "machine_ver": "0i-MD",
     "document": {
         "manual": [
-            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf", "languages": ["en", "ko"]},
@@ -477,16 +477,16 @@
     "machine_ver": "0i-MB",
     "document": {
         "manual": [
-            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) 두산 Mynx 5400 6500 취급설명서 시방 및 보수자료-138p.pdf", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "연암3(MYNX6500 #1, MYNX6500 #2) DOOSAN 조작 설명서 Mynx 5400 Mynx 6500-404p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-63832EN_01_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63833EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63833EN-1_02_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63835EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63840EN_03_0i-B.pdf", "languages": ["en"]},
-            {"filename": "B-63844EN_02_0i-MB.pdf", "languages": ["en"]}
+            {"filename": "B-63832EN_01_0i-B.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63833EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63833EN-1_02_0i-B.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63835EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63840EN_03_0i-B.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63844EN_02_0i-MB.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "electrical": [
             {"filename": "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf", "languages": ["en", "ko"]},
@@ -507,14 +507,14 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(MYNX7500, MYNX6500 #1, MYNX6500 #2) doosan infracore  electrical circuit diagram DNM400 -220p.pdf", "languages": ["en", "ko"]}
@@ -533,17 +533,17 @@
     "machine_ver": "0i-MD",
     "document": {
         "manual": [
-            {"filename": "연암3(SIRIUS7050) 화천 SIRIUS 7050 취급설명서 국문 320p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(SIRIUS7050) 화천 SIRIUS 7050 취급설명서 국문 320p.pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [
-            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"]},
-            {"filename": "B-64304KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64305KO_04.PDF", "languages": ["ko"]},
-            {"filename": "B-64310KO_03.PDF", "languages": ["ko"]},
-            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"]}
+            {"filename": "B-64302EN_01_0i-D.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64303EN_03_0i-D.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64303EN-1_02_0i-D.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64304KO_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64304KO-2_03.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64305KO_04.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64310KO_03.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64393EN_02_0i-D.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(SIRIUS7050) SIRIUS 7050 전기회로도 340p.pdf", "languages": ["en", "ko"]}
@@ -561,15 +561,15 @@
     "document": {
         "manual": [],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -584,17 +584,17 @@
     "machine_ver": "31i-T",
     "document": {
         "manual": [
-            {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf", "languages": ["en", "ko"]}
+            {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf", "languages": ["en", "ko"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC_14 16F ELECTRIC MANUAL -354p.pdf", "languages": ["en"]}
@@ -611,17 +611,17 @@
     "machine_ver": "31i-T",
     "document": {
         "manual": [
-            {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf", "languages": ["en", "ko"]}
+            {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC14 16 F CNC VETTICAL BORING TURNING PART 1 428p.pdf", "languages": ["en", "ko"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"]},
-            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"]}
+            {"filename": "B-63942EN_04_31i-A.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-63943EN_03_31i-A.pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-63943EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-63944EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63944EN-1_04_30i-A.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "B-63945EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "maintenance"},
+            {"filename": "B-63950EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "parameter"},
+            {"filename": "B-63983EN_04_30i-A.pdf", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(KTC14_16F #1, KTC14_16F #2) KDM KTC_14 16F ELECTRIC MANUAL -354p.pdf", "languages": ["en"]}
@@ -638,8 +638,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(DMU75)_GER DMG MORI operating instructions 1 584p.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암(DMU75)_GER DMG MORI operating instructions 2 706p.pdf", "languages": ["en"]}
+            {"filename": "연암(DMU75)_GER DMG MORI operating instructions 1 584p.pdf", "languages": ["en", "ko"], "manual_type": "operation"},
+            {"filename": "연암(DMU75)_GER DMG MORI operating instructions 2 706p.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [],
@@ -655,11 +655,11 @@
     "machine_ver": "SL",
     "document": {
         "manual": [
-            {"filename": "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1).pdf", "languages": ["de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P.pdf", "languages": ["en"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P.pdf", "languages": ["en"]}
+            {"filename": "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1).pdf", "languages": ["de"], "manual_type": "machine_manual"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p.pdf", "languages": ["en", "de"], "manual_type": "maintenance"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -679,11 +679,11 @@
     "machine_ver": "950",
     "document": {
         "manual": [
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"]}
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"], "manual_type": "parts_catalog"},
+            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"], "manual_type": "maintenance"}
         ],
         "controller": [],
         "electrical": [
@@ -701,11 +701,11 @@
     "machine_ver": "950",
     "document": {
         "manual": [
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"]}
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"], "manual_type": "parts_catalog"},
+            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"], "manual_type": "maintenance"}
         ],
         "controller": [],
         "electrical": [],
@@ -737,20 +737,20 @@
     "machine_ver": "31i-MB",
     "document": {
         "manual": [
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf", "languages": ["en"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf", "languages": ["en", "ja"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf", "languages": ["en", "ja"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf", "languages": ["en", "ja"]}
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf", "languages": ["en", "ja"], "manual_type": "electrical_diagram"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf", "languages": ["en", "ja"], "manual_type": "machine_manual"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf", "languages": ["en", "ja"], "manual_type": "electrical_diagram"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -765,8 +765,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(APEC G3080)_EN G Series Electrical Operation Manual Heidenhain iTNC530-99p.pdf", "languages": ["en"]},
-            {"filename": "연암(APEC G3080)_EN G Series Operation and Maintenance Manual(Original instruction) 98P.pdf", "languages": ["en"]}
+            {"filename": "연암(APEC G3080)_EN G Series Electrical Operation Manual Heidenhain iTNC530-99p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(APEC G3080)_EN G Series Operation and Maintenance Manual(Original instruction) 98P.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [
@@ -784,20 +784,20 @@
     "machine_ver": "0i-MF",
     "document": {
         "manual": [
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf", "languages": ["en"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf", "languages": ["en", "ja"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf", "languages": ["en", "ja"]},
-            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf", "languages": ["en", "ja"]}
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG INDUSTRIAL Hartford OPERATION MANUAL -275p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 PARTMETER CIRCUIT DIAGRAM 238p.pdf", "languages": ["en", "ja"], "manual_type": "electrical_diagram"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn024922 -238p.pdf", "languages": ["en", "ja"], "manual_type": "machine_manual"},
+            {"filename": "연암3(HAS-628, HAS-423) SHE HONG Hartford manual sn023128 parametar circuit diagram- 210p.pdf", "languages": ["en", "ja"], "manual_type": "electrical_diagram"}
         ],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [],
         "ladder": [],
@@ -812,7 +812,7 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(KEN B4060)_KR KEN ICHI MACHINE  작동 및 유지보수 매뉴얼 lIN MAX 시리즈 GSB-4060(5-AX)-186p .pdf", "languages": ["ko"]}
+            {"filename": "연암(KEN B4060)_KR KEN ICHI MACHINE  작동 및 유지보수 매뉴얼 lIN MAX 시리즈 GSB-4060(5-AX)-186p .pdf", "languages": ["ko"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [],
@@ -828,11 +828,11 @@
     "machine_ver": "PL",
     "document": {
         "manual": [
-            {"filename": "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1).pdf", "languages": ["de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p.pdf", "languages": ["en", "de"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P.pdf", "languages": ["en"]},
-            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P.pdf", "languages": ["en"]}
+            {"filename": "연암3(STARRAG #2, STARRAG #3) starragheckert STC800 4- 486p (1).pdf", "languages": ["de"], "manual_type": "machine_manual"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3) starraghechert STC800 4_1  -510p.pdf", "languages": ["en", "de"], "manual_type": "machine_manual"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3) MAINTENANCE ETC  ZT_800 140 MACHINING CENTER MANUAL 5 -A4-118p A3-4p.pdf", "languages": ["en", "de"], "manual_type": "maintenance"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 3 PART 3A OPERATING MANUAL -128P.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암3(STARRAG #2, STARRAG #3)  MACHINE GENERAL ZT_800 140 MANUAL 1-  192P.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -852,8 +852,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(HERMLE C40)_EN  HERMLE C40U Operating manual  iTNC 530 1004p.pdf", "languages": ["en"]},
-            {"filename": "연암(HERMLE C40)_EN HERMLE C-40 List spare parts and wearing parts 662p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(HERMLE C40)_EN  HERMLE C40U Operating manual  iTNC 530 1004p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(HERMLE C40)_EN HERMLE C-40 List spare parts and wearing parts 662p.pdf", "languages": ["en", "de"], "manual_type": "parts_catalog"}
         ],
         "controller": [],
         "electrical": [
@@ -871,8 +871,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006  eg부록 2 1A 1061P.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane  spare parts diagrams-458p.pdf", "languages": ["en", "de"]}
+            {"filename": "연암(HERMLE C42)_KR HERMLE C-42U EC적합성 선언서 EC기계규격에 의거하여 2006  eg부록 2 1A 1061P.pdf", "languages": ["en", "ko"], "manual_type": "machine_manual"},
+            {"filename": "연암(HERMLE C42)_GER HERMLE C42 (보수)Ersatzteukolane  spare parts diagrams-458p.pdf", "languages": ["en", "de"], "manual_type": "parts_catalog"}
         ],
         "controller": [],
         "electrical": [
@@ -890,7 +890,7 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(C32)_GER c32u 장비메뉴얼 267p.pdf", "languages": ["en"]}
+            {"filename": "연암(C32)_GER c32u 장비메뉴얼 267p.pdf", "languages": ["en"], "manual_type": "machine_manual"}
         ],
         "controller": [],
         "electrical": [
@@ -910,11 +910,11 @@
     "machine_ver": "950",
     "document": {
         "manual": [
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"]},
-            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"]}
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON CONTROL REFERENCE MANUAL (O.P #1) 564p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON yaq n 취급설명서 382p.pdf", "languages": ["en"], "manual_type": "machine_manual"},
+            {"filename": "연암(MILACRON T35)_EN 3 OPERATING MANUAL CINCINNATI LAMB 490p.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(MILACRON T35)_EN CINCINNATI MILACRON YA9 D Partlist 520p.pdf", "languages": ["en"], "manual_type": "parts_catalog"},
+            {"filename": "연암(MILACRON T35)_EN 9 CINCINNATI PARTS SERVICE MANUAL 568p.pdf", "languages": ["en"], "manual_type": "maintenance"}
         ],
         "controller": [],
         "electrical": [
@@ -932,8 +932,8 @@
     "machine_ver": "iTNC530",
     "document": {
         "manual": [
-            {"filename": "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part1.pdf", "languages": ["en"]},
-            {"filename": "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part3.pdf", "languages": ["en"]}
+            {"filename": "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part1.pdf", "languages": ["en"], "manual_type": "operation"},
+            {"filename": "연암(DMU160)_EN DMG 160 오퍼레이터 매뉴얼 1호기 682_part3.pdf", "languages": ["en"], "manual_type": "operation"}
         ],
         "controller": [],
         "electrical": [
@@ -953,19 +953,19 @@
     "machine_ver": "0i-MF",
     "document": {
         "manual": [
-            {"filename": "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf", "languages": ["ko"]}
+            {"filename": "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf", "languages": ["en", "ko"], "manual_type": "operation"},
+            {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf", "languages": ["ko"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC VERTICAL MACHINING CENTER LCV 6700 LCV 6700 GEAR TYPE ELECTRIC DIAGRAM-214p.pdf", "languages": ["en", "ko"]}
@@ -984,19 +984,19 @@
     "machine_ver": "0i-MF",
     "document": {
         "manual": [
-            {"filename": "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf", "languages": ["ko"]}
+            {"filename": "연암(LCV6700, LCV850)_KR 18 SMEC Vertical Machining Centet LCV SERIES 조작 보수 설명서 190p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(LCV6700 #1, LCV6700 #2, LCV850) SMEC VERTICAL MACHINING CENTER MCT SERIES 조작 보수설명서-166p.pdf", "languages": ["en", "ko"], "manual_type": "operation"},
+            {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC 기계설명서 LCV6700-156p.pdf", "languages": ["ko"], "manual_type": "machine_manual"}
         ],
         "controller": [
-            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"]},
-            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64604KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64605KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64610KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64602EN_01_0i-F_Descriptions.PDF", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64603EN_01_0i-F_Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64603EN-1_01_0i-F_Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64604KO_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64604KO-2_01.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64605KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64610KO_01.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(LCV6700 #1, LCV6700 #2) SMEC VERTICAL MACHINING CENTER LCV 6700 LCV 6700 GEAR TYPE ELECTRIC DIAGRAM-214p.pdf", "languages": ["en", "ko"]}
@@ -1015,20 +1015,20 @@
     "machine_ver": "31i-B5",
     "document": {
         "manual": [
-            {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf", "languages": ["ko"]},
-            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf", "languages": ["ko"]}
+            {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF series 조작설명서 965p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 조작설명서 DHF Series MH0023OPK165 -606p.pdf", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "연암3(DHF8000, DHF8000 #2) doosan 취급설명서 시방및보수자료 DHF8000-132p.pdf", "languages": ["ko"], "manual_type": "maintenance"}
         ],
         "controller": [
-            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"]},
-            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"]},
-            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"]},
-            {"filename": "B-64484KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64485KO_01.PDF", "languages": ["ko"]},
-            {"filename": "B-64490KO_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"]},
-            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"]}
+            {"filename": "B-64482EN_05_FS30i31i32i-B Descriptions.pdf", "languages": ["en"], "manual_type": "specification"},
+            {"filename": "B-64483EN_02_FS30i31i32i-B Connection(Hardware).pdf", "languages": ["en"], "manual_type": "hardware_connection"},
+            {"filename": "B-64483EN-1_05_FS30i31i32i-B Connection(Function).pdf", "languages": ["en"], "manual_type": "function_connection"},
+            {"filename": "B-64484KO_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64485KO_01.PDF", "languages": ["ko"], "manual_type": "maintenance"},
+            {"filename": "B-64490KO_05.PDF", "languages": ["ko"], "manual_type": "parameter"},
+            {"filename": "B-64484KO-1_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64484KO-2_05.PDF", "languages": ["ko"], "manual_type": "operation"},
+            {"filename": "B-64513EN_03_PMC_Programming.PDF", "languages": ["en"], "manual_type": "pmc_programming"}
         ],
         "electrical": [
             {"filename": "연암3(DHF8000, DHF8000 #2) DN SOLUTIONS DHF 8000 Electrical circuit diagram 356p.pdf", "languages": ["en", "ko"]},
@@ -1049,8 +1049,8 @@
     "machine_ver": "iTNC640",
     "document": {
         "manual": [
-            {"filename": "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 전자제어사용메뉴얼-236p.pdf", "languages": ["en", "ko"]},
-            {"filename": "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 설비유지보수매뉴얼 -86P.pdf", "languages": ["en", "ko"]}
+            {"filename": "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 전자제어사용메뉴얼-236p.pdf", "languages": ["en", "ko"], "manual_type": "operation"},
+            {"filename": "연암3(APEC SK3060) ASIA PACIFIC ELITE CORP.  SK3060_5L 설비유지보수매뉴얼 -86P.pdf", "languages": ["en", "ko"], "manual_type": "maintenance"}
         ],
         "controller": [],
         "electrical": [
