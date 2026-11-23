@@ -1,7 +1,11 @@
 import type { NextConfig } from "next";
+import reportSettings from "../report-settings.json";
 
 const nextConfig: NextConfig = {
-  env: { MCODE: process.env.MCODE ?? "" },
+  env: {
+    MCODE: process.env.MCODE ?? "",
+    DAILY_REPORTS_ENABLED: String(reportSettings.dailyReportsEnabled),
+  },
   experimental: { proxyTimeout: 1_860_000 }, // 전기도면 QA의 최대 30분 판독 대기
   /* config options here */
   devIndicators: false, // 개발모드에서 뱃지 가시여부 옵션

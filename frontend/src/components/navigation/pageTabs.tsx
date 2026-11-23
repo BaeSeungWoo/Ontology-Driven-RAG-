@@ -9,7 +9,9 @@ const PAGE_TABS = [
   { href: "/chat", label: "Ontology-RAG Driven CNC assistant" },
   { href: "/cms", label: "AI 데일리 생산 리포트" },
   { href: "/mes", label: "AI 데일리 경영 리포트" },
-] as const;
+].filter((tab) =>
+  process.env.DAILY_REPORTS_ENABLED === "true" || (tab.href !== "/cms" && tab.href !== "/mes")
+);
 
 export default function PageTabs() {
   const pathname = usePathname();

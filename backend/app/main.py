@@ -273,8 +273,10 @@ app.include_router(checkpointRouter)
 app.include_router(documentRouter)
 app.include_router(figureRouter)
 app.include_router(alarmRouter)
-app.include_router(cmsRouter)
-app.include_router(mesRouter)
+with (ROOT_DIR / "report-settings.json").open(encoding="utf-8") as settings_file:
+    if json.load(settings_file)["dailyReportsEnabled"] is True:
+        app.include_router(cmsRouter)
+        app.include_router(mesRouter)
 app.include_router(voiceRouter)
 app.include_router(ladderRouter)
 app.include_router(knowledgeGraphRouter)
