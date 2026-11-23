@@ -16,7 +16,7 @@ from pipeline.ingestion.vector_writer import (
 )
 
 
-def sync_indexes(config, chunks, destination):
+def sync_indexes(config, chunks, destination, *, skip_faiss=False):
     chroma = destination / "chroma"
     lexical = destination / "bm25"
     vectors = destination / "faiss"
@@ -56,9 +56,17 @@ def sync_indexes(config, chunks, destination):
     db = lexical / "machine_search.sqlite3"
     index_file = vectors / "faiss.index"
     rows_file = vectors / "chunks.parquet"
-    if changed or not all(p.is_file() for p in (lexical / "bm25_bundle.pkl", index_file, rows_file)):
+    faiss_pending = destination / ".faiss-sync-pending"
+    if skip_faiss:
+        print("FAISS 인덱스 생성 생략", flush=True)
+        if changed and index_file.exists():
+            faiss_pending.touch()
+    elif changed or faiss_pending.exists() or not (index_file.is_file() and rows_file.is_file()):
         dirty.touch()
         sync_faiss(config, chunks, index_file, rows_file)
+        faiss_pending.unlink(missing_ok=True)
+    if changed or not (lexical / "bm25_bundle.pkl").is_file():
+        dirty.touch()
         write_chroma(collection, updates, config.id, str(chroma), upsert=True)
         for i in range(0, len(metadata), 500):
             batch = metadata[i:i+500]
