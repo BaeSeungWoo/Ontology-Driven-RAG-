@@ -6,7 +6,9 @@ import json
 from pathlib import Path
 from typing import Iterable
 
+import numpy as np
 import torch
+from openai import BadRequestError
 from PIL import Image
 
 from chromadb.utils.embedding_functions import OllamaEmbeddingFunction, OpenAIEmbeddingFunction
@@ -15,10 +17,31 @@ from app.factories.config import Config
 # ──────────────────────────────────────────────────────────────────────────────
 #  chroma용 ollama 임베딩
 # ──────────────────────────────────────────────────────────────────────────────
+class LengthAwareOpenAIEmbeddingFunction(OpenAIEmbeddingFunction):
+    def __call__(self, input):
+        try:
+            return super().__call__(input)
+        except BadRequestError as error:
+            if "maximum context length" not in str(error).lower() or "input_tokens" not in str(error):
+                raise
+            if len(input) == 1 and len(input[0]) < 2:
+                raise
+
+        if len(input) > 1:
+            middle = len(input) // 2
+            return [*self(input[:middle]), *self(input[middle:])]
+
+        # Keep the full passage under its original ID, including text after the limit.
+        text = input[0]
+        middle = len(text) // 2
+        left, right = self([text[:middle], text[middle:]])
+        return [np.average([left, right], axis=0, weights=[middle, len(text) - middle]).astype(np.float32)]
+
+
 def load_embeddings(config: Config):
     """Connect to Ollama or an OpenAI-compatible embedding server."""
     if config.embedding.provider == "openai":
-        return OpenAIEmbeddingFunction(
+        return LengthAwareOpenAIEmbeddingFunction(
             api_key="EMPTY", model_name=config.embedding.model,
             api_base=config.get_embedding_base_url(),
         )
