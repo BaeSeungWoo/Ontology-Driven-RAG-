@@ -187,8 +187,7 @@ python -m pipeline.build_db --factory test --stage all
 ```
 
 Chroma와 FAISS는 본문이 같은 청크의 벡터를 재사용합니다. 변경 시 FAISS 파일과 BM25 및 장비 검색 SQLite를 갱신합니다.
-문서의 마지막 장비 연결을 삭제하면 검색에서도 제외합니다. 페이지·표 그래프는 공장 폴더의 `graph/documents`에 문서당 한 번 저장하고
-`graph/catalog.json`에서 장비별 문서를 찾습니다. PDF만 추가한 경우에는 먼저 해당 PDF의 OCR 추출물을 준비하세요.
+문서의 마지막 장비 연결을 삭제하면 검색에서도 제외합니다. PDF만 추가한 경우에는 먼저 해당 PDF의 OCR 추출물을 준비하세요.
 
 ```powershell
 # 폴더만 생성. 기존 파일은 그대로 유지.
@@ -355,12 +354,12 @@ KG 입력 폴더는 예약만 하며 기존 `--stage kg` 자체 생성 기능과
 | M016 | HI-TECH 300S | 화천H-T300 (탭), 화천HI-TECH300 (제목) | 엑셀에서 모델 끝의 S를 생략했는지 여부 |
 | M048 | DMU160 | DMU160P (탭과 제목) | 모델 끝의 P가 같은 장비를 가리키는지 여부 |
 
-### 연암(구) DHF8000의 그래프 기반 답변
+### 공장별 납품 지식그래프
 
-연암(구) M005 채팅의 **인용 근거 → 지식그래프 → 지식그래프 기반으로 답변받기**에서 기존 질문을 DHF 장비 조작설명서와 FANUC 제어기 매뉴얼로 다시 검색합니다. 기존 답변은 비교 패널에서 펼칠 수 있습니다. 그래프 답변의 인용 번호를 누르면 해당 본문·표 노드와 같은 번호를 인용한 문장이 함께 강조됩니다.
+연암·풍산·율곡은 `pipeline/data/{factory}/graph/delivery/machines.json`에서 장비의 그룹을 찾아 해당 그룹의 본문·표·개체와 그래프 연결을 검색합니다. 일반 RAG 빌드와 별도로 압축을 푼 납품 폴더에서 공장별 데이터를 변환합니다.
 
-백엔드는 GraphIndexing의 실제 `index/controller_manuals` 디렉터리를 읽습니다. Git LFS로 복원한 이 디렉터리를 `GRAPH_INDEX_M005_CONTROLLER_DIR`로 지정하거나 `backend/data/graph_indexes/yunam_origin/M005/controller_manuals`에 배치합니다. 인덱스 데이터는 Git에서 제외됩니다. 이 경로는 본문·개체 Parquet의 `content` 열만 사용하며, 같은 행 순서로 추출한 `chunk_content.parquet` 및 `entity_content.parquet`도 인덱스 루트에서 읽을 수 있습니다.
+```powershell
+python pipeline/import_factory_graph.py C:\path\to\equipment_delivery yunam
+```
 
-저장소 루트에서 `python pipeline/build_dhf_graph.py`를 실행하면 일반 RAG의 OCR 추출본으로 DHF 장비 인덱스를 만듭니다. 장비 그래프는 이웃 페이지와 각 표의 원본 페이지를 연결하고 한국어 질문으로 검색합니다. 장비 인덱스가 없으면 FANUC만 검색합니다.
-
-검색어 추출과 그래프 답변 생성에는 기존 채팅 세션에 저장된 모델 설정을 사용합니다. DHF는 한국어, FANUC은 영어 검색어를 사용하며, 증상 질문은 대상 기능·부품과 상태를 나누어 검색합니다. 본문·표에서 TF-IDF로 시작 후보를 찾고 원본 통합 그래프의 Personalized PageRank 상위 다섯 근거를 답변에 전달합니다. GraphIndexing의 평가 파이프라인에서 사용하는 OpenAI 임베딩과 fact reranking은 이 검색 경로에 포함되지 않습니다.
+풍산은 `poongsan`, 율곡은 `yulkok`을 지정합니다. 배포할 때는 각 공장의 `delivery` 전체를 복사하고 백엔드를 재시작합니다. 질문 분석에는 채팅 세션의 모델을, 근거 검색에는 TF-IDF와 납품 그래프의 Personalized PageRank를 사용합니다.

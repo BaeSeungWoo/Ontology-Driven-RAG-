@@ -126,10 +126,7 @@ def _build_locked(config, root, destination, stage, maintenance_only, workbook, 
         return
 
     from pipeline.ingestion.sync_indexes import sync_indexes
-    from pipeline.ingestion.document_graph import sync_graph
     sync_indexes(config, chunks, destination)
-    if stage == "all":
-        sync_graph(root, destination, chunks)
     build_sources(config, workbook, tacit)
     print(f"공용 인덱스 생성 완료: {destination} ({len(chunks)} chunks)")
 
