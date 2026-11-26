@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from app.core import answer_jobs
 from app.database import database
 from app.factories.config import get_factory_config
-from app.factories.machines import load_machine_info, request_factory
+from app.factories.machines import PROMPT_FACTORIES, load_machine_info, request_factory
 from app.core.machine_readiness import require_machine_ready
 from app.security.validate_code import session_machine_code, resolve_request_code, validate_code
 from dotenv import load_dotenv
@@ -274,7 +274,7 @@ def createSession(req: CreateSessionRequest, client_request: Request):
             req.title,
             req.llm_model,
             req.llm_mode,
-            req.prompt_no,
+            req.prompt_no if ctx.factory_id in PROMPT_FACTORIES else None,
             machine_code,
             req.llm_persona,
             request_factory(client_request),

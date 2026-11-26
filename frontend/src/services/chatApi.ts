@@ -1,4 +1,5 @@
 import api, { API_BASE_URL } from "@/services/api";
+import { canUseRagPreset } from "@/services/promptApi";
 import type {
   CreateSessionPayload,
   CreateSessionResponse,
@@ -24,9 +25,10 @@ export type AnswerSnapshot = {
 
 export async function startAnswer(factoryId: string, model: string, sessionId: number,
   question: string, mode: string, persona: string, restoreMemory: boolean, retryId?: number,
-  selectedCitation?: { message_id: number; chunk_index: number }) {
+  selectedCitation?: { message_id: number; chunk_index: number }, promptNo?: number | null) {
   const { data } = await api.post<AnswerSnapshot & { user_message_id: number }>(`/api/chat/${model}`, {
     selected_citation: selectedCitation, background: true, session_id: String(sessionId), question, mode, persona_type: persona,
+    prompt_no: canUseRagPreset(factoryId, mode, persona) ? promptNo ?? undefined : undefined,
     prompt_id: "tech_expert", restore_memory: restoreMemory, retry_message_id: retryId,
   }, { headers: { "X-Factory-Id": factoryId } });
   return data;
@@ -87,6 +89,7 @@ export async function createSession(
 ): Promise<CreateSessionResponse> {
   const response = await api.post<CreateSessionResponse>("/api/history/newSession", {
     ...payload,
+    prompt_no: canUseRagPreset(factoryId, payload.llm_mode, payload.llm_persona) ? payload.prompt_no : undefined,
   }, { headers: { "X-Factory-Id": factoryId } });
   return response.data;
 }

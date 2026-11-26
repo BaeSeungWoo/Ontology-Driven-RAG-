@@ -49,19 +49,63 @@ def add_callproc_to_cursor(cursor):
 @with_thread_pool("db")
 # 프롬프트 목록 조회
 def getPromptList():
-    try:
-        with get_db_connection() as conn:
+    with get_db_connection() as conn:
+        return conn.cursor().execute(
+            "SELECT PROMPT_NO, PROMPT_NAME, PROMPT_TXT, CREATE_USER "
+            "FROM [PROMPT].dbo.PROMPT_TB WHERE PROMPT_TXT IS NOT NULL ORDER BY PROMPT_NO DESC"
+        ).fetchall()
+
+
+@with_thread_pool("db")
+def delete_rag_prompt(prompt_no):
+    # Retain the ID so an old selection can never point at another user's new preset.
+    with get_db_connection() as conn:
+        conn.autocommit = True
+        return conn.cursor().execute(
+            "UPDATE dbo.PROMPT_TB SET PROMPT_TXT=NULL WHERE PROMPT_NO=? AND PROMPT_TXT IS NOT NULL",
+            prompt_no,
+        ).rowcount == 1
+
+
+class PromptConflict(ValueError):
+    pass
+
+
+@with_thread_pool("db")
+def save_rag_prompt(name, rules, author, prompt_no=None):
+    content = json.dumps({"rag_rules": rules}, ensure_ascii=False, indent=2)
+    with get_db_connection() as conn:
+        conn.autocommit = False
+        try:
+            cur = conn.cursor()
+            existing = cur.execute(
+                "SELECT PROMPT_NO FROM dbo.PROMPT_TB WITH (TABLOCKX, HOLDLOCK) WHERE PROMPT_NAME = ? AND PROMPT_TXT IS NOT NULL", name
+            ).fetchone()
+            if existing and existing[0] != prompt_no:
+                raise PromptConflict("같은 이름의 프롬프트가 있습니다.")
+            # The legacy name and author columns use the Korean database code page.
+            for value, limit in ((name, 50), (author, 20)):
+                if len(value.encode("cp949")) > limit:
+                    raise ValueError(f"이름은 DB 기준 {limit}바이트 이내로 입력해 주세요.")
+            if prompt_no is None:
+                prompt_no = cur.execute(
+                    "SELECT COALESCE(MAX(id), 0) + 1 FROM (SELECT MAX(PROMPT_NO) id FROM dbo.PROMPT_TB "
+                    "UNION ALL SELECT MAX(PROMPT_NO) FROM dbo.CHAT_HISTORY) numbers"
+                ).fetchval()
+                cur.execute("INSERT dbo.PROMPT_TB (PROMPT_NO, PROMPT_NAME, PROMPT_TXT, CREATE_USER) "
+                            "VALUES (?, ?, ?, ?)", prompt_no, name, content, author)
+            else:
+                cur.execute("UPDATE dbo.PROMPT_TB SET PROMPT_NAME=?, PROMPT_TXT=? WHERE PROMPT_NO=? AND PROMPT_TXT IS NOT NULL",
+                            name, content, prompt_no)
+                if cur.rowcount != 1:
+                    raise PromptConflict("선택한 프롬프트를 찾을 수 없습니다.")
+            conn.commit()
+            return prompt_no
+        except Exception:
+            conn.rollback()
+            raise
+        finally:
             conn.autocommit = True
-            cursor = conn.cursor()
-            proc_name = "dbo.WAFC_WEB_PROMPT_SEL01_SP"
-            exec_stored_proc(cursor, proc_name)
-            results = cursor.fetchall()
-            cursor.close()
-    except Exception as e:
-        print(e, 'database getPromptList() error')
-        return []
-    finally :
-        return results
 
 # 백엔드 > 사용자 프롬프트 내용 조회
 @with_thread_pool("db")
@@ -135,7 +179,7 @@ def getHistoryList(machine_code, factory_id):
                        CH.LLM_MODE, CH.PROMPT_NO, CH.CREATED_AT, CH.UPDATED_AT,
                        p.PROMPT_NAME, CH.IS_PINNED
                 FROM dbo.CHAT_HISTORY CH
-                LEFT JOIN dbo.PROMPT_TB p ON CH.PROMPT_NO = p.PROMPT_NO
+                LEFT JOIN dbo.PROMPT_TB p ON CH.PROMPT_NO = p.PROMPT_NO AND p.PROMPT_TXT IS NOT NULL
                 WHERE CH.FACTORY = ?
                   AND (? = 'ALL' OR ? IS NULL OR CH.MACHINE_CODE = ?)
                 ORDER BY CH.UPDATED_AT DESC, CH.SESSION_ID DESC

@@ -2,18 +2,23 @@
 
 import { useState, useEffect } from "react";
 import { useMachine } from "@/components/machineProvider";
+import { canUseRagPreset } from "@/services/promptApi";
 import { usePrompt } from "@/hooks/usePrompt";
-import type { MachineInfo } from "@/types/prompt";
+import type { MachineInfo, PromptSelectableRow } from "@/types/prompt";
 import type { LlmModel, LlmMode } from "@/constants/llmOptions";
 import { isOperatorRagMode, LLM_MODEL_OPTIONS, LLM_MODE_OPTIONS } from "@/constants/llmOptions";
 import { PERSONA_OPTIONS, type PersonaType } from "@/constants/personaOptions";
+import RagPromptEditor from "./ragPromptEditor";
 import MachineInfoPanel from "./machineInfoPanel";
 import styles from "./promptSetting.module.css";
 
 type PromptListModalProps = {
   selectedMachineCode?: string;
   onClose: () => void;
-  onApply: () => void;
+  onDeleteActive?: () => void;
+  onApply: (promptNo: number | null) => void;
+  promptNo?: number | null;
+  questioner?: string;
   selectedLlmModel: LlmModel;
   onSelectLlmModel: (model: LlmModel) => void;
   selectedLlmMode: LlmMode;
@@ -26,6 +31,9 @@ export default function PromptListModal({
   selectedMachineCode,
   onClose,
   onApply,
+  onDeleteActive,
+  promptNo = null,
+  questioner = "",
   selectedLlmModel,
   onSelectLlmModel,
   selectedLlmMode,
@@ -33,8 +41,13 @@ export default function PromptListModal({
   selectedPersonaType,
   onSelectPersonaType,
 }: PromptListModalProps) {
+  const [draftPromptNo, setDraftPromptNo] = useState(promptNo);
+  const [rows, setRows] = useState<PromptSelectableRow[] | null>(null);
+  const [listFailed, setListFailed] = useState(false);
+  const [editing, setEditing] = useState(false);
   const { getPromptList } = usePrompt();
   const { machines, factoryId } = useMachine();
+  const showEditor = canUseRagPreset(factoryId, selectedLlmMode, selectedPersonaType);
   const legacyFactory = factoryId === "yunam_origin";
   const electricalAvailable = !!machines.find(machine => machine.machine_code === selectedMachineCode)?.has_electrical;
 
@@ -49,12 +62,15 @@ export default function PromptListModal({
       try {
         const result = await getPromptList(selectedMachineCode);
         if (!mounted) return;
+        setRows(result.rows);
+        setListFailed(false);
         setMachineCode(result.machineCode);
         setMachineInfo(result.machineInfo);
         setIsMainServer(result.isMainServer);
       } catch (error) {
         console.error("프롬프트 목록 조회 실패", error);
         if (!mounted) return;
+        setListFailed(true);
         setMachineCode(null);
         setMachineInfo(null);
         setIsMainServer(false);
@@ -72,7 +88,7 @@ export default function PromptListModal({
   return (
     <div className={styles.modalBackdrop} onClick={onClose} role="presentation">
       <section
-        className={styles.modal}
+        className={showEditor ? `${styles.modal} ${styles.ragModal}` : styles.modal}
         onClick={(event) => event.stopPropagation()}
         aria-modal="true"
         role="dialog"
@@ -81,102 +97,117 @@ export default function PromptListModal({
           <h3 className={styles.modalTitle}>서비스 설정</h3>
         </header>
 
-        <section className={styles.llmGuideBox}>
-          <p className={styles.llmGuideTitle}>사용 LLM 모델 선택</p>
-          <div className={styles.llmRadioGroup}>
-            {LLM_MODEL_OPTIONS.map((option) => (
-              <label key={option.value} className={styles.llmRadioItem}>
-                <input
-                  type="radio"
-                  name="llmModel"
-                  value={option.value}
-                  checked={selectedLlmModel === option.value}
-                  onChange={() => onSelectLlmModel(option.value)}
-                />
-                <span>{option.label}</span>
-              </label>
-            ))}
-          </div>
-          <p className={styles.llmGuideTitle}>사용 페르소나 선택</p>
-          <div className={styles.llmRadioGroup}>
-            {PERSONA_OPTIONS.map((option) => (
-              <label key={option.value} className={styles.llmRadioItem}>
-                <input
-                  type="radio"
-                  name="personaType"
-                  disabled={(option.value === "engineer" && !electricalAvailable) || (!legacyFactory && option.value !== "operator" && option.value !== "engineer")}
-                  value={option.value}
-                  checked={selectedPersonaType === option.value}
-                  onChange={() => {
-                    onSelectPersonaType(option.value);
-                    onSelectLlmMode(option.value === "operator" ? "rag" : option.value === "maintenance" ? "ladder" : option.value === "engineer" ? "electrical" : "cms");
-                  }}
-                />
-                <span>{option.label}{((option.value === "engineer" && !electricalAvailable) || (!legacyFactory && option.value !== "operator" && option.value !== "engineer")) && " (준비 중)"}</span>
-              </label>
-            ))}
-          </div>
-          <p className={styles.llmGuideTitle}>사용 LLM 모드 선택</p>
-          <div className={styles.llmRadioGroup}>
-            {LLM_MODE_OPTIONS.map((option) => {
-              const disabled = legacyFactory
-                ? (option.value === "electrical" && !electricalAvailable) || (option.value === "cms" && selectedPersonaType !== "manager")
-                : selectedPersonaType === "engineer"
-                ? option.value !== "electrical" || !electricalAvailable
-                : !(selectedPersonaType === "operator" && isOperatorRagMode(factoryId, option.value));
-              return (
-                <label key={option.value} className={`${styles.llmRadioItem} ${disabled ? styles.llmRadioItemDisabled : ""}`}>
-                  <input
-                    type="radio"
-                    name="llmMode"
-                    value={option.value}
-                    disabled={disabled}
-                    aria-describedby={disabled ? option.value === "electrical" ? "electrical-mode-restriction" : "cms-mode-restriction" : undefined}
-                    checked={selectedLlmMode === option.value}
-                    onChange={() => onSelectLlmMode(option.value)}
-                  />
-                  <span>{factoryId === "waff" && option.value === "rag" ? "RAG + 현장 노하우" : option.label}{disabled && " (선택 불가)"}</span>
-                </label>
-              );
-            })}
-          </div>
-          {selectedPersonaType !== "manager" && (
-            <p id="cms-mode-restriction" className={styles.llmGuideDesc}>
-              CMS를 사용하려면 페르소나를 관리자로 선택하세요.
-            </p>
-          )}
-          <p id="electrical-mode-restriction" className={styles.llmGuideDesc}>
-            현장 작업자·RAG와 전기도면 데이터가 준비된 설비의 기술 엔지니어·전기도면 QA를 지원합니다. 정비·보전과 관리자 기능은 준비 중입니다.
-          </p>
-          {factoryId === "waff" && selectedLlmMode === "rag" && (
-            <p className={styles.llmGuideDesc}>매뉴얼 근거로 먼저 답변하고, 관련 현장 사례가 있으면 당시 증상과 조치를 답변 끝에 표시합니다.</p>
-          )}
-          {selectedLlmMode === "repairHistory" && (
-            <p className={styles.llmGuideDesc}>
-              매뉴얼로 원인과 조치를 설명하고, 증상·고장 질문에는 관련 수리 이력과 암묵지를 추가합니다.
-              동일 장비 이력과 다른 장비의 유사 사례를 구분하며, 관련 사례가 없으면 매뉴얼 답변만 제공합니다.
-              질문 예: “절삭유 모터가 동작하지 않고 과부하 알람이 떠. 원인과 조치가 뭐야?”
-            </p>
-          )}
-          {selectedLlmMode === "paddleocr" && (
-            <p className={styles.llmGuideDesc}>
-              새 OCR은 LCV-6700 #1·#2의 신규 OCR 문서 5개 전체를 벡터·키워드로 검색하고, 답변에서 인용한 MD의 그림을 표시합니다.
-              기존 RAG와 비교할 때 같은 모델·페르소나를 선택하고 새 질문으로 실행하세요.
-            </p>
-          )}
-          <p className={styles.llmGuideDesc}>
-            추천질문은 Ollama·vLLM 모델의 현장 작업자·RAG와 준비된 설비의 기술 엔지니어·전기도면 QA에서 사용할 수 있습니다. 추천질문이 모드를 변경하지는 않습니다.
-          </p>
-        </section>
+        <div className={showEditor ? styles.columns : undefined}>
+          <div className={styles.settingsColumn}>
+            <section className={styles.llmGuideBox}>
+              <p className={styles.llmGuideTitle}>사용 LLM 모델 선택</p>
+              <div className={styles.llmRadioGroup}>
+                {LLM_MODEL_OPTIONS.map((option) => (
+                  <label key={option.value} className={styles.llmRadioItem}>
+                    <input
+                      type="radio"
+                      name="llmModel"
+                      value={option.value}
+                      checked={selectedLlmModel === option.value}
+                      onChange={() => onSelectLlmModel(option.value)}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+              <p className={styles.llmGuideTitle}>사용 페르소나 선택</p>
+              <div className={styles.llmRadioGroup}>
+                {PERSONA_OPTIONS.map((option) => (
+                  <label key={option.value} className={styles.llmRadioItem}>
+                    <input
+                      type="radio"
+                      name="personaType"
+                      disabled={(option.value === "engineer" && !electricalAvailable) || (!legacyFactory && option.value !== "operator" && option.value !== "engineer")}
+                      value={option.value}
+                      checked={selectedPersonaType === option.value}
+                      onChange={() => {
+                        onSelectPersonaType(option.value);
+                        onSelectLlmMode(option.value === "operator" ? "rag" : option.value === "maintenance" ? "ladder" : option.value === "engineer" ? "electrical" : "cms");
+                      }}
+                    />
+                    <span>{option.label}{((option.value === "engineer" && !electricalAvailable) || (!legacyFactory && option.value !== "operator" && option.value !== "engineer")) && " (준비 중)"}</span>
+                  </label>
+                ))}
+              </div>
+              <p className={styles.llmGuideTitle}>사용 LLM 모드 선택</p>
+              <div className={styles.llmRadioGroup}>
+                {LLM_MODE_OPTIONS.map((option) => {
+                  const disabled = legacyFactory
+                    ? (option.value === "electrical" && !electricalAvailable) || (option.value === "cms" && selectedPersonaType !== "manager")
+                    : selectedPersonaType === "engineer"
+                    ? option.value !== "electrical" || !electricalAvailable
+                    : !(selectedPersonaType === "operator" && isOperatorRagMode(factoryId, option.value));
+                  return (
+                    <label key={option.value} className={`${styles.llmRadioItem} ${disabled ? styles.llmRadioItemDisabled : ""}`}>
+                      <input
+                        type="radio"
+                        name="llmMode"
+                        value={option.value}
+                        disabled={disabled}
+                        aria-describedby={disabled ? option.value === "electrical" ? "electrical-mode-restriction" : "cms-mode-restriction" : undefined}
+                        checked={selectedLlmMode === option.value}
+                        onChange={() => onSelectLlmMode(option.value)}
+                      />
+                      <span>{factoryId === "waff" && option.value === "rag" ? "RAG + 현장 노하우" : option.label}{disabled && " (선택 불가)"}</span>
+                    </label>
+                  );
+                })}
+              </div>
+              {selectedPersonaType !== "manager" && (
+                <p id="cms-mode-restriction" className={styles.llmGuideDesc}>
+                  CMS를 사용하려면 페르소나를 관리자로 선택하세요.
+                </p>
+              )}
+              <p id="electrical-mode-restriction" className={styles.llmGuideDesc}>
+                현장 작업자·RAG와 전기도면 데이터가 준비된 설비의 기술 엔지니어·전기도면 QA를 지원합니다. 정비·보전과 관리자 기능은 준비 중입니다.
+              </p>
+              {selectedLlmMode === "electrical" && (
+                <p className={styles.llmGuideDesc}>공유 엔진으로 비교하려면 질문 앞에 [공유엔진]을 붙이세요.</p>
+              )}
+              {factoryId === "waff" && selectedLlmMode === "rag" && (
+                <p className={styles.llmGuideDesc}>매뉴얼 근거로 먼저 답변하고, 관련 현장 사례가 있으면 당시 증상과 조치를 답변 끝에 표시합니다.</p>
+              )}
+              {selectedLlmMode === "repairHistory" && (
+                <p className={styles.llmGuideDesc}>
+                  매뉴얼로 원인과 조치를 설명하고, 증상·고장 질문에는 관련 수리 이력과 암묵지를 추가합니다.
+                  동일 장비 이력과 다른 장비의 유사 사례를 구분하며, 관련 사례가 없으면 매뉴얼 답변만 제공합니다.
+                  질문 예: “절삭유 모터가 동작하지 않고 과부하 알람이 떠. 원인과 조치가 뭐야?”
+                </p>
+              )}
+              {selectedLlmMode === "paddleocr" && (
+                <p className={styles.llmGuideDesc}>
+                  새 OCR은 LCV-6700 #1·#2의 신규 OCR 문서 5개 전체를 벡터·키워드로 검색하고, 답변에서 인용한 MD의 그림을 표시합니다.
+                  기존 RAG와 비교할 때 같은 모델·페르소나를 선택하고 새 질문으로 실행하세요.
+                </p>
+              )}
+              <p className={styles.llmGuideDesc}>
+                추천질문은 Ollama·vLLM 모델의 현장 작업자·RAG와 준비된 설비의 기술 엔지니어·전기도면 QA에서 사용할 수 있습니다. 추천질문이 모드를 변경하지는 않습니다.
+              </p>
+            </section>
 
-        <MachineInfoPanel
-          machineCode={machineCode}
-          machineInfo={machineInfo}
-          isMainServer={isMainServer}
-        />
+            <MachineInfoPanel
+              machineCode={machineCode}
+              machineInfo={machineInfo}
+              isMainServer={isMainServer}
+            />
+          </div>
+        {showEditor && (
+          <RagPromptEditor factory={factoryId} repair={selectedLlmMode === "repairHistory"} rows={rows} listFailed={listFailed} onSaved={row => setRows(old => [row, ...(old ?? []).filter(r => r.prompt_no !== row.prompt_no)])} selected={draftPromptNo} onSelect={setDraftPromptNo}
+            onDeleted={id => {
+              setRows(old => old?.filter(item => item.prompt_no !== id) ?? null);
+              if (id === promptNo) onDeleteActive?.();
+            }}
+            author={questioner} onEditing={setEditing} />
+        )}
+        </div>
 
         <footer className={styles.modalActions}>
-          <button type="button" className={`${styles.closeButton} ${styles.applyButton}`} onClick={onApply}>
+          <button type="button" className={`${styles.closeButton} ${styles.applyButton}`} disabled={showEditor && editing} onClick={() => onApply(showEditor ? draftPromptNo : null)}>
             설정
           </button>
           <button type="button" className={styles.closeButton} onClick={onClose}>

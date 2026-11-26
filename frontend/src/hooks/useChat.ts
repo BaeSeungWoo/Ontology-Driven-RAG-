@@ -7,6 +7,7 @@ import type { MessageItem, ResolvedDocument } from "@/types/chatApi";
 
 type UseChatParams = {
   selectedSessionId: number | null;
+  promptNo?: number | null;
   onSessionId: (id: number) => void;
   factoryId?: string;
   onDocument?: (document: ResolvedDocument) => void;
@@ -71,7 +72,7 @@ function subscribe(listener: () => void) {
 const snapshot = () => revision;
 const serverSnapshot = () => 0;
 
-export const useChat = ({ selectedSessionId, onSessionId, onDocument, selectedCitation, factoryId = factoryHeaders()["X-Factory-Id"] }: UseChatParams) => {
+export const useChat = ({ selectedSessionId, promptNo, onSessionId, onDocument, selectedCitation, factoryId = factoryHeaders()["X-Factory-Id"] }: UseChatParams) => {
   useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const view = useRef<Conversation>(emptyConversation());
   const [isSessionLoading, setIsSessionLoading] = useState(false);
@@ -157,6 +158,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onDocument, selectedCi
           llm_model: llmModel,
           llm_mode: llmMode,
           llm_persona: personaType,
+          prompt_no: promptNo ?? undefined,
         }, factoryId);
         sessionId = created.session_id;
         if (view.current === conversation) onSessionId(sessionId);
@@ -174,7 +176,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onDocument, selectedCi
     let started;
     try {
       started = await startAnswer(factoryId, llmModel, sessionId, normalizedQuestion, llmMode, personaType, conversation.restoreMemory,
-        undefined, forceNewSession ? undefined : selectedCitation);
+        undefined, forceNewSession ? undefined : selectedCitation, promptNo);
     } catch (err) {
       conversation.error = err instanceof Error ? err.message : "답변을 시작하지 못했습니다.";
       finish(conversation, sessionId);
@@ -285,7 +287,7 @@ export const useChat = ({ selectedSessionId, onSessionId, onDocument, selectedCi
     publish();
     try {
       const started = await startAnswer(factoryId, assistant.model || settings.llmModel, assistant.session_id,
-        user.content, mode, persona, true, assistant.message_id, selectedCitation);
+        user.content, mode, persona, true, assistant.message_id, selectedCitation, promptNo);
       return await observeAnswer(conversation, assistant.session_id, assistant.message_id, String(started.metadata.generation_id), epoch);
     } catch {
       conversation.error = "답변을 다시 시작하지 못했습니다.";
