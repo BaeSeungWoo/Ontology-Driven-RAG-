@@ -39,6 +39,7 @@ export type ResolvedDocument = {
 };
 
 export type CreateSessionPayload = {
+  prompt_no?: number;
   machine_code?: string;
   questioner: string;
   title: string;

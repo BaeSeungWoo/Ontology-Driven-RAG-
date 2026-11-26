@@ -30,6 +30,7 @@ import {
 import styles from "./chat.module.css";
 import personaStyles from "./persona.module.css";
 import { useMachine } from "@/components/machineProvider";
+import { supportsRagPresets } from "@/services/promptApi";
 
 type HistorySessionMeta = Pick<
   HistoryItem,
@@ -54,6 +55,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
   // 내부 state: 세션/설정 상태
   // 기능/목적: 질문자, 프롬프트, LLM 설정, 선택 세션을 질문 전송과 히스토리에 연결한다.
   const [questioner, setQuestioner] = useState(initialQuestioner);
+  const [promptNo, setPromptNo] = useState<number | null>(null);
   const [selectedLlmMode, setSelectedLlmMode] = useState<LlmMode>("rag");
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const { factoryId, setFactoryId, personaType: selectedPersonaType, setPersonaType: setSelectedPersonaType, machineCode: selectedMachineCode, setMachineCode: setSelectedMachineCode, status: machineStatus, selectionStatus, selectionError, refreshMachines, machines, llmModel: selectedLlmModel, setLlmModel: setSelectedLlmModel } = useMachine();
@@ -68,6 +70,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
 
   const { messages, sendQuestion, stopAnswer, retryLastAnswer, loadSessionMessages, resetChatState, pendingSessions, unreadAnswers, markAnswerRead, historyRevision, isLoading, isSessionLoading, error } = useChat({
     selectedSessionId,
+    promptNo,
     selectedCitation: selectedCitation ? { message_id: Number(selectedCitation.messageId), chunk_index: selectedCitation.chunkIndex } : undefined,
     onDocument: document => {
       void handleDocumentOpen({
@@ -176,6 +179,7 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
     setSelectedCitation(null);
     setSelectedSessionId(sessionId);
 
+    setPromptNo(supportsRagPresets(factoryId) && sessionMeta?.promptName && sessionMeta.promptName !== "-" ? sessionMeta.promptNo ?? null : null);
     if (sessionMeta?.questioner && sessionMeta.questioner.trim().length > 0) {
       setQuestioner(sessionMeta.questioner);
     }
@@ -324,6 +328,11 @@ export default function Chat({ initialQuestioner }: { initialQuestioner: string 
             setFactoryId(factory);
           }} />
           <PromptSetting
+            promptNo={promptNo}
+            onSelectPrompt={id => {
+              if (id !== promptNo && selectedSessionId !== null) resetToNewSession();
+              setPromptNo(id);
+            }}
             selectedMachineCode={selectedMachineCode}
             machineSelectionDisabled={isSessionLoading}
             onSelectMachineCode={code => {

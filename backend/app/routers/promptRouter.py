@@ -1,15 +1,20 @@
 ﻿import os
 
-from fastapi import APIRouter, HTTPException, Request
+from pathlib import Path
+
+from pydantic import BaseModel
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.database import database
+from app.core.prompt_manager import PromptManager
 from app.factories.config import get_factory_config
-from app.factories.machines import factory_options, load_machine_info, request_factory
+from app.factories.machines import PROMPT_FACTORIES, factory_options, load_machine_info, request_factory
 from app.core.machine_readiness import machine_readiness
 from pipeline.ingestion.machine_resolver import machine_documents
 from app.security.validate_code import resolve_request_code, session_machine_code
 
 promptRouter = APIRouter(prefix="/api/prompts", tags=["prompts"])
+
 
 
 
@@ -87,7 +92,7 @@ def getPromptList(client_request: Request, machine_code: str | None = None):
 
     selected_code = session_machine_code(ctx, machine_code, machine_info) if machine_code else ctx.request_machine_code
     try:
-        prompt_list = database.getPromptList()
+        prompt_list = database.getPromptList() if ctx.factory_id in PROMPT_FACTORIES else []
         json_data = []
 
         for row in prompt_list:
@@ -113,3 +118,55 @@ def getPromptList(client_request: Request, machine_code: str | None = None):
             status_code=500,
             detail="프롬프트 목록 조회 중 오류가 발생했습니다.",
         )
+
+
+def require_prompt_factory(request: Request):
+    if request_factory(request) not in PROMPT_FACTORIES:
+        raise HTTPException(403, "공용 RAG 프롬프트는 연암·풍산·율곡에서 사용할 수 있습니다.")
+
+
+rag_prompt_router = APIRouter(prefix="/rag", dependencies=[Depends(require_prompt_factory)])
+
+
+def default_rag_rules():
+    path = Path(__file__).resolve().parents[2] / "prompts" / "registry.json"
+    return PromptManager(str(path)).rag_defaults()
+
+
+@rag_prompt_router.get("/default")
+def rag_default():
+    return default_rag_rules()
+
+
+class RagPreset(BaseModel):
+    name: str
+    rules: dict[str, str]
+    author: str
+    prompt_no: int | None = None
+
+
+@rag_prompt_router.post("")
+def save_rag_preset(preset: RagPreset):
+    name = preset.name.strip()
+    if not name or not any(value.strip() for value in preset.rules.values()):
+        raise HTTPException(422, "이름과 지시문을 입력해 주세요.")
+    if preset.rules.keys() != default_rag_rules().keys():
+        raise HTTPException(422, "기본 지시문이 변경되었습니다. 설정을 다시 열어 주세요.")
+    try:
+        number = database.save_rag_prompt(name, preset.rules, preset.author.strip(), preset.prompt_no)
+    except database.PromptConflict as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except UnicodeEncodeError as exc:
+        raise HTTPException(422, "이름에 DB에서 지원하지 않는 문자가 있습니다.") from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return {"prompt_no": number}
+
+
+@rag_prompt_router.delete("/{prompt_no}", status_code=204)
+def delete_rag_preset(prompt_no: int):
+    if not database.delete_rag_prompt(prompt_no):
+        raise HTTPException(404, "이미 삭제되었거나 존재하지 않는 저장본입니다.")
+
+
+promptRouter.include_router(rag_prompt_router)

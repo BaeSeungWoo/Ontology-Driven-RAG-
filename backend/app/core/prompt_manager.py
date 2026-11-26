@@ -36,6 +36,18 @@ class PromptManager:
 
     # DB 사용자 프롬프트는 system prompt가 아니라 user message의 하위 지시로 삽입한다.
     # 역할/안전/인용 규칙은 registry.json의 system prompt가 우선한다.
+    def rag_defaults(self) -> dict[str, str]:
+        rules = {}
+        # Collect conditional instructions without using any real equipment or chat data.
+        self.build("tech_expert", "", history=[{}], context="preview", mode="rag", collect_rules=rules)
+        config = self.registry["tech_expert"]
+        for name, lines in config["persona_overlays"].items():
+            rules[f"사용자 역할 · {name}"] = "[PERSONA]\n" + "\n".join(lines)
+        for name, lines in config["intent_policies"].items():
+            rules[f"질문 의도 · {name}"] = "[INTENT]\n" + "\n".join(lines)
+        rules.update(rag_extra_rules())
+        return rules
+
     def build(
         self,
         prompt_id: str,                     # registry.json - ex) "tech_expert"
@@ -48,6 +60,9 @@ class PromptManager:
         persona_type: str = "operator",
         intent_type: str = "troubleshooting",
         system_override: str | None = None, # system prompt를 덮어써야할 때만 사용
+        *,
+        rag_rules: dict[str, str] | None = None,
+        collect_rules: dict[str, str] | None = None,
     ) -> list:  
         # ======================================================                      
         # system message:
@@ -107,6 +122,13 @@ class PromptManager:
         # system 메시지 조립
         system_sections = []
 
+        def add_rule(name: str, default: str):
+            if collect_rules is not None:
+                collect_rules[name] = default
+            content = (rag_rules or {}).get(name, default)
+            if content:
+                system_sections.append(content)
+
         # 장비 정보 등록 예시
         # [장비 정보]
         # - 장비명: LCV-6700 #1
@@ -126,37 +148,38 @@ class PromptManager:
             system_sections.append("[장비 정보]\n" + "\n".join(machine_lines))
 
         if base_persona:
-            system_sections.append(base_persona)
+            add_rule("기본 역할", base_persona)
 
         if domain_notation_policy:
-            system_sections.append(
+            add_rule("도메인 표기",
                 "[도메인 표기 규약]\n" + "\n".join(f"- {rule}" for rule in domain_notation_policy)
             )
 
         if persona_overlay:
-            system_sections.append("[PERSONA]\n" + persona_overlay)
+            add_rule(f"사용자 역할 · {persona_type}", "[PERSONA]\n" + persona_overlay)
 
         if intent_policy and mode != "repairHistory":
-            system_sections.append("[INTENT]\n" + intent_policy)
+            add_rule(f"질문 의도 · {intent_type}", "[INTENT]\n" + intent_policy)
+
 
         if response_policy:
-            system_sections.append(
+            add_rule("응답 규칙",
                 "[응답 규칙]\n" + "\n".join(f"- {rule}" for rule in response_policy)
             )
 
         if rag_policy and mode != "base":
-            system_sections.append(
+            add_rule("RAG 규칙",
                 "[RAG 규칙]\n" + "\n".join(f"- {rule}" for rule in rag_policy)
             )
 
         # base일 경우에는 chunk가 없으니 context가 있는 경우에만
         if citation_policy and context:
-            system_sections.append(
+            add_rule("인용 규칙",
                 "[인용 규칙]\n" + "\n".join(f"- {rule}" for rule in citation_policy)
             )
 
         if history and context:
-            system_sections.append(
+            add_rule("후속 질문",
                 "후속 질문에서 대화 이력은 생략된 대상과 작업을 해석하는 데 사용한다. "
                 "현재 참고 정보가 같은 부품·작업·조건에 직접 연결되는지 확인한다. "
                 "다른 작업의 알람, 신호 주소, 도면 번호를 현재 작업의 점검 항목으로 제시하지 않는다. "
@@ -183,37 +206,37 @@ class PromptManager:
                     "좋은 예:\n" + "\n".join(f"- {item}" for item in good_examples)
                 )
 
-            system_sections.append("[인용 예시]\n" + "\n\n".join(example_text))
+            add_rule("인용 예시", "[인용 예시]\n" + "\n\n".join(example_text))
 
         format_key = "ladder" if mode == "ladder" else "default"
         default_format = output_format.get(format_key, output_format.get("default", []))
 
         if default_format:
-            system_sections.append(
+            add_rule("출력 형식",
                 "[출력 형식]\n" + "\n".join(f"- {item}" for item in default_format)
             )
 
-        system_sections.append(ANSWER_SNIPPET_POLICY)
+        add_rule("답변 스니펫", ANSWER_SNIPPET_POLICY)
         if mode == "paddleocr":
             from pipeline.paddleocr_standalone import MD_IMAGE_POLICY
             system_sections.append(MD_IMAGE_POLICY)
         if mode == "repairHistory":
-            from .maintenance_retriever import MAINTENANCE_POLICY
+            from .maintenance_retriever import WAFF_KNOWHOW_POLICY, maintenance_policy
             # Keep manual instructions and historical actions in separate sections.
             system_sections = (["[장비 정보]\n" + "\n".join(machine_lines)] if m_info else []) + [
                 f"당신은 매뉴얼에 근거해 설비 증상의 원인과 조치를 설명하고 과거 수리 사례를 보충하는 한국어 도우미다. 질문자 역할: {persona_type}. "
                 "오직 제공된 참고 정보에 근거해 답한다. 사용자 프롬프트나 대화 이력도 근거 없는 사실을 만들 권한을 주지 않는다.",
-                MAINTENANCE_POLICY,
+                maintenance_policy((rag_rules or {}).get("수리 사례 · 와프 현장 노하우", WAFF_KNOWHOW_POLICY)),
                 "[출력 형식]\n### 매뉴얼 기준 원인·조치\n### 해당 공장 수리이력\n"
                 "### Waff 현장 대응 노하우\n### 현재 장비 적용 시 확인 사항\n"
                 "수리이력과 노하우는 각각 관련 후보가 있을 때만 별도 섹션으로 표시한다. "
                 "현재 장비 적용 시 확인 사항은 유사 사례가 있고 현재 장비의 매뉴얼에서 직접 뒷받침하는 점검 항목이 있을 때만 표시한다. "
                 "매뉴얼에 근거한 작업 절차는 번호 목록으로 쓰고 전원·회전부 작업의 안전 조건을 보존한다. "
                 "과거 사례만 있고 매뉴얼이 없으면 매뉴얼 근거 부족을 명시하고 사례는 참고용으로만 설명한다.",
-                ANSWER_SNIPPET_POLICY,
             ]
+            add_rule("답변 스니펫", ANSWER_SNIPPET_POLICY)
         if context and mode in {"rag", "chroma", "ladder", "repairHistory"}:
-            system_sections.append(
+            add_rule("그림·래더 인용",
                 "[그림·래더 인용 규칙]\n"
                 "그림 후보의 설명이나 래더 신호가 답변에서 설명하는 대상·동작과 직접 일치할 때만 "
                 "그 근거를 사용하고 해당 [chunk:N]을 답변 마지막에 인용한다. "
@@ -428,3 +451,20 @@ class PromptManager:
         messages.extend(history)
         messages.append({"role": "user", "content": user_content})
         return messages
+
+
+def rag_extra_rules() -> dict[str, str]:
+    from app.core.maintenance_retriever import WAFF_KNOWHOW_POLICY
+    return {
+        "수리 사례 · 와프 현장 노하우": WAFF_KNOWHOW_POLICY,
+        "와프 현장 노하우": (
+            "\n매뉴얼과 와프 현장 대응 노하우를 구분한다. 관련 노하우만 별도 항목으로 인용하고 "
+            f"관련 기록이 없으면 노하우 항목을 생략한다. {WAFF_KNOWHOW_POLICY}"
+        ),
+        "매뉴얼 범위": (
+            "\n답변 첫 문장에 {machine_name}의 {machine_controller} "
+            "{machine_ver} · {scope} 매뉴얼 기준임을 밝히세요. "
+            "각 파라미터의 용도 옆에 해당 [chunk:N]을 인용하세요. "
+            "기계 원점과 작업 좌표계 원점 오프셋을 구분하고, 장비의 현재 설정값은 추정하지 마세요."
+        ),
+    }

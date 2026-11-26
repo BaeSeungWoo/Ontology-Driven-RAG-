@@ -10,6 +10,9 @@ DATA_ROOT = Path(__file__).resolve().parents[3] / "pipeline/data"
 load_dotenv(Path(__file__).resolve().parents[1] / ".env.back")
 
 
+PROMPT_FACTORIES = {"yunam", "poongsan", "yulkok"}
+
+
 def factory_ids():
     ids = [key.strip() for key in os.environ.get("FACTORY_IDS", "").split(",")]
     if any(not re.fullmatch(r"[a-z0-9][a-z0-9_-]*", key) for key in ids) or len(set(ids)) != len(ids):

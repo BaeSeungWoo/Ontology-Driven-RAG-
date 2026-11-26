@@ -151,7 +151,7 @@
 .modal {
   width: min(760px, calc(100vw - 32px));
   max-height: calc(100dvh - 4px);
-  overflow: hidden;
+  overflow-y: auto;
   background: var(--chat-page-bg);
   border: 1px solid var(--chat-pane-border);
   border-radius: 6px;
@@ -412,3 +412,94 @@
 }
 
 
+
+.ragModal {
+  width: min(1600px, 100%);
+  height: min(840px, calc(100dvh - 32px));
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  padding: 12px;
+  gap: 8px;
+}
+.columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(205px, .54fr) minmax(0, 1.35fr);
+  gap: 12px;
+  min-height: 0;
+}
+.settingsColumn, .promptList, .ragEditor { min-width: 0; }
+.columns .settingsColumn { overflow: auto; }
+.promptList, .ragEditor {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 8px;
+  background: var(--chat-pane-bg);
+  color: var(--chat-text-color);
+}
+.promptList h4, .ragEditor h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--chat-title-color);
+}
+.promptList label, .ragEditor label {
+  display: grid;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.promptList select, .ragEditor input, .ragEditor textarea {
+  width: 100%;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 5px;
+  padding: 7px;
+  background: var(--chat-page-bg);
+  color: var(--chat-text-color);
+}
+.ruleList, .ragEditor { overflow-y: auto; }
+.flowNote { font-size: 12px; color: var(--chat-muted-text); }
+.ruleList { margin: 0; padding: 0 4px 0 0; list-style: none; }
+.ruleList li { padding: 8px; border: 1px solid var(--chat-pane-border); border-radius: 6px; }
+.ruleList li + li { margin-top: 16px; position: relative; }
+.ruleList li + li::before {
+  content: "↓";
+  position: absolute;
+  inset: -17px auto auto 12px;
+  line-height: 16px;
+  color: var(--chat-muted-text);
+}
+.ruleList h5 { font-weight: 700; font-size: 13px; margin-bottom: 6px; }
+.ruleList small { margin-left: 6px; font-weight: 400; color: var(--chat-muted-text); }
+.branches, .sequence { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+.sequence button:not(:last-child)::after { content: " →"; color: var(--chat-muted-text); }
+.ruleList button {
+  padding: 4px 7px;
+  border: 1px solid var(--chat-pane-border);
+  border-radius: 5px;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+.ruleList button:hover { background: var(--chat-page-bg); }
+.ruleList button[aria-pressed="true"] {
+  border-color: var(--chat-accent, #1b5e9e);
+  background: var(--chat-page-bg);
+  color: var(--chat-title-color);
+  font-weight: 700;
+}
+.ruleList button[data-modified="true"] {
+  background: color-mix(in srgb, #eaa929 28%, var(--chat-pane-bg));
+}
+.ragEditor textarea { flex: 1; min-height: 160px; resize: none; font-size: 15px; line-height: 1.65; }
+.editorActions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+.ragModal button:disabled { opacity: .55; cursor: default; }
+
+@media (max-width: 900px) {
+  .columns { display: flex; flex-direction: column; overflow-y: auto; }
+  .columns .settingsColumn, .promptList, .ragEditor { flex: none; overflow: visible; }
+  .ruleList { max-height: 180px; }
+  .ragEditor textarea { min-height: 260px; }
+}

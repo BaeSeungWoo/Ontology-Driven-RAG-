@@ -17,7 +17,7 @@ from app.core.retriever import (
     LadderRetriever,
     MultimodalRetriever,
 )
-from app.core.prompt_manager import PromptManager
+from app.core.prompt_manager import PromptManager, rag_extra_rules
 from app.core.question_recommendations import InitialQuestionCache
 from app.core.cms_context import build_cms_context, cms_answer_policy
 from app.core.cms_report_chat import answer_demo_report_question
@@ -112,6 +112,7 @@ class RAGService:
         user_prompt: str | None = None,
         persona_type: str = "operator",
         restore_memory: bool = False,
+        rag_rules: dict[str, str] | None = None,
     ) -> tuple[list, list, list, list, dict]:
 
         if mode == "cms" and persona_type != "manager":
@@ -172,6 +173,7 @@ class RAGService:
             context=context,
             mode=mode,
             user_prompt=user_prompt,
+            rag_rules=rag_rules,
             persona_type=persona_type,
             m_info=m_info,
             intent_type=intent["type"],
@@ -188,13 +190,10 @@ class RAGService:
             messages[0]["content"] += "\n\n[CMS 응답 규칙]\n" + cms_answer_policy()
 
         if chunks and chunks[0].get("manual_scope"):
-            scope = chunks[0]["manual_scope"]
-            messages[0]["content"] += (
-                f"\n답변 첫 문장에 {m_info['machine_name']}의 {m_info['machine_controller']} "
-                f"{m_info['machine_ver']} · {scope} 매뉴얼 기준임을 밝히세요. "
-                "각 파라미터의 용도 옆에 해당 [chunk:N]을 인용하세요. "
-                "기계 원점과 작업 좌표계 원점 오프셋을 구분하고, 장비의 현재 설정값은 추정하지 마세요."
-            )
+            rule = (rag_rules or {}).get("매뉴얼 범위", rag_extra_rules()["매뉴얼 범위"])
+            for key, value in {**m_info, "scope": chunks[0]["manual_scope"]}.items():
+                rule = rule.replace("{" + key + "}", str(value))
+            messages[0]["content"] += rule
         return messages, imgs, tables, chunks, intent
 
     # Chat에서 실제 사용하는 정식 스트리밍 함수
@@ -210,6 +209,7 @@ class RAGService:
         user_prompt: str | None = None,
         persona_type: str = "operator",
         restore_memory: bool = False,
+        rag_rules: dict[str, str] | None = None,
     ):
         if mode == "electrical":
             from app.core.electrical_qa import stream_electrical, append_manual_evidence
@@ -250,6 +250,7 @@ class RAGService:
             user_prompt=user_prompt,
             persona_type=persona_type,
             restore_memory=restore_memory,
+            rag_rules=rag_rules,
             effective_machine_code=effective_machine_code
         )
 
@@ -735,6 +736,7 @@ class JudgeRAGService(RAGService):
         persona_type: str = "operator",
         user_prompt: str | None = None,
         restore_memory: bool = False,
+        rag_rules: dict[str, str] | None = None,
     ):
         if not self._is_judge_mode(mode):
             async for event in super().ask_stream(
@@ -746,6 +748,7 @@ class JudgeRAGService(RAGService):
                 user_prompt=user_prompt,
                 persona_type=persona_type,
                 restore_memory=restore_memory,
+                rag_rules=rag_rules,
             ):
                 yield event
             return

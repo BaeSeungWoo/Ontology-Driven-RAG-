@@ -20,7 +20,7 @@ if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
 from app.factories.config import CONFIGS, get_factory_config
-from app.factories.machines import request_factory
+from app.factories.machines import PROMPT_FACTORIES, request_factory
 from app.core.memory_manager import completed_history
 from app.core import answer_jobs
 from app.core.document_action import document_reply
@@ -205,8 +205,25 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
     require_machine_ready(effective_machine_code, service.config, service.config.machines, request.mode, request.persona_type)
     # 프론트에서는 prompt_no만 전달하고, 실제 사용자 프롬프트 원문은 서버에서 DB 기준으로 조회한다.
     user_prompt = None
+    rag_rules = None
     if request.prompt_no is not None:
-        user_prompt = database.getUserPrompt(request.prompt_no)
+        stored = database.getUserPrompt(request.prompt_no)
+        if stored is None:
+            raise HTTPException(404, "선택한 프롬프트를 불러올 수 없습니다.")
+        try:
+            preset = json.loads(stored)
+        except ValueError:
+            preset = None
+        if isinstance(preset, dict) and "rag_rules" in preset:
+            if ctx.factory_id not in PROMPT_FACTORIES or not (
+                request.mode == "rag" or (request.mode == "repairHistory" and request.persona_type == "operator")
+            ):
+                raise HTTPException(422, "현재 공장과 모드에서는 RAG 저장본을 적용할 수 없습니다.")
+            rag_rules = preset["rag_rules"]
+            if not isinstance(rag_rules, dict) or not all(isinstance(v, str) for v in rag_rules.values()):
+                raise HTTPException(409, "RAG 지시문 형식이 아닙니다. 설정에서 다시 선택해 주세요.")
+        else:
+            user_prompt = stored
 
     async def answer_events():
         reply = await document_reply(service, request, effective_machine_code, ASSET_ROOT, database.documentHistory)
@@ -222,6 +239,7 @@ async def chat_endpoint(factory_id: str, request: ChatRequest, client_request: R
             prompt_id=request.prompt_id,
             persona_type=request.persona_type,
             user_prompt=user_prompt,
+            rag_rules=rag_rules,
             restore_memory=request.restore_memory,
             effective_machine_code=effective_machine_code
         )

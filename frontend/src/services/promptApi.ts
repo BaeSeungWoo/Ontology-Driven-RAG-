@@ -79,3 +79,27 @@ export async function updatePrompt(payload: UpdatePromptPayload): Promise<Prompt
   const response = await api.put<PromptRow>(`/api/prompts/${payload.prompt_no}`, payload);
   return response.data;
 }
+
+export type RagRules = Record<string, string>;
+
+export async function getDefaultRagRules() {
+  return (await api.get<RagRules>("/api/prompts/rag/default")).data;
+}
+
+export async function saveRagPreset(name: string, rules: RagRules, author: string, promptNo?: number) {
+  return (await api.post<{ prompt_no: number }>("/api/prompts/rag", {
+    name, rules, author, prompt_no: promptNo,
+  })).data.prompt_no;
+}
+
+export async function deleteRagPreset(id: number) {
+  await api.delete(`/api/prompts/rag/${id}`);
+}
+
+export function supportsRagPresets(factory: string) {
+  return ["yunam", "poongsan", "yulkok"].includes(factory);
+}
+
+export function canUseRagPreset(factory: string, mode: string, persona: string) {
+  return supportsRagPresets(factory) && (mode === "rag" || (mode === "repairHistory" && persona === "operator"));
+}

@@ -14,6 +14,8 @@ type PromptSettingProps = {
   selectedMachineCode?: string;
   onSelectMachineCode: (code: string) => void;
   machineSelectionDisabled?: boolean;
+  promptNo?: number | null;
+  onSelectPrompt?: (id: number | null) => void;
   questioner: string;
   onQuestionerChange: (value: string) => void;
   selectedLlmModel: LlmModel;
@@ -30,6 +32,8 @@ export default function PromptSetting({
   selectedMachineCode,
   onSelectMachineCode,
   machineSelectionDisabled,
+  promptNo,
+  onSelectPrompt,
   questioner,
   onQuestionerChange,
   selectedLlmModel,
@@ -67,7 +71,8 @@ export default function PromptSetting({
     onClose?.();
   };
 
-  const handleApplyModal = () => {
+  const handleApplyModal = (id: number | null) => {
+    onSelectPrompt?.(id);
     onSelectLlmModel(draftModel);
     onSelectLlmMode(draftMode);
     onSelectPersonaType(draftPersona);
@@ -129,6 +134,9 @@ export default function PromptSetting({
 
       {isOpen && (
         <PromptListModal
+          promptNo={promptNo}
+          onDeleteActive={() => onSelectPrompt?.(null)}
+          questioner={questioner}
           selectedMachineCode={selectedMachineCode}
           onClose={handleCloseModal}
           onApply={handleApplyModal}
