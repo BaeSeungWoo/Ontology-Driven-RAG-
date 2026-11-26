@@ -35,7 +35,7 @@ def resolve_build_config(factory_id: str, model_config: str | None = None):
 def build(factory_id: str, reset: bool = False, *, model_config: str | None = None,
           maintenance_only: bool = False,
           workbook: str | None = None, tacit: str | None = None,
-          stage: str = "all", output_root: str | None = None,
+          stage: str = "all", output_root: str | None = None, skip_faiss: bool = False,
           embedding_provider: str | None = None, embedding_url: str | None = None,
           paddleocr_zip: str | None = None, docling_zip: str | None = None) -> None:
     if reset:
@@ -52,10 +52,10 @@ def build(factory_id: str, reset: bool = False, *, model_config: str | None = No
     destination = Path(output_root).resolve() if output_root else root
     root.mkdir(parents=True, exist_ok=True)
     with FileLock(str(root / ".manual-build.lock"), timeout=0):
-        _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip)
+        _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip, skip_faiss)
 
 
-def _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip):
+def _build_locked(config, root, destination, stage, maintenance_only, workbook, tacit, paddleocr_zip, docling_zip, skip_faiss):
     if paddleocr_zip:
         if stage not in {"prepare", "all"} or maintenance_only:
             raise ValueError("--paddleocr-zip은 prepare/all 단계에서 사용하세요.")
@@ -126,10 +126,7 @@ def _build_locked(config, root, destination, stage, maintenance_only, workbook, 
         return
 
     from pipeline.ingestion.sync_indexes import sync_indexes
-    from pipeline.ingestion.document_graph import sync_graph
-    sync_indexes(config, chunks, destination)
-    if stage == "all":
-        sync_graph(root, destination, chunks)
+    sync_indexes(config, chunks, destination, skip_faiss=skip_faiss)
     build_sources(config, workbook, tacit)
     print(f"공용 인덱스 생성 완료: {destination} ({len(chunks)} chunks)")
 
@@ -150,13 +147,14 @@ def main(argv=None):
     parser.add_argument("--docling-zip", help="원본을 보존하며 inputs/extracted/docling에 가져올 ZIP")
     parser.add_argument("--reset", action="store_true", help="사용 불가: 기존 데이터 보존을 위해 거부")
     parser.add_argument("--maintenance-only", action="store_true")
+    parser.add_argument("--skip-faiss", action="store_true", help="FAISS 인덱스와 전용 parquet 생성을 생략")
     parser.add_argument("--workbook", help="수리이력 XLS (기본: inputs/repairHistory/*.xls)")
     parser.add_argument("--tacit", help="암묵지 TXT (기본: inputs/knowledge/*.txt)")
     args = parser.parse_args(argv)
     build(factory_id=args.factory, model_config=args.model_config, reset=args.reset, maintenance_only=args.maintenance_only,
           workbook=args.workbook, tacit=args.tacit, stage=args.stage, output_root=args.output_root,
           paddleocr_zip=args.paddleocr_zip, docling_zip=args.docling_zip,
-          embedding_provider=args.embedding_provider, embedding_url=args.embedding_url)
+          embedding_provider=args.embedding_provider, embedding_url=args.embedding_url, skip_faiss=args.skip_faiss)
 
 
 if __name__ == "__main__":

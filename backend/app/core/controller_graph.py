@@ -1,14 +1,20 @@
-"""Search the delivered GraphIndexing integrated FANUC graph for legacy Yunam M005."""
+"""Search the selected equipment group in a factory graph delivery."""
 from functools import lru_cache
 from hashlib import sha256
 import json
-import os
 from pathlib import Path
 import re
-from threading import Lock
 from pydantic import BaseModel
 
-from .knowledge_graph import ROOT, KnowledgeGraphConfigurationError, KnowledgeGraphSearchError
+ROOT = Path(__file__).resolve().parents[3]
+
+
+class KnowledgeGraphConfigurationError(RuntimeError):
+    """The delivered index is unavailable or invalid."""
+
+
+class KnowledgeGraphSearchError(RuntimeError):
+    """The configured model could not prepare the search."""
 
 
 @lru_cache(maxsize=1)
@@ -22,11 +28,9 @@ def _load(directory):
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf8"))
     graph = directory / manifest["graph"]
     adjacency = sparse.load_npz(graph / "integrated_adjacency.npz").tocsr()
-    model = directory / manifest["hipporag_model_dir"]
 
     def content(kind):
-        projection = directory / f"{kind}_content.parquet"
-        path = projection if projection.exists() else model / f"{kind}_embeddings/vdb_{kind}.parquet"
+        path = directory / f"{kind}_content.parquet"
         return pq.read_table(path, columns=["content"])["content"].to_pylist()
 
     corpus = json.loads((directory / manifest["text_corpus"]).read_text(encoding="utf8"))
@@ -63,92 +67,6 @@ def _load(directory):
     transition = normalize(adjacency.astype(np.float32), norm="l1", axis=1, copy=False)
     return nodes, contexts, vectorizer, terms, transition, dict(
         entities=len(entities), passages=len(passages), tables=len(tables))
-
-
-def _node_title(titles, blocks, fallback):
-    # Some PDF outline strings contain binary control characters even when the page text is intact.
-    def readable(text):
-        return not re.search(r"[\x00-\x08\x0b-\x1f\x7f-\x9f\ufffd]", text)
-
-    valid = [title for title in titles if title.strip() and readable(title)]
-    if valid:
-        return " · ".join(valid)
-    if any(titles):
-        for block in blocks:
-            for line in block.splitlines():
-                if line.strip() and readable(line):
-                    return line.strip()[:120]
-    return fallback
-
-
-def _coordinate_rows(content):
-    """Decode the Rn | Cn: text representation used by controller manuals."""
-    rows = []
-    for line in content.strip().splitlines():
-        match = re.fullmatch(r"R\d+\s*\|\s*C(\d+):\s*(.*)", line.strip())
-        if not match:
-            return None
-        fields = [match[1], *re.split(r"\s*\|\s*C(\d+):\s*", match[2])]
-        row = []
-        for column, value in zip(fields[::2], fields[1::2]):
-            index = int(column)
-            if index < len(row):
-                return None
-            row.extend({"text": ""} for _ in range(index - len(row)))
-            row.append({"text": value.strip()})
-        rows.append(row)
-    return rows
-
-
-@lru_cache(maxsize=8)
-def _equipment_index(path, modified):
-    import numpy as np
-    from scipy import sparse
-    from sklearn.feature_extraction.text import TfidfVectorizer
-    from sklearn.preprocessing import normalize
-
-    data = json.loads(path.read_text(encoding="utf8"))
-    nodes, page_ids, links = {}, {}, []
-    for page in sorted(data["pages"], key=lambda item: item["page"]):
-        number = page["page"]
-        node = len(nodes)
-        page_ids[number] = node
-        nodes[node] = dict(kind="passage", label=_node_title(page["titles"], page["blocks"], f"본문 {number}"),
-                           content="\n".join(page["blocks"]), pages=str(number), document=data["document"])
-        if number - 1 in page_ids:
-            links.append((page_ids[number - 1], node))
-    for table in data["tables"]:
-        node = len(nodes)
-        content, rows = table["content"], table.get("rows")
-        if re.search(r"<(?:table|tr)\b", content, re.I):
-            if not rows:
-                from bs4 import BeautifulSoup
-                markup = BeautifulSoup(content, "html.parser")
-                rows = [[dict(text=cell.get_text(" ", strip=True),
-                              rowspan=int(cell.get("rowspan") or 1), colspan=int(cell.get("colspan") or 1))
-                         for cell in tr.find_all(["th", "td"], recursive=False)] for tr in markup.select("tr")]
-                rows = [row for row in rows if row]
-        elif not rows:
-            rows = _coordinate_rows(content)
-        if rows:
-            content = "\n".join(" | ".join(cell["text"] for cell in row) for row in rows)
-        label = _node_title([table["label"]], [], f"표 {table['page']}")
-        nodes[node] = dict(kind="table", label=label, content=content, rows=rows,
-                           pages=str(table["page"]), document=data["document"])
-        links.append((page_ids[table["page"]], node))
-    left, right = zip(*links) if links else ((), ())
-    adjacency = sparse.csr_matrix((np.ones(2 * len(links), dtype=np.float32),
-                                   (left + right, right + left)), shape=(len(nodes), len(nodes)))
-    max_length = max((len(node["content"].strip()) for node in nodes.values()), default=0)
-    vectorizer = TfidfVectorizer(analyzer="char", ngram_range=(min(2, max(1, max_length)), 4),
-                                 sublinear_tf=True, dtype=np.float32)
-    contexts = np.array([i for i, node in nodes.items() if node["content"].strip()])
-    # Dot-leader entries repeat procedure titles in the contents pages.
-    terms = vectorizer.fit_transform(
-        re.sub(r"(?m)^.*\.{3,}\s*[\d-]+\s*$", "", nodes[i]["content"]) for i in contexts
-    )
-    return (nodes, contexts, vectorizer, terms, normalize(adjacency, norm="l1"),
-            dict(entities=0, passages=len(page_ids), tables=len(data["tables"])))
 
 
 class ManualQuery(BaseModel):
@@ -256,73 +174,34 @@ def _search_terms(question, model_key):
     return scope, ko, question + " " + plan["en"], code, symptom, fault_terms("ko"), fault_terms("en"), None
 
 
-
-
-_search_lock = Lock()
-
-
-def controller_graph(question, model_key):
-    with _search_lock:
-        equipment = ROOT / "backend/data/graph_indexes/yunam_origin/M005/dhf8000.json"
-        return _controller_graph(question, model_key, equipment, equipment.stat().st_mtime_ns if equipment.exists() else None)
-
-
-@lru_cache(maxsize=8)
-def _controller_graph(question, model_key, equipment, modified):
-    directory = Path(os.getenv("GRAPH_INDEX_M005_CONTROLLER_DIR") or
-                     ROOT / "backend/data/graph_indexes/yunam_origin/M005/controller_manuals")
-    try:
-        controller = _load(directory)
-        machine = _equipment_index(equipment, modified) if modified is not None else None
-    except (ImportError, OSError, KeyError, ValueError) as exc:
-        raise KnowledgeGraphConfigurationError("FANUC GraphIndexing 인덱스를 읽지 못했습니다.") from exc
-    try:
-        scope, korean_query, english_query, code, symptom, korean_fault, english_fault, item_query = _search_terms(question, model_key)
-    except Exception as exc:
-        raise KnowledgeGraphSearchError("영문 매뉴얼 검색어를 생성하지 못했습니다.") from exc
-    datasets, sources = [], []
-    if machine:
-        dataset, evidence = _rank(machine, question, korean_query, "dhf8000", "DHF8000 장비 조작설명서", 0, scope, code, korean_fault, item_query)
-        datasets.append(dataset)
-        sources.extend(evidence)
-    dataset, evidence = _rank(controller, question, english_query, "fanuc", "FANUC 제어기 매뉴얼", len(sources), scope, code, english_fault, item_query)
-    datasets.append(dataset)
-    sources.extend(evidence)
-    return dict(scope=scope, items=item_query[0] if item_query else {}, symptom=symptom, alarm=code, targets={"dhf8000": korean_fault[0], "fanuc": english_fault[0]},
-                question=question, corpora=[d["id"] for d in datasets], sources=sources,
-                snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
-                datasets=datasets)
-
-
 def factory_graph(question, model_key, factory_id, machine):
-    folder = ROOT / "pipeline/data" / factory_id / "graph"
-    path = folder / "catalog.json"
-    if not path.exists():
-        return None
-    catalog = json.loads(path.read_text(encoding="utf8"))
-    ids = catalog["machines"].get(machine, [])
-    return _factory_graph(question, model_key, folder, tuple((key, catalog["documents"][key]) for key in ids))
+    delivery = ROOT / "pipeline/data" / factory_id / "graph/delivery"
+    try:
+        group = json.loads((delivery / "machines.json").read_text(encoding="utf8")).get(machine)
+    except (OSError, ValueError, AttributeError) as exc:
+        raise KnowledgeGraphConfigurationError(f"{factory_id} 장비별 그래프 목록을 읽지 못했습니다.") from exc
+    return _factory_graph(question, model_key, delivery, machine, group)
 
 
 @lru_cache(maxsize=8)
-def _factory_graph(question, model_key, folder, documents):
-    datasets, sources, targets = [], [], {}
+def _factory_graph(question, model_key, delivery, machine, group):
+    if not group:
+        return dict(scope="other", items={}, symptom="", alarm="", targets={}, question=question,
+                    corpora=[], sources=[], datasets=[],
+                    snapshot=sha256(json.dumps([question, []]).encode()).hexdigest())
+    try:
+        index = _load(delivery / group)
+    except (ImportError, OSError, KeyError, ValueError) as exc:
+        raise KnowledgeGraphConfigurationError(f"{machine}/{group} 그래프를 읽지 못했습니다.") from exc
     try:
         scope, ko, en, code, symptom, ko_fault, en_fault, item_query = _search_terms(question, model_key)
     except Exception as exc:
         raise KnowledgeGraphSearchError("매뉴얼 검색어를 생성하지 못했습니다.") from exc
     fault = tuple(list(a) + list(b) for a, b in zip(ko_fault, en_fault))
-    for key, name in documents:
-        path = folder / "documents" / (key + ".json")
-        index = _equipment_index(path, key)
-        dataset, evidence = _rank(index, question, ko + " " + en, name, name, len(sources), scope, code, fault, item_query)
-        datasets.append(dataset)
-        sources.extend(evidence)
-        targets[name] = fault[0]
-    return dict(scope=scope, items=item_query[0] if item_query else {}, symptom=symptom, alarm=code, targets=targets,
-                question=question, corpora=[d["id"] for d in datasets], sources=sources,
-                snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(),
-                datasets=datasets)
+    dataset, sources = _rank(index, question, ko + " " + en, group, f"{machine} 매뉴얼", scope, code, fault, item_query)
+    return dict(scope=scope, items=item_query[0] if item_query else {}, symptom=symptom, alarm=code,
+                targets={group: fault[0]}, question=question, corpora=[group], sources=sources,
+                snapshot=sha256(json.dumps([question, sources]).encode()).hexdigest(), datasets=[dataset])
 
 
 def _term_pattern(terms):
@@ -368,7 +247,7 @@ def _action_column(rows, target):
     return ""
 
 
-def _rank(index, question, query, corpus, title, start, scope, code, fault, item_query=None):
+def _rank(index, question, query, corpus, title, scope, code, fault, item_query=None):
     import numpy as np
     nodes, contexts, vectorizer, terms, transition, counts = index
     weights = (terms @ vectorizer.transform([query]).T).toarray().ravel()
@@ -381,10 +260,6 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault, item
         for pos, i in enumerate(contexts):
             body = nodes[i]["content"]
             match = pattern.search(body)
-            if match and corpus == "fanuc":
-                nearby = body[max(0, match.start()-120):match.end()+120]
-                if not re.search(r"alarm|\bALM\b", nearby, re.I):
-                    match = None
             if match:
                 weights[pos] += 1
                 if nodes[i]["kind"] == "table":
@@ -490,8 +365,7 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault, item
                 blocks.append("\n".join(lines))
                 excerpts[i] = blocks[-1][:1100]
         if blocks:
-            general_query = (query + " 기계 가동 중지 관리 책임자 문제 해결 후 가동 긴급 정지"
-                             if corpus == "dhf8000" else query + " stop the machine abnormal condition emergency stop")
+            general_query = query + " stop the machine abnormal condition emergency stop"
             similarities = vectorizer.transform(blocks) @ vectorizer.transform([general_query]).T
             weights[owners] = similarities.toarray().ravel()
     if item_query:
@@ -571,7 +445,7 @@ def _rank(index, question, query, corpus, title, start, scope, code, fault, item
     dataset = dict(id=corpus, title=title, question=question, nodes=graph_nodes,
         edges=edges, index_counts=counts, views=dict(overall=overall,
         dense=view(["query", *map(str, direct)]), ppr=view(list(map(str, final)))))
-    sources = [dict(index=start+n, corpus=corpus, kind=nodes[i]["kind"], node_id=str(i), document_name=nodes[i]["document"],
+    sources = [dict(index=n, corpus=corpus, kind=nodes[i]["kind"], node_id=str(i), document_name=nodes[i]["document"],
                     page=str(nodes[i]["pages"]), excerpt=excerpts.get(i, nodes[i]["content"][:1100]))
                for n, i in enumerate(final, 1)]
     for source, node_id in zip(sources, final):
